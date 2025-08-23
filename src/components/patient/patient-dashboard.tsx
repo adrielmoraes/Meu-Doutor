@@ -1,12 +1,27 @@
 
 
-import { Video, FileClock, Upload, UserPlus, HeartPulse } from "lucide-react";
+import { FileClock, UserPlus, HeartPulse } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import AIConsultationCard from "./ai-consultation-card";
 import ExamUploadCard from "./exam-upload-card";
+import HealthGoalsPanel from "./health-goals-panel";
+import { getPatientById } from "@/lib/firestore-adapter";
+import { generateHealthInsights } from "@/ai/flows/generate-health-insights";
 
-const PatientDashboard = () => {
+// This should be replaced with the authenticated user's ID
+const MOCK_PATIENT_ID = '1';
+
+const PatientDashboard = async () => {
+  const patient = await getPatientById(MOCK_PATIENT_ID);
+  
+  // We only generate insights if there's a validated diagnosis to work with.
+  const healthInsights = patient && patient.status === 'Validado' && patient.doctorNotes ? 
+    await generateHealthInsights({
+      patientHistory: patient.conversationHistory || "Nenhum histórico.",
+      validatedDiagnosis: patient.doctorNotes,
+    }) : null;
+
   const cards = [
     {
       title: "Histórico e Análise de Exames",
@@ -39,10 +54,15 @@ const PatientDashboard = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Main interactive cards */}
         <AIConsultationCard />
         <ExamUploadCard />
 
+        {/* Health Goals Panel takes up more space if available */}
+        {healthInsights && <HealthGoalsPanel insights={healthInsights} />}
+
+        {/* Other navigation cards */}
         {cards.map((card) => (
           <Card
             key={card.title}

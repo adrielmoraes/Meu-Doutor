@@ -11,13 +11,13 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { nutritionistAgent } from './nutritionist-agent';
 
-export const GenerateWellnessPlanInputSchema = z.object({
+const GenerateWellnessPlanInputSchema = z.object({
     patientHistory: z.string().describe("A summary of the patient's medical history and current conditions."),
     examResults: z.string().describe('A summary of the latest exam results.'),
 });
 export type GenerateWellnessPlanInput = z.infer<typeof GenerateWellnessPlanInputSchema>;
 
-export const GenerateWellnessPlanOutputSchema = z.object({
+const GenerateWellnessPlanOutputSchema = z.object({
   dietaryPlan: z.string().describe("A detailed, actionable dietary plan. Should include meal suggestions and foods to include/avoid."),
   exercisePlan: z.string().describe("A simple, safe exercise and physical activity plan suitable for the patient's condition."),
   mentalWellnessPlan: z.string().describe("Recommendations for managing stress, improving sleep, and other mental well-being practices."),
@@ -53,7 +53,14 @@ const wellnessPlanPrompt = ai.definePrompt({
 });
 
 
-export const generateWellnessPlan = ai.defineFlow(
+export async function generateWellnessPlan(
+    input: GenerateWellnessPlanInput
+): Promise<GenerateWellnessPlanOutput> {
+    return generateWellnessPlanFlow(input);
+}
+
+
+const generateWellnessPlanFlow = ai.defineFlow(
     {
       name: 'generateWellnessPlanFlow',
       inputSchema: GenerateWellnessPlanInputSchema,
