@@ -1,6 +1,6 @@
 
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
 import type { Patient, Doctor, Exam } from '@/types';
 
 export async function getPatients(): Promise<Patient[]> {
@@ -18,6 +18,12 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     }
     return null;
 }
+
+export async function updatePatient(id: string, data: Partial<Patient>): Promise<void> {
+    const patientDocRef = doc(db, 'patients', id);
+    await updateDoc(patientDocRef, data);
+}
+
 
 export async function getDoctors(): Promise<Doctor[]> {
     const doctorsCol = collection(db, 'doctors');

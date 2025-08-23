@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -10,6 +11,8 @@ import { Bot, FileText, User, Pen, CheckCircle, Send, Loader2 } from "lucide-rea
 import type { GeneratePreliminaryDiagnosisOutput } from "@/ai/flows/generate-preliminary-diagnosis";
 import { useToast } from "@/hooks/use-toast";
 import type { Patient } from "@/types";
+import { validateDiagnosisAction, saveDraftNotesAction } from "@/app/doctor/patients/[id]/actions";
+import { Badge } from "../ui/badge";
 
 type PatientDetailViewProps = {
   patient: Patient;
@@ -22,51 +25,62 @@ export default function PatientDetailView({
   summary,
   diagnosis,
 }: PatientDetailViewProps) {
-  const [doctorNotes, setDoctorNotes] = useState(`${diagnosis.diagnosis}\n\nPrescrição:`);
+  const [doctorNotes, setDoctorNotes] = useState(patient.doctorNotes || `${diagnosis.diagnosis}\n\nPrescrição:`);
   const [isSaving, setIsSaving] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
 
-  const handleSaveDraft = () => {
+  const handleSaveDraft = async () => {
     setIsSaving(true);
-    setTimeout(() => {
-      // Em uma aplicação real, aqui você salvaria no banco de dados.
-      console.log("Draft saved:", doctorNotes);
+    const result = await saveDraftNotesAction(patient.id, doctorNotes);
+    if (result.success) {
       toast({
         title: "Rascunho Salvo",
-        description: "Suas anotações foram salvas com sucesso.",
+        description: result.message,
       });
-      setIsSaving(false);
-    }, 1000);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Erro ao Salvar",
+        description: result.message,
+      });
+    }
+    setIsSaving(false);
   };
 
-  const handleValidateDiagnosis = () => {
+  const handleValidateDiagnosis = async () => {
     setIsValidating(true);
-    setTimeout(() => {
-      // Em uma aplicação real, aqui você marcaria o diagnóstico como validado.
-      console.log("Diagnosis validated:", doctorNotes);
+    const result = await validateDiagnosisAction(patient.id, doctorNotes);
+     if (result.success) {
       toast({
         title: "Diagnóstico Validado",
         description: `O diagnóstico para ${patient.name} foi validado.`,
         className: "bg-green-100 text-green-800",
       });
-      setIsValidating(false);
-    }, 1500);
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Erro ao Validar",
+            description: result.message,
+        });
+    }
+    setIsValidating(false);
   };
 
   const handleSendToPatient = () => {
     setIsSending(true);
-    setTimeout(() => {
-      // Em uma aplicação real, aqui você enviaria uma notificação ao paciente.
-      console.log("Sending to patient:", doctorNotes);
-      toast({
-        title: "Enviado ao Paciente",
-        description: `O diagnóstico final foi enviado para ${patient.name}.`,
-        className: "bg-blue-100 text-blue-800",
-      });
-      setIsSending(false);
-    }, 1000);
+    // Primeiro, salva as notas mais recentes.
+    saveDraftNotesAction(patient.id, doctorNotes).then(() => {
+        // Em uma aplicação real, aqui você enviaria uma notificação ao paciente.
+        console.log("Sending to patient:", doctorNotes);
+        toast({
+            title: "Enviado ao Paciente",
+            description: `O diagnóstico final foi enviado para ${patient.name}.`,
+            className: "bg-blue-100 text-blue-800",
+        });
+        setIsSending(false);
+    });
   };
 
   return (
@@ -77,12 +91,15 @@ export default function PatientDetailView({
             <AvatarImage src={patient.avatar} data-ai-hint={patient.avatarHint}/>
             <AvatarFallback>{patient.name.substring(0, 2)}</AvatarFallback>
           </Avatar>
-          <div>
+          <div className="flex-grow">
             <CardTitle className="text-3xl">{patient.name}</CardTitle>
             <CardDescription>
               {patient.age} anos, {patient.gender}. Última Interação: {patient.lastVisit}
             </CardDescription>
           </div>
+           <Badge variant={patient.status === 'Validado' ? 'secondary' : 'default'} className={`text-base ${patient.status === 'Validado' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                {patient.status}
+            </Badge>
         </CardHeader>
       </Card>
 
@@ -118,19 +135,20 @@ export default function PatientDetailView({
               </div>
 
               <div className="pt-4 border-t">
-                 <h3 className="font-semibold mb-2">Validação e Prescrição Final</h3>
+                 <h3 className="font-semibold mb-2">Validação e Prescrição Final do Médico</h3>
                  <Textarea 
                    placeholder="Edite o diagnóstico e adicione sua prescrição oficial aqui..." 
                    rows={5}
                    value={doctorNotes}
                    onChange={(e) => setDoctorNotes(e.target.value)}
+                   disabled={patient.status === 'Validado'}
                  />
                  <div className="flex gap-2 mt-4">
-                    <Button onClick={handleSaveDraft} disabled={isSaving}>
+                    <Button onClick={handleSaveDraft} disabled={isSaving || patient.status === 'Validado'}>
                       {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Pen className="mr-2 h-4 w-4" />}
                       {isSaving ? "Salvando..." : "Salvar Rascunho"}
                     </Button>
-                    <Button onClick={handleValidateDiagnosis} variant="secondary" disabled={isValidating}>
+                    <Button onClick={handleValidateDiagnosis} variant="secondary" disabled={isValidating || patient.status === 'Validado'}>
                       {isValidating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
                       {isValidating ? "Validando..." : "Validar Diagnóstico"}
                     </Button>
@@ -163,7 +181,7 @@ export default function PatientDetailView({
               <CardDescription>
                 A informação original do exame carregado pelo paciente.
               </CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent>
               <pre className="p-4 bg-muted rounded-md text-sm text-muted-foreground overflow-x-auto">
                 <code>{patient.examResults}</code>

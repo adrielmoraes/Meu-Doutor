@@ -11,6 +11,7 @@ export type Patient = {
   conversationHistory: string;
   reportedSymptoms: string;
   examResults: string;
+  doctorNotes?: string;
 };
 
 export type Doctor = {
