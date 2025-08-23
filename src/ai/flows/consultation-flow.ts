@@ -21,6 +21,7 @@ const MessageSchema = z.object({
 const ConsultationInputSchema = z.object({
   history: z.array(MessageSchema).describe('The conversation history.'),
   userInput: z.string().describe('The latest input from the user.'),
+  patientContext: z.string().optional().describe("A summary of the patient's medical history, recent exams, and validated diagnoses."),
 });
 export type ConsultationInput = z.infer<typeof ConsultationInputSchema>;
 
@@ -35,8 +36,15 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
 
     IMPORTANT: You are not a doctor. You must not provide a diagnosis or prescribe medication. Always advise the patient to consult with a human doctor for a definitive diagnosis and treatment.
     
-    Keep your responses concise and easy to understand. Start the conversation by introducing yourself and asking how you can help.
+    Use the provided patient context to answer their questions about their health history, exam results, or validated diagnoses. Be clear, empathetic, and explain things in simple terms.
+
+    Keep your responses concise and easy to understand. Start the conversation by introducing yourself and asking how you can help, unless a conversation is already in progress.
     
+    PATIENT CONTEXT:
+    ---
+    ${input.patientContext || "No additional context provided."}
+    ---
+
     Here is the conversation so far (history):
     ${input.history.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
 
