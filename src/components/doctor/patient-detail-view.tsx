@@ -56,7 +56,7 @@ export default function PatientDetailView({
       toast({
         title: "Diagnóstico Validado",
         description: `O diagnóstico para ${patient.name} foi validado.`,
-        className: "bg-green-100 text-green-800",
+        className: "bg-green-100 text-green-800 border-green-200",
       });
     } else {
         toast({
@@ -77,7 +77,7 @@ export default function PatientDetailView({
         toast({
             title: "Enviado ao Paciente",
             description: `O diagnóstico final foi enviado para ${patient.name}.`,
-            className: "bg-blue-100 text-blue-800",
+            className: "bg-blue-100 text-blue-800 border-blue-200",
         });
         setIsSending(false);
     });

@@ -11,7 +11,7 @@ import type { Doctor } from '@/types';
 import { createAppointmentAction } from './actions';
 import { getPatientById } from '@/lib/firestore-adapter';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
-import { format }s 'date-fns';
+import { format } from 'date-fns';
 
 // This should be replaced with the authenticated user's ID
 const MOCK_PATIENT_ID = '1';
@@ -63,7 +63,7 @@ export default function ScheduleAppointment({ doctor }: ScheduleAppointmentProps
             toast({
                 title: 'Sucesso!',
                 description: result.message,
-                className: 'bg-green-100 text-green-800'
+                className: 'bg-green-100 text-green-800 border-green-200'
             });
             setIsOpen(false); // Close the dialog on success
         } else {
