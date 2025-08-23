@@ -53,18 +53,16 @@ const healthInsightsPrompt = ai.definePrompt({
 export async function generateHealthInsights(
     input: GenerateHealthInsightsInput
 ): Promise<GenerateHealthInsightsOutput> {
+    const generateHealthInsightsFlow = ai.defineFlow(
+        {
+          name: 'generateHealthInsightsFlow',
+          inputSchema: GenerateHealthInsightsInputSchema,
+          outputSchema: GenerateHealthInsightsOutputSchema,
+        },
+        async (input) => {
+            const { output } = await healthInsightsPrompt(input);
+            return output!;
+        }
+    );
     return generateHealthInsightsFlow(input);
 }
-
-
-const generateHealthInsightsFlow = ai.defineFlow(
-    {
-      name: 'generateHealthInsightsFlow',
-      inputSchema: GenerateHealthInsightsInputSchema,
-      outputSchema: GenerateHealthInsightsOutputSchema,
-    },
-    async (input) => {
-        const { output } = await healthInsightsPrompt(input);
-        return output!;
-    }
-);
