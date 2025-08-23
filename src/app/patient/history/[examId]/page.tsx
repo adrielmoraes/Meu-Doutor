@@ -1,28 +1,25 @@
 import Header from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Printer, Volume2 } from "lucide-react";
+import { FileText, Printer } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import AudioPlayback from "@/components/patient/audio-playback";
+import { getExamById } from "@/lib/firestore-adapter";
+import { notFound } from "next/navigation";
 
-// Mock data for a single exam
-const examData = {
-  id: '1',
-  type: 'Exame de Sangue',
-  date: '15 de Ago, 2025',
-  preliminaryDiagnosis: "Hiperlipidemia Leve",
-  explanation: "Os resultados do seu exame de sangue indicam que os níveis de colesterol e triglicerídeos estão um pouco acima do ideal. Isso é conhecido como hiperlipidemia. Não é uma condição alarmante no momento, mas sugere a necessidade de atenção à dieta e ao estilo de vida. Recomendamos discutir com um médico a possibilidade de adotar uma alimentação mais balanceada, rica em fibras e com baixo teor de gorduras saturadas, além da prática regular de exercícios físicos. Manter esses níveis sob controle é importante para a saúde do seu coração a longo prazo.",
-  results: [
-    { name: 'Colesterol Total', value: '220 mg/dL', reference: '< 200 mg/dL' },
-    { name: 'LDL (Colesterol "ruim")', value: '140 mg/dL', reference: '< 130 mg/dL' },
-    { name: 'HDL (Colesterol "bom")', value: '45 mg/dL', reference: '> 40 mg/dL' },
-    { name: 'Triglicerídeos', value: '180 mg/dL', reference: '< 150 mg/dL' },
-  ]
-};
+// This should be replaced with the authenticated user's ID
+const MOCK_PATIENT_ID = '1';
 
-const textToSpeak = `Diagnóstico Preliminar: ${examData.preliminaryDiagnosis}. Explicação: ${examData.explanation}`;
+export default async function ExamDetailPage({ params }: { params: { examId: string } }) {
+  const examData = await getExamById(MOCK_PATIENT_ID, params.examId);
 
-export default function ExamDetailPage({ params }: { params: { examId: string } }) {
+  if (!examData) {
+    notFound();
+  }
+
+  const textToSpeak = `Diagnóstico Preliminar: ${examData.preliminaryDiagnosis}. Explicação: ${examData.explanation}`;
+  const examDate = new Date(examData.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -37,9 +34,9 @@ export default function ExamDetailPage({ params }: { params: { examId: string } 
                       <CardTitle className="text-2xl flex items-center gap-2">
                         <FileText className="h-6 w-6" /> Análise do Exame
                       </CardTitle>
-                      <CardDescription>{examData.type} - {examData.date}</CardDescription>
+                      <CardDescription>{examData.type} - {examDate}</CardDescription>
                     </div>
-                     <Button variant="outline" onClick={() => window.print()}>
+                     <Button variant="outline" onClick={() => typeof window !== 'undefined' && window.print()}>
                         <Printer className="mr-2 h-4 w-4" />
                         Imprimir
                     </Button>
@@ -72,17 +69,21 @@ export default function ExamDetailPage({ params }: { params: { examId: string } 
                   <CardTitle>Resultados do Exame</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2">
-                    {examData.results.map(res => (
-                      <li key={res.name} className="flex justify-between border-b pb-2">
-                        <span className="text-sm font-medium">{res.name}</span>
-                        <div className="text-right">
-                          <p className="text-sm font-semibold">{res.value}</p>
-                          <p className="text-xs text-muted-foreground">Ref: {res.reference}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                 {examData.results && examData.results.length > 0 ? (
+                    <ul className="space-y-2">
+                      {examData.results.map(res => (
+                        <li key={res.name} className="flex justify-between border-b pb-2">
+                          <span className="text-sm font-medium">{res.name}</span>
+                          <div className="text-right">
+                            <p className="text-sm font-semibold">{res.value}</p>
+                            <p className="text-xs text-muted-foreground">Ref: {res.reference}</p>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Nenhum resultado detalhado disponível para este exame.</p>
+                  )}
                 </CardContent>
               </Card>
             </div>
