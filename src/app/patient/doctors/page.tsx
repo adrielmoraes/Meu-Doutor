@@ -3,7 +3,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDoctors } from "@/lib/firestore-adapter";
-import { Phone, Video, Calendar } from "lucide-react";
+import { Phone, Video } from "lucide-react";
+import ScheduleAppointment from "@/components/patient/schedule-appointment";
 
 export default async function DoctorsPage() {
   const doctors = await getDoctors();
@@ -44,9 +45,7 @@ export default async function DoctorsPage() {
                 <Button className="w-full" variant="secondary" disabled={!doctor.online}>
                   <Phone className="mr-2 h-4 w-4" /> Voz
                 </Button>
-                <Button className="w-full" variant="outline">
-                  <Calendar className="mr-2 h-4 w-4" /> Agendar
-                </Button>
+                <ScheduleAppointment doctor={doctor} />
               </CardContent>
             </Card>
           ))}

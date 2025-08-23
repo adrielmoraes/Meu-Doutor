@@ -1,8 +1,9 @@
 
 'use server';
 
-import { addExamToPatient, updatePatient } from "@/lib/firestore-adapter";
+import { addExamToPatient, updatePatient, addAppointment } from "@/lib/firestore-adapter";
 import { revalidatePath } from "next/cache";
+import type { Appointment } from "@/types";
 
 interface ExamAnalysisData {
     preliminaryDiagnosis: string;
@@ -38,5 +39,17 @@ export async function saveConversationHistoryAction(patientId: string, history: 
     } catch (error) {
         console.error('Failed to save conversation history:', error);
         return { success: false, message: 'Erro ao salvar o histórico da conversa.' };
+    }
+}
+
+export async function createAppointmentAction(appointmentData: Omit<Appointment, 'id'>) {
+    try {
+        await addAppointment(appointmentData);
+        // Revalidate the doctor's schedule to show the new appointment
+        revalidatePath('/doctor/schedule');
+        return { success: true, message: 'Consulta agendada com sucesso!' };
+    } catch (error) {
+        console.error('Failed to create appointment:', error);
+        return { success: false, message: 'Erro ao agendar a consulta.' };
     }
 }

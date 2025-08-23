@@ -64,3 +64,8 @@ export async function getAppointments(): Promise<Appointment[]> {
     // For now, we will just return all appointments. In a real app, you'd filter by doctor, date, etc.
     return appointmentList;
 }
+
+export async function addAppointment(appointmentData: Omit<Appointment, 'id'>): Promise<void> {
+    const appointmentsCol = collection(db, 'appointments');
+    await addDoc(appointmentsCol, appointmentData);
+}
