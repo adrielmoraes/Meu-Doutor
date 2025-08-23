@@ -6,8 +6,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 // Mock database for internet search results.
-// In a real-world production system, this would be replaced with calls to a search API 
-// like Google Custom Search, Bing, or a specialized health information API.
+// Used as a fallback if no API key is provided.
 const internetData: Record<string, string> = {
     'dieta mediterrânea': 'A dieta mediterrânea é um padrão alimentar inspirado nos hábitos alimentares da Grécia, Itália e Espanha. É rica em frutas, vegetais, nozes, grãos integrais, azeite de oliva e peixe, e baixa em carnes vermelhas e doces. Estudos mostram que pode reduzir o risco de doenças cardíacas.',
     'dieta dash': 'A dieta DASH (Dietary Approaches to Stop Hypertension) é projetada para ajudar a tratar ou prevenir a pressão alta. Enfatiza frutas, vegetais, grãos integrais e laticínios com baixo teor de gordura.',
@@ -29,29 +28,37 @@ export const internetSearchTool = ai.defineTool(
       outputSchema: z.string(),
     },
     async (input) => {
-      console.log(`[Internet Search] Searching for query: ${input.query}`);
+      const apiKey = process.env.GOOGLE_API_KEY;
+      const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID;
 
-      // START - REAL-WORLD IMPLEMENTATION
-      // In a real-world scenario, you would replace this mock search with a `fetch` call to a search API.
-      //
-      // Example (pseudo-code for Google Custom Search API):
-      // const apiKey = process.env.GOOGLE_CUSTOM_SEARCH_API_KEY;
-      // const cx = process.env.GOOGLE_CUSTOM_SEARCH_CX;
-      // const response = await fetch(`https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(input.query)}`);
-      // const data = await response.json();
-      // return data.items?.map(item => item.snippet).join('\n') || `Nenhuma informação encontrada para "${input.query}".`;
-      // END - REAL-WORLD IMPLEMENTATION
-      
+      if (apiKey && searchEngineId) {
+        // PRODUCTION IMPLEMENTATION: Uses Google Custom Search API
+        console.log(`[Internet Search] Using real API to search for: ${input.query}`);
+        try {
+            const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=${encodeURIComponent(input.query)}`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`API call failed with status: ${response.status}`);
+            }
+            const data = await response.json();
+            const snippets = data.items?.map((item: any) => item.snippet).join('\n');
+            return snippets || `Nenhuma informação encontrada na internet para "${input.query}".`;
+        } catch (error) {
+            console.error('[Internet Search] API call failed:', error);
+            return 'Ocorreu um erro ao buscar informações na internet.';
+        }
+      } else {
+        // MOCK IMPLEMENTATION FOR PROTOTYPE (fallback)
+        console.log(`[Internet Search] Using mock data to search for: ${input.query}`);
+        const searchQuery = input.query.toLowerCase();
+        // Find the key that is most relevant to the search query.
+        const foundKey = Object.keys(internetData).find(key => searchQuery.includes(key));
 
-      // MOCK IMPLEMENTATION FOR PROTOTYPE
-      const searchQuery = input.query.toLowerCase();
-      // Find the key that is most relevant to the search query.
-      const foundKey = Object.keys(internetData).find(key => searchQuery.includes(key));
+        if (foundKey) {
+            return internetData[foundKey];
+        }
 
-      if (foundKey) {
-        return internetData[foundKey];
+        return `Nenhuma informação encontrada na internet para "${input.query}".`;
       }
-
-      return `Nenhuma informação encontrada na internet para "${input.query}".`;
     }
   );

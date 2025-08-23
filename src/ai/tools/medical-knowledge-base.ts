@@ -6,8 +6,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 // Mock database of medical knowledge.
-// In a real-world production system, this would be replaced with calls to a trusted medical API,
-// such as the NIH's MedlinePlus API, PubMed, or another comprehensive medical database.
+// Used as a fallback if no API key is provided for a real knowledge base.
 const medicalData: Record<string, string> = {
     'hypertension': 'A condition in which the force of the blood against the artery walls is too high. Usually defined as blood pressure above 140/90, and is considered severe if the pressure is above 180/120. Often called high blood pressure.',
     'troponin': 'A type of protein found in the muscles of your heart. Troponin isn\'t normally found in the blood. When heart muscles become damaged, troponin is sent into the bloodstream. As heart damage increases, greater amounts of troponin are released into the blood.',
@@ -31,30 +30,38 @@ export const medicalKnowledgeBaseTool = ai.defineTool(
       outputSchema: z.string(),
     },
     async (input) => {
-      console.log(`[Knowledge Base] Searching for term: ${input.term}`);
+      const apiKey = process.env.GOOGLE_API_KEY;
+      const knowledgeBaseId = process.env.KNOWLEDGE_BASE_ID;
 
-      // START - REAL-WORLD IMPLEMENTATION
-      // In a real-world scenario, you would replace the mock search with a `fetch` call to a medical API.
-      //
-      // Example (pseudo-code for MedlinePlus API):
-      // const response = await fetch(`https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&term=${encodeURIComponent(input.term)}&rettype=snippet`);
-      // const xmlText = await response.text();
-      // // You would need an XML parser to extract the content from the response.
-      // // For example:
-      // // const content = parseXml(xmlText).find('content').text();
-      // // return content || `No information found for "${input.term}".`;
-      // END - REAL-WORLD IMPLEMENTATION
-      
+       if (apiKey && knowledgeBaseId) {
+        // PRODUCTION IMPLEMENTATION: Uses Google Custom Search API configured for a medical knowledge base.
+        console.log(`[Knowledge Base] Using real API to search for: ${input.term}`);
+        try {
+            const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${knowledgeBaseId}&q=${encodeURIComponent(input.term)}`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`API call failed with status: ${response.status}`);
+            }
+            const data = await response.json();
+            // We combine the title and snippet for a more comprehensive result.
+            const definitions = data.items?.map((item: any) => `${item.title}\n${item.snippet}`).join('\n\n');
+            return definitions || `Nenhuma informação encontrada para "${input.term}".`;
+        } catch (error) {
+            console.error('[Knowledge Base] API call failed:', error);
+            return 'Ocorreu um erro ao buscar informações na base de conhecimento médico.';
+        }
+      } else {
+        // MOCK IMPLEMENTATION FOR PROTOTYPE (fallback)
+        console.log(`[Knowledge Base] Using mock data to search for term: ${input.term}`);
+        const searchTerm = input.term.toLowerCase();
+        // Find the key that is most relevant to the search query.
+        const foundKey = Object.keys(medicalData).find(key => searchTerm.includes(key));
 
-      // MOCK IMPLEMENTATION FOR PROTOTYPE
-      const searchTerm = input.term.toLowerCase();
-      // Find the key that is most relevant to the search query.
-      const foundKey = Object.keys(medicalData).find(key => searchTerm.includes(key));
+        if (foundKey) {
+            return medicalData[foundKey];
+        }
 
-      if (foundKey) {
-        return medicalData[foundKey];
+        return `Nenhuma informação encontrada para "${input.term}".`;
       }
-
-      return `No information found for "${input.term}".`;
     }
   );
