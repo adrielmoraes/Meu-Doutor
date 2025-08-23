@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { patientDataAccessTool } from '../tools/patient-data-access';
 
 const RoleSchema = z.enum(['user', 'model']);
 
@@ -19,9 +20,9 @@ const MessageSchema = z.object({
 });
 
 const ConsultationInputSchema = z.object({
+  patientId: z.string().describe('The ID of the patient.'),
   history: z.array(MessageSchema).describe('The conversation history.'),
   userInput: z.string().describe('The latest input from the user.'),
-  patientContext: z.string().optional().describe("A summary of the patient's medical history, recent exams, and validated diagnoses."),
 });
 export type ConsultationInput = z.infer<typeof ConsultationInputSchema>;
 
@@ -36,15 +37,10 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
 
     IMPORTANT: You are not a doctor. You must not provide a diagnosis or prescribe medication. Always advise the patient to consult with a human doctor for a definitive diagnosis and treatment.
     
-    Use the provided patient context to answer their questions about their health history, exam results, or validated diagnoses. Be clear, empathetic, and explain things in simple terms.
+    Use the 'patientDataAccessTool' to access the patient's medical records when they ask questions about their history, past diagnoses, or exam results. You must use the tool to get the most up-to-date information. Do not invent information.
 
     Keep your responses concise and easy to understand. Start the conversation by introducing yourself and asking how you can help, unless a conversation is already in progress.
     
-    PATIENT CONTEXT:
-    ---
-    ${input.patientContext || "No additional context provided."}
-    ---
-
     Here is the conversation so far (history):
     ${input.history.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
 
@@ -54,6 +50,11 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
 
     const {output} = await ai.generate({
         prompt: prompt,
+        tools: [patientDataAccessTool],
+        toolRequest: {
+            // Force the tool to be called with the patientId from the input
+            patientDataAccessTool: { patientId: input.patientId }
+        },
         output: {
             schema: ConsultationOutputSchema,
         }

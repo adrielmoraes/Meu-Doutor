@@ -46,15 +46,6 @@ const AIConsultationCard = () => {
   const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
 
-  // In a real app, this would be fetched dynamically before starting the call.
-  const patientContext = `
-    Patient: John Doe, 45 anos.
-    Latest validated diagnosis (by Dr. House): Hipertensão Leve.
-    Notes: Pressão arterial consistentemente em torno de 145/95 mmHg. Recomendado iniciar Losartana 50mg uma vez ao dia, monitorar a pressão arterial diariamente e agendar retorno em 1 mês. Aconselhado reduzir a ingestão de sódio e iniciar atividade física leve.
-    Last exam (Blood Test): Colesterol total em 220 mg/dL (Alto). Glicose em 98 mg/dL (Normal).
-  `;
-
-
   const femaleAvatarUrl = "https://placehold.co/128x128.png";
   const maleAvatarUrl = "https://placehold.co/128x128.png";
 
@@ -113,7 +104,7 @@ const AIConsultationCard = () => {
 
     try {
         // Get AI text response, now with patient context
-        const input: ConsultationInput = { history, userInput, patientContext };
+        const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history, userInput };
         const result = await consultationFlow(input);
         const aiResponse = { role: 'model' as const, content: result.response };
         setHistory([...newHistory, aiResponse]);
