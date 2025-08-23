@@ -30,44 +30,53 @@ export default function StartConsultation({ doctor, type }: StartConsultationPro
   const buttonVariant = type === 'video' ? 'default' : 'secondary';
 
   useEffect(() => {
-    const getCameraPermission = async () => {
-      if (!isOpen) return;
+    // This effect handles the call simulation logic when the dialog opens.
+    if (!isOpen) {
+        setCallStatus('idle');
+        return;
+    }
 
-      setCallStatus('connecting');
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        setHasCameraPermission(true);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
+    let connectionTimer: NodeJS.Timeout;
 
-        // Simulate connection attempt
-        const timer = setTimeout(() => {
+    const startCallSimulation = async () => {
+        setCallStatus('connecting');
+        try {
+            // Request camera and microphone permissions
+            const stream = await navigator.mediaDevices.getUserMedia({ video: type === 'video', audio: true });
+            setHasCameraPermission(true);
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+            }
+
+            // Simulate a 5-second connection attempt
+            connectionTimer = setTimeout(() => {
+                setCallStatus('failed'); // Simulate that the doctor did not answer
+            }, 5000);
+
+        } catch (error) {
+            console.error('Error accessing media devices:', error);
+            setHasCameraPermission(false);
             setCallStatus('failed');
-        }, 5000); // Simulate connection attempt for 5 seconds
-
-        return () => clearTimeout(timer);
-
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-        setHasCameraPermission(false);
-        setCallStatus('failed');
-      }
+        }
     };
 
-    getCameraPermission();
+    startCallSimulation();
 
+    // Cleanup function to stop media tracks and clear timers
     return () => {
         if (videoRef.current && videoRef.current.srcObject) {
             const stream = videoRef.current.srcObject as MediaStream;
             stream.getTracks().forEach(track => track.stop());
         }
+        if (connectionTimer) {
+            clearTimeout(connectionTimer);
+        }
     };
-  }, [isOpen]);
+  }, [isOpen, type]);
+
 
   const handleClose = () => {
     setIsOpen(false);
-    setCallStatus('idle');
   }
 
 
@@ -91,9 +100,9 @@ export default function StartConsultation({ doctor, type }: StartConsultationPro
                 </Avatar>
                 <p>{doctor.name}</p>
                  {callStatus === 'connecting' && (
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 text-muted-foreground">
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        <p className="text-sm text-muted-foreground">Chamando...</p>
+                        <p className="text-sm">Chamando...</p>
                     </div>
                  )}
                  {callStatus === 'failed' && (
@@ -101,7 +110,7 @@ export default function StartConsultation({ doctor, type }: StartConsultationPro
                  )}
             </div>
             {/* Patient's View */}
-            <div className="bg-black rounded-lg flex items-center justify-center relative min-h-[250px]">
+            <div className="bg-black rounded-lg flex items-center justify-center relative min-h-[250px] overflow-hidden">
                 <video ref={videoRef} className={`w-full h-full object-cover rounded-lg ${!isVideoOn || hasCameraPermission === false ? 'hidden' : ''}`} autoPlay muted playsInline />
 
                 {(!isVideoOn || hasCameraPermission === false) && (
@@ -110,7 +119,7 @@ export default function StartConsultation({ doctor, type }: StartConsultationPro
                         <p className="mt-2">Câmera desligada</p>
                     </div>
                 )}
-                 {hasCameraPermission === false && (
+                 {hasCameraPermission === false && callStatus !== 'idle' && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
                         <Alert variant="destructive">
                             <AlertTitle>Acesso à Câmera Negado</AlertTitle>
