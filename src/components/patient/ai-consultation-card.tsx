@@ -23,7 +23,7 @@ import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "../ui/scroll-area";
-import { consultationFlow, ConsultationInput } from "@/ai/flows/consultation-flow";
+import { consultationFlow, type ConsultationInput } from "@/ai/flows/consultation-flow";
 import { textToSpeech } from "@/ai/flows/text-to-speech";
 import { saveConversationHistoryAction } from "./actions";
 
@@ -99,18 +99,18 @@ const AIConsultationCard = () => {
   const handleAiResponse = async (userInput: string) => {
     const newUserMessage = { role: 'user' as const, content: userInput };
     // We use a functional update to get the latest history state
-    const currentHistory = [...history, newUserMessage];
-    setHistory(currentHistory);
+    setHistory(prev => [...prev, newUserMessage]);
     setIsThinking(true);
   
     try {
       // Get AI text response, now with patient context
+      const currentHistory = [...history, newUserMessage]; // Pass the most current history
       const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: currentHistory, userInput };
       const result = await consultationFlow(input);
       const aiResponse = { role: 'model' as const, content: result.response };
   
       // Update history with the new AI response
-      setHistory(prevHistory => [...prevHistory, aiResponse]);
+      setHistory(prev => [...prev, aiResponse]);
   
       // Get AI audio response and play it
       const audioResponse = await textToSpeech({ text: result.response });
@@ -126,7 +126,7 @@ const AIConsultationCard = () => {
         description: "Não foi possível obter uma resposta. Tente novamente.",
       });
       // Rollback the user message if AI fails
-      setHistory(history);
+      setHistory(prev => prev.slice(0, -1));
     } finally {
       setIsThinking(false);
     }
@@ -136,13 +136,13 @@ const AIConsultationCard = () => {
     const recognition = recognitionRef.current;
     if (!recognition) return;
 
-    recognition.onresult = (event: any) => {
+    const handleResult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         handleAiResponse(transcript);
         setIsRecording(false);
     };
 
-    recognition.onerror = (event: any) => {
+    const handleError = (event: any) => {
         console.error('Speech recognition error', event.error);
         toast({
             variant: 'destructive',
@@ -152,10 +152,21 @@ const AIConsultationCard = () => {
         setIsRecording(false);
     };
 
-    recognition.onend = () => {
+    const handleEnd = () => {
         setIsRecording(false);
     };
-  }, [history, toast]); // Re-attach listeners if history changes
+
+    recognition.addEventListener('result', handleResult);
+    recognition.addEventListener('error', handleError);
+    recognition.addEventListener('end', handleEnd);
+
+    // Cleanup function
+    return () => {
+        recognition.removeEventListener('result', handleResult);
+        recognition.removeEventListener('error', handleError);
+        recognition.removeEventListener('end', handleEnd);
+    }
+  }, [history, toast]); // Dependency array is important to re-bind with correct history state
 
   const toggleRecording = () => {
     const recognition = recognitionRef.current;
@@ -169,7 +180,6 @@ const AIConsultationCard = () => {
     }
     if (isRecording) {
         recognition.stop();
-        setIsRecording(false);
     } else {
         recognition.start();
         setIsRecording(true);
@@ -302,3 +312,5 @@ const AIConsultationCard = () => {
 };
 
 export default AIConsultationCard;
+
+    
