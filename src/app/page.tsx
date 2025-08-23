@@ -1,86 +1,53 @@
 
-import Header from "@/components/layout/header";
-import PatientDashboard from "@/components/patient/patient-dashboard";
-import { getPatientById } from "@/lib/firestore-adapter";
-import type { GenerateHealthInsightsOutput } from "@/ai/flows/generate-health-insights";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Stethoscope, User } from "lucide-react";
 import Link from "next/link";
-import type { Patient } from "@/types";
+import Header from "@/components/layout/header";
 
-// This should be replaced with the authenticated user's ID
-const MOCK_PATIENT_ID = '1';
-
-interface DashboardData {
-    patient: Patient | null;
-    healthInsights: GenerateHealthInsightsOutput | null;
-    error?: string;
-    fixUrl?: string;
-}
-
-async function getDashboardData(): Promise<DashboardData> {
-    try {
-        const patient = await getPatientById(MOCK_PATIENT_ID);
-        if (!patient) {
-             return { patient: null, healthInsights: null, error: "Paciente não encontrado. Verifique se os dados iniciais foram carregados no Firestore." };
-        }
-
-        // The health insights are now read directly from the patient object,
-        // as they are generated and saved upon diagnosis validation by the doctor.
-        const healthInsights = (patient.healthGoals && patient.preventiveAlerts) ? {
-            healthGoals: patient.healthGoals,
-            preventiveAlerts: patient.preventiveAlerts,
-        } : null;
-
-        return { patient, healthInsights };
-    } catch (e: any) {
-        if (e.message?.includes('offline') || e.code?.includes('permission-denied')) {
-            const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.GCLOUD_PROJECT || 'mediai-7m1xp'}`;
-            return { 
-                patient: null,
-                healthInsights: null,
-                error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada.",
-                fixUrl: firestoreApiUrl 
-            };
-        }
-        console.error("Unexpected dashboard error:", e);
-        return { patient: null, healthInsights: null, error: "Ocorreu um erro inesperado ao carregar os dados do painel." };
-    }
-}
-
-
-export default async function Home() {
-  const { patient, healthInsights, error, fixUrl } = await getDashboardData();
+export default function PortalSelectionPage() {
+  const portals = [
+    {
+      title: "Portal do Paciente",
+      icon: <User className="h-12 w-12 text-primary" />,
+      href: "/patient/dashboard",
+      description: "Acesse seu painel, consulte a IA e veja seus exames e metas de saúde.",
+      id: "patient-portal"
+    },
+    {
+      title: "Portal do Médico",
+      icon: <Stethoscope className="h-12 w-12 text-primary" />,
+      href: "/doctor",
+      description: "Gerencie seus pacientes, valide diagnósticos e acesse o histórico de atendimentos.",
+      id: "doctor-portal"
+    },
+  ];
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-1 bg-muted/20 p-4 sm:p-6 lg:p-8">
-        {error || !patient ? (
-           <div className="container mx-auto">
-               <Alert variant="destructive">
-                   <AlertTriangle className="h-4 w-4" />
-                   <AlertTitle>Erro de Configuração ou Conexão</AlertTitle>
-                   <AlertDescription>
-                       {error}
-                       {fixUrl && (
-                           <p className="mt-2">
-                               Por favor, habilite a API manualmente visitando o seguinte link e clicando em "Habilitar":
-                               <br />
-                               <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
-                                   Habilitar API do Firestore
-                               </Link>
-                               <br />
-                               <span className="text-xs">Após habilitar, aguarde alguns minutos e atualize esta página.</span>
-                           </p>
-                       )}
-                   </AlertDescription>
-               </Alert>
-           </div>
-        ) : (
-            <PatientDashboard patient={patient} healthInsights={healthInsights} />
-        )}
-      </main>
+       <Header />
+       <main className="flex-1 flex items-center justify-center bg-muted/20">
+        <div className="container mx-auto text-center">
+            <h1 className="text-4xl font-bold tracking-tight mb-4">Bem-vindo ao MediAI</h1>
+            <p className="text-xl text-muted-foreground mb-12">Seu assistente de saúde inteligente. Selecione seu portal para começar.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                {portals.map((portal) => (
+                     <Link href={portal.href} key={portal.id}>
+                        <Card className="text-left transform transition-transform duration-300 hover:scale-105 hover:shadow-xl h-full">
+                            <CardHeader className="flex flex-row items-start gap-4">
+                                {portal.icon}
+                                <div>
+                                    <CardTitle className="text-2xl font-bold">
+                                        {portal.title}
+                                    </CardTitle>
+                                    <CardDescription>{portal.description}</CardDescription>
+                                </div>
+                            </CardHeader>
+                        </Card>
+                    </Link>
+                ))}
+            </div>
+        </div>
+       </main>
     </div>
   );
 }

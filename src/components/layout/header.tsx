@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Stethoscope, User } from "lucide-react";
+import { Stethoscope, User, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Header = () => {
@@ -15,15 +15,15 @@ const Header = () => {
           </Link>
           <nav className="flex items-center gap-2">
             <Button variant="ghost" asChild>
-              <Link href="/">
+              <Link href="/patient/dashboard">
                 <User className="mr-2 h-4 w-4" />
-                Patient View
+                Portal do Paciente
               </Link>
             </Button>
             <Button variant="ghost" asChild>
               <Link href="/doctor">
                 <Stethoscope className="mr-2 h-4 w-4" />
-                Doctor View
+                Portal do Médico
               </Link>
             </Button>
           </nav>
