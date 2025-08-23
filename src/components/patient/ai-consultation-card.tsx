@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Mic, MicOff, Video, VideoOff, Phone, Bot } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -19,15 +20,56 @@ import {
 } from "@/components/ui/dialog";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import Image from "next/image";
+import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
 
 const AIConsultationCard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [avatarGender, setAvatarGender] = useState<"male" | "female">("female");
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const { toast } = useToast();
+
 
   const femaleAvatarUrl = "https://placehold.co/128x128.png";
   const maleAvatarUrl = "https://placehold.co/128x128.png";
+
+  useEffect(() => {
+    const getCameraPermission = async () => {
+      if (!isDialogOpen) return;
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        setHasCameraPermission(true);
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Acesso à Câmera Negado',
+          description: 'Por favor, habilite a permissão da câmera nas configurações do seu navegador para usar esta funcionalidade.',
+        });
+      }
+    };
+
+    getCameraPermission();
+
+    // Cleanup function to stop the video stream when the dialog is closed
+    return () => {
+        if (videoRef.current && videoRef.current.srcObject) {
+            const stream = videoRef.current.srcObject as MediaStream;
+            stream.getTracks().forEach(track => track.stop());
+        }
+    };
+  }, [isDialogOpen, toast]);
+
 
   return (
     <>
@@ -73,11 +115,21 @@ const AIConsultationCard = () => {
               </div>
             </div>
             <div className="flex flex-col gap-4">
-              <div className="bg-black rounded-lg flex-1 relative overflow-hidden">
-                 <Image src="https://placehold.co/400x300.png" alt="Patient" layout="fill" objectFit="cover" data-ai-hint="person camera" />
+              <div className="bg-black rounded-lg flex-1 relative overflow-hidden flex items-center justify-center">
+                 <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
                  <div className="absolute bottom-4 left-4 bg-black/50 text-white p-2 rounded-lg text-sm">
                   Você
                 </div>
+                 {hasCameraPermission === false && (
+                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
+                        <Alert variant="destructive">
+                            <AlertTitle>Acesso à Câmera Necessário</AlertTitle>
+                            <AlertDescription>
+                                Por favor, permita o acesso à câmera para usar esta funcionalidade.
+                            </AlertDescription>
+                        </Alert>
+                    </div>
+                 )}
               </div>
               <div className="bg-card p-4 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-2">Selecione o avatar da IA:</p>
