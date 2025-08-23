@@ -25,6 +25,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "../ui/scroll-area";
 import { consultationFlow, ConsultationInput } from "@/ai/flows/consultation-flow";
 import { textToSpeech } from "@/ai/flows/text-to-speech";
+import { saveConversationHistoryAction } from "./actions";
+
+
+// This should be replaced with the authenticated user's ID
+const MOCK_PATIENT_ID = '1';
 
 // Speech Recognition instance will be stored in a ref
 const AIConsultationCard = () => {
@@ -145,7 +150,7 @@ const AIConsultationCard = () => {
     recognition.onend = () => {
         setIsRecording(false);
     };
-  }, [history]); // Re-attach listeners if history changes
+  }, [history, toast]); // Re-attach listeners if history changes
 
   const toggleRecording = () => {
     const recognition = recognitionRef.current;
@@ -164,6 +169,27 @@ const AIConsultationCard = () => {
         recognition.start();
         setIsRecording(true);
     }
+  };
+
+  const handleEndCall = async () => {
+    setIsDialogOpen(false);
+    if (history.length > 0) {
+        const result = await saveConversationHistoryAction(MOCK_PATIENT_ID, history);
+        if (result.success) {
+            toast({
+                title: "Histórico Salvo",
+                description: "Sua conversa com a IA foi salva com sucesso.",
+            });
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Erro ao Salvar",
+                description: result.message,
+            });
+        }
+    }
+    // Reset history for the next call
+    setHistory([]);
   };
 
 
@@ -260,7 +286,7 @@ const AIConsultationCard = () => {
             <Button variant={isVideoOn ? "secondary" : "destructive"} size="icon" onClick={() => setIsVideoOn(!isVideoOn)}>
               {isVideoOn ? <Video /> : <VideoOff />}
             </Button>
-            <Button variant="destructive" size="lg" onClick={() => setIsDialogOpen(false)}>
+            <Button variant="destructive" size="lg" onClick={handleEndCall}>
               <Phone className="mr-2" /> Encerrar
             </Button>
           </div>
@@ -271,5 +297,3 @@ const AIConsultationCard = () => {
 };
 
 export default AIConsultationCard;
-
-    

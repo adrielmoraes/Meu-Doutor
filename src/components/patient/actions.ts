@@ -1,7 +1,7 @@
 
 'use server';
 
-import { addExamToPatient } from "@/lib/firestore-adapter";
+import { addExamToPatient, updatePatient } from "@/lib/firestore-adapter";
 import { revalidatePath } from "next/cache";
 
 interface ExamAnalysisData {
@@ -24,5 +24,19 @@ export async function saveExamAnalysisAction(patientId: string, analysisData: Ex
     } catch (error) {
         console.error('Failed to save exam analysis:', error);
         return { success: false, message: 'Erro ao salvar a análise do exame.' };
+    }
+}
+
+export async function saveConversationHistoryAction(patientId: string, history: {role: 'user' | 'model', content: string}[]) {
+    try {
+        const conversationText = history.map(msg => `${msg.role}: ${msg.content}`).join('\n');
+        await updatePatient(patientId, {
+            conversationHistory: conversationText
+        });
+        revalidatePath(`/doctor/patients/${patientId}`);
+        return { success: true, message: 'Histórico da conversa salvo com sucesso!' };
+    } catch (error) {
+        console.error('Failed to save conversation history:', error);
+        return { success: false, message: 'Erro ao salvar o histórico da conversa.' };
     }
 }
