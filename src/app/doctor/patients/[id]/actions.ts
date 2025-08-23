@@ -1,20 +1,44 @@
 
 'use server';
 
-import { updatePatient } from '@/lib/firestore-adapter';
+import { getPatientById, updatePatient } from '@/lib/firestore-adapter';
 import { revalidatePath } from 'next/cache';
+import { generateHealthInsights } from '@/ai/flows/generate-health-insights';
+import { summarizePatientHistory } from '@/ai/flows/summarize-patient-history';
 
 export async function validateDiagnosisAction(patientId: string, doctorNotes: string) {
   try {
+    const patient = await getPatientById(patientId);
+    if (!patient) {
+        throw new Error("Patient not found");
+    }
+
+    // Generate a fresh summary to ensure insights are based on the latest data.
+    const historySummary = await summarizePatientHistory({
+        conversationHistory: patient.conversationHistory || "Nenhum histórico.",
+        reportedSymptoms: patient.reportedSymptoms || "Nenhum sintoma reportado.",
+    });
+
+    // Generate the preventive health insights and goals based on the final diagnosis
+    const healthInsights = await generateHealthInsights({
+        patientHistory: historySummary.summary,
+        validatedDiagnosis: doctorNotes,
+    });
+
+    // Update the patient document with the validated status, doctor's notes, and the new health plan
     await updatePatient(patientId, {
       status: 'Validado',
       doctorNotes: doctorNotes,
+      preventiveAlerts: healthInsights.preventiveAlerts,
+      healthGoals: healthInsights.healthGoals,
     });
-    // Revalidate the patient detail page to show the new status immediately
+    
+    // Revalidate paths to reflect changes immediately across the app
     revalidatePath(`/doctor/patients/${patientId}`);
-    // Revalidate the patient list page to update the status badge
     revalidatePath('/doctor/patients');
-    return { success: true, message: 'Diagnóstico validado com sucesso!' };
+    revalidatePath('/'); // Revalidate patient dashboard
+    
+    return { success: true, message: 'Diagnóstico validado com sucesso! Plano de saúde gerado.' };
   } catch (error) {
     console.error('Failed to validate diagnosis:', error);
     return { success: false, message: 'Erro ao validar o diagnóstico.' };

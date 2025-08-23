@@ -12,6 +12,12 @@ export type Patient = {
   reportedSymptoms: string;
   examResults: string;
   doctorNotes?: string;
+  preventiveAlerts?: string[];
+  healthGoals?: {
+      title: string;
+      description: string;
+      progress: number;
+  }[];
 };
 
 export type Doctor = {

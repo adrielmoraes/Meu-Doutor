@@ -1,15 +1,34 @@
+
 'use client';
 
-import { TrendingUp, ShieldAlert, Target } from "lucide-react";
+import { useState } from 'react';
+import { TrendingUp, ShieldAlert, Target, PlusCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import type { GenerateHealthInsightsOutput } from "@/ai/flows/generate-health-insights";
+import { Button } from '../ui/button';
 
 type HealthGoalsPanelProps = {
   insights: GenerateHealthInsightsOutput;
 };
 
 export default function HealthGoalsPanel({ insights }: HealthGoalsPanelProps) {
+  // We manage the goals' progress in the client-side state for immediate visual feedback.
+  const [goals, setGoals] = useState(insights.healthGoals);
+
+  const handleProgressUpdate = (goalTitle: string) => {
+    setGoals(currentGoals => 
+      currentGoals.map(goal => {
+        if (goal.title === goalTitle) {
+          // Increase progress by 10%, but not exceeding 100%
+          const newProgress = Math.min(goal.progress + 10, 100);
+          return { ...goal, progress: newProgress };
+        }
+        return goal;
+      })
+    );
+  };
+
   return (
     <Card className="lg:col-span-2">
       <CardHeader>
@@ -42,11 +61,22 @@ export default function HealthGoalsPanel({ insights }: HealthGoalsPanelProps) {
             Suas Metas de Saúde
           </h3>
           <div className="space-y-4">
-            {insights.healthGoals.map((goal) => (
+            {goals.map((goal) => (
               <div key={goal.title}>
                 <div className="flex justify-between items-center mb-1">
                   <p className="font-medium text-sm">{goal.title}</p>
-                  <p className="text-sm font-bold">{goal.progress}%</p>
+                   <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold">{goal.progress}%</p>
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="h-6 w-6" 
+                        onClick={() => handleProgressUpdate(goal.title)}
+                        aria-label={`Registrar progresso para ${goal.title}`}
+                      >
+                        <PlusCircle className="h-4 w-4 text-green-600" />
+                      </Button>
+                   </div>
                 </div>
                 <Progress value={goal.progress} className="h-2" />
                 <p className="text-xs text-muted-foreground mt-1">{goal.description}</p>
