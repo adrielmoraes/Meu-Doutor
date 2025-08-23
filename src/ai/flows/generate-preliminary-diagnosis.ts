@@ -9,7 +9,9 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { cardiologistAgent } from './cardiologist-agent';
+import {cardiologistAgent} from './cardiologist-agent';
+import {pulmonologistAgent} from './pulmonologist-agent';
+import {radiologistAgent} from './radiologist-agent';
 
 const GeneratePreliminaryDiagnosisInputSchema = z.object({
   examResults: z
@@ -24,10 +26,16 @@ export type GeneratePreliminaryDiagnosisInput = z.infer<
 >;
 
 const GeneratePreliminaryDiagnosisOutputSchema = z.object({
-  diagnosis: z.string().describe('The preliminary diagnosis synthesized by the orchestrator AI.'),
+  diagnosis: z
+    .string()
+    .describe(
+      'The comprehensive preliminary diagnosis synthesized by the orchestrator AI from all specialist findings.'
+    ),
   suggestions: z
     .string()
-    .describe('Suggestions for next steps and further tests, based on specialist input.'),
+    .describe(
+      'Actionable suggestions for next steps and further tests, based on the combined specialist input.'
+    ),
 });
 export type GeneratePreliminaryDiagnosisOutput = z.infer<
   typeof GeneratePreliminaryDiagnosisOutputSchema
@@ -41,10 +49,10 @@ export async function generatePreliminaryDiagnosis(
 
 const prompt = ai.definePrompt({
   name: 'generatePreliminaryDiagnosisPrompt',
-  input: {schema: GeneratePreliminaryDiagnosisInputSchema},
+  input: {schema: z.any()},
   output: {schema: GeneratePreliminaryDiagnosisOutputSchema},
-  prompt: `You are an AI General Practitioner, an orchestrator for a team of AI medical specialists.
-Your role is to analyze the patient's data and determine which specialist to consult.
+  prompt: `You are an expert AI General Practitioner, an orchestrator for a team of AI medical specialists.
+Your role is to synthesize the findings from your specialist team into a single, coherent preliminary diagnosis.
 
 Patient's exam results:
 {{examResults}}
@@ -52,13 +60,18 @@ Patient's exam results:
 Patient's history and symptoms summary:
 {{patientHistory}}
 
-Based on this information, you will call the appropriate specialist agent to get their expert opinion.
-After receiving the specialist's analysis, you will synthesize it into a clear preliminary diagnosis and provide suggestions for next steps.
+You have consulted with your team of specialists, and here are their reports:
 
-Today, you consulted with an AI Cardiologist, who provided the following analysis:
-{{specialistAnalysis}}
+Cardiology Report:
+{{cardiologistReport}}
 
-Now, create the final diagnosis and suggestions for the human doctor.`,
+Pulmonology Report:
+{{pulmonologistReport}}
+
+Radiology Report:
+{{radiologistReport}}
+
+Synthesize all these reports into a clear, comprehensive preliminary diagnosis. Provide actionable suggestions for next steps or further tests based on the combined findings. Address the report to the human doctor reviewing the case.`,
 });
 
 const generatePreliminaryDiagnosisFlow = ai.defineFlow(
@@ -68,15 +81,22 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     outputSchema: GeneratePreliminaryDiagnosisOutputSchema,
   },
   async input => {
-    // In a real system, logic would determine which specialist(s) to call.
-    // For this example, we'll directly call the cardiologist agent.
-    const specialistAnalysis = await cardiologistAgent(input);
+    // 1. Call all specialist agents in parallel to get their expert opinions.
+    const [cardiologyReport, pulmonologyReport, radiologyReport] =
+      await Promise.all([
+        cardiologistAgent(input),
+        pulmonologistAgent(input),
+        radiologistAgent(input),
+      ]);
 
-    // Now, call the orchestrator prompt, feeding it the specialist's analysis.
+    // 2. Call the orchestrator prompt, feeding it the specialists' analyses.
     const {output} = await prompt({
-        ...input,
-        specialistAnalysis: specialistAnalysis.findings,
+      ...input,
+      cardiologistReport: cardiologyReport.findings,
+      pulmonologistReport: pulmonologyReport.findings,
+      radiologistReport: radiologyReport.findings,
     });
+
     return output!;
   }
 );

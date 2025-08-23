@@ -9,6 +9,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 
 // Input is the same as the main diagnosis flow, as it receives the same data
 const CardiologistAgentInputSchema = z.object({
@@ -22,7 +23,7 @@ const CardiologistAgentInputSchema = z.object({
 export type CardiologistAgentInput = z.infer<typeof CardiologistAgentInputSchema>;
 
 const CardiologistAgentOutputSchema = z.object({
-    findings: z.string().describe("The specialist's findings and opinions from a cardiology perspective."),
+    findings: z.string().describe("The specialist's findings and opinions from a cardiology perspective. If not relevant, state that clearly."),
 });
 export type CardiologistAgentOutput = z.infer<typeof CardiologistAgentOutputSchema>;
 
@@ -30,8 +31,12 @@ const specialistPrompt = ai.definePrompt({
     name: 'cardiologistAgentPrompt',
     input: {schema: CardiologistAgentInputSchema},
     output: {schema: CardiologistAgentOutputSchema},
+    tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI cardiologist.
     Your task is to analyze the provided patient data and provide your expert opinion focusing specifically on cardiovascular health.
+    If the data is not relevant to cardiology, state "No specific cardiological findings to report."
+
+    Use the medicalKnowledgeBaseTool to look up conditions, symptoms, or terms if needed to provide a more accurate analysis.
 
     Patient's exam results:
     {{examResults}}
