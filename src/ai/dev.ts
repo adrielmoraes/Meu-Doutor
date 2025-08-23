@@ -9,4 +9,7 @@ import '@/ai/flows/consultation-flow.ts';
 import '@/ai/flows/cardiologist-agent.ts';
 import '@/ai/flows/pulmonologist-agent.ts';
 import '@/ai/flows/radiologist-agent.ts';
+import '@/ai/flows/neurologist-agent.ts';
+import '@/ai/flows/gastroenterologist-agent.ts';
+import '@/ai/flows/endocrinologist-agent.ts';
 import '@/ai/tools/medical-knowledge-base.ts';

@@ -12,6 +12,9 @@ import {z} from 'genkit';
 import {cardiologistAgent} from './cardiologist-agent';
 import {pulmonologistAgent} from './pulmonologist-agent';
 import {radiologistAgent} from './radiologist-agent';
+import {neurologistAgent} from './neurologist-agent';
+import {gastroenterologistAgent} from './gastroenterologist-agent';
+import {endocrinologistAgent} from './endocrinologist-agent';
 
 const GeneratePreliminaryDiagnosisInputSchema = z.object({
   examResults: z
@@ -71,6 +74,16 @@ Pulmonology Report:
 Radiology Report:
 {{radiologistReport}}
 
+Neurology Report:
+{{neurologistReport}}
+
+Gastroenterology Report:
+{{gastroenterologistReport}}
+
+Endocrinology Report:
+{{endocrinologistReport}}
+
+
 Synthesize all these reports into a clear, comprehensive preliminary diagnosis. Provide actionable suggestions for next steps or further tests based on the combined findings. Address the report to the human doctor reviewing the case.`,
 });
 
@@ -82,11 +95,21 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
   },
   async input => {
     // 1. Call all specialist agents in parallel to get their expert opinions.
-    const [cardiologyReport, pulmonologyReport, radiologyReport] =
+    const [
+        cardiologyReport,
+        pulmonologyReport,
+        radiologyReport,
+        neurologyReport,
+        gastroenterologyReport,
+        endocrinologyReport,
+    ] =
       await Promise.all([
         cardiologistAgent(input),
         pulmonologistAgent(input),
         radiologistAgent(input),
+        neurologistAgent(input),
+        gastroenterologistAgent(input),
+        endocrinologistAgent(input),
       ]);
 
     // 2. Call the orchestrator prompt, feeding it the specialists' analyses.
@@ -95,6 +118,9 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
       cardiologistReport: cardiologyReport.findings,
       pulmonologistReport: pulmonologyReport.findings,
       radiologistReport: radiologyReport.findings,
+      neurologistReport: neurologyReport.findings,
+      gastroenterologistReport: gastroenterologyReport.findings,
+      endocrinologistReport: endocrinologyReport.findings,
     });
 
     return output!;
