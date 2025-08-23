@@ -1,10 +1,9 @@
 import Header from "@/components/layout/header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDoctors } from "@/lib/firestore-adapter";
-import { Phone, Video } from "lucide-react";
 import ScheduleAppointment from "@/components/patient/schedule-appointment";
+import StartConsultation from "@/components/patient/start-consultation";
 
 export default async function DoctorsPage() {
   const doctors = await getDoctors();
@@ -39,12 +38,8 @@ export default async function DoctorsPage() {
                 </div>
               </CardHeader>
               <CardContent className="flex flex-col sm:flex-row gap-2">
-                <Button className="w-full" disabled={!doctor.online}>
-                  <Video className="mr-2 h-4 w-4" /> Videochamada
-                </Button>
-                <Button className="w-full" variant="secondary" disabled={!doctor.online}>
-                  <Phone className="mr-2 h-4 w-4" /> Voz
-                </Button>
+                <StartConsultation doctor={doctor} type="video" />
+                <StartConsultation doctor={doctor} type="voice" />
                 <ScheduleAppointment doctor={doctor} />
               </CardContent>
             </Card>
