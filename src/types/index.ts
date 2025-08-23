@@ -33,3 +33,15 @@ export type Exam = {
   explanation: string;
   results?: { name: string; value: string; reference: string }[];
 };
+
+export type Appointment = {
+    id: string;
+    patientId: string;
+    patientName: string;
+    patientAvatar?: string;
+    doctorId: string;
+    date: string;
+    time: string;
+    type: string;
+    status: 'Agendada' | 'Concluída' | 'Cancelada';
+};

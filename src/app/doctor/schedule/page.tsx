@@ -3,14 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getAppointments } from "@/lib/firestore-adapter";
 
-const appointments = [
-    { id: '1', time: '14:00 - 14:30', patient: 'Beatriz Lima', type: 'Videochamada de Acompanhamento' },
-    { id: '2', time: '15:00 - 15:45', patient: 'Carlos Andrade', type: 'Validação de Diagnóstico' },
-    { id: '3', time: '16:00 - 16:20', patient: 'Novo Paciente', type: 'Consulta Inicial' },
-];
+export default async function SchedulePage() {
+  const appointments = await getAppointments();
 
-export default function SchedulePage() {
   return (
     <div className="grid md:grid-cols-3 gap-8">
       <div className="md:col-span-2">
@@ -51,11 +48,12 @@ export default function SchedulePage() {
                     {appointments.map(appt => (
                         <li key={appt.id} className="flex items-center gap-4">
                             <Avatar>
-                                <AvatarFallback>{appt.patient.substring(0, 1)}</AvatarFallback>
+                                <AvatarImage src={appt.patientAvatar} />
+                                <AvatarFallback>{appt.patientName.substring(0, 1)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-grow">
                                 <p className="font-semibold">{appt.time}</p>
-                                <p className="text-sm text-muted-foreground">{appt.patient}</p>
+                                <p className="text-sm text-muted-foreground">{appt.patientName}</p>
                                 <p className="text-xs text-muted-foreground">{appt.type}</p>
                             </div>
                             <Button size="icon" variant="ghost">
@@ -63,6 +61,11 @@ export default function SchedulePage() {
                             </Button>
                         </li>
                     ))}
+                    {appointments.length === 0 && (
+                        <li className="text-center text-muted-foreground py-4">
+                            Nenhuma consulta para hoje.
+                        </li>
+                    )}
                 </ul>
             </CardContent>
         </Card>

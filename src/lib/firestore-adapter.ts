@@ -1,7 +1,7 @@
 
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore';
-import type { Patient, Doctor, Exam } from '@/types';
+import type { Patient, Doctor, Exam, Appointment } from '@/types';
 
 export async function getPatients(): Promise<Patient[]> {
     const patientsCol = collection(db, 'patients');
@@ -55,4 +55,12 @@ export async function addExamToPatient(patientId: string, examData: Omit<Exam, '
         date: new Date().toISOString(),
     };
     await addDoc(examsCol, examDoc);
+}
+
+export async function getAppointments(): Promise<Appointment[]> {
+    const appointmentsCol = collection(db, 'appointments');
+    const appointmentSnapshot = await getDocs(appointmentsCol);
+    const appointmentList = appointmentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Appointment));
+    // For now, we will just return all appointments. In a real app, you'd filter by doctor, date, etc.
+    return appointmentList;
 }
