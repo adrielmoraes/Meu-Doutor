@@ -1,49 +1,28 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Upload, FileText, Loader2, Volume2, PlayCircle } from "lucide-react";
+import { useState, useRef } from "react";
+import { Upload, FileText, Loader2 } from "lucide-react";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { analyzeMedicalExam, AnalyzeMedicalExamOutput } from "@/ai/flows/analyze-medical-exam";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { analyzeMedicalExam } from "@/ai/flows/analyze-medical-exam";
 import { saveExamAnalysisAction } from "./actions";
+import { useRouter } from "next/navigation";
 
 // This should be replaced with the authenticated user's ID
 const MOCK_PATIENT_ID = '1';
 
 const ExamUploadCard = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AnalyzeMedicalExamOutput | null>(null);
-  const [isResultOpen, setIsResultOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const router = useRouter();
 
-  useEffect(() => {
-    const synth = window.speechSynthesis;
-    const utterance = new SpeechSynthesisUtterance();
-    utterance.lang = "pt-BR";
-    utterance.onend = () => setIsSpeaking(false);
-    utteranceRef.current = utterance;
-
-    return () => {
-      synth.cancel();
-    };
-  }, []);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -59,21 +38,28 @@ const ExamUploadCard = () => {
     }
 
     setIsAnalyzing(true);
-    setAnalysisResult(null);
-
+    
     const reader = new FileReader();
     reader.onload = async (e) => {
       const dataUri = e.target?.result as string;
       try {
         const result = await analyzeMedicalExam({ examDataUri: dataUri });
-        setAnalysisResult(result);
-        setIsResultOpen(true);
-
+        
         // Save the result to Firestore
         await saveExamAnalysisAction(MOCK_PATIENT_ID, {
             ...result,
             fileName: file.name
         });
+
+        toast({
+            title: "Análise Concluída",
+            description: "Seu exame foi analisado e salvo no seu histórico.",
+            className: "bg-green-100 border-green-200 text-green-800"
+        });
+        
+        // Redirect to history page to see all exams
+        router.push('/patient/history');
+        router.refresh();
 
       } catch (error) {
         console.error("Analysis failed:", error);
@@ -100,26 +86,11 @@ const ExamUploadCard = () => {
     reader.readAsDataURL(file);
   };
 
-  const handlePlayAudio = () => {
-    if (!analysisResult || !utteranceRef.current) return;
-    const synth = window.speechSynthesis;
-
-    if (isSpeaking) {
-      synth.cancel();
-      setIsSpeaking(false);
-    } else {
-      const textToSpeak = `Diagnóstico Preliminar: ${analysisResult.preliminaryDiagnosis}. Explicação: ${analysisResult.explanation}`;
-      utteranceRef.current.text = textToSpeak;
-      synth.speak(utteranceRef.current);
-      setIsSpeaking(true);
-    }
-  };
-
   return (
     <>
       <Card
         className="cursor-pointer transform transition-transform duration-300 hover:scale-105 hover:shadow-xl"
-        onClick={() => fileInputRef.current?.click()}
+        onClick={() => !isAnalyzing && fileInputRef.current?.click()}
       >
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xl font-bold">Upload de Exames</CardTitle>
@@ -145,45 +116,6 @@ const ExamUploadCard = () => {
           />
         </CardContent>
       </Card>
-
-      <Dialog open={isResultOpen} onOpenChange={setIsResultOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-6 w-6 text-primary" />
-              Resultado da Análise do Exame
-            </DialogTitle>
-          </DialogHeader>
-          {analysisResult && (
-            <div className="space-y-4">
-              <Alert>
-                  <Volume2 className="h-4 w-4" />
-                  <AlertTitle>Ouça a Análise</AlertTitle>
-                  <AlertDescription className="flex items-center justify-between">
-                    Clique no botão para ouvir a explicação da IA.
-                    <Button size="icon" variant="ghost" onClick={handlePlayAudio} aria-label="Reproduzir áudio">
-                      <PlayCircle className={`h-6 w-6 ${isSpeaking ? 'text-destructive' : 'text-primary'}`} />
-                    </Button>
-                  </AlertDescription>
-              </Alert>
-
-              <div>
-                <h3 className="font-semibold text-lg">Diagnóstico Preliminar</h3>
-                <p className="text-muted-foreground">{analysisResult.preliminaryDiagnosis}</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg">Explicação</h3>
-                <p className="text-muted-foreground whitespace-pre-wrap">{analysisResult.explanation}</p>
-              </div>
-
-              <div className="pt-4 border-t">
-                  <p className="text-xs text-destructive font-semibold">AVISO IMPORTANTE:</p>
-                  <p className="text-xs text-muted-foreground">Este é um diagnóstico preliminar gerado por IA. Ele não substitui a avaliação de um médico qualificado. Consulte um profissional de saúde para obter um diagnóstico final e um plano de tratamento.</p>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 };

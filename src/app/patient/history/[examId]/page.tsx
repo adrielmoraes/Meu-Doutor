@@ -1,12 +1,13 @@
 import Header from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Printer, Mic, CheckCircle } from "lucide-react";
+import { FileText, Printer, CheckCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import AudioPlayback from "@/components/patient/audio-playback";
 import { getExamById, getPatientById } from "@/lib/firestore-adapter";
 import { notFound } from "next/navigation";
 import { explainDiagnosisToPatient } from "@/ai/flows/explain-diagnosis-flow";
+import { BotMessageSquare } from "lucide-react";
 
 // This should be replaced with the authenticated user's ID
 const MOCK_PATIENT_ID = '1';
@@ -25,14 +26,20 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
   let diagnosis = examData.preliminaryDiagnosis;
   let explanation = examData.explanation;
   let audioToPlay: string | null = null;
-  let audioText = `Diagnóstico Preliminar: ${examData.preliminaryDiagnosis}. Explicação: ${examData.explanation}`;
+  
+  // Logic to determine which text to use for audio playback
+  const textForAudio = `Diagnóstico: ${diagnosis}. Explicação: ${explanation}`;
+
 
   if (isDiagnosisValidated) {
     title = "Diagnóstico Final Validado pelo Médico";
+    // We check if the doctor's notes for THIS specific exam context exist.
+    // In a more complex app, you might match the exam to a specific diagnosis note.
+    // For this prototype, we'll assume the latest note applies.
     const finalExplanation = await explainDiagnosisToPatient({ diagnosisAndNotes: patient.doctorNotes! });
     diagnosis = patient.doctorNotes!.split('\n')[0] || "Diagnóstico Final";
     explanation = finalExplanation.explanation;
-    audioToPlay = finalExplanation.audioDataUri;
+    audioToPlay = finalExplanation.audioDataUri; // Use the pre-generated audio for the final diagnosis
   }
 
   const examDate = new Date(examData.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -49,7 +56,7 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                   <div className="flex justify-between items-start">
                     <div>
                       <CardTitle className="text-2xl flex items-center gap-2">
-                        {isDiagnosisValidated ? <CheckCircle className="h-6 w-6 text-green-600" /> : <FileText className="h-6 w-6" />} 
+                        {isDiagnosisValidated ? <CheckCircle className="h-6 w-6 text-green-600" /> : <BotMessageSquare className="h-6 w-6 text-primary" />} 
                         {title}
                       </CardTitle>
                       <CardDescription>{examData.type} - {examDate}</CardDescription>
@@ -73,8 +80,8 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                 </CardContent>
               </Card>
 
-              <Alert variant={isDiagnosisValidated ? "default" : "destructive"} className={isDiagnosisValidated ? "bg-blue-50 border-blue-200 text-blue-800" : ""}>
-                 {isDiagnosisValidated ? <Mic className="h-4 w-4" /> : null}
+              <Alert variant={isDiagnosisValidated ? "default" : "destructive"} className={isDiagnosisValidated ? "bg-green-50 border-green-200 text-green-800" : ""}>
+                 {isDiagnosisValidated ? <CheckCircle className="h-4 w-4" /> : <BotMessageSquare className="h-4 w-4" />}
                 <AlertTitle>{isDiagnosisValidated ? "Este é o parecer final do seu médico" : "Atenção: Este é um Diagnóstico da IA"}</AlertTitle>
                 <AlertDescription>
                   {isDiagnosisValidated 
