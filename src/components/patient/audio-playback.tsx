@@ -9,12 +9,13 @@ import { textToSpeech } from "@/ai/flows/text-to-speech";
 
 interface AudioPlaybackProps {
   textToSpeak: string;
+  preGeneratedAudioUri?: string | null;
 }
 
-const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak }) => {
+const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGeneratedAudioUri }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [audioSrc, setAudioSrc] = useState<string | null>(null);
+  const [audioSrc, setAudioSrc] = useState<string | null>(preGeneratedAudioUri || null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
@@ -31,13 +32,19 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak }) => {
     audio.addEventListener('pause', handlePause);
     audio.addEventListener('ended', handleEnded);
 
+    // If pre-generated audio exists, set it
+    if (preGeneratedAudioUri) {
+        setAudioSrc(preGeneratedAudioUri);
+    }
+
+
     return () => {
       audio.removeEventListener('play', handlePlay);
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('ended', handleEnded);
       audio.pause();
     };
-  }, []);
+  }, [preGeneratedAudioUri]);
 
   const generateAndPlayAudio = async () => {
     if (!audioRef.current) return;
@@ -74,9 +81,9 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak }) => {
 
   return (
     <Alert className="bg-primary/10 border-primary/20">
-      <AlertTitle className="font-bold">Reproduzir Áudio</AlertTitle>
+      <AlertTitle className="font-bold">Ouvir Explicação em Áudio</AlertTitle>
       <AlertDescription className="flex items-center justify-between">
-        Clique no botão para que a IA narre e explique o diagnóstico.
+        Clique no botão para que a IA narre a análise para você.
         <Button
           size="icon"
           variant="ghost"

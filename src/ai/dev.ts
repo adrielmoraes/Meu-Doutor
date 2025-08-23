@@ -18,4 +18,6 @@ import '@/ai/flows/ophthalmologist-agent.ts';
 import '@/ai/flows/otolaryngologist-agent.ts';
 import '@/ai/flows/nutritionist-agent.ts';
 import '@/ai/flows/pediatrician-agent.ts';
+import '@/ai/flows/explain-diagnosis-flow.ts';
 import '@/ai/tools/medical-knowledge-base.ts';
+
