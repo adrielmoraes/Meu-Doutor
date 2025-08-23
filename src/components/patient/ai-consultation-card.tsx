@@ -98,32 +98,37 @@ const AIConsultationCard = () => {
 
   const handleAiResponse = async (userInput: string) => {
     const newUserMessage = { role: 'user' as const, content: userInput };
+    // We use a functional update to get the latest history state
     const currentHistory = [...history, newUserMessage];
     setHistory(currentHistory);
     setIsThinking(true);
-
+  
     try {
-        // Get AI text response, now with patient context
-        const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: currentHistory, userInput };
-        const result = await consultationFlow(input);
-        const aiResponse = { role: 'model' as const, content: result.response };
-        setHistory([...currentHistory, aiResponse]);
-
-        // Get AI audio response and play it
-        const audioResponse = await textToSpeech({ text: result.response });
-        if (audioRef.current) {
-            audioRef.current.src = audioResponse.audioDataUri;
-            audioRef.current.play();
-        }
+      // Get AI text response, now with patient context
+      const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: currentHistory, userInput };
+      const result = await consultationFlow(input);
+      const aiResponse = { role: 'model' as const, content: result.response };
+  
+      // Update history with the new AI response
+      setHistory(prevHistory => [...prevHistory, aiResponse]);
+  
+      // Get AI audio response and play it
+      const audioResponse = await textToSpeech({ text: result.response });
+      if (audioRef.current) {
+        audioRef.current.src = audioResponse.audioDataUri;
+        audioRef.current.play();
+      }
     } catch (error) {
-        console.error("Failed to get AI response:", error);
-        toast({
-            variant: "destructive",
-            title: "Erro na comunicação com a IA",
-            description: "Não foi possível obter uma resposta. Tente novamente.",
-        });
+      console.error("Failed to get AI response:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro na comunicação com a IA",
+        description: "Não foi possível obter uma resposta. Tente novamente.",
+      });
+      // Rollback the user message if AI fails
+      setHistory(history);
     } finally {
-        setIsThinking(false);
+      setIsThinking(false);
     }
   };
 

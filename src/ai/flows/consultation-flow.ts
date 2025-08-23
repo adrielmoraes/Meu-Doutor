@@ -33,32 +33,43 @@ export type ConsultationOutput = z.infer<typeof ConsultationOutputSchema>;
 
 
 export async function consultationFlow(input: ConsultationInput): Promise<ConsultationOutput> {
-    const prompt = `You are MediAI, a friendly and empathetic AI medical assistant. Your goal is to talk to the patient, understand their symptoms, and provide helpful, safe, and preliminary guidance.
+  const model = ai.model('googleai/gemini-2.0-flash');
 
-    IMPORTANT: You are not a doctor. You must not provide a diagnosis or prescribe medication. Always advise the patient to consult with a human doctor for a definitive diagnosis and treatment.
-    
-    Use the 'patientDataAccessTool' to access the patient's medical records when they ask questions about their history, past diagnoses, or exam results. You must use the tool to get the most up-to-date information. Do not invent information.
+  // Build the prompt dynamically
+  const promptParts = [
+    'You are MediAI, a friendly and empathetic AI medical assistant. Your goal is to talk to the patient, understand their symptoms, and provide helpful, safe, and preliminary guidance.',
+    'IMPORTANT: You are not a doctor. You must not provide a diagnosis or prescribe medication. Always advise the patient to consult with a human doctor for a definitive diagnosis and treatment.',
+    "Use the 'patientDataAccessTool' to access the patient's medical records when they ask questions about their history, past diagnoses, or exam results. You must use the tool to get the most up-to-date information. Do not invent information.",
+    'Keep your responses concise and easy to understand. Start the conversation by introducing yourself and asking how you can help, unless a conversation is already in progress.',
+  ];
 
-    Keep your responses concise and easy to understand. Start the conversation by introducing yourself and asking how you can help, unless a conversation is already in progress.
-    
-    Here is the conversation so far (history):
-    ${input.history.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
-
-    New user input:
-    user: ${input.userInput}
-    model: `;
-
-    const {output} = await ai.generate({
-        prompt: prompt,
-        tools: [patientDataAccessTool],
-        toolRequest: {
-            // Force the tool to be called with the patientId from the input
-            patientDataAccessTool: { patientId: input.patientId }
-        },
-        output: {
-            schema: ConsultationOutputSchema,
-        }
+  if (input.history.length > 0) {
+    promptParts.push(`\nHere is the conversation so far (history):`);
+    input.history.forEach(msg => {
+      promptParts.push(`${msg.role}: ${msg.content}`);
     });
+  }
 
-    return output!;
+  promptParts.push(`\nNew user input:`);
+  promptParts.push(`user: ${input.userInput}`);
+  promptParts.push(`model: `);
+
+  const prompt = promptParts.join('\n');
+
+
+  const {output} = await ai.generate({
+      prompt: prompt,
+      model: model,
+      tools: [patientDataAccessTool],
+      toolRequest: {
+          // Force the tool to be called with the patientId from the input
+          // This is a powerful pattern to provide context to tools without user input.
+          patientDataAccessTool: { patientId: input.patientId }
+      },
+      output: {
+          schema: ConsultationOutputSchema,
+      }
+  });
+
+  return output!;
 }
