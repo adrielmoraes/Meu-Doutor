@@ -6,19 +6,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 import Link from "next/link";
+import { getPatients } from "@/lib/firestore-adapter";
+import type { Patient } from "@/types";
 
-const history = [
-  { id: '1', patientId: '2', name: 'Beatriz Lima', date: '2024-08-12', diagnosis: 'Função tireoidiana normal' },
-  { id: '2', patientId: '4', name: 'Juliana Ribeiro', date: '2024-07-28', diagnosis: 'Anemia por deficiência de ferro' },
-  { id: '3', patientId: '5', name: 'Ricardo Alves', date: '2024-07-15', diagnosis: 'Sinusite aguda' },
-  { id: '4', patientId: '6', name: 'Patricia Souza', date: '2024-06-20', diagnosis: 'Infecção do trato urinário' },
-];
+// Helper function to extract the diagnosis from doctor's notes
+const getValidatedDiagnosis = (patient: Patient): string => {
+  if (patient.status !== 'Validado' || !patient.doctorNotes) {
+    return 'N/A';
+  }
+  // Extracts the first line of the notes, assuming it's the diagnosis.
+  return patient.doctorNotes.split('\n')[0] || 'Diagnóstico não especificado';
+}
 
-export default function ProfessionalHistoryPage() {
+export default async function ProfessionalHistoryPage() {
+  const allPatients = await getPatients();
+  const history = allPatients.filter(p => p.status === 'Validado');
+
   return (
     <div>
       <div className="mb-8">
@@ -48,13 +55,13 @@ export default function ProfessionalHistoryPage() {
                     <span className="font-medium">{entry.name}</span>
                   </div>
                 </TableCell>
-                <TableCell className="hidden md:table-cell">{entry.date}</TableCell>
+                <TableCell className="hidden md:table-cell">{entry.lastVisit}</TableCell>
                 <TableCell>
-                    <p className="font-medium">{entry.diagnosis}</p>
+                    <p className="font-medium">{getValidatedDiagnosis(entry)}</p>
                 </TableCell>
                 <TableCell className="text-right">
                   <Button asChild variant="ghost" size="icon">
-                    <Link href={`/doctor/patients/${entry.patientId}`}>
+                    <Link href={`/doctor/patients/${entry.id}`}>
                       <Eye className="h-4 w-4" />
                       <span className="sr-only">Ver Detalhes do Caso</span>
                     </Link>
@@ -62,6 +69,13 @@ export default function ProfessionalHistoryPage() {
                 </TableCell>
               </TableRow>
             ))}
+             {history.length === 0 && (
+                <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                        Nenhum atendimento validado encontrado.
+                    </TableCell>
+                </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
