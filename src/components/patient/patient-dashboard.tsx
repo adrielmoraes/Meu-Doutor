@@ -1,5 +1,6 @@
 
-import { Video, FileClock, Upload, UserPlus } from "lucide-react";
+
+import { Video, FileClock, Upload, UserPlus, HeartPulse } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import AIConsultationCard from "./ai-consultation-card";
@@ -12,6 +13,12 @@ const PatientDashboard = () => {
       icon: <FileClock className="h-8 w-8 text-primary" />,
       href: "/patient/history",
       description: "Veja seus exames e análises da IA.",
+    },
+    {
+      title: "Meu Plano de Bem-Estar",
+      icon: <HeartPulse className="h-8 w-8 text-primary" />,
+      href: "/patient/wellness",
+      description: "Receba um plano de vida saudável da IA.",
     },
     {
       title: "Conexão com o Médico Humano",
@@ -32,7 +39,7 @@ const PatientDashboard = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         <AIConsultationCard />
         <ExamUploadCard />
 
