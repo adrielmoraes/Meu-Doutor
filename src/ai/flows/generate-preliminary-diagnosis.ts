@@ -15,6 +15,11 @@ import {radiologistAgent} from './radiologist-agent';
 import {neurologistAgent} from './neurologist-agent';
 import {gastroenterologistAgent} from './gastroenterologist-agent';
 import {endocrinologistAgent} from './endocrinologist-agent';
+import {dermatologistAgent} from './dermatologist-agent';
+import {orthopedistAgent} from './orthopedist-agent';
+import {ophthalmologistAgent} from './ophthalmologist-agent';
+import {otolaryngologistAgent} from './otolaryngologist-agent';
+import {nutritionistAgent} from './nutritionist-agent';
 
 const GeneratePreliminaryDiagnosisInputSchema = z.object({
   examResults: z
@@ -83,6 +88,20 @@ Gastroenterology Report:
 Endocrinology Report:
 {{endocrinologistReport}}
 
+Dermatology Report:
+{{dermatologistReport}}
+
+Orthopedics Report:
+{{orthopedistReport}}
+
+Ophthalmology Report:
+{{ophthalmologistReport}}
+
+Otolaryngology (ENT) Report:
+{{otolaryngologistReport}}
+
+Nutrition Report:
+{{nutritionistReport}}
 
 Synthesize all these reports into a clear, comprehensive preliminary diagnosis. Provide actionable suggestions for next steps or further tests based on the combined findings. Address the report to the human doctor reviewing the case.`,
 });
@@ -96,21 +115,30 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
   async input => {
     // 1. Call all specialist agents in parallel to get their expert opinions.
     const [
-        cardiologyReport,
-        pulmonologyReport,
-        radiologyReport,
-        neurologyReport,
-        gastroenterologyReport,
-        endocrinologyReport,
-    ] =
-      await Promise.all([
-        cardiologistAgent(input),
-        pulmonologistAgent(input),
-        radiologistAgent(input),
-        neurologistAgent(input),
-        gastroenterologistAgent(input),
-        endocrinologistAgent(input),
-      ]);
+      cardiologyReport,
+      pulmonologyReport,
+      radiologyReport,
+      neurologyReport,
+      gastroenterologyReport,
+      endocrinologyReport,
+      dermatologistReport,
+      orthopedistReport,
+      ophthalmologistReport,
+      otolaryngologistReport,
+      nutritionistReport,
+    ] = await Promise.all([
+      cardiologistAgent(input),
+      pulmonologistAgent(input),
+      radiologistAgent(input),
+      neurologistAgent(input),
+      gastroenterologistAgent(input),
+      endocrinologistAgent(input),
+      dermatologistAgent(input),
+      orthopedistAgent(input),
+      ophthalmologistAgent(input),
+      otolaryngologistAgent(input),
+      nutritionistAgent(input),
+    ]);
 
     // 2. Call the orchestrator prompt, feeding it the specialists' analyses.
     const {output} = await prompt({
@@ -121,6 +149,11 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
       neurologistReport: neurologyReport.findings,
       gastroenterologistReport: gastroenterologyReport.findings,
       endocrinologistReport: endocrinologyReport.findings,
+      dermatologistReport: dermatologistReport.findings,
+      orthopedistReport: orthopedistReport.findings,
+      ophthalmologistReport: ophthalmologistReport.findings,
+      otolaryngologistReport: otolaryngologistReport.findings,
+      nutritionistReport: nutritionistReport.findings,
     });
 
     return output!;
