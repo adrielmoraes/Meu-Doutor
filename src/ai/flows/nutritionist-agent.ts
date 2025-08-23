@@ -8,6 +8,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
+import { internetSearchTool } from '../tools/internet-search';
 
 const AgentInputSchema = z.object({
   examResults: z
@@ -26,13 +27,16 @@ const specialistPrompt = ai.definePrompt({
     name: 'nutritionistAgentPrompt',
     input: {schema: AgentInputSchema},
     output: {schema: AgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool],
+    tools: [medicalKnowledgeBaseTool, internetSearchTool],
     prompt: `You are a world-renowned AI nutritionist and dietitian.
     Your task is to analyze the provided patient data to provide dietary advice and recommendations.
     Review the patient's history for information about their diet, lifestyle, weight goals, and any reported food-related issues. Also check exam results for relevant data like blood sugar, cholesterol, or nutrient levels.
-    If no dietary information is provided, state "No specific nutritional or dietary findings to report."
+    
+    Use your tools to provide the best possible recommendations:
+    - Use the 'medicalKnowledgeBaseTool' to look up clinical conditions or lab results.
+    - Use the 'internetSearchTool' to find up-to-date information on foods, dietary plans (e.g., "Mediterranean diet"), and general wellness topics.
 
-    Use the medicalKnowledgeBaseTool to look up food properties, vitamins, or diet-related conditions.
+    If no dietary information is provided, state "No specific nutritional or dietary findings to report."
 
     Patient's exam results:
     {{examResults}}
@@ -40,7 +44,7 @@ const specialistPrompt = ai.definePrompt({
     Patient's history and symptoms summary:
     {{patientHistory}}
 
-    Provide a concise analysis of the patient's nutritional status and suggest actionable dietary improvements.
+    Provide a concise analysis of the patient's nutritional status and suggest actionable dietary improvements based on your research.
     `,
 });
 
