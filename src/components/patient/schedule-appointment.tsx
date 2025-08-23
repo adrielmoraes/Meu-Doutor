@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, Loader2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Loader2, RefreshCw } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
@@ -12,12 +12,12 @@ import { createAppointmentAction } from './actions';
 import { getPatientById } from '@/lib/firestore-adapter';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 import { format } from 'date-fns';
+import { getAvailableTimesAction } from '@/app/patient/doctors/actions';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 // This should be replaced with the authenticated user's ID
 const MOCK_PATIENT_ID = '1';
 
-// Mock available times
-const availableTimes = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
 
 type ScheduleAppointmentProps = {
   doctor: Doctor;
@@ -26,9 +26,38 @@ type ScheduleAppointmentProps = {
 export default function ScheduleAppointment({ doctor }: ScheduleAppointmentProps) {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingTimes, setIsFetchingTimes] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
+
+  const fetchAvailableTimes = async (selectedDate: Date) => {
+    setIsFetchingTimes(true);
+    setSelectedTime(null); // Reset selected time when date changes
+    try {
+        const times = await getAvailableTimesAction(doctor.id, selectedDate);
+        setAvailableTimes(times);
+    } catch (error) {
+        console.error("Failed to fetch times", error);
+        setAvailableTimes([]);
+        toast({
+            variant: 'destructive',
+            title: 'Erro ao Buscar Horários',
+            description: 'Não foi possível carregar os horários disponíveis. Tente novamente.',
+        });
+    } finally {
+        setIsFetchingTimes(false);
+    }
+  };
+
+  // Fetch times when the dialog is opened or the date changes
+  useEffect(() => {
+    if (isOpen && date) {
+      fetchAvailableTimes(date);
+    }
+  }, [isOpen, date]);
+
 
   const handleBooking = async () => {
     if (!date || !selectedTime) {
@@ -105,15 +134,33 @@ export default function ScheduleAppointment({ doctor }: ScheduleAppointmentProps
           />
 
           {date && (
-            <div>
-                <h4 className="font-semibold mb-2">Horários para {format(date, 'dd/MM/yyyy')}:</h4>
-                <ToggleGroup type="single" onValueChange={setSelectedTime} variant="outline">
-                    {availableTimes.map(time => (
-                        <ToggleGroupItem key={time} value={time} aria-label={`Select time ${time}`}>
-                            {time}
-                        </ToggleGroupItem>
-                    ))}
-                </ToggleGroup>
+            <div className='min-h-[80px]'>
+                <h4 className="font-semibold mb-2 flex items-center justify-between">
+                    <span>Horários para {format(date, 'dd/MM/yyyy')}:</span>
+                     <Button variant="ghost" size="icon" onClick={() => fetchAvailableTimes(date)} disabled={isFetchingTimes}>
+                        <RefreshCw className={`h-4 w-4 ${isFetchingTimes ? 'animate-spin' : ''}`} />
+                    </Button>
+                </h4>
+                {isFetchingTimes ? (
+                    <div className="flex items-center justify-center h-16">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    </div>
+                ) : availableTimes.length > 0 ? (
+                     <ToggleGroup type="single" onValueChange={setSelectedTime} variant="outline" className="flex-wrap justify-start">
+                        {availableTimes.map(time => (
+                            <ToggleGroupItem key={time} value={time} aria-label={`Select time ${time}`}>
+                                {time}
+                            </ToggleGroupItem>
+                        ))}
+                    </ToggleGroup>
+                ) : (
+                    <Alert>
+                        <AlertTitle>Nenhum horário disponível</AlertTitle>
+                        <AlertDescription>
+                            Não há horários livres para esta data. Por favor, selecione outro dia.
+                        </AlertDescription>
+                    </Alert>
+                )}
             </div>
           )}
         </div>
