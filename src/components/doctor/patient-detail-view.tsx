@@ -9,15 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Bot, FileText, User, Pen, CheckCircle, Send, Loader2 } from "lucide-react";
 import type { GeneratePreliminaryDiagnosisOutput } from "@/ai/flows/generate-preliminary-diagnosis";
 import { useToast } from "@/hooks/use-toast";
-
-type Patient = {
-  id: string;
-  name: string;
-  age: number;
-  gender: string;
-  lastVisit: string;
-  examResults: string;
-};
+import type { Patient } from "@/types";
 
 type PatientDetailViewProps = {
   patient: Patient;
@@ -82,7 +74,7 @@ export default function PatientDetailView({
       <Card>
         <CardHeader className="flex flex-row items-center gap-4">
           <Avatar className="h-20 w-20">
-            <AvatarImage src="https://placehold.co/100x100.png" data-ai-hint="man portrait"/>
+            <AvatarImage src={patient.avatar} data-ai-hint={patient.avatarHint}/>
             <AvatarFallback>{patient.name.substring(0, 2)}</AvatarFallback>
           </Avatar>
           <div>
