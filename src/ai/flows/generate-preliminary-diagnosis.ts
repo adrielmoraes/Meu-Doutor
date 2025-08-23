@@ -21,6 +21,21 @@ import {ophthalmologistAgent} from './ophthalmologist-agent';
 import {otolaryngologistAgent} from './otolaryngologist-agent';
 import {nutritionistAgent} from './nutritionist-agent';
 
+const specialistAgents = {
+  cardiologist: cardiologistAgent,
+  pulmonologist: pulmonologistAgent,
+  radiologist: radiologistAgent,
+  neurologist: neurologistAgent,
+  gastroenterologist: gastroenterologistAgent,
+  endocrinologist: endocrinologistAgent,
+  dermatologist: dermatologistAgent,
+  orthopedist: orthopedistAgent,
+  ophthalmologist: ophthalmologistAgent,
+  otolaryngologist: otolaryngologistAgent,
+  nutritionist: nutritionistAgent,
+};
+type Specialist = keyof typeof specialistAgents;
+
 const GeneratePreliminaryDiagnosisInputSchema = z.object({
   examResults: z
     .string()
@@ -55,7 +70,7 @@ export async function generatePreliminaryDiagnosis(
   return generatePreliminaryDiagnosisFlow(input);
 }
 
-const prompt = ai.definePrompt({
+const synthesisPrompt = ai.definePrompt({
   name: 'generatePreliminaryDiagnosisPrompt',
   input: {schema: z.any()},
   output: {schema: GeneratePreliminaryDiagnosisOutputSchema},
@@ -69,41 +84,34 @@ Patient's history and symptoms summary:
 {{patientHistory}}
 
 You have consulted with your team of specialists, and here are their reports:
-
-Cardiology Report:
-{{cardiologistReport}}
-
-Pulmonology Report:
-{{pulmonologistReport}}
-
-Radiology Report:
-{{radiologistReport}}
-
-Neurology Report:
-{{neurologistReport}}
-
-Gastroenterology Report:
-{{gastroenterologistReport}}
-
-Endocrinology Report:
-{{endocrinologistReport}}
-
-Dermatology Report:
-{{dermatologistReport}}
-
-Orthopedics Report:
-{{orthopedistReport}}
-
-Ophthalmology Report:
-{{ophthalmologistReport}}
-
-Otolaryngology (ENT) Report:
-{{otolaryngologistReport}}
-
-Nutrition Report:
-{{nutritionistReport}}
+{{{specialistReports}}}
 
 Synthesize all these reports into a clear, comprehensive preliminary diagnosis. Provide actionable suggestions for next steps or further tests based on the combined findings. Address the report to the human doctor reviewing the case.`,
+});
+
+const triagePrompt = ai.definePrompt({
+  name: 'triageSpecialistsPrompt',
+  input: {schema: GeneratePreliminaryDiagnosisInputSchema},
+  output: {
+    schema: z.object({
+      specialists: z
+        .array(z.string())
+        .describe(
+          'A list of specialist keys that should be consulted for this case.'
+        ),
+    }),
+  },
+  prompt: `You are a triage AI. Your job is to read the patient data and decide which specialists are most relevant to this case.
+  
+  Available specialists: ${Object.keys(specialistAgents).join(', ')}.
+  
+  Patient's exam results:
+  {{examResults}}
+
+  Patient's history and symptoms summary:
+  {{patientHistory}}
+
+  Based on the data, return a list of specialist keys that should be consulted. For example, if there are heart and lung issues, return ["cardiologist", "pulmonologist"].`,
 });
 
 const generatePreliminaryDiagnosisFlow = ai.defineFlow(
@@ -113,47 +121,39 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     outputSchema: GeneratePreliminaryDiagnosisOutputSchema,
   },
   async input => {
-    // 1. Call all specialist agents in parallel to get their expert opinions.
-    const [
-      cardiologyReport,
-      pulmonologyReport,
-      radiologyReport,
-      neurologyReport,
-      gastroenterologyReport,
-      endocrinologyReport,
-      dermatologistReport,
-      orthopedistReport,
-      ophthalmologistReport,
-      otolaryngologistReport,
-      nutritionistReport,
-    ] = await Promise.all([
-      cardiologistAgent(input),
-      pulmonologistAgent(input),
-      radiologistAgent(input),
-      neurologistAgent(input),
-      gastroenterologistAgent(input),
-      endocrinologistAgent(input),
-      dermatologistAgent(input),
-      orthopedistAgent(input),
-      ophthalmologistAgent(input),
-      otolaryngologistAgent(input),
-      nutritionistAgent(input),
-    ]);
+    // 1. Triage: Decide which specialists to call.
+    const triageResult = await triagePrompt(input);
+    const specialistsToCall = triageResult.output!.specialists as Specialist[];
 
-    // 2. Call the orchestrator prompt, feeding it the specialists' analyses.
-    const {output} = await prompt({
+    if (!specialistsToCall || specialistsToCall.length === 0) {
+      return {
+        diagnosis: "Nenhuma especialidade relevante foi identificada para este caso com base nos dados fornecidos.",
+        suggestions: "Recomenda-se uma avaliação médica geral para determinar os próximos passos."
+      }
+    }
+
+    // 2. Call only the selected specialist agents in parallel.
+    const specialistPromises = specialistsToCall.map(specialistKey => {
+      const agent = specialistAgents[specialistKey];
+      return agent(input).then(report => ({
+        specialist: specialistKey,
+        findings: report.findings,
+      }));
+    });
+
+    const specialistResults = await Promise.all(specialistPromises);
+
+    // 3. Format the reports for the final synthesis prompt.
+    const specialistReports = specialistResults.map(result => `
+## ${result.specialist.charAt(0).toUpperCase() + result.specialist.slice(1)} Report:
+${result.findings}
+    `).join('\n');
+
+
+    // 4. Call the synthesis prompt, feeding it only the relevant specialists' analyses.
+    const {output} = await synthesisPrompt({
       ...input,
-      cardiologistReport: cardiologyReport.findings,
-      pulmonologistReport: pulmonologyReport.findings,
-      radiologistReport: radiologyReport.findings,
-      neurologistReport: neurologyReport.findings,
-      gastroenterologistReport: gastroenterologyReport.findings,
-      endocrinologistReport: endocrinologyReport.findings,
-      dermatologistReport: dermatologistReport.findings,
-      orthopedistReport: orthopedistReport.findings,
-      ophthalmologistReport: ophthalmologistReport.findings,
-      otolaryngologistReport: otolaryngologistReport.findings,
-      nutritionistReport: nutritionistReport.findings,
+      specialistReports: specialistReports,
     });
 
     return output!;
