@@ -1,44 +1,74 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { PlayCircle, Square } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { PlayCircle, Square, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { textToSpeech } from "@/ai/flows/text-to-speech";
 
 interface AudioPlaybackProps {
   textToSpeak: string;
 }
 
 const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak }) => {
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [audioSrc, setAudioSrc] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { toast } = useToast();
 
+  // Create an Audio element and store it in the ref
   useEffect(() => {
-    const synth = window.speechSynthesis;
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = "pt-BR";
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    utteranceRef.current = utterance;
+    audioRef.current = new Audio();
+    const audio = audioRef.current;
 
-    // Cleanup function to cancel speech when component unmounts or text changes
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    const handleEnded = () => setIsPlaying(false);
+
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('ended', handleEnded);
+
     return () => {
-      synth.cancel();
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('ended', handleEnded);
+      audio.pause();
     };
-  }, [textToSpeak]);
+  }, []);
 
-  const handlePlayAudio = () => {
-    const synth = window.speechSynthesis;
-    if (!utteranceRef.current) return;
+  const generateAndPlayAudio = async () => {
+    if (!audioRef.current) return;
 
-    if (isSpeaking) {
-      synth.cancel();
-      setIsSpeaking(false);
-    } else {
-      // Ensure any previous speech is stopped before starting a new one
-      synth.cancel();
-      synth.speak(utteranceRef.current);
+    if (isPlaying) {
+      audioRef.current.pause();
+      return;
+    }
+
+    if (audioSrc) {
+      audioRef.current.src = audioSrc;
+      audioRef.current.play();
+      return;
+    }
+    
+    setIsGenerating(true);
+    try {
+      const response = await textToSpeech({ text: textToSpeak });
+      const newAudioSrc = response.audioDataUri;
+      setAudioSrc(newAudioSrc);
+      audioRef.current.src = newAudioSrc;
+      audioRef.current.play();
+    } catch (error) {
+      console.error("Failed to generate audio:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao Gerar Áudio",
+        description: "Não foi possível gerar a narração. Tente novamente.",
+      });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -50,11 +80,14 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak }) => {
         <Button
           size="icon"
           variant="ghost"
-          onClick={handlePlayAudio}
-          aria-label={isSpeaking ? "Parar áudio" : "Reproduzir áudio"}
+          onClick={generateAndPlayAudio}
+          disabled={isGenerating}
+          aria-label={isPlaying ? "Parar áudio" : "Reproduzir áudio"}
         >
-          {isSpeaking ? (
-            <Square className="h-6 w-6 text-destructive animate-pulse" />
+          {isGenerating ? (
+            <Loader2 className="h-6 w-6 text-primary animate-spin" />
+          ) : isPlaying ? (
+            <Square className="h-6 w-6 text-destructive" />
           ) : (
             <PlayCircle className="h-6 w-6 text-primary" />
           )}
