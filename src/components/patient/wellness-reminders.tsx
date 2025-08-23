@@ -1,30 +1,26 @@
 
-import { Bell, Droplet, Clock, Coffee, Bed } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+"use client";
 
-export default function WellnessReminders() {
-    const reminders = [
-        {
-            icon: <Clock className="h-5 w-5 text-blue-500" />,
-            title: "Medicação das 8h",
-            description: "Não se esqueça de tomar seu remédio para pressão."
-        },
-        {
-            icon: <Droplet className="h-5 w-5 text-cyan-500" />,
-            title: "Hidratação",
-            description: "Beba um copo de água. Manter-se hidratado é essencial."
-        },
-        {
-            icon: <Coffee className="h-5 w-5 text-amber-600" />,
-            title: "Pausa para o Café",
-            description: "Faça uma pequena pausa para relaxar e alongar."
-        },
-        {
-            icon: <Bed className="h-5 w-5 text-indigo-500" />,
-            title: "Prepare-se para Dormir",
-            description: "Desligue as telas e comece a relaxar para uma boa noite de sono."
-        }
-    ];
+import { Bell, Droplet, Clock, Coffee, Bed, Dumbbell } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type { GenerateWellnessPlanOutput } from "@/ai/flows/generate-wellness-plan";
+
+type Reminder = GenerateWellnessPlanOutput['dailyReminders'][0];
+
+interface WellnessRemindersProps {
+    reminders: Reminder[];
+}
+
+const iconMap: { [key: string]: React.ReactNode } = {
+    'Clock': <Clock className="h-5 w-5 text-blue-500" />,
+    'Droplet': <Droplet className="h-5 w-5 text-cyan-500" />,
+    'Coffee': <Coffee className="h-5 w-5 text-amber-600" />,
+    'Bed': <Bed className="h-5 w-5 text-indigo-500" />,
+    'Dumbbell': <Dumbbell className="h-5 w-5 text-green-500" />,
+};
+
+
+export default function WellnessReminders({ reminders }: WellnessRemindersProps) {
 
     return (
         <Card>
@@ -42,7 +38,7 @@ export default function WellnessReminders() {
                     {reminders.map(reminder => (
                         <li key={reminder.title} className="flex items-start gap-4">
                             <div className="mt-1">
-                                {reminder.icon}
+                                {iconMap[reminder.icon] || <Bell className="h-5 w-5" />}
                             </div>
                             <div>
                                 <p className="font-semibold">{reminder.title}</p>

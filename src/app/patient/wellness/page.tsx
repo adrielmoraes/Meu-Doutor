@@ -75,7 +75,7 @@ export default async function WellnessPlanPage() {
                             ))}
                         </div>
                         <div className="space-y-6">
-                           <WellnessReminders />
+                           <WellnessReminders reminders={wellnessPlan.dailyReminders} />
                         </div>
                     </div>
                 </div>

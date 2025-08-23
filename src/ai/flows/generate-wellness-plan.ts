@@ -17,10 +17,17 @@ const GenerateWellnessPlanInputSchema = z.object({
 });
 export type GenerateWellnessPlanInput = z.infer<typeof GenerateWellnessPlanInputSchema>;
 
+const ReminderSchema = z.object({
+    icon: z.enum(['Droplet', 'Clock', 'Coffee', 'Bed', 'Dumbbell']).describe("The most appropriate icon for the reminder."),
+    title: z.string().describe("The short title for the reminder."),
+    description: z.string().describe("The brief description of the reminder action.")
+});
+
 const GenerateWellnessPlanOutputSchema = z.object({
   dietaryPlan: z.string().describe("A detailed, actionable dietary plan. Should include meal suggestions and foods to include/avoid."),
   exercisePlan: z.string().describe("A simple, safe exercise and physical activity plan suitable for the patient's condition."),
   mentalWellnessPlan: z.string().describe("Recommendations for managing stress, improving sleep, and other mental well-being practices."),
+  dailyReminders: z.array(ReminderSchema).describe("A list of 3-4 actionable daily reminders based on the generated plans."),
 });
 export type GenerateWellnessPlanOutput = z.infer<typeof GenerateWellnessPlanOutputSchema>;
 
@@ -35,11 +42,12 @@ const wellnessPlanPrompt = ai.definePrompt({
     prompt: `You are a holistic health AI assistant. Your task is to create a comprehensive and encouraging wellness plan for a patient.
 
     You will receive a summary of the patient's history and a detailed report from a nutritionist AI.
-    Your job is to synthesize this information into three key areas: Diet, Exercise, and Mental Wellness.
+    Your job is to synthesize this information into four key areas: Diet, Exercise, Mental Wellness, and Daily Reminders.
 
     - For the Dietary Plan, use the nutritionist's report as the primary source. Reformat it to be very clear, encouraging, and easy for the patient to follow.
     - For the Exercise Plan, suggest simple, safe, and low-impact activities (like walking, stretching) that are generally beneficial. Emphasize starting slow.
     - For the Mental Wellness Plan, provide common-sense advice on stress management (e.g., deep breathing), sleep hygiene, and mindfulness.
+    - For the Daily Reminders, create a list of 3-4 short, actionable reminders directly from the plans you just created. Choose a suitable icon for each.
 
     Keep the tone positive, supportive, and motivational.
 
