@@ -2,16 +2,12 @@ import Header from "@/components/layout/header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getDoctors } from "@/lib/firestore-adapter";
 import { Phone, Video, Calendar } from "lucide-react";
 
-const doctors = [
-  { id: '1', name: 'Dr. Ana Silva', specialty: 'Cardiologia', online: true, avatar: 'https://placehold.co/100x100.png', avatarHint: 'woman portrait' },
-  { id: '2', name: 'Dr. Bruno Costa', specialty: 'Clínica Geral', online: false, avatar: 'https://placehold.co/100x100.png', avatarHint: 'man portrait' },
-  { id: '3', name: 'Dra. Carla Dias', specialty: 'Dermatologia', online: true, avatar: 'https://placehold.co/100x100.png', avatarHint: 'woman portrait' },
-  { id: '4', name: 'Dr. Daniel Martins', specialty: 'Ortopedia', online: false, avatar: 'https://placehold.co/100x100.png', avatarHint: 'man portrait' },
-];
+export default async function DoctorsPage() {
+  const doctors = await getDoctors();
 
-export default function DoctorsPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
