@@ -98,16 +98,16 @@ const AIConsultationCard = () => {
 
   const handleAiResponse = async (userInput: string) => {
     const newUserMessage = { role: 'user' as const, content: userInput };
-    const newHistory = [...history, newUserMessage];
-    setHistory(newHistory);
+    const currentHistory = [...history, newUserMessage];
+    setHistory(currentHistory);
     setIsThinking(true);
 
     try {
         // Get AI text response, now with patient context
-        const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history, userInput };
+        const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: currentHistory, userInput };
         const result = await consultationFlow(input);
         const aiResponse = { role: 'model' as const, content: result.response };
-        setHistory([...newHistory, aiResponse]);
+        setHistory([...currentHistory, aiResponse]);
 
         // Get AI audio response and play it
         const audioResponse = await textToSpeech({ text: result.response });
