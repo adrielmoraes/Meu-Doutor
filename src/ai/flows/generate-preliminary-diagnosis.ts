@@ -20,6 +20,7 @@ import {orthopedistAgent} from './orthopedist-agent';
 import {ophthalmologistAgent} from './ophthalmologist-agent';
 import {otolaryngologistAgent} from './otolaryngologist-agent';
 import {nutritionistAgent} from './nutritionist-agent';
+import {pediatricianAgent} from './pediatrician-agent';
 
 const specialistAgents = {
   cardiologist: cardiologistAgent,
@@ -33,6 +34,7 @@ const specialistAgents = {
   ophthalmologist: ophthalmologistAgent,
   otolaryngologist: otolaryngologistAgent,
   nutritionist: nutritionistAgent,
+  pediatrician: pediatricianAgent,
 };
 type Specialist = keyof typeof specialistAgents;
 
@@ -111,7 +113,7 @@ const triagePrompt = ai.definePrompt({
   Patient's history and symptoms summary:
   {{patientHistory}}
 
-  Based on the data, return a list of specialist keys that should be consulted. For example, if there are heart and lung issues, return ["cardiologist", "pulmonologist"].`,
+  Based on the data, return a list of specialist keys that should be consulted. For example, if there are heart and lung issues, return ["cardiologist", "pulmonologist"]. If the patient is a child, always include "pediatrician".`,
 });
 
 const generatePreliminaryDiagnosisFlow = ai.defineFlow(

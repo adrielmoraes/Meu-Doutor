@@ -17,4 +17,5 @@ import '@/ai/flows/orthopedist-agent.ts';
 import '@/ai/flows/ophthalmologist-agent.ts';
 import '@/ai/flows/otolaryngologist-agent.ts';
 import '@/ai/flows/nutritionist-agent.ts';
+import '@/ai/flows/pediatrician-agent.ts';
 import '@/ai/tools/medical-knowledge-base.ts';
