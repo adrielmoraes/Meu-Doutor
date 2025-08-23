@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -18,6 +19,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { analyzeMedicalExam, AnalyzeMedicalExamOutput } from "@/ai/flows/analyze-medical-exam";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { saveExamAnalysisAction } from "./actions";
+
+// This should be replaced with the authenticated user's ID
+const MOCK_PATIENT_ID = '1';
 
 const ExamUploadCard = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -63,6 +68,13 @@ const ExamUploadCard = () => {
         const result = await analyzeMedicalExam({ examDataUri: dataUri });
         setAnalysisResult(result);
         setIsResultOpen(true);
+
+        // Save the result to Firestore
+        await saveExamAnalysisAction(MOCK_PATIENT_ID, {
+            ...result,
+            fileName: file.name
+        });
+
       } catch (error) {
         console.error("Analysis failed:", error);
         toast({

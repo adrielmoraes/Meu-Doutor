@@ -27,9 +27,9 @@ export type Exam = {
   id: string;
   type: string;
   date: string;
-  result: string;
-  icon: string; // Ideally, this would be an enum or a more specific type
+  result: string; // A summary of the result, e.g., the preliminary diagnosis
+  icon: string; // Lucide icon name
   preliminaryDiagnosis: string;
   explanation: string;
-  results: { name: string; value: string; reference: string }[];
+  results?: { name: string; value: string; reference: string }[];
 };

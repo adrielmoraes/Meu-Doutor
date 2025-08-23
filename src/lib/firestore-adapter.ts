@@ -1,6 +1,6 @@
 
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import type { Patient, Doctor, Exam } from '@/types';
 
 export async function getPatients(): Promise<Patient[]> {
@@ -46,4 +46,13 @@ export async function getExamById(patientId: string, examId: string): Promise<Ex
         return { id: examDoc.id, ...examDoc.data() } as Exam;
     }
     return null;
+}
+
+export async function addExamToPatient(patientId: string, examData: Omit<Exam, 'id' | 'date'>) {
+    const examsCol = collection(db, `patients/${patientId}/exams`);
+    const examDoc = {
+        ...examData,
+        date: new Date().toISOString(),
+    };
+    await addDoc(examsCol, examDoc);
 }
