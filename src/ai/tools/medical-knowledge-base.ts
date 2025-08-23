@@ -6,6 +6,8 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 // Mock database of medical knowledge.
+// In a real-world production system, this would be replaced with calls to a trusted medical API,
+// such as the NIH's MedlinePlus API, PubMed, or another comprehensive medical database.
 const medicalData: Record<string, string> = {
     'hypertension': 'A condition in which the force of the blood against the artery walls is too high. Usually defined as blood pressure above 140/90, and is considered severe if the pressure is above 180/120.',
     'troponin': 'A type of protein found in the muscles of your heart. Troponin isn\'t normally found in the blood. When heart muscles become damaged, troponin is sent into the bloodstream. As heart damage increases, greater amounts of troponin are released into the blood.',
@@ -26,9 +28,19 @@ export const medicalKnowledgeBaseTool = ai.defineTool(
     },
     async (input) => {
       console.log(`[Knowledge Base] Searching for term: ${input.term}`);
-      const searchTerm = input.term.toLowerCase();
+
+      // START - REAL-WORLD IMPLEMENTATION
+      // In a real-world scenario, you would replace the mock search with a `fetch` call to a medical API.
+      //
+      // Example (pseudo-code):
+      // const response = await fetch(`https://api.medical-library.com/search?term=${input.term}&apiKey=YOUR_API_KEY`);
+      // const data = await response.json();
+      // return data.summary;
+      // END - REAL-WORLD IMPLEMENTATION
       
-      // Find a matching key in the mock database
+
+      // MOCK IMPLEMENTATION FOR PROTOTYPE
+      const searchTerm = input.term.toLowerCase();
       const foundKey = Object.keys(medicalData).find(key => searchTerm.includes(key));
 
       if (foundKey) {
