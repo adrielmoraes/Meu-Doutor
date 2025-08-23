@@ -26,7 +26,9 @@ import { ScrollArea } from "../ui/scroll-area";
 import { consultationFlow, ConsultationInput } from "@/ai/flows/consultation-flow";
 import { textToSpeech } from "@/ai/flows/text-to-speech";
 
-// Speech Recognition instance will be stored in a ref
+// Speech Recognition global instance - moved inside component
+let recognition: any;
+
 const AIConsultationCard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isMicOn, setIsMicOn] = useState(true);
@@ -38,7 +40,6 @@ const AIConsultationCard = () => {
   const [isThinking, setIsThinking] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
 
   const femaleAvatarUrl = "https://placehold.co/128x128.png";
@@ -47,15 +48,13 @@ const AIConsultationCard = () => {
   useEffect(() => {
     audioRef.current = new Audio();
 
-    // Initialize SpeechRecognition API
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
+      recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.lang = 'pt-BR';
       recognition.interimResults = false;
-      recognitionRef.current = recognition;
     }
   }, []);
   
@@ -123,7 +122,6 @@ const AIConsultationCard = () => {
   };
 
   useEffect(() => {
-    const recognition = recognitionRef.current;
     if (!recognition) return;
 
     recognition.onresult = (event: any) => {
@@ -148,7 +146,6 @@ const AIConsultationCard = () => {
   }, [history]); // Re-attach listeners if history changes
 
   const toggleRecording = () => {
-    const recognition = recognitionRef.current;
     if (!recognition) {
         toast({
             variant: 'destructive',
@@ -271,5 +268,3 @@ const AIConsultationCard = () => {
 };
 
 export default AIConsultationCard;
-
-    
