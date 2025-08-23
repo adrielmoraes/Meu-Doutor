@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Phone, Video, Loader2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Phone, Video, VideoOff, Mic, MicOff, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import type { Doctor } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
@@ -18,31 +18,57 @@ type StartConsultationProps = {
 
 export default function StartConsultation({ doctor, type }: StartConsultationProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [callStatus, setCallStatus] = useState<'idle' | 'connecting' | 'failed'>('idle');
+  const [callStatus, setCallStatus] = useState<'idle' | 'connecting' | 'failed' | 'connected'>('idle');
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [isVideoOn, setIsVideoOn] = useState(true);
+  const [isMicOn, setIsMicOn] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
 
   const Icon = type === 'video' ? Video : Phone;
   const buttonText = type === 'video' ? 'Videochamada' : 'Voz';
   const buttonVariant = type === 'video' ? 'default' : 'secondary';
 
   useEffect(() => {
-    if (!isOpen) {
-      setCallStatus('idle');
-      setIsConnecting(false);
-      return;
-    }
+    const getCameraPermission = async () => {
+      if (!isOpen) return;
 
-    setIsConnecting(true);
-    setCallStatus('connecting');
+      setCallStatus('connecting');
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        setHasCameraPermission(true);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
 
-    const timer = setTimeout(() => {
-      setIsConnecting(false);
-      setCallStatus('failed');
-    }, 3000); // Simulate connection attempt for 3 seconds
+        // Simulate connection attempt
+        const timer = setTimeout(() => {
+            setCallStatus('failed');
+        }, 5000); // Simulate connection attempt for 5 seconds
 
-    return () => clearTimeout(timer);
+        return () => clearTimeout(timer);
 
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        setHasCameraPermission(false);
+        setCallStatus('failed');
+      }
+    };
+
+    getCameraPermission();
+
+    return () => {
+        if (videoRef.current && videoRef.current.srcObject) {
+            const stream = videoRef.current.srcObject as MediaStream;
+            stream.getTracks().forEach(track => track.stop());
+        }
+    };
   }, [isOpen]);
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setCallStatus('idle');
+  }
 
 
   return (
@@ -52,32 +78,66 @@ export default function StartConsultation({ doctor, type }: StartConsultationPro
           <Icon className="mr-2 h-4 w-4" /> {buttonText}
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Iniciando chamada com {doctor.name}</DialogTitle>
+          <DialogTitle>Chamada com {doctor.name}</DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col items-center justify-center space-y-4 py-8">
-            <Avatar className="h-24 w-24 border-4 border-primary">
-                <AvatarImage src={doctor.avatar} data-ai-hint={doctor.avatarHint} />
-                <AvatarFallback>{doctor.name.substring(0, 2)}</AvatarFallback>
-            </Avatar>
+        <div className="grid grid-cols-2 gap-4 my-4">
+             {/* Doctor's View */}
+            <div className="bg-black rounded-lg flex flex-col items-center justify-center p-4 space-y-4 min-h-[250px] text-white">
+                <Avatar className="h-24 w-24 border-4 border-primary">
+                    <AvatarImage src={doctor.avatar} data-ai-hint={doctor.avatarHint} />
+                    <AvatarFallback>{doctor.name.substring(0, 2)}</AvatarFallback>
+                </Avatar>
+                <p>{doctor.name}</p>
+                 {callStatus === 'connecting' && (
+                    <div className="flex items-center space-x-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <p className="text-sm text-muted-foreground">Chamando...</p>
+                    </div>
+                 )}
+                 {callStatus === 'failed' && (
+                    <p className="text-sm text-red-400">Não atendeu</p>
+                 )}
+            </div>
+            {/* Patient's View */}
+            <div className="bg-black rounded-lg flex items-center justify-center relative min-h-[250px]">
+                <video ref={videoRef} className={`w-full h-full object-cover rounded-lg ${!isVideoOn || hasCameraPermission === false ? 'hidden' : ''}`} autoPlay muted playsInline />
 
-            {callStatus === 'connecting' && (
-                <>
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-muted-foreground">Conectando...</p>
-                </>
-            )}
-
-            {callStatus === 'failed' && (
-                 <Alert variant="destructive">
-                    <AlertTitle>Chamada não atendida</AlertTitle>
-                    <AlertDescription>
-                        {doctor.name} não está disponível no momento. Tente novamente mais tarde ou agende uma consulta.
-                    </AlertDescription>
-                </Alert>
-            )}
+                {(!isVideoOn || hasCameraPermission === false) && (
+                    <div className="flex flex-col items-center justify-center text-white">
+                        <VideoOff className="h-16 w-16" />
+                        <p className="mt-2">Câmera desligada</p>
+                    </div>
+                )}
+                 {hasCameraPermission === false && (
+                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
+                        <Alert variant="destructive">
+                            <AlertTitle>Acesso à Câmera Negado</AlertTitle>
+                        </Alert>
+                    </div>
+                 )}
+            </div>
         </div>
+         {callStatus === 'failed' && (
+            <Alert variant="destructive">
+                <AlertTitle>Chamada não atendida</AlertTitle>
+                <AlertDescription>
+                    {doctor.name} não está disponível no momento. Tente novamente mais tarde ou agende uma consulta.
+                </AlertDescription>
+            </Alert>
+        )}
+        <DialogFooter className="flex items-center justify-center gap-4 bg-card pt-4">
+             <Button variant={isMicOn ? "secondary" : "destructive"} size="icon" onClick={() => setIsMicOn(!isMicOn)}>
+              {isMicOn ? <Mic /> : <MicOff />}
+            </Button>
+            <Button variant={isVideoOn ? "secondary" : "destructive"} size="icon" onClick={() => setIsVideoOn(!isVideoOn)}>
+              {isVideoOn ? <Video /> : <VideoOff />}
+            </Button>
+            <Button variant="destructive" size="lg" onClick={handleClose}>
+              <Phone className="mr-2" /> Encerrar
+            </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
