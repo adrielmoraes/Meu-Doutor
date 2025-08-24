@@ -81,13 +81,13 @@ _**Aviso:** Os preços são baseados nos valores do Google em Junho de 2024 para
 | Geração de Diagnóstico | $2.50 |
 | Geração de Plano/Explicação | $2.25 |
 | Texto para Áudio (TTS) | $75.00 |
-| **Total** | **$117.94** |
+| **Total (API Gemini)** | **$117.94** |
 
 ---
 
 ## 5. Cenário "Super Usuário" (Custo por Paciente/Mês)
 
-Este cenário calcula o custo mensal para um único paciente com um volume de uso extremamente alto.
+Este cenário calcula o custo mensal da API para um único paciente com um volume de uso extremamente alto.
 
 - **Premissas:**
   - **Consultas com a IA:** 30 consultas/mês
@@ -108,11 +108,28 @@ Este cenário calcula o custo mensal para um único paciente com um volume de us
 
 ---
 
-## Conclusão
+## 6. Modelos de Remuneração para Médicos (Análise Conceitual)
 
-Com um cenário de uso mais intenso (12 consultas por mês), o custo estimado para operar a plataforma MediAI com 1.000 usuários ativos mensais sobe para aproximadamente **$117.94 por mês**. Neste novo cenário, o serviço de **Texto para Áudio (TTS)** se torna o maior responsável pelos custos, seguido pelas **Consultas com a IA**.
+Esta seção aborda os custos operacionais com os profissionais de saúde, que são distintos dos custos da API. A escolha do modelo de remuneração é uma decisão de negócio e os valores abaixo são meramente ilustrativos.
 
-Para um **super usuário** individual, com 30 consultas e 15 análises de exame por mês, o custo mensal seria de aproximadamente **$0.29**. Este valor serve como um teto para entender o custo máximo que um único paciente poderia gerar na plataforma sob uso extremo.
+| Modelo | Descrição | Vantagens | Desvantagens |
+| :--- | :--- | :--- | :--- |
+| **Pagamento por Ato** | O médico recebe um valor fixo por cada ato (ex: validação de diagnóstico, consulta virtual). Ex: `$20` por validação. | - Custo variável, escala com o uso.<br>- Incentiva a produtividade. | - Renda instável para o médico.<br>- Pode incentivar a quantidade sobre a qualidade. |
+| **Salário / Retainer** | O médico recebe um valor fixo mensal para garantir disponibilidade. Ex: `$2,000/mês` por 20h/semana. | - Custo previsível.<br>- Maior estabilidade e retenção do médico. | - Custo fixo alto, mesmo com baixa demanda.<br>- Menor incentivo à produtividade extra. |
+| **Modelo Híbrido** | Combinação de um valor fixo com pagamento por ato. Ex: `$500/mês` + `$10` por validação. | - Equilibra segurança para o médico com incentivos de produtividade. | - Mais complexo de administrar. |
+| **Revenue Share** | O médico recebe uma porcentagem da receita gerada por suas consultas. Ex: 50% do valor da consulta paga pelo paciente. | - Alinha os interesses do médico e da plataforma.<br>- Baixo risco financeiro inicial para a plataforma. | - A receita do médico pode ser muito variável.<br>- Requer um modelo de negócio onde o paciente paga diretamente. |
+
+### Conclusão sobre Custos com Médicos
+
+Os custos com os médicos são um componente significativo e devem ser cuidadosamente modelados no plano de negócios. Para o protótipo MediAI, o modelo de **Pagamento por Ato** é o mais simples de simular, onde o custo total seria `(Nº de Validações * Valor por Validação)`. Em um negócio real, o **Modelo Híbrido** costuma ser o mais atraente para ambas as partes.
+
+---
+
+## Conclusão Geral
+
+Com um cenário de uso mais intenso (12 consultas por mês), o custo estimado apenas com a **API Gemini** para operar a plataforma MediAI com 1.000 usuários ativos mensais sobe para aproximadamente **$117.94 por mês**. Neste novo cenário, o serviço de **Texto para Áudio (TTS)** se torna o maior responsável pelos custos, seguido pelas **Consultas com a IA**.
+
+Para um **super usuário** individual, com 30 consultas e 15 análises de exame por mês, o custo da API seria de aproximadamente **$0.29**. Este valor serve como um teto para entender o custo máximo que um único paciente poderia gerar na plataforma sob uso extremo.
 
 Para otimizar custos, as estratégias mencionadas anteriormente se tornam ainda mais relevantes:
 - Limitar o número de consultas com IA ou a funcionalidade de áudio em planos gratuitos.
