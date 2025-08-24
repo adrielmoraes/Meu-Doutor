@@ -49,6 +49,8 @@ const PATIENTS: Omit<Patient, 'id'>[] = [
             { title: 'Reduzir Frequência das Crises', description: 'Monitorar e identificar gatilhos para diminuir a ocorrência de enxaquecas.', progress: 15 },
             { title: 'Melhorar Higiene do Sono', description: 'Dormir de 7 a 8 horas por noite para reduzir a probabilidade de crises.', progress: 40 },
         ],
+        finalExplanation: 'Olá, Mariana. A Dra. Ana analisou seu caso e concluiu que você está com Enxaqueca Crônica. Isso explica as dores de cabeça fortes e frequentes. Ela prescreveu um medicamento chamado Sumatriptano para você tomar assim que sentir uma crise começando, para aliviar a dor. Além disso, é importante que você comece a anotar quando as dores acontecem e o que você estava fazendo, para tentarmos descobrir o que pode estar causando as crises. Evitar muito café e situações de estresse também pode ajudar bastante. Fique tranquila, é uma condição comum e com o tratamento certo, você terá uma ótima qualidade de vida.',
+        finalExplanationAudioUri: '', // Intentionally left blank, will be generated on demand
     },
 ];
 
