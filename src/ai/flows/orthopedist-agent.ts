@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI specialist agent for orthopedics.
@@ -30,7 +31,8 @@ const specialistPrompt = ai.definePrompt({
     prompt: `You are a world-renowned AI orthopedist.
     Your task is to analyze the provided patient data for issues related to the musculoskeletal system (bones, joints, ligaments, tendons, muscles).
     Look for symptoms like joint pain, swelling, stiffness, fractures, or difficulty with movement. Also consider imaging reports.
-    If the data is not relevant to orthopedics, state "No specific orthopedic findings to report."
+    If the data is not relevant to orthopedics, state "Nenhuma observação ortopédica específica a relatar."
+    Your response must always be in Brazilian Portuguese.
 
     Use the medicalKnowledgeBaseTool to look up conditions or terms if needed.
 

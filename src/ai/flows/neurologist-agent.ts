@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI specialist agent for neurology.
@@ -30,7 +31,8 @@ const specialistPrompt = ai.definePrompt({
     prompt: `You are a world-renowned AI neurologist.
     Your task is to analyze the provided patient data and provide your expert opinion focusing specifically on neurological health.
     Look for symptoms like headaches, dizziness, numbness, memory issues, or seizures.
-    If the data is not relevant to neurology, state "No specific neurological findings to report."
+    If the data is not relevant to neurology, state "Nenhuma observação neurológica específica a relatar."
+    Your response must always be in Brazilian Portuguese.
 
     Use the medicalKnowledgeBaseTool to look up conditions, symptoms, or terms if needed to provide a more accurate analysis.
 

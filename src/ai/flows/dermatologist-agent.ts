@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI specialist agent for dermatology.
@@ -30,7 +31,8 @@ const specialistPrompt = ai.definePrompt({
     prompt: `You are a world-renowned AI dermatologist.
     Your task is to analyze the provided patient data for issues related to skin, hair, and nails.
     Look for descriptions of rashes, moles, lesions, itching, hair loss, or nail changes.
-    If the data is not relevant to dermatology, state "No specific dermatological findings to report."
+    If the data is not relevant to dermatology, state "Nenhuma observação dermatológica específica a relatar."
+    Your response must always be in Brazilian Portuguese.
 
     Use the medicalKnowledgeBaseTool to look up conditions or terms if needed.
 

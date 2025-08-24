@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI specialist agent for ophthalmology.
@@ -30,7 +31,8 @@ const specialistPrompt = ai.definePrompt({
     prompt: `You are a world-renowned AI ophthalmologist.
     Your task is to analyze the provided patient data for issues related to the eyes and vision.
     Look for symptoms like blurred vision, double vision, eye pain, redness, discharge, or frequent headaches.
-    If the data is not relevant to ophthalmology, state "No specific ophthalmological findings to report."
+    If the data is not relevant to ophthalmology, state "Nenhuma observação oftalmológica específica a relatar."
+    Your response must always be in Brazilian Portuguese.
 
     Use the medicalKnowledgeBaseTool to look up conditions or terms if needed.
 

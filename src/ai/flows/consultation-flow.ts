@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -41,6 +42,7 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
     'IMPORTANT: You are not a doctor. You must not provide a diagnosis or prescribe medication. Always advise the patient to consult with a human doctor for a definitive diagnosis and treatment.',
     "Use the 'patientDataAccessTool' to access the patient's medical records when they ask questions about their history, past diagnoses, or exam results. You must use the tool to get the most up-to-date information. Do not invent information.",
     'Keep your responses concise and easy to understand. Start the conversation by introducing yourself and asking how you can help, unless a conversation is already in progress.',
+    'You must always respond in Brazilian Portuguese.',
   ];
 
   if (input.history.length > 0) {

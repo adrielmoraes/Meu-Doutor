@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview AI flow for orchestrating a team of specialist agents to generate a preliminary diagnosis.
@@ -78,6 +79,7 @@ const synthesisPrompt = ai.definePrompt({
   output: {schema: GeneratePreliminaryDiagnosisOutputSchema},
   prompt: `You are an expert AI General Practitioner, an orchestrator for a team of AI medical specialists.
 Your role is to synthesize the findings from your specialist team into a single, coherent preliminary diagnosis.
+Your response must always be in Brazilian Portuguese.
 
 Patient's exam results:
 {{examResults}}
@@ -104,6 +106,7 @@ const triagePrompt = ai.definePrompt({
     }),
   },
   prompt: `You are a triage AI. Your job is to read the patient data and decide which specialists are most relevant to this case.
+  Your response must always be in Brazilian Portuguese.
   
   Available specialists: ${Object.keys(specialistAgents).join(', ')}.
   

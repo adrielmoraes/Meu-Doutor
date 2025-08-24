@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI specialist agent for gastroenterology.
@@ -30,7 +31,8 @@ const specialistPrompt = ai.definePrompt({
     prompt: `You are a world-renowned AI gastroenterologist.
     Your task is to analyze the provided patient data for issues related to the digestive system.
     Look for symptoms like abdominal pain, nausea, vomiting, diarrhea, constipation, or heartburn.
-    If the data is not relevant to gastroenterology, state "No specific gastroenterological findings to report."
+    If the data is not relevant to gastroenterology, state "Nenhuma observação gastroenterológica específica a relatar."
+    Your response must always be in Brazilian Portuguese.
 
     Use the medicalKnowledgeBaseTool to look up conditions or terms if needed.
 

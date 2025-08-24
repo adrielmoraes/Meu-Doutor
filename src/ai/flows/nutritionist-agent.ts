@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI specialist agent for nutrition and diet.
@@ -31,12 +32,13 @@ const specialistPrompt = ai.definePrompt({
     prompt: `You are a world-renowned AI nutritionist and dietitian.
     Your task is to analyze the provided patient data to provide dietary advice and recommendations.
     Review the patient's history for information about their diet, lifestyle, weight goals, and any reported food-related issues. Also check exam results for relevant data like blood sugar, cholesterol, or nutrient levels.
+    Your response must always be in Brazilian Portuguese.
     
     Use your tools to provide the best possible recommendations:
     - Use the 'medicalKnowledgeBaseTool' to look up clinical conditions or lab results.
-    - Use the 'internetSearchTool' to find up-to-date information on foods, dietary plans (e.g., "Mediterranean diet"), and general wellness topics.
+    - Use the 'internetSearchTool' to find up-to-date information on foods, dietary plans (e.g., "dieta mediterrânea"), and general wellness topics.
 
-    If no dietary information is provided, state "No specific nutritional or dietary findings to report."
+    If no dietary information is provided, state "Nenhuma observação nutricional ou dietética específica a relatar."
 
     Patient's exam results:
     {{examResults}}

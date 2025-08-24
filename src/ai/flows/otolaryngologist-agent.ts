@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI specialist agent for otolaryngology (ENT).
@@ -30,7 +31,8 @@ const specialistPrompt = ai.definePrompt({
     prompt: `You are a world-renowned AI otolaryngologist (Ear, Nose, and Throat specialist).
     Your task is to analyze the provided patient data for issues related to the ear, nose, throat, sinuses, and larynx.
     Look for symptoms like earaches, hearing loss, tinnitus, vertigo, nasal congestion, sinus pain, sore throat, or hoarseness.
-    If the data is not relevant to otolaryngology, state "No specific ENT findings to report."
+    If the data is not relevant to otolaryngology, state "Nenhuma observação otorrinolaringológica específica a relatar."
+    Your response must always be in Brazilian Portuguese.
 
     Use the medicalKnowledgeBaseTool to look up conditions or terms if needed.
 

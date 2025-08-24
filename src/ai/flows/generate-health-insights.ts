@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI flow for generating preventive health insights and actionable goals.
@@ -11,7 +12,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GoalSchema = z.object({
-    title: z.string().describe("A short, clear title for the health goal (e.g., 'Reduce Blood Pressure')."),
+    title: z.string().describe("A short, clear title for the health goal (e.g., 'Reduzir Pressão Arterial')."),
     description: z.string().describe("A brief explanation of why this goal is important for the patient."),
     progress: z.number().min(0).max(100).describe("The patient's current progress towards this goal, as a percentage (0-100). For new plans, this should start at 0 or a low number."),
 });
@@ -23,7 +24,7 @@ const GenerateHealthInsightsInputSchema = z.object({
 export type GenerateHealthInsightsInput = z.infer<typeof GenerateHealthInsightsInputSchema>;
 
 const GenerateHealthInsightsOutputSchema = z.object({
-  preventiveAlerts: z.array(z.string()).describe("A list of 2-3 potential future health risks based on the patient's current data. Phrase these as opportunities for prevention (e.g., 'Opportunity to improve cardiovascular health by managing cholesterol')."),
+  preventiveAlerts: z.array(z.string()).describe("A list of 2-3 potential future health risks based on the patient's current data. Phrase these as opportunities for prevention (e.g., 'Oportunidade de melhorar a saúde cardiovascular gerenciando o colesterol')."),
   healthGoals: z.array(GoalSchema).describe("A list of 2-3 actionable, measurable health goals for the patient to work towards."),
 });
 export type GenerateHealthInsightsOutput = z.infer<typeof GenerateHealthInsightsOutputSchema>;
@@ -35,6 +36,7 @@ const healthInsightsPrompt = ai.definePrompt({
     output: { schema: GenerateHealthInsightsOutputSchema },
     prompt: `You are a proactive and insightful AI Health Coach and Preventive Medicine Specialist.
     Your task is to analyze the patient's data and generate a forward-looking health plan that focuses on prevention and actionable goals.
+    Your response must always be in Brazilian Portuguese.
 
     1.  **Analyze for Future Risks (Preventive Alerts):** Based on the patient's history and validated diagnosis, identify 2-3 key health risks they may face in the future if their current trajectory continues. Frame these positively, as "preventive opportunities." For example, instead of "You are at risk for diabetes," say "There is an opportunity to manage blood sugar levels to prevent future complications."
 

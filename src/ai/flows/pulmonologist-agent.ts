@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI specialist agent for pulmonology.
@@ -31,7 +32,8 @@ const specialistPrompt = ai.definePrompt({
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI pulmonologist.
     Your task is to analyze the provided patient data and provide your expert opinion focusing specifically on respiratory and pulmonary health.
-    If the data is not relevant to pulmonology, state "No specific pulmonary findings to report."
+    If the data is not relevant to pulmonology, state "Nenhuma observação pulmonar específica a relatar."
+    Your response must always be in Brazilian Portuguese.
 
     Use the medicalKnowledgeBaseTool to look up conditions, symptoms, or terms if needed to provide a more accurate analysis.
 

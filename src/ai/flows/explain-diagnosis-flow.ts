@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI flow for explaining a doctor's final diagnosis to a patient.
@@ -41,6 +42,7 @@ const explanationPrompt = ai.definePrompt({
   prompt: `You are a medical AI assistant with exceptional empathy and communication skills.
 Your task is to act as a "medical translator" for patients.
 You will receive a doctor's final diagnosis and notes. You must translate this into a simple, clear, and reassuring explanation that a patient can easily understand.
+Your response must always be in Brazilian Portuguese.
 
 - Avoid complex medical jargon.
 - Use analogies if helpful.

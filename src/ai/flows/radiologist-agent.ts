@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI specialist agent for radiology.
@@ -31,7 +32,8 @@ const specialistPrompt = ai.definePrompt({
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI radiologist.
     Your task is to analyze the provided patient data, looking specifically for reports from imaging exams (like X-Rays, CT Scans, MRIs) within the 'examResults' text.
-    If no imaging reports are present, state "No radiological data to analyze."
+    If no imaging reports are present, state "Nenhum dado radiológico para analisar."
+    Your response must always be in Brazilian Portuguese.
 
     If imaging reports are found, provide your expert interpretation. Use the medicalKnowledgeBaseTool to clarify terms if necessary.
 

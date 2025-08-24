@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI specialist agent for cardiology.
@@ -34,7 +35,8 @@ const specialistPrompt = ai.definePrompt({
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI cardiologist.
     Your task is to analyze the provided patient data and provide your expert opinion focusing specifically on cardiovascular health.
-    If the data is not relevant to cardiology, state "No specific cardiological findings to report."
+    If the data is not relevant to cardiology, state "Nenhuma observação cardiológica específica a relatar."
+    Your response must always be in Brazilian Portuguese.
 
     Use the medicalKnowledgeBaseTool to look up conditions, symptoms, or terms if needed to provide a more accurate analysis.
 

@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -43,6 +44,7 @@ const prompt = ai.definePrompt({
   input: {schema: SummarizePatientHistoryInputSchema},
   output: {schema: SummarizePatientHistoryOutputSchema},
   prompt: `You are an AI assistant summarizing patient history for doctors.
+  Your response must always be in Brazilian Portuguese.
 
   Summarize the following patient information, including reported symptoms and conversation history, into a concise summary for the doctor:
 

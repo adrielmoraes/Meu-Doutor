@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI flow for generating a personalized wellness plan for a patient.
@@ -40,6 +41,7 @@ const wellnessPlanPrompt = ai.definePrompt({
     }) },
     output: { schema: GenerateWellnessPlanOutputSchema },
     prompt: `You are a holistic health AI assistant. Your task is to create a comprehensive and encouraging wellness plan for a patient.
+    Your response must always be in Brazilian Portuguese.
 
     You will receive a summary of the patient's history and a detailed report from a nutritionist AI.
     Your job is to synthesize this information into four key areas: Diet, Exercise, Mental Wellness, and Daily Reminders.

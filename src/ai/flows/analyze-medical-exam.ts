@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -35,6 +36,7 @@ const analyzeMedicalExamPrompt = ai.definePrompt({
   input: {schema: AnalyzeMedicalExamInputSchema},
   output: {schema: AnalyzeMedicalExamOutputSchema},
   prompt: `You are a medical AI assistant that analyzes medical exam documents and provides a preliminary diagnosis and understandable explanation of the results.
+  Your response must always be in Brazilian Portuguese.
 
   Analyze the following medical exam document:
   {{media url=examDataUri}}
