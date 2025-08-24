@@ -5,6 +5,7 @@ import { getPatientById, updatePatient } from '@/lib/firestore-adapter';
 import { revalidatePath } from 'next/cache';
 import { generateHealthInsights } from '@/ai/flows/generate-health-insights';
 import { summarizePatientHistory } from '@/ai/flows/summarize-patient-history';
+import { explainDiagnosisToPatient } from '@/ai/flows/explain-diagnosis-flow';
 
 export async function validateDiagnosisAction(patientId: string, doctorNotes: string) {
   try {
@@ -24,6 +25,12 @@ export async function validateDiagnosisAction(patientId: string, doctorNotes: st
         patientHistory: historySummary.summary,
         validatedDiagnosis: doctorNotes,
     });
+    
+    // Generate the patient-friendly explanation and audio narration
+    const finalExplanation = await explainDiagnosisToPatient({
+        diagnosisAndNotes: doctorNotes,
+    });
+
 
     // Update the patient document with the validated status, doctor's notes, and the new health plan
     await updatePatient(patientId, {
@@ -31,6 +38,8 @@ export async function validateDiagnosisAction(patientId: string, doctorNotes: st
       doctorNotes: doctorNotes,
       preventiveAlerts: healthInsights.preventiveAlerts,
       healthGoals: healthInsights.healthGoals,
+      finalExplanation: finalExplanation.explanation,
+      finalExplanationAudioUri: finalExplanation.audioDataUri,
     });
     
     // Revalidate paths to reflect changes immediately across the app

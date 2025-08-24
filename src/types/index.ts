@@ -19,6 +19,8 @@ export type Patient = {
       description: string;
       progress: number;
   }[];
+  finalExplanation?: string;
+  finalExplanationAudioUri?: string;
 };
 
 export type Doctor = {

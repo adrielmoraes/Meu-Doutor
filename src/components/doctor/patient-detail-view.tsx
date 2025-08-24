@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Patient } from "@/types";
 import { validateDiagnosisAction, saveDraftNotesAction } from "@/app/doctor/patients/[id]/actions";
 import { Badge } from "../ui/badge";
+import AudioPlayback from "../patient/audio-playback";
 
 type PatientDetailViewProps = {
   patient: Patient;
@@ -143,6 +144,16 @@ export default function PatientDetailView({
                    onChange={(e) => setDoctorNotes(e.target.value)}
                    disabled={patient.status === 'Validado'}
                  />
+
+                 {patient.status === 'Validado' && patient.finalExplanation && (
+                    <div className="mt-4">
+                        <AudioPlayback 
+                            textToSpeak={patient.finalExplanation} 
+                            preGeneratedAudioUri={patient.finalExplanationAudioUri} 
+                        />
+                    </div>
+                  )}
+
                  <div className="flex gap-2 mt-4">
                     <Button onClick={handleSaveDraft} disabled={isSaving || patient.status === 'Validado'}>
                       {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Pen className="mr-2 h-4 w-4" />}
