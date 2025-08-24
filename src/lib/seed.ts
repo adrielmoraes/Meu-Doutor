@@ -123,6 +123,11 @@ async function seedCollection<T extends { id: string }>(
     data: Omit<T, 'id'>[],
     subCollections?: { [key: string]: { data: any[], collectionName: string } }
 ) {
+    if (!db) {
+        console.error(`Firestore Admin DB not initialized. Cannot seed collection ${collectionName}.`);
+        return;
+    }
+
     const collectionRef = db.collection(collectionName);
     let idCounter = 1;
 
