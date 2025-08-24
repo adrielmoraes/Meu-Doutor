@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Mic, MicOff, Video, VideoOff, Phone, Bot } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, Phone } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -65,28 +65,36 @@ const AIConsultationCard = () => {
   }, []);
   
   useEffect(() => {
-    const getCameraPermission = async () => {
+    const getMediaPermissions = async () => {
       if (!isDialogOpen) return;
 
       try {
+        // First, try to get both video and audio
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         setHasCameraPermission(true);
-
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
-      } catch (error) {
-        console.error('Error accessing camera:', error);
+      } catch (err) {
+        console.warn('Could not get video stream, trying audio only.', err);
         setHasCameraPermission(false);
-        toast({
-          variant: 'destructive',
-          title: 'Acesso à Câmera/Microfone Negado',
-          description: 'Por favor, habilite as permissões nas configurações do seu navegador.',
-        });
+        try {
+          // If video fails (e.g., permission denied), try for audio only
+          const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          // If we get here, we have mic permission but no camera.
+          // The video element will just show a "camera off" state.
+        } catch (audioErr) {
+            console.error('Error accessing audio:', audioErr);
+            toast({
+                variant: 'destructive',
+                title: 'Acesso ao Microfone Negado',
+                description: 'Por favor, habilite a permissão do microfone nas configurações do seu navegador para usar a consulta por voz.',
+            });
+        }
       }
     };
 
-    getCameraPermission();
+    getMediaPermissions();
 
     return () => {
         if (videoRef.current && videoRef.current.srcObject) {
@@ -253,20 +261,18 @@ const AIConsultationCard = () => {
             </div>
             <div className="flex flex-col gap-4">
               <div className="bg-black rounded-lg h-48 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
-                 <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                 <video ref={videoRef} className={`w-full h-full object-cover ${!isVideoOn || !hasCameraPermission ? 'hidden' : ''}`} autoPlay muted playsInline />
+                 
+                 {(!isVideoOn || !hasCameraPermission) && (
+                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4 text-white flex-col">
+                        <VideoOff className="h-10 w-10 mb-2"/>
+                        <span>Câmera desligada</span>
+                    </div>
+                 )}
+
                  <div className="absolute bottom-4 left-4 bg-black/50 text-white p-2 rounded-lg text-sm">
                   Você
                 </div>
-                 {hasCameraPermission === false && (
-                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
-                        <Alert variant="destructive">
-                            <AlertTitle>Acesso à Câmera Necessário</AlertTitle>
-                            <AlertDescription>
-                                Por favor, permita o acesso à câmera para usar esta funcionalidade.
-                            </AlertDescription>
-                        </Alert>
-                    </div>
-                 )}
               </div>
               <div className="bg-card p-4 rounded-lg flex-1 flex flex-col gap-2">
                  <ScrollArea className="flex-1 pr-4">
