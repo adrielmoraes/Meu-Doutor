@@ -49,6 +49,7 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       gender: rest.gender,
     });
   } catch (e) {
+    console.error("Failed to create patient:", e);
     return { message: 'Falha ao criar paciente no banco de dados.' };
   }
 
