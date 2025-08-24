@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview
  * This file contains the logic for seeding the Firestore database with initial data.
@@ -20,6 +21,7 @@ const PATIENTS: Omit<Patient, 'id'>[] = [
       gender: 'Masculino',
       cpf: '123.456.789-00',
       phone: '(11) 98765-4321',
+      email: 'carlos.silva@example.com',
       lastVisit: format(new Date(), 'dd/MM/yyyy'),
       status: 'Requer Validação',
       avatar: 'https://placehold.co/128x128.png',
@@ -36,6 +38,7 @@ const PATIENTS: Omit<Patient, 'id'>[] = [
         gender: 'Feminino',
         cpf: '987.654.321-00',
         phone: '(21) 91234-5678',
+        email: 'mariana.oliveira@example.com',
         lastVisit: format(addDays(new Date(), -5), 'dd/MM/yyyy'),
         status: 'Validado',
         avatar: 'https://placehold.co/128x128.png',
@@ -82,6 +85,7 @@ const DOCTORS: Omit<Doctor, 'id'>[] = [
         online: true,
         avatar: 'https://placehold.co/128x128.png',
         avatarHint: 'woman portrait',
+        email: 'ana.costa@med.ai',
         level: 3,
         xp: 250,
         xpToNextLevel: 500,
@@ -97,6 +101,7 @@ const DOCTORS: Omit<Doctor, 'id'>[] = [
         online: false,
         avatar: 'https://placehold.co/128x128.png',
         avatarHint: 'man portrait',
+        email: 'bruno.lima@med.ai',
         level: 2,
         xp: 120,
         xpToNextLevel: 250,

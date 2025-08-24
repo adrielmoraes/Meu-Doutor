@@ -21,6 +21,17 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     return null;
 }
 
+export async function getPatientByEmail(email: string): Promise<Patient | null> {
+    const patientsCol = collection(db, 'patients');
+    const q = query(patientsCol, where('email', '==', email));
+    const patientSnapshot = await getDocs(q);
+    if (patientSnapshot.empty) {
+        return null;
+    }
+    const patientDoc = patientSnapshot.docs[0];
+    return { id: patientDoc.id, ...patientDoc.data() } as Patient;
+}
+
 export async function addPatient(patientData: Omit<Patient, 'id'>): Promise<void> {
     const patientsCol = collection(db, 'patients');
     // In a real app, you wouldn't auto-assign an ID like this, but it's fine for the prototype seed.
@@ -64,6 +75,18 @@ export async function getDoctors(): Promise<Doctor[]> {
     const doctorList = doctorSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Doctor));
     return doctorList;
 }
+
+export async function getDoctorByEmail(email: string): Promise<Doctor | null> {
+    const doctorsCol = collection(db, 'doctors');
+    const q = query(doctorsCol, where('email', '==', email));
+    const doctorSnapshot = await getDocs(q);
+    if (doctorSnapshot.empty) {
+        return null;
+    }
+    const doctorDoc = doctorSnapshot.docs[0];
+    return { id: doctorDoc.id, ...doctorDoc.data() } as Doctor;
+}
+
 
 export async function getAppointments(): Promise<Appointment[]> {
     const appointmentsCol = collection(db, 'appointments');

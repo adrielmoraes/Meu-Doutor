@@ -7,6 +7,7 @@ export type Patient = {
   birthDate: string;
   cpf: string;
   phone: string;
+  email: string;
   lastVisit: string;
   status: 'Requer Validação' | 'Validado';
   avatar: string;
@@ -33,6 +34,7 @@ export type Doctor = {
   online: boolean;
   avatar: string;
   avatarHint: string;
+  email: string;
   level: number;
   xp: number;
   xpToNextLevel: number;

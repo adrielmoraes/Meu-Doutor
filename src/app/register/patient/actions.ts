@@ -30,6 +30,7 @@ export async function createPatientAction(prevState: any, formData: FormData) {
   const { fullName, birthDate, ...rest } = validatedFields.data;
 
   try {
+    // In a real app, you would hash the password here before saving
     await addPatient({
       name: fullName,
       birthDate: birthDate,
@@ -42,6 +43,7 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       reportedSymptoms: '',
       examResults: '',
       // Map the rest of the validated fields
+      email: rest.email,
       cpf: rest.cpf,
       phone: rest.phone,
       gender: rest.gender,
