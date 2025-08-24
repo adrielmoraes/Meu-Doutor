@@ -4,6 +4,9 @@ export type Patient = {
   id: string;
   name: string;
   age: number;
+  birthDate: string;
+  cpf: string;
+  phone: string;
   lastVisit: string;
   status: 'Requer Validação' | 'Validado';
   avatar: string;

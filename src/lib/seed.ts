@@ -6,13 +6,20 @@
 import 'dotenv/config'; // Make sure to load environment variables
 import { db } from './firebase-admin'; // Use admin SDK for seeding
 import { Patient, Doctor, Exam, Appointment } from '@/types';
-import { format, addDays } from 'date-fns';
+import { format, addDays, differenceInYears } from 'date-fns';
+
+const calculateAge = (birthDate: string | Date): number => {
+    return differenceInYears(new Date(), new Date(birthDate));
+}
 
 const PATIENTS: Omit<Patient, 'id'>[] = [
     {
       name: 'Carlos Silva',
-      age: 58,
+      birthDate: '1966-05-20',
+      age: calculateAge('1966-05-20'),
       gender: 'Masculino',
+      cpf: '123.456.789-00',
+      phone: '(11) 98765-4321',
       lastVisit: format(new Date(), 'dd/MM/yyyy'),
       status: 'Requer Validação',
       avatar: 'https://placehold.co/128x128.png',
@@ -24,8 +31,11 @@ const PATIENTS: Omit<Patient, 'id'>[] = [
     },
     {
         name: 'Mariana Oliveira',
-        age: 34,
+        birthDate: '1990-11-15',
+        age: calculateAge('1990-11-15'),
         gender: 'Feminino',
+        cpf: '987.654.321-00',
+        phone: '(21) 91234-5678',
         lastVisit: format(addDays(new Date(), -5), 'dd/MM/yyyy'),
         status: 'Validado',
         avatar: 'https://placehold.co/128x128.png',
