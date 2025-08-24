@@ -5,6 +5,7 @@ import { generateWellnessPlan } from "@/ai/flows/generate-wellness-plan";
 import WellnessReminders from "@/components/patient/wellness-reminders";
 import { FileText, Dumbbell, BrainCircuit, HeartPulse } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import AudioPlayback from "@/components/patient/audio-playback";
 
 
 // This should be replaced with the authenticated user's ID
@@ -62,10 +63,11 @@ export default async function WellnessPlanPage() {
                                     {section.title}
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="space-y-4">
                                 <p className="whitespace-pre-wrap leading-relaxed text-muted-foreground">
                                     {section.content}
                                 </p>
+                                <AudioPlayback textToSpeak={section.content} />
                             </CardContent>
                         </Card>
                     ))}
