@@ -8,7 +8,7 @@ _**Aviso:** Os preços são baseados nos valores do Google em Junho de 2024 para
 
 ## 1. Premissas de Uso (por usuário/mês)
 
-- **Consultas com a IA:** 2 consultas/mês.
+- **Consultas com a IA:** 12 consultas/mês (cenário de uso mais intenso).
 - **Duração da Consulta:** 10 trocas de mensagens (5 do usuário, 5 da IA).
 - **Análise de Exames:** 1 exame/mês.
 - **Validação de Diagnóstico:** 1 validação/mês.
@@ -32,8 +32,8 @@ _**Aviso:** Os preços são baseados nos valores do Google em Junho de 2024 para
   - Input: `10 * 500 = 5k caracteres` -> `5 * $0.000125 = $0.000625`
   - Output: `10 * 1000 = 10k caracteres` -> `10 * $0.00025 = $0.0025`
   - Total por consulta: `$0.003125`
-- **Custo Mensal (1.000 usuários, 2 consultas/mês):**
-  - `1000 * 2 * $0.003125` = **$6.25**
+- **Custo Mensal (1.000 usuários, 12 consultas/mês):**
+  - `1000 * 12 * $0.003125` = **$37.50**
 
 ### b. Análise de Exames Médicos
 - **Premissa:** 1 documento de exame (imagem) e um prompt com ~500 caracteres. A IA retorna ~1.500 caracteres.
@@ -64,33 +64,34 @@ _**Aviso:** Os preços são baseados nos valores do Google em Junho de 2024 para
   - `1000 * $0.00225` = **$2.25**
 
 ### e. Custo de Texto para Áudio (TTS)
-- **Premissa:** O áudio é gerado durante a consulta e na visualização do diagnóstico. Total de ~15.000 caracteres por usuário/mês.
-- **Custo por usuário:** `15k caracteres * $0.0006 = $0.009`
+- **Premissa:** O áudio é gerado durante a consulta e na visualização do diagnóstico. Dado 12 consultas, o total de caracteres por usuário/mês para áudio aumenta significativamente.
+- **Caracteres por usuário/mês:** `(12 consultas * 10k output) + 5k (outros áudios)` = 125k caracteres
+- **Custo por usuário:** `125k caracteres * $0.0006 = $0.075`
 - **Custo Mensal (1.000 usuários):**
-  - `1000 * $0.009` = **$9.00**
+  - `1000 * $0.075` = **$75.00**
 
 ---
 
-## 4. Estimativa de Custo Mensal Total
+## 4. Estimativa de Custo Mensal Total (Uso Intenso)
 
 | Funcionalidade | Custo Mensal Estimado |
 | :--- | :--- |
-| Consultas com a IA | $6.25 |
+| Consultas com a IA | $37.50 |
 | Análise de Exames | $0.69 |
 | Geração de Diagnóstico | $2.50 |
 | Geração de Plano/Explicação | $2.25 |
-| Texto para Áudio (TTS) | $9.00 |
-| **Total** | **$20.69** |
+| Texto para Áudio (TTS) | $75.00 |
+| **Total** | **$117.94** |
 
 ---
 
 ## Conclusão
 
-O custo estimado para operar a plataforma MediAI com 1.000 usuários ativos mensais é de aproximadamente **$20.69 por mês**.
+Com um cenário de uso mais intenso (12 consultas por mês), o custo estimado para operar a plataforma MediAI com 1.000 usuários ativos mensais sobe para aproximadamente **$117.94 por mês**.
 
-O maior custo vem do serviço de **Texto para Áudio (TTS)**, devido ao seu preço por caractere ser maior. O segundo maior custo é a **Consulta com a IA**, por ser uma funcionalidade de alta frequência e interatividade.
+Neste novo cenário, o serviço de **Texto para Áudio (TTS)** se torna o maior responsável pelos custos, seguido pelas **Consultas com a IA**. Isso demonstra como a frequência de uso de funcionalidades interativas impacta diretamente os custos operacionais.
 
-Para otimizar custos no futuro, poderíamos considerar estratégias como:
-- Limitar a duração ou o número de consultas com a IA por mês no plano gratuito.
-- Utilizar cache para respostas e áudios que não precisam ser gerados em tempo real.
-- Oferecer a funcionalidade de áudio apenas em planos pagos.
+Para otimizar custos, as estratégias mencionadas anteriormente se tornam ainda mais relevantes:
+- Limitar o número de consultas com IA ou a funcionalidade de áudio em planos gratuitos.
+- Implementar cache para respostas e áudios.
+- Explorar modelos de IA potencialmente mais baratos ou eficientes no futuro.
