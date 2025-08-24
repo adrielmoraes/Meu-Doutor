@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { getDoctors } from "@/lib/firestore-adapter";
 import { Award, Star, Clock, Zap, CheckSquare } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { notFound } from "next/navigation";
 
 // A map to render icons based on the badge name
 const iconMap: { [key: string]: React.ReactNode } = {
@@ -16,8 +17,14 @@ const iconMap: { [key: string]: React.ReactNode } = {
 
 // Assuming we're showing the profile for the first doctor for this prototype
 async function getDoctorProfile() {
-  const doctors = await getDoctors();
-  return doctors[0]; 
+  try {
+    const doctors = await getDoctors();
+    // In a real app, you would get the logged-in doctor's ID
+    return doctors[0];
+  } catch (error) {
+    console.error("Failed to fetch doctors for profile:", error);
+    return null;
+  }
 }
 
 const getLevelName = (level: number) => {
@@ -27,6 +34,20 @@ const getLevelName = (level: number) => {
 
 export default async function DoctorProfilePage() {
   const doctor = await getDoctorProfile();
+
+  if (!doctor) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Erro ao Carregar Perfil</CardTitle>
+                <CardDescription>
+                    Não foi possível carregar os dados do médico. Verifique a conexão com o banco de dados e se os dados de seed foram populados.
+                </CardDescription>
+            </CardHeader>
+        </Card>
+    )
+  }
+
   const progressPercentage = (doctor.xp / doctor.xpToNextLevel) * 100;
 
   return (
