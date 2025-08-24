@@ -32,11 +32,11 @@ export default function LandingPage() {
               </div>
               <Image
                 src="https://placehold.co/600x400.png"
-                alt="Hero"
+                alt="Médica sorrindo em um ambiente de consultório moderno"
                 width={600}
                 height={400}
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last"
-                data-ai-hint="doctor ai health"
+                data-ai-hint="doctor smiling"
               />
             </div>
           </div>
@@ -52,7 +52,7 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-3">
-              <div className="flex flex-col items-center text-center space-y-2">
+              <div className="flex flex-col items-center text-center space-y-4">
                 <div className="p-3 rounded-full bg-primary/10">
                     <Zap className="h-8 w-8 text-primary" />
                 </div>
@@ -61,7 +61,7 @@ export default function LandingPage() {
                   Faça o upload dos seus exames (PDF ou imagem) e receba uma análise preliminar detalhada em minutos, com explicações claras e simples.
                 </p>
               </div>
-              <div className="flex flex-col items-center text-center space-y-2">
+              <div className="flex flex-col items-center text-center space-y-4">
                 <div className="p-3 rounded-full bg-primary/10">
                     <Stethoscope className="h-8 w-8 text-primary" />
                 </div>
@@ -70,7 +70,7 @@ export default function LandingPage() {
                   Valide o diagnóstico da IA com médicos qualificados da nossa rede através de consultas virtuais ou agendamentos flexíveis.
                 </p>
               </div>
-              <div className="flex flex-col items-center text-center space-y-2">
+              <div className="flex flex-col items-center text-center space-y-4">
                  <div className="p-3 rounded-full bg-primary/10">
                     <ShieldCheck className="h-8 w-8 text-primary" />
                 </div>
