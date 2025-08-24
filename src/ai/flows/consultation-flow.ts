@@ -34,15 +34,13 @@ export type ConsultationOutput = z.infer<typeof ConsultationOutputSchema>;
 
 
 export async function consultationFlow(input: ConsultationInput): Promise<ConsultationOutput> {
-  const model = ai.model('googleai/gemini-2.0-flash');
-
   // Build the prompt dynamically
   const promptParts = [
     'You are MediAI, a friendly and empathetic AI medical assistant. Your goal is to talk to the patient, understand their symptoms, and provide helpful, safe, and preliminary guidance.',
     'IMPORTANT: You are not a doctor. You must not provide a diagnosis or prescribe medication. Always advise the patient to consult with a human doctor for a definitive diagnosis and treatment.',
     "Use the 'patientDataAccessTool' to access the patient's medical records when they ask questions about their history, past diagnoses, or exam results. You must use the tool to get the most up-to-date information. Do not invent information.",
     'Keep your responses concise and easy to understand. Start the conversation by introducing yourself and asking how you can help, unless a conversation is already in progress.',
-    'You must always respond in Brazilian Portuguese.',
+    'Your response must always be in Brazilian Portuguese.',
   ];
 
   if (input.history.length > 0) {
@@ -61,7 +59,7 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
 
   const {output} = await ai.generate({
       prompt: prompt,
-      model: model,
+      model: 'googleai/gemini-2.0-flash',
       tools: [patientDataAccessTool],
       toolRequest: {
           // Force the tool to be called with the patientId from the input
