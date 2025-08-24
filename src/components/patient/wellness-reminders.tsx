@@ -30,14 +30,14 @@ export default function WellnessReminders({ reminders }: WellnessRemindersProps)
                     Lembretes do Dia
                 </CardTitle>
                 <CardDescription>
-                    Pequenos hábitos que fazem uma grande diferença.
+                    Pequenos hábitos que fazem a diferença.
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 <ul className="space-y-4">
                     {reminders.map(reminder => (
                         <li key={reminder.title} className="flex items-start gap-4">
-                            <div className="mt-1">
+                            <div className="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-muted">
                                 {iconMap[reminder.icon] || <Bell className="h-5 w-5" />}
                             </div>
                             <div>
