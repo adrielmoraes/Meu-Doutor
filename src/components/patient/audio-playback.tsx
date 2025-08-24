@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { PlayCircle, StopCircle, Loader2, Volume2 } from "lucide-react";
+import { PlayCircle, PauseCircle, Loader2, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { textToSpeech } from "@/ai/flows/text-to-speech";
@@ -15,6 +15,7 @@ interface AudioPlaybackProps {
 const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGeneratedAudioUri }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [audioSrc, setAudioSrc] = useState<string | null>(preGeneratedAudioUri || null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
@@ -24,8 +25,14 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGenerated
     const audio = audioRef.current;
 
     const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
-    const handleEnded = () => setIsPlaying(false);
+    const handlePause = () => {
+        setIsPlaying(false);
+        setIsPaused(true);
+    }
+    const handleEnded = () => {
+        setIsPlaying(false);
+        setIsPaused(false);
+    }
 
     audio.addEventListener('play', handlePlay);
     audio.addEventListener('pause', handlePause);
@@ -49,6 +56,11 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGenerated
     if (isPlaying) {
       audioRef.current.pause();
       return;
+    }
+
+    if (isPaused) {
+        audioRef.current.play().catch(e => console.error("Audio resume failed:", e));
+        return;
     }
 
     // If audio is already loaded or generated, just play it
@@ -82,22 +94,27 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGenerated
         return <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Gerando Áudio...</>
       }
       if (isPlaying) {
-        return <><StopCircle className="mr-2 h-5 w-5" /> Parar Áudio</>
+        return <><PauseCircle className="mr-2 h-5 w-5" /> Pausar Áudio</>
       }
-      return <><Volume2 className="mr-2 h-5 w-5" /> Ouvir Explicação</>
+      if(isPaused) {
+        return <><PlayCircle className="mr-2 h-5 w-5" /> Continuar Ouvindo</>
+      }
+      return <><Volume2 className="mr-2 h-5 w-5" /> Ouvir Recomendação</>
   }
 
   return (
-    <Button
-        onClick={toggleAudio}
-        disabled={isGenerating}
-        aria-label={isPlaying ? "Parar áudio" : "Reproduzir áudio"}
-        size="lg"
-        className="w-full"
-        variant={isPlaying ? "destructive" : "default"}
-    >
-       {getButtonContent()}
-    </Button>
+    <div className="mt-4">
+        <Button
+            onClick={toggleAudio}
+            disabled={isGenerating}
+            aria-label={isPlaying ? "Pausar áudio" : "Reproduzir áudio"}
+            size="lg"
+            className="w-full"
+            variant={isPlaying ? "outline" : "default"}
+        >
+        {getButtonContent()}
+        </Button>
+    </div>
   );
 };
 
