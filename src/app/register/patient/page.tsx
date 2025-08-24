@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useEffect } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -15,7 +16,6 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
 import { createPatientAction } from './actions';
-import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -34,7 +34,7 @@ function SubmitButton() {
 export default function PatientRegisterPage() {
   const { toast } = useToast();
   const initialState = { message: null, errors: {} };
-  const [state, dispatch] = useFormState(createPatientAction, initialState);
+  const [state, dispatch] = useActionState(createPatientAction, initialState);
 
   useEffect(() => {
     if (state.message && !state.errors) {
