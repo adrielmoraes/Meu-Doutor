@@ -1,10 +1,9 @@
 
 
-
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, addDoc, query, where, serverTimestamp } from 'firebase/firestore';
-import type { Patient, Doctor, Exam, Appointment } from '@/types';
-import { db as adminDb } from './firebase-admin';
+import type { Patient, Exam, Appointment } from '@/types';
+
 
 export async function getPatients(): Promise<Patient[]> {
     const patientsCol = collection(db, 'patients');
@@ -25,18 +24,6 @@ export async function getPatientById(id: string): Promise<Patient | null> {
 export async function updatePatient(id: string, data: Partial<Patient>): Promise<void> {
     const patientDocRef = doc(db, 'patients', id);
     await updateDoc(patientDocRef, data);
-}
-
-
-export async function getDoctors(): Promise<Doctor[]> {
-    if (!adminDb) {
-        console.warn('Admin DB not initialized. Skipping getDoctors.');
-        return [];
-    }
-    const doctorsCol = adminDb.collection('doctors');
-    const doctorSnapshot = await doctorsCol.get();
-    const doctorList = doctorSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Doctor));
-    return doctorList;
 }
 
 export async function getExamsByPatientId(patientId: string): Promise<Exam[]> {

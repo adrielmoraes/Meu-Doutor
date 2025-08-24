@@ -2,7 +2,7 @@
 import { FileClock, UserPlus, HeartPulse } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import AIConsultationCard from "./ai-consultation-card";
+import AIConsultationCard from "./ai--consultation-card";
 import ExamUploadCard from "./exam-upload-card";
 import HealthGoalsPanel from "./health-goals-panel";
 import type { Patient } from "@/types";

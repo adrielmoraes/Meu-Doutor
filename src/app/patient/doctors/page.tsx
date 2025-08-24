@@ -1,7 +1,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getDoctors } from "@/lib/firestore-adapter";
+import { getDoctors } from "@/lib/firestore-admin-adapter";
 import ScheduleAppointment from "@/components/patient/schedule-appointment";
 import StartConsultation from "@/components/patient/start-consultation";
 
