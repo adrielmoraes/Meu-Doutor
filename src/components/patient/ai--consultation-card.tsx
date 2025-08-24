@@ -64,6 +64,13 @@ const AIConsultationCard = () => {
     }
   }, []);
   
+  const startConversation = () => {
+    // A slight delay to ensure the user perceives the connection has been made
+    setTimeout(() => {
+        handleAiResponse("Olá");
+    }, 500);
+  }
+
   useEffect(() => {
     const getMediaPermissions = async () => {
       if (!isDialogOpen) return;
@@ -75,14 +82,14 @@ const AIConsultationCard = () => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
+        startConversation(); // Start conversation on successful media acquisition
       } catch (err) {
         console.warn('Could not get video stream, trying audio only.', err);
         setHasCameraPermission(false);
         try {
           // If video fails (e.g., permission denied), try for audio only
-          const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          // If we get here, we have mic permission but no camera.
-          // The video element will just show a "camera off" state.
+          await navigator.mediaDevices.getUserMedia({ audio: true });
+          startConversation(); // Start conversation if we at least have audio
         } catch (audioErr) {
             console.error('Error accessing audio:', audioErr);
             toast({
@@ -106,13 +113,18 @@ const AIConsultationCard = () => {
 
   const handleAiResponse = async (userInput: string) => {
     const newUserMessage = { role: 'user' as const, content: userInput };
-    // We use a functional update to get the latest history state
-    setHistory(prev => [...prev, newUserMessage]);
+    // Don't show the initial "Olá" from the user in the history
+    const isInitialMessage = userInput === "Olá" && history.length === 0;
+
+    if (!isInitialMessage) {
+      setHistory(prev => [...prev, newUserMessage]);
+    }
+    
     setIsThinking(true);
   
     try {
       // Get AI text response, now with patient context
-      const currentHistory = [...history, newUserMessage]; // Pass the most current history
+      const currentHistory = isInitialMessage ? [] : [...history, newUserMessage];
       const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: currentHistory, userInput };
       const result = await consultationFlow(input);
       const aiResponse = { role: 'model' as const, content: result.response };
@@ -133,8 +145,10 @@ const AIConsultationCard = () => {
         title: "Erro na comunicação com a IA",
         description: "Não foi possível obter uma resposta. Tente novamente.",
       });
-      // Rollback the user message if AI fails
-      setHistory(prev => prev.slice(0, -1));
+      // Rollback the user message if AI fails and it wasn't the initial greeting
+      if (!isInitialMessage) {
+        setHistory(prev => prev.slice(0, -1));
+      }
     } finally {
       setIsThinking(false);
     }
