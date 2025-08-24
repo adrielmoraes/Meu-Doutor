@@ -3,7 +3,6 @@
 
 import { addPatient } from '@/lib/firestore-adapter';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { differenceInYears } from 'date-fns';
 
@@ -15,6 +14,11 @@ const PatientSchema = z.object({
   cpf: z.string().min(11, { message: "CPF inválido." }),
   phone: z.string().min(10, { message: "Telefone inválido." }),
   gender: z.string().min(1, { message: "Por favor, selecione um gênero." }),
+  'zip-code': z.string().optional(),
+  address: z.string().optional(),
+  number: z.string().optional(),
+  complement: z.string().optional(),
+  neighborhood: z.string().optional(),
 });
 
 export async function createPatientAction(prevState: any, formData: FormData) {
@@ -48,13 +52,18 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       phone: rest.phone,
       gender: rest.gender,
     });
+
+    revalidatePath('/doctor/patients');
+    // Return a success state instead of redirecting
+    return {
+      ...prevState,
+      message: 'Cadastro realizado com sucesso! Você será redirecionado para a página de login.',
+      errors: null,
+      success: true,
+    };
+
   } catch (e) {
     console.error("Failed to create patient:", e);
-    return { message: 'Falha ao criar paciente no banco de dados.' };
+    return { ...prevState, message: 'Falha ao criar paciente no banco de dados.' };
   }
-
-  revalidatePath('/doctor/patients');
-  // In a real app, you would also sign the user in and redirect to their dashboard.
-  // For the prototype, we redirect to the login page.
-  redirect('/login');
 }

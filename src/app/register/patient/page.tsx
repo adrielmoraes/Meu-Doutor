@@ -19,6 +19,7 @@ import { createPatientAction } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useRouter } from 'next/navigation';
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -33,18 +34,29 @@ function SubmitButton() {
 
 export default function PatientRegisterPage() {
   const { toast } = useToast();
-  const initialState = { message: null, errors: {} };
+  const router = useRouter();
+  const initialState = { message: null, errors: null, success: false };
   const [state, dispatch] = useActionState(createPatientAction, initialState);
 
   useEffect(() => {
-    if (state.message && !state.errors) {
+    if (state.success && state.message) {
         toast({
             title: 'Sucesso!',
             description: state.message,
             className: "bg-green-100 text-green-800 border-green-200",
         });
+        // Redirect to login after a short delay to allow user to see the toast
+        setTimeout(() => {
+            router.push('/login');
+        }, 2000);
+    } else if (state.message && state.errors) {
+         toast({
+            variant: "destructive",
+            title: 'Erro de Validação',
+            description: state.message,
+        });
     }
-  }, [state, toast]);
+  }, [state, toast, router]);
 
   return (
      <div className="flex min-h-screen items-center justify-center bg-muted/20 py-12">
@@ -145,19 +157,19 @@ export default function PatientRegisterPage() {
                                 <AlertTitle>Erro de Validação</AlertTitle>
                                 <AlertDescription>
                                     <ul>
-                                        {Object.values(state.errors).map((error: any) => (
-                                            <li key={error}>{error}</li>
+                                        {Object.values(state.errors).map((error: any, index: number) => (
+                                            <li key={index}>{Array.isArray(error) ? error[0] : error}</li>
                                         ))}
                                     </ul>
                                 </AlertDescription>
                             </Alert>
                         )}
                         
-                        {state.message && !state.errors && (
+                        {state.success && state.message && (
                              <Alert variant="default" className="bg-green-100 border-green-200">
                                 <AlertTitle>Cadastro realizado!</AlertTitle>
                                 <AlertDescription>
-                                    {state.message} Você será redirecionado em breve.
+                                    {state.message}
                                 </AlertDescription>
                             </Alert>
                         )}

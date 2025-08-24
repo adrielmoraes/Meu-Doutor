@@ -40,12 +40,14 @@ export async function loginAction(prevState: any, formData: FormData) {
 
     // If no user is found
     return {
+      ...prevState,
       message: 'Nenhum usuário encontrado com este e-mail.',
     };
 
   } catch (error) {
     console.error('Login error:', error);
     return {
+      ...prevState,
       message: 'Ocorreu um erro no servidor. Por favor, tente novamente.',
     };
   }
