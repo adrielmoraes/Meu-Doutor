@@ -1,0 +1,12 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Para o protótipo, permita a leitura e escrita em todas as coleções.
+    // AVISO: Para um aplicativo em produção, estas regras devem ser muito mais restritivas,
+    // garantindo que os usuários só possam acessar seus próprios dados.
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
