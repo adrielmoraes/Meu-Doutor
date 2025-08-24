@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Mic, MicOff, Video, VideoOff, Phone } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Mic, MicOff, Video, VideoOff, Phone, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,7 +36,6 @@ const AIConsultationCard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isVideoOn, setIsVideoOn] = useState(true);
-  const [isRecording, setIsRecording] = useState(false);
   const [avatarGender, setAvatarGender] = useState<"male" | "female">("female");
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [history, setHistory] = useState<{role: 'user' | 'model', content: string}[]>([]);
@@ -49,54 +48,150 @@ const AIConsultationCard = () => {
   const femaleAvatarUrl = "https://placehold.co/128x128.png";
   const maleAvatarUrl = "https://placehold.co/128x128.png";
 
-  useEffect(() => {
-    audioRef.current = new Audio();
-
-    // Initialize SpeechRecognition API
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.lang = 'pt-BR';
-      recognition.interimResults = false;
-      recognitionRef.current = recognition;
+  const stopAiSpeaking = useCallback(() => {
+    if (audioRef.current && !audioRef.current.paused) {
+      audioRef.current.pause();
+      audioRef.current.src = ""; // Stop buffering
     }
   }, []);
+
+
+  const handleAiResponse = useCallback(async (userInput: string) => {
+    stopAiSpeaking();
+    const newUserMessage = { role: 'user' as const, content: userInput };
+    const isInitialMessage = userInput === "Olá" && history.length === 0;
+
+    const currentHistory = isInitialMessage ? [] : [...history, newUserMessage];
+
+    if (!isInitialMessage) {
+      setHistory(prev => [...prev, newUserMessage]);
+    }
+    
+    setIsThinking(true);
   
-  const startConversation = () => {
-    // A slight delay to ensure the user perceives the connection has been made
+    try {
+      const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: currentHistory, userInput };
+      const result = await consultationFlow(input);
+      const aiResponse = { role: 'model' as const, content: result.response };
+  
+      setHistory(prev => [...prev, aiResponse]);
+  
+      const audioResponse = await textToSpeech({ text: result.response });
+      if (audioRef.current) {
+        audioRef.current.src = audioResponse.audioDataUri;
+        await audioRef.current.play();
+      }
+    } catch (error) {
+      console.error("Failed to get AI response:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro na comunicação com a IA",
+        description: "Não foi possível obter uma resposta. Tente novamente.",
+      });
+      if (!isInitialMessage) {
+        setHistory(prev => prev.slice(0, -1));
+      }
+    } finally {
+      setIsThinking(false);
+    }
+  }, [history, toast, stopAiSpeaking]);
+
+
+  const startConversation = useCallback(() => {
     setTimeout(() => {
         handleAiResponse("Olá");
     }, 500);
-  }
+  }, [handleAiResponse]);
 
+
+  const initializeSpeechRecognition = useCallback(() => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({
+        variant: 'destructive',
+        title: 'Navegador incompatível',
+        description: 'Seu navegador não suporta reconhecimento de voz.',
+      });
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.lang = 'pt-BR';
+    recognition.interimResults = false;
+    
+    recognition.onspeechstart = () => {
+      stopAiSpeaking();
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[event.results.length - 1][0].transcript.trim();
+      if(transcript) {
+        handleAiResponse(transcript);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      if (event.error !== 'no-speech') {
+        console.error('Speech recognition error', event.error);
+        toast({
+          variant: 'destructive',
+          title: 'Erro no Reconhecimento de Voz',
+          description: `Ocorreu um erro: ${event.error}. Tente falar novamente.`,
+        });
+      }
+    };
+    
+    recognition.onend = () => {
+      // If the mic is supposed to be on, restart recognition.
+      // This handles cases where the browser automatically stops it.
+      if (isMicOn && isDialogOpen) {
+        try {
+          recognition.start();
+        } catch(e) {
+          // It might fail if already started, which is fine.
+        }
+      }
+    };
+
+    recognitionRef.current = recognition;
+    if (isMicOn) {
+      recognition.start();
+    }
+  }, [toast, handleAiResponse, stopAiSpeaking, isMicOn, isDialogOpen]);
+
+
+  // Effect to manage media and permissions
   useEffect(() => {
-    const getMediaPermissions = async () => {
-      if (!isDialogOpen) return;
+    if (!isDialogOpen) return;
 
+    audioRef.current = new Audio();
+
+    const getMediaPermissions = async () => {
       try {
-        // First, try to get both video and audio
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         setHasCameraPermission(true);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
-        startConversation(); // Start conversation on successful media acquisition
+        initializeSpeechRecognition();
+        startConversation();
       } catch (err) {
         console.warn('Could not get video stream, trying audio only.', err);
         setHasCameraPermission(false);
         try {
-          // If video fails (e.g., permission denied), try for audio only
           await navigator.mediaDevices.getUserMedia({ audio: true });
-          startConversation(); // Start conversation if we at least have audio
+          initializeSpeechRecognition();
+          startConversation();
         } catch (audioErr) {
             console.error('Error accessing audio:', audioErr);
             toast({
                 variant: 'destructive',
                 title: 'Acesso ao Microfone Negado',
-                description: 'Por favor, habilite a permissão do microfone nas configurações do seu navegador para usar a consulta por voz.',
+                description: 'Por favor, habilite a permissão do microfone para usar a consulta.',
             });
+            setIsDialogOpen(false);
         }
       }
     };
@@ -108,105 +203,26 @@ const AIConsultationCard = () => {
             const stream = videoRef.current.srcObject as MediaStream;
             stream.getTracks().forEach(track => track.stop());
         }
+        if (recognitionRef.current) {
+          recognitionRef.current.stop();
+          recognitionRef.current = null;
+        }
+        stopAiSpeaking();
     };
-  }, [isDialogOpen, toast]);
-
-  const handleAiResponse = async (userInput: string) => {
-    const newUserMessage = { role: 'user' as const, content: userInput };
-    // Don't show the initial "Olá" from the user in the history
-    const isInitialMessage = userInput === "Olá" && history.length === 0;
-
-    if (!isInitialMessage) {
-      setHistory(prev => [...prev, newUserMessage]);
-    }
-    
-    setIsThinking(true);
+  }, [isDialogOpen, toast, startConversation, initializeSpeechRecognition, stopAiSpeaking]);
   
-    try {
-      // Get AI text response, now with patient context
-      const currentHistory = isInitialMessage ? [] : [...history, newUserMessage];
-      const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: currentHistory, userInput };
-      const result = await consultationFlow(input);
-      const aiResponse = { role: 'model' as const, content: result.response };
-  
-      // Update history with the new AI response
-      setHistory(prev => [...prev, aiResponse]);
-  
-      // Get AI audio response and play it
-      const audioResponse = await textToSpeech({ text: result.response });
-      if (audioRef.current) {
-        audioRef.current.src = audioResponse.audioDataUri;
-        audioRef.current.play();
+  const toggleMic = () => {
+    const nextState = !isMicOn;
+    setIsMicOn(nextState);
+    if(recognitionRef.current) {
+      if(nextState) {
+        recognitionRef.current.start();
+      } else {
+        recognitionRef.current.stop();
       }
-    } catch (error) {
-      console.error("Failed to get AI response:", error);
-      toast({
-        variant: "destructive",
-        title: "Erro na comunicação com a IA",
-        description: "Não foi possível obter uma resposta. Tente novamente.",
-      });
-      // Rollback the user message if AI fails and it wasn't the initial greeting
-      if (!isInitialMessage) {
-        setHistory(prev => prev.slice(0, -1));
-      }
-    } finally {
-      setIsThinking(false);
     }
-  };
+  }
 
-  useEffect(() => {
-    const recognition = recognitionRef.current;
-    if (!recognition) return;
-
-    const handleResult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        handleAiResponse(transcript);
-        setIsRecording(false);
-    };
-
-    const handleError = (event: any) => {
-        console.error('Speech recognition error', event.error);
-        toast({
-            variant: 'destructive',
-            title: 'Erro no Reconhecimento de Voz',
-            description: 'Não foi possível entender o áudio. Tente novamente.',
-        });
-        setIsRecording(false);
-    };
-
-    const handleEnd = () => {
-        setIsRecording(false);
-    };
-
-    recognition.addEventListener('result', handleResult);
-    recognition.addEventListener('error', handleError);
-    recognition.addEventListener('end', handleEnd);
-
-    // Cleanup function
-    return () => {
-        recognition.removeEventListener('result', handleResult);
-        recognition.removeEventListener('error', handleError);
-        recognition.removeEventListener('end', handleEnd);
-    }
-  }, [history, toast]); // Dependency array is important to re-bind with correct history state
-
-  const toggleRecording = () => {
-    const recognition = recognitionRef.current;
-    if (!recognition) {
-        toast({
-            variant: 'destructive',
-            title: 'Navegador incompatível',
-            description: 'Seu navegador não suporta reconhecimento de voz.',
-        });
-        return;
-    }
-    if (isRecording) {
-        recognition.stop();
-    } else {
-        recognition.start();
-        setIsRecording(true);
-    }
-  };
 
   const handleEndCall = async () => {
     setIsDialogOpen(false);
@@ -225,7 +241,6 @@ const AIConsultationCard = () => {
             });
         }
     }
-    // Reset history for the next call
     setHistory([]);
   };
 
@@ -315,8 +330,8 @@ const AIConsultationCard = () => {
                 <ToggleGroupItem value="female" aria-label="Toggle female avatar">Feminino</ToggleGroupItem>
                 <ToggleGroupItem value="male" aria-label="Toggle male avatar">Masculino</ToggleGroupItem>
             </ToggleGroup>
-            <Button variant={isRecording ? "destructive" : "secondary"} size="icon" onClick={toggleRecording} disabled={isThinking}>
-              {isRecording ? <MicOff /> : <Mic />}
+            <Button variant={isMicOn ? "secondary" : "destructive"} size="icon" onClick={toggleMic}>
+              {isMicOn ? <Mic /> : <MicOff />}
             </Button>
             <Button variant={isVideoOn ? "secondary" : "destructive"} size="icon" onClick={() => setIsVideoOn(!isVideoOn)}>
               {isVideoOn ? <Video /> : <VideoOff />}
@@ -332,3 +347,5 @@ const AIConsultationCard = () => {
 };
 
 export default AIConsultationCard;
+
+    
