@@ -6,7 +6,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import AudioPlayback from "@/components/patient/audio-playback";
 import { getExamById, getPatientById } from "@/lib/firestore-adapter";
 import { notFound } from "next/navigation";
-import { explainDiagnosisToPatient } from "@/ai/flows/explain-diagnosis-flow";
 import { BotMessageSquare } from "lucide-react";
 import PrintButton from "@/components/patient/print-button";
 
@@ -21,26 +20,20 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
     notFound();
   }
 
+  // A diagnosis is considered validated for this context if the patient object has been validated.
+  // A more complex app could link a specific exam to a specific validation event.
   const isDiagnosisValidated = patient.status === 'Validado' && !!patient.doctorNotes;
 
   let title = "Análise Preliminar do Exame pela IA";
-  let diagnosis = examData.preliminaryDiagnosis;
-  let explanation = examData.explanation;
+  let diagnosisText = examData.preliminaryDiagnosis;
+  let explanationText = examData.explanation;
   let audioToPlay: string | null = null;
   
-  // Logic to determine which text to use for audio playback
-  const textForAudio = `Diagnóstico: ${diagnosis}. Explicação: ${explanation}`;
-
-
   if (isDiagnosisValidated) {
     title = "Diagnóstico Final Validado pelo Médico";
-    // We check if the doctor's notes for THIS specific exam context exist.
-    // In a more complex app, you might match the exam to a specific diagnosis note.
-    // For this prototype, we'll assume the latest note applies.
-    const finalExplanation = await explainDiagnosisToPatient({ diagnosisAndNotes: patient.doctorNotes! });
-    diagnosis = patient.doctorNotes!.split('\n')[0] || "Diagnóstico Final";
-    explanation = finalExplanation.explanation;
-    audioToPlay = finalExplanation.audioDataUri; // Use the pre-generated audio for the final diagnosis
+    diagnosisText = patient.doctorNotes!.split('\n')[0] || "Diagnóstico Final"; // Extract first line as title
+    explanationText = patient.finalExplanation || "Seu médico validou este diagnóstico. Siga as orientações.";
+    audioToPlay = patient.finalExplanationAudioUri || null; // Use the pre-generated audio for the final diagnosis
   }
 
   const examDate = new Date(examData.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -63,14 +56,14 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <AudioPlayback textToSpeak={explanation} preGeneratedAudioUri={audioToPlay} />
+              <AudioPlayback textToSpeak={explanationText} preGeneratedAudioUri={audioToPlay} />
               <div>
                 <h3 className="font-semibold text-lg">{isDiagnosisValidated ? "Diagnóstico Validado" : "Diagnóstico Preliminar da IA"}</h3>
-                <p className="text-xl text-primary font-bold">{diagnosis}</p>
+                <p className="text-xl text-primary font-bold">{diagnosisText}</p>
               </div>
               <div>
                 <h3 className="font-semibold text-lg">{isDiagnosisValidated ? "Explicação e Próximos Passos" : "Explicação Detalhada"}</h3>
-                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{explanation}</p>
+                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{explanationText}</p>
               </div>
             </CardContent>
           </Card>

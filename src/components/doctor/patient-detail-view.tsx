@@ -146,7 +146,9 @@ export default function PatientDetailView({
                  />
 
                  {patient.status === 'Validado' && patient.finalExplanation && (
-                    <div className="mt-4">
+                    <div className="mt-4 p-4 border rounded-md bg-muted/50">
+                        <h4 className="font-semibold text-sm mb-2">Explicação gerada para o paciente:</h4>
+                        <p className="text-sm text-muted-foreground italic mb-3">"{patient.finalExplanation}"</p>
                         <AudioPlayback 
                             textToSpeak={patient.finalExplanation} 
                             preGeneratedAudioUri={patient.finalExplanationAudioUri} 
@@ -162,10 +164,6 @@ export default function PatientDetailView({
                     <Button onClick={handleValidateDiagnosis} variant="secondary" disabled={isValidating || patient.status === 'Validado'}>
                       {isValidating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
                       {isValidating ? "Validando..." : "Validar Diagnóstico"}
-                    </Button>
-                    <Button onClick={handleSendToPatient} className="bg-green-600 hover:bg-green-700" disabled={isSending}>
-                      {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                      {isSending ? "Enviando..." : "Enviar ao Paciente"}
                     </Button>
                  </div>
               </div>
