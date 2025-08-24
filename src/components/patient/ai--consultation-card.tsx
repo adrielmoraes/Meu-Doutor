@@ -61,6 +61,7 @@ const AIConsultationCard = () => {
     const newUserMessage = { role: 'user' as const, content: userInput };
     const isInitialMessage = userInput === "Olá" && history.length === 0;
 
+    // Use currentHistory to prevent issues with state closure in callbacks
     const currentHistory = isInitialMessage ? [] : [...history, newUserMessage];
 
     if (!isInitialMessage) {
@@ -88,9 +89,10 @@ const AIConsultationCard = () => {
         title: "Erro na comunicação com a IA",
         description: "Não foi possível obter uma resposta. Tente novamente.",
       });
-      if (!isInitialMessage) {
-        setHistory(prev => prev.slice(0, -1));
-      }
+      // Rollback user message if AI fails
+       if (!isInitialMessage) {
+         setHistory(prev => prev.slice(0, -1));
+       }
     } finally {
       setIsThinking(false);
     }
@@ -98,6 +100,7 @@ const AIConsultationCard = () => {
 
 
   const startConversation = useCallback(() => {
+    // Add a small delay to ensure media is ready
     setTimeout(() => {
         handleAiResponse("Olá");
     }, 500);
@@ -117,10 +120,11 @@ const AIConsultationCard = () => {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = true;
+    recognition.continuous = true; // Listen continuously
     recognition.lang = 'pt-BR';
-    recognition.interimResults = false;
+    recognition.interimResults = false; // We only want final results
     
+    // When user starts talking, stop the AI's audio
     recognition.onspeechstart = () => {
       stopAiSpeaking();
     };
@@ -133,6 +137,7 @@ const AIConsultationCard = () => {
     };
 
     recognition.onerror = (event: any) => {
+      // Ignore 'no-speech' which happens if user is silent.
       if (event.error !== 'no-speech') {
         console.error('Speech recognition error', event.error);
         toast({
@@ -144,8 +149,8 @@ const AIConsultationCard = () => {
     };
     
     recognition.onend = () => {
-      // If the mic is supposed to be on, restart recognition.
-      // This handles cases where the browser automatically stops it.
+      // If the mic is supposed to be on, and the dialog is open, restart recognition.
+      // This handles cases where the browser automatically stops it after a period of silence.
       if (isMicOn && isDialogOpen) {
         try {
           recognition.start();
@@ -156,6 +161,7 @@ const AIConsultationCard = () => {
     };
 
     recognitionRef.current = recognition;
+    // Start listening immediately if the mic is supposed to be on.
     if (isMicOn) {
       recognition.start();
     }
@@ -167,46 +173,54 @@ const AIConsultationCard = () => {
     if (!isDialogOpen) return;
 
     audioRef.current = new Audio();
+    let stream: MediaStream | null = null;
 
     const getMediaPermissions = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        // First try to get video and audio
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         setHasCameraPermission(true);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
-        initializeSpeechRecognition();
-        startConversation();
       } catch (err) {
         console.warn('Could not get video stream, trying audio only.', err);
         setHasCameraPermission(false);
+        // If video fails, try to get audio only
         try {
-          await navigator.mediaDevices.getUserMedia({ audio: true });
-          initializeSpeechRecognition();
-          startConversation();
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         } catch (audioErr) {
-            console.error('Error accessing audio:', audioErr);
-            toast({
-                variant: 'destructive',
-                title: 'Acesso ao Microfone Negado',
-                description: 'Por favor, habilite a permissão do microfone para usar a consulta.',
-            });
-            setIsDialogOpen(false);
+          console.error('Error accessing audio:', audioErr);
+          toast({
+            variant: 'destructive',
+            title: 'Acesso ao Microfone Negado',
+            description: 'Por favor, habilite a permissão do microfone para usar a consulta.',
+          });
+          setIsDialogOpen(false); // Close dialog if no permissions at all
+          return;
         }
+      }
+
+      // If we have a stream (at least audio), initialize speech recognition and start convo
+      if (stream) {
+        initializeSpeechRecognition();
+        startConversation();
       }
     };
 
     getMediaPermissions();
 
     return () => {
-        if (videoRef.current && videoRef.current.srcObject) {
-            const stream = videoRef.current.srcObject as MediaStream;
+        // Stop all media tracks
+        if (stream) {
             stream.getTracks().forEach(track => track.stop());
         }
+        // Stop recognition and clear the ref
         if (recognitionRef.current) {
           recognitionRef.current.stop();
           recognitionRef.current = null;
         }
+        // Stop any AI audio that might be playing
         stopAiSpeaking();
     };
   }, [isDialogOpen, toast, startConversation, initializeSpeechRecognition, stopAiSpeaking]);
@@ -225,7 +239,7 @@ const AIConsultationCard = () => {
 
 
   const handleEndCall = async () => {
-    setIsDialogOpen(false);
+    setIsDialogOpen(false); // This will trigger the useEffect cleanup
     if (history.length > 0) {
         const result = await saveConversationHistoryAction(MOCK_PATIENT_ID, history);
         if (result.success) {
@@ -241,6 +255,7 @@ const AIConsultationCard = () => {
             });
         }
     }
+    // Reset state for the next call
     setHistory([]);
   };
 
@@ -347,5 +362,3 @@ const AIConsultationCard = () => {
 };
 
 export default AIConsultationCard;
-
-    
