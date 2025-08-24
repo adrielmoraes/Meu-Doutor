@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A tool for accessing a patient's medical data from Firestore.
