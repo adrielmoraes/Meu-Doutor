@@ -1,8 +1,8 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { PlayCircle, StopCircle, Loader2 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PlayCircle, StopCircle, Loader2, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { textToSpeech } from "@/ai/flows/text-to-speech";
@@ -77,28 +77,27 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGenerated
     }
   };
 
+  const getButtonContent = () => {
+      if (isGenerating) {
+        return <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Gerando Áudio...</>
+      }
+      if (isPlaying) {
+        return <><StopCircle className="mr-2 h-5 w-5" /> Parar Áudio</>
+      }
+      return <><Volume2 className="mr-2 h-5 w-5" /> Ouvir Explicação</>
+  }
+
   return (
-    <Alert className="bg-primary/5 border-primary/20">
-      <AlertTitle className="font-bold flex items-center">Ouvir Explicação em Áudio</AlertTitle>
-      <AlertDescription className="flex items-center justify-between pt-2">
-        <span className="text-sm">Clique no botão para que a IA narre a análise para você.</span>
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={toggleAudio}
-          disabled={isGenerating}
-          aria-label={isPlaying ? "Parar áudio" : "Reproduzir áudio"}
-        >
-          {isGenerating ? (
-            <Loader2 className="h-6 w-6 text-primary animate-spin" />
-          ) : isPlaying ? (
-            <StopCircle className="h-6 w-6 text-destructive" />
-          ) : (
-            <PlayCircle className="h-6 w-6 text-primary" />
-          )}
-        </Button>
-      </AlertDescription>
-    </Alert>
+    <Button
+        onClick={toggleAudio}
+        disabled={isGenerating}
+        aria-label={isPlaying ? "Parar áudio" : "Reproduzir áudio"}
+        size="lg"
+        className="w-full"
+        variant={isPlaying ? "destructive" : "default"}
+    >
+       {getButtonContent()}
+    </Button>
   );
 };
 
