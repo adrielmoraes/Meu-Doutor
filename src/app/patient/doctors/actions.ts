@@ -1,3 +1,4 @@
+
 'use server';
 
 import { getAppointmentsByDate } from "@/lib/firestore-adapter";
