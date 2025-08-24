@@ -76,10 +76,12 @@ const AIConsultationCard = () => {
   
       setHistory(prev => [...prev, aiResponse]);
   
-      if (isDialogOpen && audioRef.current) {
+      if (isDialogOpen) {
         const audioResponse = await textToSpeech({ text: result.response });
-        audioRef.current.src = audioResponse.audioDataUri;
-        await audioRef.current.play();
+        if (audioResponse && audioRef.current) {
+            audioRef.current.src = audioResponse.audioDataUri;
+            await audioRef.current.play();
+        }
       }
 
     } catch (error) {
@@ -89,8 +91,9 @@ const AIConsultationCard = () => {
         title: "Erro na comunicação com a IA",
         description: "Não foi possível obter uma resposta. Tente novamente.",
       });
+      // Rollback user message on error
       if (!isInitialMessage) {
-        setHistory(prev => prev.slice(0, -1));
+        setHistory(prev => prev.filter(msg => msg.content !== userInput));
       }
     } finally {
       setIsThinking(false);
@@ -98,6 +101,7 @@ const AIConsultationCard = () => {
   }, [history, toast, stopAiSpeaking, isDialogOpen]);
 
   const startConversation = useCallback(() => {
+    // Wait a brief moment to ensure UI is ready
     setTimeout(() => {
         handleAiResponse("Olá");
     }, 500);
@@ -134,8 +138,9 @@ const AIConsultationCard = () => {
     };
     
     recognition.onend = () => {
+      // Automatically restart recognition if mic is supposed to be on
       if (isMicOn && isDialogOpen) {
-        try { recognition.start(); } catch(e) { /* ignore */ }
+        try { recognition.start(); } catch(e) { /* ignore if already started */ }
       }
     };
 
@@ -171,18 +176,20 @@ const AIConsultationCard = () => {
   const toggleMic = async () => {
     const nextState = !isMicOn;
 
-    if (nextState && !hasMicPermission) {
+    if (nextState && hasMicPermission === null) {
         // If mic is being turned on for the first time without permission, request it.
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // We got the permission, now we can stop the track as the main permission request will handle it.
             stream.getTracks().forEach(track => track.stop());
             setHasMicPermission(true);
             setIsMicOn(true); // Set the state after getting permission
-            initializeSpeechRecognition();
+            if (!recognitionRef.current) initializeSpeechRecognition();
             if (recognitionRef.current) recognitionRef.current.start();
         } catch (error) {
             console.error("Microphone permission denied:", error);
             toast({ variant: "destructive", title: "Permissão de Microfone Negada" });
+            setHasMicPermission(false);
             setIsMicOn(false); // Keep it off if denied
         }
         return;
@@ -208,9 +215,12 @@ const AIConsultationCard = () => {
             toast({ variant: "destructive", title: "Erro ao Salvar", description: result.message });
         }
     }
+    // Reset state for next call
     setHistory([]);
     setHasMicPermission(null);
+    setHasCameraPermission(null);
     setIsMicOn(false);
+    setIsVideoOn(true);
   };
 
   // Effect to manage media and dialog lifecycle
@@ -219,6 +229,7 @@ const AIConsultationCard = () => {
         requestMediaPermissions();
         startConversation();
     } else {
+        // Cleanup when dialog closes
         if (userMediaStreamRef.current) {
             userMediaStreamRef.current.getTracks().forEach(track => track.stop());
             userMediaStreamRef.current = null;
@@ -229,7 +240,7 @@ const AIConsultationCard = () => {
         }
         stopAiSpeaking();
     }
-    // Cleanup function
+    // Cleanup function for when the component unmounts
     return () => {
         if (userMediaStreamRef.current) {
             userMediaStreamRef.current.getTracks().forEach(track => track.stop());
