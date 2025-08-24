@@ -342,5 +342,3 @@ const AIConsultationCard = () => {
 };
 
 export default AIConsultationCard;
-
-    
