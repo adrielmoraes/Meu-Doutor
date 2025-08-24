@@ -1,4 +1,5 @@
 
+
 export type Patient = {
   id: string;
   name: string;
@@ -27,6 +28,15 @@ export type Doctor = {
   online: boolean;
   avatar: string;
   avatarHint: string;
+  level: number;
+  xp: number;
+  xpToNextLevel: number;
+  validations: number;
+  badges: {
+      name: string;
+      icon: 'Award' | 'Star' | 'Clock' | 'Zap';
+      description: string;
+  }[];
 };
 
 export type Exam = {

@@ -1,4 +1,5 @@
 
+
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, addDoc, query, where, serverTimestamp } from 'firebase/firestore';
 import type { Patient, Doctor, Exam, Appointment } from '@/types';
@@ -26,10 +27,42 @@ export async function updatePatient(id: string, data: Partial<Patient>): Promise
 
 
 export async function getDoctors(): Promise<Doctor[]> {
-    const doctorsCol = collection(db, 'doctors');
-    const doctorSnapshot = await getDocs(doctorsCol);
-    const doctorList = doctorSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Doctor));
-    return doctorList;
+    // In a real app, this data would come from Firestore.
+    // For this prototype, we're returning a static list with gamification data.
+    const doctors: Doctor[] = [
+        {
+            id: '1',
+            name: 'Dra. Ana Costa',
+            specialty: 'Cardiologista',
+            online: true,
+            avatar: 'https://placehold.co/128x128.png',
+            avatarHint: 'woman portrait',
+            level: 3,
+            xp: 250,
+            xpToNextLevel: 500,
+            validations: 25,
+            badges: [
+                { name: 'Primeira Validação', icon: 'Award', description: 'Validou seu primeiro caso.' },
+                { name: 'Maratonista', icon: 'Star', description: 'Validou 10+ casos em um dia.' },
+            ]
+        },
+        {
+            id: '2',
+            name: 'Dr. Bruno Lima',
+            specialty: 'Neurologista',
+            online: false,
+            avatar: 'https://placehold.co/128x128.png',
+            avatarHint: 'man portrait',
+            level: 2,
+            xp: 120,
+            xpToNextLevel: 250,
+            validations: 12,
+            badges: [
+                { name: 'Primeira Validação', icon: 'Award', description: 'Validou seu primeiro caso.' }
+            ]
+        }
+    ];
+    return doctors;
 }
 
 export async function getExamsByPatientId(patientId: string): Promise<Exam[]> {
