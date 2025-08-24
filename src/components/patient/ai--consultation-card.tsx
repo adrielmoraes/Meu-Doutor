@@ -34,15 +34,17 @@ const MOCK_PATIENT_ID = '1';
 // Speech Recognition instance will be stored in a ref
 const AIConsultationCard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isMicOn, setIsMicOn] = useState(true);
+  const [isMicOn, setIsMicOn] = useState(false); // Start with mic off
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [avatarGender, setAvatarGender] = useState<"male" | "female">("female");
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [hasMicPermission, setHasMicPermission] = useState<boolean | null>(null);
   const [history, setHistory] = useState<{role: 'user' | 'model', content: string}[]>([]);
   const [isThinking, setIsThinking] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
+  const userMediaStreamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
 
   const femaleAvatarUrl = "https://placehold.co/128x128.png";
@@ -55,33 +57,34 @@ const AIConsultationCard = () => {
     }
   }, []);
 
-
   const handleAiResponse = useCallback(async (userInput: string) => {
     stopAiSpeaking();
     const newUserMessage = { role: 'user' as const, content: userInput };
+    
+    // Don't add the initial "Olá" to history visually if it's the trigger
     const isInitialMessage = userInput === "Olá" && history.length === 0;
-
-    // Use currentHistory to prevent issues with state closure in callbacks
-    const currentHistory = isInitialMessage ? [] : [...history, newUserMessage];
-
     if (!isInitialMessage) {
-      setHistory(prev => [...prev, newUserMessage]);
+        setHistory(prev => [...prev, newUserMessage]);
     }
     
     setIsThinking(true);
   
     try {
+      // Use a temporary history for the API call to include the new message
+      const currentHistory = isInitialMessage ? [] : [...history, newUserMessage];
       const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: currentHistory, userInput };
       const result = await consultationFlow(input);
       const aiResponse = { role: 'model' as const, content: result.response };
   
       setHistory(prev => [...prev, aiResponse]);
   
-      const audioResponse = await textToSpeech({ text: result.response });
-      if (audioRef.current) {
+      // Only play audio if the dialog is still open
+      if (isDialogOpen && audioRef.current) {
+        const audioResponse = await textToSpeech({ text: result.response });
         audioRef.current.src = audioResponse.audioDataUri;
         await audioRef.current.play();
       }
+
     } catch (error) {
       console.error("Failed to get AI response:", error);
       toast({
@@ -90,44 +93,36 @@ const AIConsultationCard = () => {
         description: "Não foi possível obter uma resposta. Tente novamente.",
       });
       // Rollback user message if AI fails
-       if (!isInitialMessage) {
-         setHistory(prev => prev.slice(0, -1));
-       }
+      if (!isInitialMessage) {
+        setHistory(prev => prev.slice(0, -1));
+      }
     } finally {
       setIsThinking(false);
     }
-  }, [history, toast, stopAiSpeaking]);
-
+  }, [history, toast, stopAiSpeaking, isDialogOpen]);
 
   const startConversation = useCallback(() => {
-    // Add a small delay to ensure media is ready
+    // Small delay to ensure UI is ready
     setTimeout(() => {
         handleAiResponse("Olá");
     }, 500);
   }, [handleAiResponse]);
 
-
   const initializeSpeechRecognition = useCallback(() => {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (recognitionRef.current) return; // Already initialized
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      toast({
-        variant: 'destructive',
-        title: 'Navegador incompatível',
-        description: 'Seu navegador não suporta reconhecimento de voz.',
-      });
+      toast({ variant: 'destructive', title: 'Navegador incompatível', description: 'Seu navegador não suporta reconhecimento de voz.' });
       return;
     }
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = true; // Listen continuously
+    recognition.continuous = true;
     recognition.lang = 'pt-BR';
-    recognition.interimResults = false; // We only want final results
+    recognition.interimResults = false;
     
-    // When user starts talking, stop the AI's audio
-    recognition.onspeechstart = () => {
-      stopAiSpeaking();
-    };
+    recognition.onspeechstart = stopAiSpeaking;
 
     recognition.onresult = (event: any) => {
       const transcript = event.results[event.results.length - 1][0].transcript.trim();
@@ -137,128 +132,111 @@ const AIConsultationCard = () => {
     };
 
     recognition.onerror = (event: any) => {
-      // Ignore 'no-speech' which happens if user is silent.
-      if (event.error !== 'no-speech') {
+      if (event.error !== 'no-speech' && event.error !== 'aborted') {
         console.error('Speech recognition error', event.error);
-        toast({
-          variant: 'destructive',
-          title: 'Erro no Reconhecimento de Voz',
-          description: `Ocorreu um erro: ${event.error}. Tente falar novamente.`,
-        });
+        toast({ variant: 'destructive', title: 'Erro no Reconhecimento de Voz', description: `Ocorreu um erro: ${event.error}.`});
       }
     };
     
     recognition.onend = () => {
-      // If the mic is supposed to be on, and the dialog is open, restart recognition.
-      // This handles cases where the browser automatically stops it after a period of silence.
       if (isMicOn && isDialogOpen) {
-        try {
-          recognition.start();
-        } catch(e) {
-          // It might fail if already started, which is fine.
-        }
+        try { recognition.start(); } catch(e) { /* ignore */ }
       }
     };
 
     recognitionRef.current = recognition;
-    // Start listening immediately if the mic is supposed to be on.
-    if (isMicOn) {
-      recognition.start();
-    }
   }, [toast, handleAiResponse, stopAiSpeaking, isMicOn, isDialogOpen]);
 
-
-  // Effect to manage media and permissions
-  useEffect(() => {
-    if (!isDialogOpen) return;
-
-    audioRef.current = new Audio();
-    let stream: MediaStream | null = null;
-
-    const getMediaPermissions = async () => {
-      try {
-        // First try to get video and audio
-        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+  const requestCamera = useCallback(async () => {
+    if (userMediaStreamRef.current) {
+        userMediaStreamRef.current.getTracks().forEach(track => track.stop());
+    }
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        userMediaStreamRef.current = stream;
         setHasCameraPermission(true);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
-      } catch (err) {
-        console.warn('Could not get video stream, trying audio only.', err);
+    } catch (err) {
+        console.warn('Could not get video stream.', err);
         setHasCameraPermission(false);
-        // If video fails, try to get audio only
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        } catch (audioErr) {
-          console.error('Error accessing audio:', audioErr);
-          toast({
-            variant: 'destructive',
-            title: 'Acesso ao Microfone Negado',
-            description: 'Por favor, habilite a permissão do microfone para usar a consulta.',
-          });
-          setIsDialogOpen(false); // Close dialog if no permissions at all
-          return;
-        }
-      }
+        setIsVideoOn(false); // Turn off video toggle if permission is denied
+    }
+  }, []);
 
-      // If we have a stream (at least audio), initialize speech recognition and start convo
-      if (stream) {
-        initializeSpeechRecognition();
-        startConversation();
-      }
-    };
-
-    getMediaPermissions();
-
-    return () => {
-        // Stop all media tracks
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-        }
-        // Stop recognition and clear the ref
-        if (recognitionRef.current) {
-          recognitionRef.current.stop();
-          recognitionRef.current = null;
-        }
-        // Stop any AI audio that might be playing
-        stopAiSpeaking();
-    };
-  }, [isDialogOpen, toast, startConversation, initializeSpeechRecognition, stopAiSpeaking]);
-  
-  const toggleMic = () => {
+  const toggleMic = async () => {
     const nextState = !isMicOn;
     setIsMicOn(nextState);
-    if(recognitionRef.current) {
-      if(nextState) {
-        recognitionRef.current.start();
-      } else {
-        recognitionRef.current.stop();
-      }
-    }
-  }
 
+    if (nextState) {
+        if (!hasMicPermission) {
+            try {
+                // Request only audio, this is more likely to be granted
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                // We don't need to do anything with the stream, just getting it is enough for permission
+                stream.getTracks().forEach(track => track.stop());
+                setHasMicPermission(true);
+                initializeSpeechRecognition();
+                if(recognitionRef.current) recognitionRef.current.start();
+            } catch (error) {
+                console.error("Microphone permission denied:", error);
+                toast({ variant: "destructive", title: "Permissão de Microfone Negada", description: "Você precisa permitir o acesso ao microfone para usar o recurso de voz."});
+                setIsMicOn(false); // Revert state if permission denied
+                return;
+            }
+        } else {
+            if(recognitionRef.current) recognitionRef.current.start();
+        }
+    } else {
+        if(recognitionRef.current) recognitionRef.current.stop();
+    }
+  };
 
   const handleEndCall = async () => {
     setIsDialogOpen(false); // This will trigger the useEffect cleanup
     if (history.length > 0) {
         const result = await saveConversationHistoryAction(MOCK_PATIENT_ID, history);
         if (result.success) {
-            toast({
-                title: "Histórico Salvo",
-                description: "Sua conversa com a IA foi salva com sucesso.",
-            });
+            toast({ title: "Histórico Salvo", description: "Sua conversa com a IA foi salva com sucesso." });
         } else {
-            toast({
-                variant: "destructive",
-                title: "Erro ao Salvar",
-                description: result.message,
-            });
+            toast({ variant: "destructive", title: "Erro ao Salvar", description: result.message });
         }
     }
-    // Reset state for the next call
     setHistory([]);
+    setHasMicPermission(null);
+    setIsMicOn(false);
   };
 
+  // Effect to manage media and dialog lifecycle
+  useEffect(() => {
+    if (isDialogOpen) {
+        audioRef.current = new Audio();
+        requestCamera();
+        startConversation();
+    } else {
+        // Cleanup on dialog close
+        if (userMediaStreamRef.current) {
+            userMediaStreamRef.current.getTracks().forEach(track => track.stop());
+            userMediaStreamRef.current = null;
+        }
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+            recognitionRef.current = null;
+        }
+        stopAiSpeaking();
+        audioRef.current = null;
+    }
+    // Cleanup function
+    return () => {
+        if (userMediaStreamRef.current) {
+            userMediaStreamRef.current.getTracks().forEach(track => track.stop());
+        }
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+        }
+    };
+  }, [isDialogOpen, requestCamera, startConversation, stopAiSpeaking]);
 
   return (
     <>
@@ -362,3 +340,5 @@ const AIConsultationCard = () => {
 };
 
 export default AIConsultationCard;
+
+    
