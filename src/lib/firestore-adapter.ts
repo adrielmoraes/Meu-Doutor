@@ -2,7 +2,7 @@
 
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, addDoc, query, where, serverTimestamp } from 'firebase/firestore';
-import type { Patient, Exam, Appointment } from '@/types';
+import type { Patient, Exam, Appointment, Doctor } from '@/types';
 
 
 export async function getPatients(): Promise<Patient[]> {
@@ -49,6 +49,13 @@ export async function addExamToPatient(patientId: string, examData: Omit<Exam, '
         date: new Date().toISOString(),
     };
     await addDoc(examsCol, examDoc);
+}
+
+export async function getDoctors(): Promise<Doctor[]> {
+    const doctorsCol = collection(db, 'doctors');
+    const doctorSnapshot = await getDocs(doctorsCol);
+    const doctorList = doctorSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Doctor));
+    return doctorList;
 }
 
 export async function getAppointments(): Promise<Appointment[]> {
