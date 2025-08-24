@@ -33,12 +33,16 @@ async function getDashboardData(): Promise<DashboardData> {
 
         return { patient, healthInsights };
     } catch (e: any) {
-        if (e.message?.includes('5 NOT_FOUND') || e.code?.includes('not-found')) {
+        const errorMessage = e.message?.toLowerCase() || '';
+        const errorCode = e.code?.toLowerCase() || '';
+        
+        // Catches errors for both disabled API and general offline state.
+        if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
             const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
             return { 
                 patient: null,
                 healthInsights: null,
-                error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada.",
+                error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada ou o cliente está offline.",
                 fixUrl: firestoreApiUrl 
             };
         }
