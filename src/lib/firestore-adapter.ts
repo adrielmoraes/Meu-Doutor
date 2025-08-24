@@ -21,6 +21,13 @@ export async function getPatientById(id: string): Promise<Patient | null> {
     return null;
 }
 
+export async function addPatient(patientData: Omit<Patient, 'id'>): Promise<void> {
+    const patientsCol = collection(db, 'patients');
+    // In a real app, you wouldn't auto-assign an ID like this, but it's fine for the prototype seed.
+    // Firestore's addDoc will auto-generate a unique ID.
+    await addDoc(patientsCol, patientData);
+}
+
 export async function updatePatient(id: string, data: Partial<Patient>): Promise<void> {
     const patientDocRef = doc(db, 'patients', id);
     await updateDoc(patientDocRef, data);
