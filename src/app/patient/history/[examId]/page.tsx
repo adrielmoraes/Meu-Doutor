@@ -8,6 +8,7 @@ import { getExamById, getPatientById } from "@/lib/firestore-adapter";
 import { notFound } from "next/navigation";
 import { explainDiagnosisToPatient } from "@/ai/flows/explain-diagnosis-flow";
 import { BotMessageSquare } from "lucide-react";
+import PrintButton from "@/components/patient/print-button";
 
 // This should be replaced with the authenticated user's ID
 const MOCK_PATIENT_ID = '1';
@@ -61,10 +62,7 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                       </CardTitle>
                       <CardDescription>{examData.type} - {examDate}</CardDescription>
                     </div>
-                     <Button variant="outline" onClick={() => typeof window !== 'undefined' && window.print()}>
-                        <Printer className="mr-2 h-4 w-4" />
-                        Imprimir
-                    </Button>
+                     <PrintButton />
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
