@@ -85,11 +85,34 @@ _**Aviso:** Os preços são baseados nos valores do Google em Junho de 2024 para
 
 ---
 
+## 5. Cenário "Super Usuário" (Custo por Paciente/Mês)
+
+Este cenário calcula o custo mensal para um único paciente com um volume de uso extremamente alto.
+
+- **Premissas:**
+  - **Consultas com a IA:** 30 consultas/mês
+  - **Análise de Exames:** 15 análises/mês
+  - **Outros Fluxos (Diagnóstico, Plano, etc.):** 1 por mês
+
+- **Cálculo de Custo por Paciente:**
+  - **Custo das Consultas:** `30 consultas * $0.003125/consulta` = **$0.09375**
+  - **Custo das Análises de Exame:** `15 exames * $0.0006875/exame` = **$0.0103125**
+  - **Custo dos Outros Fluxos:** `$0.0025 (diagnóstico) + $0.00225 (plano)` = **$0.00475**
+  - **Custo de Texto para Áudio (TTS):**
+    - Caracteres de consulta: `30 consultas * 10k output` = 300k
+    - Caracteres de outros áudios: `~5k`
+    - Custo total de TTS: `305k caracteres * $0.0006` = **$0.183**
+  
+- **Custo Final por Paciente (Super Usuário):**
+  - `$0.09375 + $0.0103125 + $0.00475 + $0.183` = **$0.2918**
+
+---
+
 ## Conclusão
 
-Com um cenário de uso mais intenso (12 consultas por mês), o custo estimado para operar a plataforma MediAI com 1.000 usuários ativos mensais sobe para aproximadamente **$117.94 por mês**.
+Com um cenário de uso mais intenso (12 consultas por mês), o custo estimado para operar a plataforma MediAI com 1.000 usuários ativos mensais sobe para aproximadamente **$117.94 por mês**. Neste novo cenário, o serviço de **Texto para Áudio (TTS)** se torna o maior responsável pelos custos, seguido pelas **Consultas com a IA**.
 
-Neste novo cenário, o serviço de **Texto para Áudio (TTS)** se torna o maior responsável pelos custos, seguido pelas **Consultas com a IA**. Isso demonstra como a frequência de uso de funcionalidades interativas impacta diretamente os custos operacionais.
+Para um **super usuário** individual, com 30 consultas e 15 análises de exame por mês, o custo mensal seria de aproximadamente **$0.29**. Este valor serve como um teto para entender o custo máximo que um único paciente poderia gerar na plataforma sob uso extremo.
 
 Para otimizar custos, as estratégias mencionadas anteriormente se tornam ainda mais relevantes:
 - Limitar o número de consultas com IA ou a funcionalidade de áudio em planos gratuitos.
