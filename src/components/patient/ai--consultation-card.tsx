@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
@@ -140,83 +141,38 @@ const AIConsultationCard = () => {
       if (event.error !== 'no-speech' && event.error !== 'aborted') {
         console.error('Speech recognition error', event.error);
         toast({ variant: 'destructive', title: 'Erro no Reconhecimento de Voz', description: `Ocorreu um erro: ${event.error}.`});
+        recognitionRef.current.stop();
       }
     };
     
-    recognitionRef.current = recognition;
+    recognition.current = recognition;
   }, [toast, handleAiResponse, stopAiSpeaking]);
   
-  const requestMediaPermissions = useCallback(async () => {
-      try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          userMediaStreamRef.current = stream;
-          setHasCameraPermission(true);
-          setHasMicPermission(true);
-          if (videoRef.current) {
-              videoRef.current.srcObject = stream;
-          }
-      } catch (err) {
-          console.warn('Could not get video stream, trying audio only.', err);
-          setHasCameraPermission(false);
-          setIsVideoOn(false); 
-          try {
-              const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-              userMediaStreamRef.current = audioStream;
-              setHasMicPermission(true);
-          } catch (audioErr) {
-              console.error('Could not get audio stream.', audioErr);
-              setHasMicPermission(false);
-              setIsMicOn(false); 
-          }
-      }
-  }, []);
-
-  const toggleMic = async () => {
+  const toggleMic = () => {
     const nextState = !isMicOn;
-
-    if (nextState && hasMicPermission !== true) {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            stream.getTracks().forEach(track => track.stop());
-            setHasMicPermission(true);
-            setIsMicOn(true); 
-            if (!recognitionRef.current) initializeSpeechRecognition();
-            if (recognitionRef.current) recognitionRef.current.start();
-        } catch (error) {
-            console.error("Microphone permission denied:", error);
-            toast({ variant: "destructive", title: "Permissão de Microfone Negada", description: "Por favor, habilite o microfone nas configurações do seu navegador." });
-            setHasMicPermission(false);
-            setIsMicOn(false);
-        }
-        return;
-    }
-    
     setIsMicOn(nextState);
+
     if (nextState) {
         if (!recognitionRef.current) initializeSpeechRecognition();
         try {
             recognitionRef.current.start();
-        } catch(e) {
-            console.log("Recognition already started");
+        } catch (e) {
+            // Already started
         }
     } else {
         if (recognitionRef.current) {
             recognitionRef.current.stop();
         }
     }
-  };
+};
 
   const handleEndCall = async () => {
     setIsDialogOpen(false); 
   };
 
-  // Effect to manage dialog lifecycle
+  // Effect to manage dialog lifecycle and media permissions
   useEffect(() => {
-    if (isDialogOpen) {
-        requestMediaPermissions().then(() => {
-            startConversation();
-        });
-    } else {
+    if (!isDialogOpen) {
         // Cleanup when dialog closes
         if (userMediaStreamRef.current) {
             userMediaStreamRef.current.getTracks().forEach(track => track.stop());
@@ -238,9 +194,36 @@ const AIConsultationCard = () => {
         setHasCameraPermission(null);
         setIsMicOn(false);
         setIsVideoOn(true);
+        return;
     }
+
+    const getMediaPermissions = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            userMediaStreamRef.current = stream;
+            setHasCameraPermission(true);
+            setHasMicPermission(true);
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+            }
+            startConversation();
+        } catch (err) {
+            console.error('Error accessing media devices:', err);
+            setHasCameraPermission(false);
+            setHasMicPermission(false);
+            setIsVideoOn(false);
+            setIsMicOn(false);
+            toast({
+                variant: 'destructive',
+                title: 'Acesso à Mídia Negado',
+                description: 'Por favor, habilite o acesso à câmera e ao microfone nas configurações do seu navegador.',
+            });
+        }
+    };
+    
+    getMediaPermissions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDialogOpen]);
+  }, [isDialogOpen, startConversation]);
 
   return (
     <>
@@ -289,7 +272,16 @@ const AIConsultationCard = () => {
               <div className="bg-black rounded-lg h-48 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
                  <video ref={videoRef} className={`w-full h-full object-cover ${!isVideoOn || !hasCameraPermission ? 'hidden' : ''}`} autoPlay muted playsInline />
                  
-                 {(!isVideoOn || !hasCameraPermission) && (
+                 {hasCameraPermission === false && (
+                    <Alert variant="destructive" className="absolute inset-2">
+                        <AlertTitle>Câmera Desativada</AlertTitle>
+                        <AlertDescription>
+                            Permita o acesso à câmera nas configurações do navegador para continuar.
+                        </AlertDescription>
+                    </Alert>
+                  )}
+                 
+                 {hasCameraPermission && !isVideoOn && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4 text-white flex-col">
                         <VideoOff className="h-10 w-10 mb-2"/>
                         <span>Câmera desligada</span>
@@ -327,10 +319,10 @@ const AIConsultationCard = () => {
                 <ToggleGroupItem value="female" aria-label="Toggle female avatar">Feminino</ToggleGroupItem>
                 <ToggleGroupItem value="male" aria-label="Toggle male avatar">Masculino</ToggleGroupItem>
             </ToggleGroup>
-            <Button variant={isMicOn ? "secondary" : "destructive"} size="icon" onClick={toggleMic}>
+            <Button variant={isMicOn ? "secondary" : "destructive"} size="icon" onClick={toggleMic} disabled={hasMicPermission === false}>
               {isMicOn ? <Mic /> : <MicOff />}
             </Button>
-            <Button variant={isVideoOn ? "secondary" : "destructive"} size="icon" onClick={() => setIsVideoOn(!isVideoOn)}>
+            <Button variant={isVideoOn ? "secondary" : "destructive"} size="icon" onClick={() => setIsVideoOn(!isVideoOn)} disabled={hasCameraPermission === false}>
               {isVideoOn ? <Video /> : <VideoOff />}
             </Button>
             <Button variant="destructive" size="lg" onClick={handleEndCall}>
@@ -344,3 +336,5 @@ const AIConsultationCard = () => {
 };
 
 export default AIConsultationCard;
+
+    
