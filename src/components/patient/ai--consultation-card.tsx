@@ -41,7 +41,6 @@ const AIConsultationCard = () => {
   const [history, setHistory] = useState<{role: 'user' | 'model', content: string}[]>([]);
   const [isThinking, setIsThinking] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  // Initialize audioRef with a new Audio object to prevent it from being null
   const audioRef = useRef<HTMLAudioElement>(new Audio());
   const recognitionRef = useRef<any>(null);
   const userMediaStreamRef = useRef<MediaStream | null>(null);
@@ -58,10 +57,14 @@ const AIConsultationCard = () => {
   }, []);
 
   const handleAiResponse = useCallback(async (userInput: string) => {
+    if (!userInput.trim()) return;
+
     stopAiSpeaking();
     const newUserMessage = { role: 'user' as const, content: userInput };
     
-    const isInitialMessage = userInput === "Olá" && history.length === 0;
+    // Prevents adding the "Olá" trigger to the visual history
+    const isInitialMessage = userInput.toLowerCase() === "olá" && history.length === 0;
+
     if (!isInitialMessage) {
         setHistory(prev => [...prev, newUserMessage]);
     }
@@ -69,8 +72,10 @@ const AIConsultationCard = () => {
     setIsThinking(true);
   
     try {
-      const currentHistory = isInitialMessage ? [] : [...history, newUserMessage];
-      const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: currentHistory, userInput };
+      // Always pass the most current history state to the AI flow
+      const currentHistoryForAI = isInitialMessage ? [] : [...history, newUserMessage];
+      const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: currentHistoryForAI, userInput };
+      
       const result = await consultationFlow(input);
       const aiResponse = { role: 'model' as const, content: result.response };
   
@@ -78,7 +83,7 @@ const AIConsultationCard = () => {
   
       if (isDialogOpen) {
         const audioResponse = await textToSpeech({ text: result.response });
-        if (audioResponse && audioRef.current) {
+        if (audioResponse && audioRef.current && audioResponse.audioDataUri) {
             audioRef.current.src = audioResponse.audioDataUri;
             await audioRef.current.play();
         }
@@ -101,11 +106,12 @@ const AIConsultationCard = () => {
   }, [history, toast, stopAiSpeaking, isDialogOpen]);
 
   const startConversation = useCallback(() => {
-    // Wait a brief moment to ensure UI is ready
-    setTimeout(() => {
-        handleAiResponse("Olá");
-    }, 500);
-  }, [handleAiResponse]);
+    if (history.length === 0) {
+        setTimeout(() => {
+            handleAiResponse("Olá");
+        }, 500);
+    }
+  }, [handleAiResponse, history.length]);
 
   const initializeSpeechRecognition = useCallback(() => {
     if (recognitionRef.current) return;
@@ -137,18 +143,10 @@ const AIConsultationCard = () => {
       }
     };
     
-    recognition.onend = () => {
-      // Automatically restart recognition if mic is supposed to be on
-      if (isMicOn && isDialogOpen) {
-        try { recognition.start(); } catch(e) { /* ignore if already started */ }
-      }
-    };
-
     recognitionRef.current = recognition;
-  }, [toast, handleAiResponse, stopAiSpeaking, isMicOn, isDialogOpen]);
+  }, [toast, handleAiResponse, stopAiSpeaking]);
   
   const requestMediaPermissions = useCallback(async () => {
-      // Always try to get video first, but fall back to audio only.
       try {
           const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
           userMediaStreamRef.current = stream;
@@ -160,7 +158,7 @@ const AIConsultationCard = () => {
       } catch (err) {
           console.warn('Could not get video stream, trying audio only.', err);
           setHasCameraPermission(false);
-          setIsVideoOn(false); // Turn off video toggle if camera permission is denied
+          setIsVideoOn(false); 
           try {
               const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
               userMediaStreamRef.current = audioStream;
@@ -168,7 +166,7 @@ const AIConsultationCard = () => {
           } catch (audioErr) {
               console.error('Could not get audio stream.', audioErr);
               setHasMicPermission(false);
-              setIsMicOn(false); // Turn off mic if permission denied
+              setIsMicOn(false); 
           }
       }
   }, []);
@@ -176,58 +174,48 @@ const AIConsultationCard = () => {
   const toggleMic = async () => {
     const nextState = !isMicOn;
 
-    if (nextState && hasMicPermission === null) {
-        // If mic is being turned on for the first time without permission, request it.
+    if (nextState && hasMicPermission !== true) {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            // We got the permission, now we can stop the track as the main permission request will handle it.
             stream.getTracks().forEach(track => track.stop());
             setHasMicPermission(true);
-            setIsMicOn(true); // Set the state after getting permission
+            setIsMicOn(true); 
             if (!recognitionRef.current) initializeSpeechRecognition();
             if (recognitionRef.current) recognitionRef.current.start();
         } catch (error) {
             console.error("Microphone permission denied:", error);
-            toast({ variant: "destructive", title: "Permissão de Microfone Negada" });
+            toast({ variant: "destructive", title: "Permissão de Microfone Negada", description: "Por favor, habilite o microfone nas configurações do seu navegador." });
             setHasMicPermission(false);
-            setIsMicOn(false); // Keep it off if denied
+            setIsMicOn(false);
         }
         return;
     }
     
-    // Toggle normally if permission is already handled.
     setIsMicOn(nextState);
     if (nextState) {
         if (!recognitionRef.current) initializeSpeechRecognition();
-        if (recognitionRef.current) recognitionRef.current.start();
+        try {
+            recognitionRef.current.start();
+        } catch(e) {
+            console.log("Recognition already started");
+        }
     } else {
-        if (recognitionRef.current) recognitionRef.current.stop();
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+        }
     }
   };
 
   const handleEndCall = async () => {
     setIsDialogOpen(false); 
-    if (history.length > 0) {
-        const result = await saveConversationHistoryAction(MOCK_PATIENT_ID, history);
-        if (result.success) {
-            toast({ title: "Histórico Salvo", description: "Sua conversa com a IA foi salva com sucesso." });
-        } else {
-            toast({ variant: "destructive", title: "Erro ao Salvar", description: result.message });
-        }
-    }
-    // Reset state for next call
-    setHistory([]);
-    setHasMicPermission(null);
-    setHasCameraPermission(null);
-    setIsMicOn(false);
-    setIsVideoOn(true);
   };
 
-  // Effect to manage media and dialog lifecycle
+  // Effect to manage dialog lifecycle
   useEffect(() => {
     if (isDialogOpen) {
-        requestMediaPermissions();
-        startConversation();
+        requestMediaPermissions().then(() => {
+            startConversation();
+        });
     } else {
         // Cleanup when dialog closes
         if (userMediaStreamRef.current) {
@@ -239,17 +227,20 @@ const AIConsultationCard = () => {
             recognitionRef.current = null;
         }
         stopAiSpeaking();
+
+        if (history.length > 1) { // Only save if there was a meaningful conversation
+            saveConversationHistoryAction(MOCK_PATIENT_ID, history);
+        }
+
+        // Reset state for next call
+        setHistory([]);
+        setHasMicPermission(null);
+        setHasCameraPermission(null);
+        setIsMicOn(false);
+        setIsVideoOn(true);
     }
-    // Cleanup function for when the component unmounts
-    return () => {
-        if (userMediaStreamRef.current) {
-            userMediaStreamRef.current.getTracks().forEach(track => track.stop());
-        }
-        if (recognitionRef.current) {
-            recognitionRef.current.stop();
-        }
-    };
-  }, [isDialogOpen, requestMediaPermissions, startConversation, stopAiSpeaking]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDialogOpen]);
 
   return (
     <>
