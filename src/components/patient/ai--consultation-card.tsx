@@ -21,7 +21,6 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "../ui/scroll-area";
 import { consultationFlow, type ConsultationInput } from "@/ai/flows/consultation-flow";
 import { textToSpeech } from "@/ai/flows/text-to-speech";
@@ -34,7 +33,7 @@ const MOCK_PATIENT_ID = '1';
 // Speech Recognition instance will be stored in a ref
 const AIConsultationCard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isMicOn, setIsMicOn] = useState(false); // Start with mic off
+  const [isMicOn, setIsMicOn] = useState(false);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [avatarGender, setAvatarGender] = useState<"male" | "female">("female");
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -42,7 +41,8 @@ const AIConsultationCard = () => {
   const [history, setHistory] = useState<{role: 'user' | 'model', content: string}[]>([]);
   const [isThinking, setIsThinking] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Initialize audioRef with a new Audio object to prevent it from being null
+  const audioRef = useRef<HTMLAudioElement>(new Audio());
   const recognitionRef = useRef<any>(null);
   const userMediaStreamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
@@ -53,7 +53,7 @@ const AIConsultationCard = () => {
   const stopAiSpeaking = useCallback(() => {
     if (audioRef.current && !audioRef.current.paused) {
       audioRef.current.pause();
-      audioRef.current.src = ""; // Stop buffering
+      audioRef.current.src = "";
     }
   }, []);
 
@@ -61,7 +61,6 @@ const AIConsultationCard = () => {
     stopAiSpeaking();
     const newUserMessage = { role: 'user' as const, content: userInput };
     
-    // Don't add the initial "Olá" to history visually if it's the trigger
     const isInitialMessage = userInput === "Olá" && history.length === 0;
     if (!isInitialMessage) {
         setHistory(prev => [...prev, newUserMessage]);
@@ -70,7 +69,6 @@ const AIConsultationCard = () => {
     setIsThinking(true);
   
     try {
-      // Use a temporary history for the API call to include the new message
       const currentHistory = isInitialMessage ? [] : [...history, newUserMessage];
       const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: currentHistory, userInput };
       const result = await consultationFlow(input);
@@ -78,7 +76,6 @@ const AIConsultationCard = () => {
   
       setHistory(prev => [...prev, aiResponse]);
   
-      // Only play audio if the dialog is still open
       if (isDialogOpen && audioRef.current) {
         const audioResponse = await textToSpeech({ text: result.response });
         audioRef.current.src = audioResponse.audioDataUri;
@@ -92,7 +89,6 @@ const AIConsultationCard = () => {
         title: "Erro na comunicação com a IA",
         description: "Não foi possível obter uma resposta. Tente novamente.",
       });
-      // Rollback user message if AI fails
       if (!isInitialMessage) {
         setHistory(prev => prev.slice(0, -1));
       }
@@ -102,14 +98,13 @@ const AIConsultationCard = () => {
   }, [history, toast, stopAiSpeaking, isDialogOpen]);
 
   const startConversation = useCallback(() => {
-    // Small delay to ensure UI is ready
     setTimeout(() => {
         handleAiResponse("Olá");
     }, 500);
   }, [handleAiResponse]);
 
   const initializeSpeechRecognition = useCallback(() => {
-    if (recognitionRef.current) return; // Already initialized
+    if (recognitionRef.current) return;
 
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -146,55 +141,65 @@ const AIConsultationCard = () => {
 
     recognitionRef.current = recognition;
   }, [toast, handleAiResponse, stopAiSpeaking, isMicOn, isDialogOpen]);
-
-  const requestCamera = useCallback(async () => {
-    if (userMediaStreamRef.current) {
-        userMediaStreamRef.current.getTracks().forEach(track => track.stop());
-    }
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        userMediaStreamRef.current = stream;
-        setHasCameraPermission(true);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-    } catch (err) {
-        console.warn('Could not get video stream.', err);
-        setHasCameraPermission(false);
-        setIsVideoOn(false); // Turn off video toggle if permission is denied
-    }
+  
+  const requestMediaPermissions = useCallback(async () => {
+      // Always try to get video first, but fall back to audio only.
+      try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          userMediaStreamRef.current = stream;
+          setHasCameraPermission(true);
+          setHasMicPermission(true);
+          if (videoRef.current) {
+              videoRef.current.srcObject = stream;
+          }
+      } catch (err) {
+          console.warn('Could not get video stream, trying audio only.', err);
+          setHasCameraPermission(false);
+          setIsVideoOn(false); // Turn off video toggle if camera permission is denied
+          try {
+              const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              userMediaStreamRef.current = audioStream;
+              setHasMicPermission(true);
+          } catch (audioErr) {
+              console.error('Could not get audio stream.', audioErr);
+              setHasMicPermission(false);
+              setIsMicOn(false); // Turn off mic if permission denied
+          }
+      }
   }, []);
 
   const toggleMic = async () => {
     const nextState = !isMicOn;
-    setIsMicOn(nextState);
 
-    if (nextState) {
-        if (!hasMicPermission) {
-            try {
-                // Request only audio, this is more likely to be granted
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                // We don't need to do anything with the stream, just getting it is enough for permission
-                stream.getTracks().forEach(track => track.stop());
-                setHasMicPermission(true);
-                initializeSpeechRecognition();
-                if(recognitionRef.current) recognitionRef.current.start();
-            } catch (error) {
-                console.error("Microphone permission denied:", error);
-                toast({ variant: "destructive", title: "Permissão de Microfone Negada", description: "Você precisa permitir o acesso ao microfone para usar o recurso de voz."});
-                setIsMicOn(false); // Revert state if permission denied
-                return;
-            }
-        } else {
-            if(recognitionRef.current) recognitionRef.current.start();
+    if (nextState && !hasMicPermission) {
+        // If mic is being turned on for the first time without permission, request it.
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(track => track.stop());
+            setHasMicPermission(true);
+            setIsMicOn(true); // Set the state after getting permission
+            initializeSpeechRecognition();
+            if (recognitionRef.current) recognitionRef.current.start();
+        } catch (error) {
+            console.error("Microphone permission denied:", error);
+            toast({ variant: "destructive", title: "Permissão de Microfone Negada" });
+            setIsMicOn(false); // Keep it off if denied
         }
+        return;
+    }
+    
+    // Toggle normally if permission is already handled.
+    setIsMicOn(nextState);
+    if (nextState) {
+        if (!recognitionRef.current) initializeSpeechRecognition();
+        if (recognitionRef.current) recognitionRef.current.start();
     } else {
-        if(recognitionRef.current) recognitionRef.current.stop();
+        if (recognitionRef.current) recognitionRef.current.stop();
     }
   };
 
   const handleEndCall = async () => {
-    setIsDialogOpen(false); // This will trigger the useEffect cleanup
+    setIsDialogOpen(false); 
     if (history.length > 0) {
         const result = await saveConversationHistoryAction(MOCK_PATIENT_ID, history);
         if (result.success) {
@@ -211,11 +216,9 @@ const AIConsultationCard = () => {
   // Effect to manage media and dialog lifecycle
   useEffect(() => {
     if (isDialogOpen) {
-        audioRef.current = new Audio();
-        requestCamera();
+        requestMediaPermissions();
         startConversation();
     } else {
-        // Cleanup on dialog close
         if (userMediaStreamRef.current) {
             userMediaStreamRef.current.getTracks().forEach(track => track.stop());
             userMediaStreamRef.current = null;
@@ -225,7 +228,6 @@ const AIConsultationCard = () => {
             recognitionRef.current = null;
         }
         stopAiSpeaking();
-        audioRef.current = null;
     }
     // Cleanup function
     return () => {
@@ -236,7 +238,7 @@ const AIConsultationCard = () => {
             recognitionRef.current.stop();
         }
     };
-  }, [isDialogOpen, requestCamera, startConversation, stopAiSpeaking]);
+  }, [isDialogOpen, requestMediaPermissions, startConversation, stopAiSpeaking]);
 
   return (
     <>
