@@ -1,4 +1,4 @@
-import Header from "@/components/layout/header";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDoctors } from "@/lib/firestore-adapter";
@@ -9,9 +9,7 @@ export default async function DoctorsPage() {
   const doctors = await getDoctors();
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-1 container mx-auto p-4 sm:p-6 lg:p-8">
+      <div className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight">Consultar um Médico Humano</h1>
           <p className="text-muted-foreground">
@@ -45,7 +43,6 @@ export default async function DoctorsPage() {
             </Card>
           ))}
         </div>
-      </main>
-    </div>
+      </div>
   );
 }

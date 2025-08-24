@@ -1,4 +1,4 @@
-import Header from "@/components/layout/header";
+
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, ChevronRight, Droplets, Bone } from "lucide-react";
 import Link from "next/link";
@@ -27,9 +27,7 @@ export default async function ExamHistoryPage() {
   const exams = await getExamsByPatientId(MOCK_PATIENT_ID);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-1 container mx-auto p-4 sm:p-6 lg:p-8">
+      <div className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight">Histórico de Exames</h1>
           <p className="text-muted-foreground">
@@ -69,7 +67,6 @@ export default async function ExamHistoryPage() {
             </Card>
           )}
         </div>
-      </main>
-    </div>
+      </div>
   );
 }
