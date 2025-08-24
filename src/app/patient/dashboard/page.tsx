@@ -33,8 +33,8 @@ async function getDashboardData(): Promise<DashboardData> {
 
         return { patient, healthInsights };
     } catch (e: any) {
-        if (e.message?.includes('offline') || e.code?.includes('permission-denied')) {
-            const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.GCLOUD_PROJECT || 'mediai-7m1xp'}`;
+        if (e.message?.includes('5 NOT_FOUND') || e.code?.includes('not-found')) {
+            const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
             return { 
                 patient: null,
                 healthInsights: null,
