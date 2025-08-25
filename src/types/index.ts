@@ -8,6 +8,7 @@ export type Patient = {
   cpf: string;
   phone: string;
   email: string;
+  password?: string; // Add password field
   lastVisit: string;
   status: 'Requer Validação' | 'Validado';
   avatar: string;
@@ -35,6 +36,7 @@ export type Doctor = {
   avatar: string;
   avatarHint: string;
   email: string;
+  password?: string; // Add password field
   level: number;
   xp: number;
   xpToNextLevel: number;

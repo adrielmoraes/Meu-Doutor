@@ -26,7 +26,7 @@ export async function createPatientAction(prevState: any, formData: FormData) {
     };
   }
   
-  const { fullName, birthDate, email, ...rest } = validatedFields.data;
+  const { fullName, birthDate, email, password, ...rest } = validatedFields.data;
 
   try {
     // Check if a patient with this email already exists
@@ -53,6 +53,7 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       examResults: '',
       // Map the rest of the validated fields
       email: email,
+      password: password, // <-- Make sure password is included here
       cpf: rest.cpf,
       phone: rest.phone,
       gender: rest.gender,

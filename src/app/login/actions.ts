@@ -17,29 +17,33 @@ export async function loginAction(prevState: any, formData: FormData) {
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
+      message: "Por favor, corrija os erros no formulário."
     };
   }
 
-  const { email } = validatedFields.data;
+  const { email, password } = validatedFields.data;
 
   try {
-    // Check if the user is a doctor first
     const doctor = await getDoctorByEmail(email);
     if (doctor) {
-      // In a real app, you would verify the password here.
-      // For the prototype, we assume if the email exists, login is successful.
-      redirect('/doctor');
+      // For prototype: direct password comparison. In production, use a secure hash comparison.
+      if (doctor.password === password) {
+          redirect('/doctor');
+      } else {
+          return { ...prevState, message: 'Senha incorreta para o médico.' };
+      }
     }
 
-    // If not a doctor, check if the user is a patient
     const patient = await getPatientByEmail(email);
     if (patient) {
-      // Real app: verify password
-      // For prototype: redirect to the patient dashboard with their ID.
-      redirect(`/patient/dashboard?id=${patient.id}`);
+        // For prototype: direct password comparison. In production, use a secure hash comparison.
+        if (patient.password === password) {
+            redirect(`/patient/dashboard?id=${patient.id}`);
+        } else {
+            return { ...prevState, message: 'Senha incorreta para o paciente.' };
+        }
     }
 
-    // If no user is found
     return {
       ...prevState,
       message: 'Nenhum usuário encontrado com este e-mail.',
