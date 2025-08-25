@@ -52,7 +52,7 @@ export default function PatientRegisterPage() {
     } else if (state.message && state.errors) {
          toast({
             variant: "destructive",
-            title: 'Erro de Validação',
+            title: 'Erro no Cadastro',
             description: state.message,
         });
     }
@@ -73,12 +73,14 @@ export default function PatientRegisterPage() {
                         <div className="grid gap-2">
                             <Label htmlFor="fullName">Nome Completo</Label>
                             <Input id="fullName" name="fullName" placeholder="Seu nome completo" required />
+                             {state?.errors?.fullName && <p className="text-xs text-destructive">{state.errors.fullName[0]}</p>}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="grid gap-2">
                             <Label htmlFor="birthDate">Data de Nascimento</Label>
                             <Input id="birthDate" name="birthDate" type="date" required />
+                             {state?.errors?.birthDate && <p className="text-xs text-destructive">{state.errors.birthDate[0]}</p>}
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="gender">Gênero</Label>
@@ -93,6 +95,7 @@ export default function PatientRegisterPage() {
                                         <SelectItem value="Prefiro não informar">Prefiro não informar</SelectItem>
                                     </SelectContent>
                                 </Select>
+                                 {state?.errors?.gender && <p className="text-xs text-destructive">{state.errors.gender[0]}</p>}
                             </div>
                         </div>
 
@@ -100,40 +103,14 @@ export default function PatientRegisterPage() {
                             <div className="grid gap-2">
                             <Label htmlFor="cpf">CPF</Label>
                             <Input id="cpf" name="cpf" placeholder="000.000.000-00" required />
+                             {state?.errors?.cpf && <p className="text-xs text-destructive">{state.errors.cpf[0]}</p>}
                             </div>
                             <div className="grid gap-2">
                             <Label htmlFor="phone">Telefone</Label>
                             <Input id="phone" name="phone" type="tel" placeholder="(00) 00000-0000" required />
+                             {state?.errors?.phone && <p className="text-xs text-destructive">{state.errors.phone[0]}</p>}
                             </div>
                         </div>
-                        
-                        <div className="border-t pt-4 mt-2 grid gap-4">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="md:col-span-1 grid gap-2">
-                                <Label htmlFor="zip-code">CEP</Label>
-                                <Input id="zip-code" name="zip-code" placeholder="00000-000" />
-                                </div>
-                                <div className="md:col-span-2 grid gap-2">
-                                <Label htmlFor="address">Endereço</Label>
-                                <Input id="address" name="address" placeholder="Rua, Avenida..." />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="grid gap-2">
-                                <Label htmlFor="number">Número</Label>
-                                <Input id="number" name="number" />
-                                </div>
-                                <div className="grid gap-2">
-                                <Label htmlFor="complement">Complemento</Label>
-                                <Input id="complement" name="complement" placeholder="Apto, Bloco, etc." />
-                                </div>
-                                <div className="grid gap-2">
-                                <Label htmlFor="neighborhood">Bairro</Label>
-                                <Input id="neighborhood" name="neighborhood" />
-                                </div>
-                            </div>
-                        </div>
-
 
                         <div className="border-t pt-4 mt-2 grid gap-4">
                             <div className="grid gap-2">
@@ -145,25 +122,14 @@ export default function PatientRegisterPage() {
                                 placeholder="seu@email.com"
                                 required
                                 />
+                                {state?.errors?.email && <p className="text-xs text-destructive">{state.errors.email[0]}</p>}
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="password">Crie uma Senha</Label>
+                                <Label htmlFor="password">Crie uma Senha (mínimo 6 caracteres)</Label>
                                 <Input id="password" name="password" type="password" required />
+                                {state?.errors?.password && <p className="text-xs text-destructive">{state.errors.password[0]}</p>}
                             </div>
                         </div>
-
-                        {state.errors && (
-                            <Alert variant="destructive">
-                                <AlertTitle>Erro de Validação</AlertTitle>
-                                <AlertDescription>
-                                    <ul>
-                                        {Object.values(state.errors).map((error: any, index: number) => (
-                                            <li key={index}>{Array.isArray(error) ? error[0] : error}</li>
-                                        ))}
-                                    </ul>
-                                </AlertDescription>
-                            </Alert>
-                        )}
                         
                         {state.success && state.message && (
                              <Alert variant="default" className="bg-green-100 border-green-200">

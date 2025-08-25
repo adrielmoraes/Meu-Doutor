@@ -14,11 +14,6 @@ const PatientSchema = z.object({
   cpf: z.string().min(11, { message: "CPF inválido." }),
   phone: z.string().min(10, { message: "Telefone inválido." }),
   gender: z.string().min(1, { message: "Por favor, selecione um gênero." }),
-  'zip-code': z.string().optional(),
-  address: z.string().optional(),
-  number: z.string().optional(),
-  complement: z.string().optional(),
-  neighborhood: z.string().optional(),
 });
 
 export async function createPatientAction(prevState: any, formData: FormData) {
