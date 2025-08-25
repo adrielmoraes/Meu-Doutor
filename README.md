@@ -72,6 +72,22 @@ O projeto foi desenhado para ser uma simulação de alta fidelidade, pronta para
 *   **Calendário Visual:** Uma página de agenda exibe as consultas marcadas em um calendário.
 *   **Agendamento Inteligente:** O paciente pode ver os horários disponíveis de um médico (o sistema verifica a disponibilidade no Firestore) e agendar uma nova consulta.
 
+## 💰 Modelos de Negócio e Monetização
+
+A estrutura do MediAI permite diversos modelos de monetização, que podem ser combinados para criar uma estratégia de negócio sustentável.
+
+| Modelo | Foco no | Descrição | Vantagens | Desvantagens |
+| :--- | :--- | :--- | :--- | :--- |
+| **Freemium** | Paciente | Oferece um nível de serviço gratuito com limitações (ex: 1 análise de exame/mês) e um plano "Premium" pago com acesso ilimitado, funcionalidades avançadas e consultas prioritárias. | - Baixa barreira de entrada, atrai muitos usuários.<br>- Potencial de upsell para usuários engajados. | - Custo para manter usuários gratuitos.<br>- A conversão para o plano pago pode ser um desafio. |
+| **Pagamento por Uso (Pay-per-Use)** | Paciente | O paciente paga por transação (ex: R$10 por análise de exame, R$50 por consulta validada). | - O usuário paga apenas pelo que usa.<br>- Modelo simples de entender e implementar. | - Receita imprevisível.<br>- Pode desencorajar o uso frequente por parte do paciente. |
+| **Assinatura (B2C)** | Paciente | Um valor mensal fixo para acesso a um pacote de serviços (ex: R$29,90/mês para 5 análises, consultas ilimitadas com IA e 1 validação médica). | - Receita previsível e recorrente.<br>- Incentiva o engajamento contínuo do paciente. | - Barreira de entrada maior (compromisso mensal).<br>- Precisa oferecer valor constante para evitar cancelamentos. |
+| **Assinatura (B2B)** | Médico / Clínica | Médicos ou clínicas pagam uma licença mensal (ex: R$199/mês) para usar o MediAI como ferramenta de gestão, otimização de diagnósticos e portal para seus pacientes. | - Ticket médio mais alto.<br>- Reduz o custo para o paciente, aumentando a adoção.<br>- Menor churn (taxa de cancelamento). | - Ciclo de vendas mais longo e complexo.<br>- Requer funcionalidades robustas para o profissional. |
+| **Híbrido** | Ambos | Combina diferentes modelos. Ex: Plano gratuito para pacientes, mas a validação de diagnóstico é paga; ou uma assinatura para médicos que oferece um número limitado de análises, com pacotes adicionais para compra. | - Flexível, permite capturar diferentes segmentos de mercado.<br>- Maximiza o potencial de receita. | - Pode se tornar complexo para comunicar e gerenciar. |
+
+A escolha do modelo ideal dependerá da estratégia de mercado e do público-alvo principal. A `Análise de Custos` do projeto fornece uma base para o cálculo dos preços de cada serviço.
+
+---
+
 ## ⚙️ Como Executar o Projeto
 
 ### Pré-requisitos

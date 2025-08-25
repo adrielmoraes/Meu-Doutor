@@ -68,6 +68,7 @@ export async function loginAction(prevState: any, formData: FormData) {
 
   } catch (error) {
     console.error('Login error:', error);
+    console.error('Erro detalhado:', error);
     return {
       ...prevState,
       message: 'Ocorreu um erro no servidor. Por favor, tente novamente.',
