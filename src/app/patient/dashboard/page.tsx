@@ -7,7 +7,7 @@ import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import type { Patient } from "@/types";
 
-// This should be replaced with the authenticated user's ID
+// This will be the fallback if no ID is provided in the URL
 const MOCK_PATIENT_ID = '1';
 
 interface DashboardData {
@@ -17,11 +17,11 @@ interface DashboardData {
     fixUrl?: string;
 }
 
-async function getDashboardData(): Promise<DashboardData> {
+async function getDashboardData(patientId: string): Promise<DashboardData> {
     try {
-        const patient = await getPatientById(MOCK_PATIENT_ID);
+        const patient = await getPatientById(patientId);
         if (!patient) {
-             return { patient: null, healthInsights: null, error: "Paciente não encontrado. Verifique se os dados iniciais foram carregados no Firestore." };
+             return { patient: null, healthInsights: null, error: `Paciente com ID "${patientId}" não encontrado. Verifique se os dados iniciais foram carregados ou se o ID está correto.` };
         }
 
         // The health insights are now read directly from the patient object,
@@ -52,8 +52,10 @@ async function getDashboardData(): Promise<DashboardData> {
 }
 
 
-export default async function PatientDashboardPage() {
-  const { patient, healthInsights, error, fixUrl } = await getDashboardData();
+export default async function PatientDashboardPage({ searchParams }: { searchParams?: { id?: string } }) {
+  // Use the ID from the URL search parameters, or fall back to the mock ID.
+  const patientId = searchParams?.id || MOCK_PATIENT_ID;
+  const { patient, healthInsights, error, fixUrl } = await getDashboardData(patientId);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
