@@ -8,54 +8,65 @@ import 'dotenv/config'; // Make sure to load environment variables
 import { db } from './firebase-admin'; // Use admin SDK for seeding
 import { Patient, Doctor, Exam, Appointment } from '@/types';
 import { format, addDays, differenceInYears } from 'date-fns';
+import bcrypt from 'bcrypt';
 
 const calculateAge = (birthDate: string | Date): number => {
     return differenceInYears(new Date(), new Date(birthDate));
 }
 
-const PATIENTS: Omit<Patient, 'id'>[] = [
+const PATIENTS = [
     {
-      name: 'Carlos Silva',
-      birthDate: '1966-05-20',
-      age: calculateAge('1966-05-20'),
-      gender: 'Masculino',
-      cpf: '123.456.789-00',
-      phone: '(11) 98765-4321',
-      email: 'carlos.silva@example.com',
-      password: 'password123',
-      lastVisit: format(new Date(), 'dd/MM/yyyy'),
-      status: 'Requer Validação',
-      avatar: 'https://placehold.co/128x128.png',
-      avatarHint: 'man portrait',
-      conversationHistory: `Usuário: Bom dia, não me sinto bem. Tenho tido dores no peito e falta de ar quando subo escadas.\nModelo: Entendo, Carlos. Lamento ouvir isso. Há quanto tempo você sente esses sintomas?\nUsuário: Cerca de duas semanas.`,
-      reportedSymptoms: 'Dores no peito e falta de ar.',
-      examResults: 'Troponina: 0.8 ng/mL (Ref: <0.4), Raio-X do tórax: Leve cardiomegalia e atelectasia basal.',
-      doctorNotes: '',
+      id: '1',
+      data: {
+        name: 'Carlos Silva',
+        birthDate: '1966-05-20',
+        age: calculateAge('1966-05-20'),
+        gender: 'Masculino',
+        cpf: '123.456.789-00',
+        phone: '(11) 98765-4321',
+        email: 'carlos.silva@example.com',
+        lastVisit: format(new Date(), 'dd/MM/yyyy'),
+        status: 'Requer Validação',
+        avatar: 'https://placehold.co/128x128.png',
+        avatarHint: 'man portrait',
+        conversationHistory: `Usuário: Bom dia, não me sinto bem. Tenho tido dores no peito e falta de ar quando subo escadas.\nModelo: Entendo, Carlos. Lamento ouvir isso. Há quanto tempo você sente esses sintomas?\nUsuário: Cerca de duas semanas.`,
+        reportedSymptoms: 'Dores no peito e falta de ar.',
+        examResults: 'Troponina: 0.8 ng/mL (Ref: <0.4), Raio-X do tórax: Leve cardiomegalia e atelectasia basal.',
+        doctorNotes: '',
+      },
+      auth: {
+          password: 'password123',
+      }
     },
     {
-        name: 'Mariana Oliveira',
-        birthDate: '1990-11-15',
-        age: calculateAge('1990-11-15'),
-        gender: 'Feminino',
-        cpf: '987.654.321-00',
-        phone: '(21) 91234-5678',
-        email: 'mariana.oliveira@example.com',
-        password: 'password123',
-        lastVisit: format(addDays(new Date(), -5), 'dd/MM/yyyy'),
-        status: 'Validado',
-        avatar: 'https://placehold.co/128x128.png',
-        avatarHint: 'woman portrait',
-        conversationHistory: `Usuário: Olá, tenho tido muitas dores de cabeça ultimamente, quase todos os dias.\nModelo: Olá Mariana. Sinto muito por isso. Você poderia descrever a dor? É pulsante, em um lado da cabeça?`,
-        reportedSymptoms: 'Dores de cabeça frequentes e sensibilidade à luz.',
-        examResults: 'Nenhum exame de imagem recente. Pressão arterial: 120/80 mmHg.',
-        doctorNotes: `Diagnóstico Final: Enxaqueca Crônica.\n\nPrescrição:\n- Sumatriptano 50mg, tomar no início da crise.\n- Recomenda-se acompanhamento neurológico e diário de enxaqueca.\n- Evitar gatilhos comuns como cafeína em excesso e estresse.`,
-        preventiveAlerts: ['Oportunidade para gerenciamento de estresse.', 'Risco de abuso de analgésicos.'],
-        healthGoals: [
-            { title: 'Reduzir Frequência das Crises', description: 'Monitorar e identificar gatilhos para diminuir a ocorrência de enxaquecas.', progress: 15 },
-            { title: 'Melhorar Higiene do Sono', description: 'Dormir de 7 a 8 horas por noite para reduzir a probabilidade de crises.', progress: 40 },
-        ],
-        finalExplanation: 'Olá, Mariana. A Dra. Ana analisou seu caso e concluiu que você está com Enxaqueca Crônica. Isso explica as dores de cabeça fortes e frequentes. Ela prescreveu um medicamento chamado Sumatriptano para você tomar assim que sentir uma crise começando, para aliviar a dor. Além disso, é importante que você comece a anotar quando as dores acontecem e o que você estava fazendo, para tentarmos descobrir o que pode estar causando as crises. Evitar muito café e situações de estresse também pode ajudar bastante. Fique tranquila, é uma condição comum e com o tratamento certo, você terá uma ótima qualidade de vida.',
-        finalExplanationAudioUri: '', // Intentionally left blank, will be generated on demand
+        id: '2',
+        data: {
+            name: 'Mariana Oliveira',
+            birthDate: '1990-11-15',
+            age: calculateAge('1990-11-15'),
+            gender: 'Feminino',
+            cpf: '987.654.321-00',
+            phone: '(21) 91234-5678',
+            email: 'mariana.oliveira@example.com',
+            lastVisit: format(addDays(new Date(), -5), 'dd/MM/yyyy'),
+            status: 'Validado',
+            avatar: 'https://placehold.co/128x128.png',
+            avatarHint: 'woman portrait',
+            conversationHistory: `Usuário: Olá, tenho tido muitas dores de cabeça ultimamente, quase todos os dias.\nModelo: Olá Mariana. Sinto muito por isso. Você poderia descrever a dor? É pulsante, em um lado da cabeça?`,
+            reportedSymptoms: 'Dores de cabeça frequentes e sensibilidade à luz.',
+            examResults: 'Nenhum exame de imagem recente. Pressão arterial: 120/80 mmHg.',
+            doctorNotes: `Diagnóstico Final: Enxaqueca Crônica.\n\nPrescrição:\n- Sumatriptano 50mg, tomar no início da crise.\n- Recomenda-se acompanhamento neurológico e diário de enxaqueca.\n- Evitar gatilhos comuns como cafeína em excesso e estresse.`,
+            preventiveAlerts: ['Oportunidade para gerenciamento de estresse.', 'Risco de abuso de analgésicos.'],
+            healthGoals: [
+                { title: 'Reduzir Frequência das Crises', description: 'Monitorar e identificar gatilhos para diminuir a ocorrência de enxaquecas.', progress: 15 },
+                { title: 'Melhorar Higiene do Sono', description: 'Dormir de 7 a 8 horas por noite para reduzir a probabilidade de crises.', progress: 40 },
+            ],
+            finalExplanation: 'Olá, Mariana. A Dra. Ana analisou seu caso e concluiu que você está com Enxaqueca Crônica. Isso explica as dores de cabeça fortes e frequentes. Ela prescreveu um medicamento chamado Sumatriptano para você tomar assim que sentir uma crise começando, para aliviar a dor. Além disso, é importante que você comece a anotar quando as dores acontecem e o que você estava fazendo, para tentarmos descobrir o que pode estar causando as crises. Evitar muito café e situações de estresse também pode ajudar bastante. Fique tranquila, é uma condição comum e com o tratamento certo, você terá uma ótima qualidade de vida.',
+            finalExplanationAudioUri: '', // Intentionally left blank, will be generated on demand
+        },
+        auth: {
+            password: 'password123'
+        }
     },
 ];
 
@@ -80,39 +91,49 @@ const EXAMS_FOR_PATIENT_1: Omit<Exam, 'id' | 'date'>[] = [
     }
 ];
 
-const DOCTORS: Omit<Doctor, 'id'>[] = [
+const DOCTORS = [
     {
-        name: 'Dra. Ana Costa',
-        specialty: 'Cardiologista',
-        online: true,
-        avatar: 'https://placehold.co/128x128.png',
-        avatarHint: 'woman portrait',
-        email: 'ana.costa@med.ai',
-        password: 'password123',
-        level: 3,
-        xp: 250,
-        xpToNextLevel: 500,
-        validations: 25,
-        badges: [
-            { name: 'Primeira Validação', icon: 'Award', description: 'Validou seu primeiro caso.' },
-            { name: 'Maratonista', icon: 'Star', description: 'Validou 10+ casos em um dia.' },
-        ]
+        id: '1',
+        data: {
+            name: 'Dra. Ana Costa',
+            specialty: 'Cardiologista',
+            online: true,
+            avatar: 'https://placehold.co/128x128.png',
+            avatarHint: 'woman portrait',
+            email: 'ana.costa@med.ai',
+            level: 3,
+            xp: 250,
+            xpToNextLevel: 500,
+            validations: 25,
+            badges: [
+                { name: 'Primeira Validação', icon: 'Award', description: 'Validou seu primeiro caso.' },
+                { name: 'Maratonista', icon: 'Star', description: 'Validou 10+ casos em um dia.' },
+            ]
+        },
+        auth: {
+            password: 'password123',
+        }
     },
     {
-        name: 'Dr. Bruno Lima',
-        specialty: 'Neurologista',
-        online: false,
-        avatar: 'https://placehold.co/128x128.png',
-        avatarHint: 'man portrait',
-        email: 'bruno.lima@med.ai',
-        password: 'password123',
-        level: 2,
-        xp: 120,
-        xpToNextLevel: 250,
-        validations: 12,
-        badges: [
-            { name: 'Primeira Validação', icon: 'Award', description: 'Validou seu primeiro caso.' }
-        ]
+        id: '2',
+        data: {
+            name: 'Dr. Bruno Lima',
+            specialty: 'Neurologista',
+            online: false,
+            avatar: 'https://placehold.co/128x128.png',
+            avatarHint: 'man portrait',
+            email: 'bruno.lima@med.ai',
+            level: 2,
+            xp: 120,
+            xpToNextLevel: 250,
+            validations: 12,
+            badges: [
+                { name: 'Primeira Validação', icon: 'Award', description: 'Validou seu primeiro caso.' }
+            ]
+        },
+        auth: {
+            password: 'password123'
+        }
     }
 ];
 
@@ -139,9 +160,10 @@ const APPOINTMENTS: Omit<Appointment, 'id'>[] = [
     },
 ];
 
-async function seedCollection<T extends { id: string }>(
+async function seedCollection(
     collectionName: string,
-    data: Omit<T, 'id'>[],
+    authCollectionName: string,
+    data: { id: string, data: any, auth: { password?: string } }[],
     subCollections?: { [key: string]: { data: any[], collectionName: string } }
 ) {
     if (!db) {
@@ -150,38 +172,65 @@ async function seedCollection<T extends { id: string }>(
     }
 
     const collectionRef = db.collection(collectionName);
-    let idCounter = 1;
+    const authCollectionRef = db.collection(authCollectionName);
 
     for (const item of data) {
-        const docId = String(idCounter++);
-        const docRef = collectionRef.doc(docId);
+        const docRef = collectionRef.doc(item.id);
+        const authDocRef = authCollectionRef.doc(item.id);
         const docSnapshot = await docRef.get();
 
         if (!docSnapshot.exists) {
-            console.log(`  -> Adicionando documento ${docId} em ${collectionName}...`);
-            await docRef.set(item);
+            console.log(`  -> Adicionando documento ${item.id} em ${collectionName}...`);
+            await docRef.set(item.data);
+            
+            if (item.auth.password) {
+                 console.log(`  -> Criando credencial para ${item.id} em ${authCollectionName}...`);
+                 const hashedPassword = await bcrypt.hash(item.auth.password, 10);
+                 await authDocRef.set({ password: hashedPassword });
+            }
 
-            if (subCollections && subCollections[docId]) {
-                 const sub = subCollections[docId];
-                 console.log(`    -> Adicionando subcoleção ${sub.collectionName} para ${collectionName}/${docId}`);
-                 await seedCollection(`${collectionName}/${docId}/${sub.collectionName}`, sub.data);
+            if (subCollections && subCollections[item.id]) {
+                 const sub = subCollections[item.id];
+                 console.log(`    -> Adicionando subcoleção ${sub.collectionName} para ${collectionName}/${item.id}`);
+                 
+                 const subColRef = db.collection(`${collectionName}/${item.id}/${sub.collectionName}`);
+                 for (const subItem of sub.data) {
+                    await subColRef.add(subItem);
+                 }
             }
 
         } else {
-            console.log(`  - Documento ${docId} já existe em ${collectionName}. Pulando.`);
+            console.log(`  - Documento ${item.id} já existe em ${collectionName}. Pulando.`);
         }
+    }
+}
+
+async function seedAppointments() {
+     if (!db) {
+        console.error(`Firestore Admin DB not initialized. Cannot seed appointments.`);
+        return;
+    }
+    const collectionRef = db.collection('appointments');
+    const snapshot = await collectionRef.get();
+    if (snapshot.empty) {
+        console.log('  -> Populando agendamentos...');
+        for(const appointment of APPOINTMENTS) {
+            await collectionRef.add(appointment);
+        }
+    } else {
+        console.log('  - Agendamentos já existem. Pulando.');
     }
 }
 
 export async function seedDatabase() {
     console.log('Iniciando o seeding para a coleção de pacientes...');
-    await seedCollection<Patient>('patients', PATIENTS, {
+    await seedCollection('patients', 'patientAuth', PATIENTS, {
         '1': { collectionName: 'exams', data: EXAMS_FOR_PATIENT_1 }
     });
 
     console.log('\nIniciando o seeding para a coleção de médicos...');
-    await seedCollection<Doctor>('doctors', DOCTORS);
+    await seedCollection('doctors', 'doctorAuth', DOCTORS);
 
     console.log('\nIniciando o seeding para a coleção de agendamentos...');
-    await seedCollection<Appointment>('appointments', APPOINTMENTS);
+    await seedAppointments();
 }

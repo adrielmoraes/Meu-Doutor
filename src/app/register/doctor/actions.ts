@@ -42,7 +42,6 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
       name: fullName,
       email: email,
       specialty: specialty,
-      crm: crm, // Saving CRM, although not in Doctor type yet
       online: false,
       avatar: 'https://placehold.co/128x128.png',
       avatarHint: 'person portrait',
@@ -65,21 +64,4 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
     console.error("Failed to create doctor:", e);
     return { ...prevState, message: 'Falha ao criar médico no banco de dados.' };
   }
-}
-
-// We need to add a new function to the firestore adapter for this
-import { writeBatch, collection, doc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import type { Doctor } from '@/types';
-
-export async function addDoctorWithAuth(doctorData: Omit<Doctor, 'id'>, hashedPassword: string): Promise<void> {
-    const batch = writeBatch(db);
-
-    const doctorRef = doc(collection(db, 'doctors'));
-    batch.set(doctorRef, doctorData);
-
-    const authRef = doc(db, 'doctorAuth', doctorRef.id);
-    batch.set(authRef, { password: hashedPassword });
-
-    await batch.commit();
 }

@@ -82,6 +82,15 @@ export async function getDoctors(): Promise<Doctor[]> {
     return doctorList;
 }
 
+export async function getDoctorById(id: string): Promise<Doctor | null> {
+    const doctorDocRef = doc(db, 'doctors', id);
+    const doctorDoc = await getDoc(doctorDocRef);
+    if (doctorDoc.exists()) {
+        return { id: doctorDoc.id, ...doctorDoc.data() } as Doctor;
+    }
+    return null;
+}
+
 export async function getDoctorByEmail(email: string): Promise<Doctor | null> {
     const doctorsCol = collection(db, 'doctors');
     const q = query(doctorsCol, where('email', '==', email));
@@ -116,4 +125,16 @@ export async function getAppointmentsByDate(doctorId: string, date: string): Pro
 export async function addAppointment(appointmentData: Omit<Appointment, 'id'>): Promise<void> {
     const appointmentsCol = collection(db, 'appointments');
     await addDoc(appointmentsCol, appointmentData);
+}
+
+export async function addDoctorWithAuth(doctorData: Omit<Doctor, 'id'>, hashedPassword: string): Promise<void> {
+    const batch = writeBatch(db);
+
+    const doctorRef = doc(collection(db, 'doctors'));
+    batch.set(doctorRef, doctorData);
+
+    const authRef = doc(db, 'doctorAuth', doctorRef.id);
+    batch.set(authRef, { password: hashedPassword });
+
+    await batch.commit();
 }

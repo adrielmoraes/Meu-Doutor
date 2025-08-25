@@ -41,7 +41,7 @@ export async function loginAction(prevState: any, formData: FormData) {
       if (passwordIsValid) {
           redirect('/doctor');
       } else {
-          return { ...prevState, message: 'Senha incorreta para o médico.' };
+          return { ...prevState, message: 'Senha incorreta.' };
       }
     }
 
@@ -57,7 +57,7 @@ export async function loginAction(prevState: any, formData: FormData) {
         if (passwordIsValid) {
             redirect(`/patient/dashboard?id=${patient.id}`);
         } else {
-            return { ...prevState, message: 'Senha incorreta para o paciente.' };
+            return { ...prevState, message: 'Senha incorreta.' };
         }
     }
 
