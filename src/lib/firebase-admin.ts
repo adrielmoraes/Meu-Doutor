@@ -1,37 +1,34 @@
 
+'use server';
+
 import * as admin from 'firebase-admin';
 
-let serviceAccount: admin.ServiceAccount | undefined;
+let db: admin.firestore.Firestore | null = null;
 
 try {
-  if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-    const parsedJson = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
-    // Ensure the parsed object has the necessary properties before assigning
-    if (parsedJson.project_id && parsedJson.private_key && parsedJson.client_email) {
-      serviceAccount = parsedJson;
-    } else {
-      throw new Error("O JSON da conta de serviço não contém as propriedades necessárias (project_id, private_key, client_email).");
-    }
-  }
-} catch (error) {
-  console.error(
-    '[Firebase Admin] Erro ao processar a FIREBASE_SERVICE_ACCOUNT_KEY. Certifique-se de que a variável de ambiente contém um JSON válido. Detalhes:',
-    error
-  );
-  serviceAccount = undefined;
-}
-
-
-if (!admin.apps.length && serviceAccount) {
-    try {
+    if (!admin.apps.length) {
+        const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+        if (!serviceAccountJson) {
+            throw new Error(
+                "A variável de ambiente FIREBASE_SERVICE_ACCOUNT_KEY não está definida."
+            );
+        }
+        const serviceAccount = JSON.parse(serviceAccountJson);
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount),
         });
-    } catch (error) {
-        console.error("[Firebase Admin] Falha ao inicializar o app Firebase Admin:", error)
+        console.log('[Firebase Admin] App Firebase Admin inicializado com sucesso.');
+    } else {
+        console.log('[Firebase Admin] App Firebase Admin já inicializado.');
     }
-} else if (!serviceAccount) {
-    console.warn("[Firebase Admin] A conta de serviço não foi carregada ou é inválida. As operações de administrador não funcionarão.");
+    db = admin.firestore();
+} catch (error: any) {
+    console.error(
+        '[Firebase Admin] Falha ao inicializar o app Firebase Admin. As operações de servidor podem não funcionar. Detalhes:',
+        error.message
+    );
+    // Mantém `db` como `null` se a inicialização falhar.
+    db = null;
 }
 
-export const db = admin.apps.length ? admin.firestore() : null;
+export { db };
