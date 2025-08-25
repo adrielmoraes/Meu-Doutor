@@ -4,6 +4,8 @@
 import { getDoctorByEmail, getPatientByEmail } from '@/lib/firestore-adapter';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import bcrypt from 'bcrypt';
+import { db } from '@/lib/firebase-admin';
 
 const LoginSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
@@ -24,10 +26,19 @@ export async function loginAction(prevState: any, formData: FormData) {
   const { email, password } = validatedFields.data;
 
   try {
+    if (!db) {
+        throw new Error("Conexão com o banco de dados não inicializada.");
+    }
     const doctor = await getDoctorByEmail(email);
     if (doctor) {
-      // For prototype: direct password comparison. In production, use a secure hash comparison.
-      if (doctor.password === password) {
+        const doctorAuthDoc = await db.collection('doctorAuth').doc(doctor.id).get();
+        if (!doctorAuthDoc.exists) {
+            return { ...prevState, message: 'Credenciais de autenticação não encontradas para o médico.' };
+        }
+        const hashedPassword = doctorAuthDoc.data()?.password;
+        const passwordIsValid = await bcrypt.compare(password, hashedPassword);
+
+      if (passwordIsValid) {
           redirect('/doctor');
       } else {
           return { ...prevState, message: 'Senha incorreta para o médico.' };
@@ -36,8 +47,14 @@ export async function loginAction(prevState: any, formData: FormData) {
 
     const patient = await getPatientByEmail(email);
     if (patient) {
-        // For prototype: direct password comparison. In production, use a secure hash comparison.
-        if (patient.password === password) {
+        const patientAuthDoc = await db.collection('patientAuth').doc(patient.id).get();
+         if (!patientAuthDoc.exists) {
+            return { ...prevState, message: 'Credenciais de autenticação não encontradas para o paciente.' };
+        }
+        const hashedPassword = patientAuthDoc.data()?.password;
+        const passwordIsValid = await bcrypt.compare(password, hashedPassword);
+
+        if (passwordIsValid) {
             redirect(`/patient/dashboard?id=${patient.id}`);
         } else {
             return { ...prevState, message: 'Senha incorreta para o paciente.' };

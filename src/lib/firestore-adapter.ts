@@ -1,8 +1,8 @@
 
 
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, updateDoc, addDoc, query, where, serverTimestamp } from 'firebase/firestore';
-import type { Patient, Exam, Appointment, Doctor } from '@/types';
+import { collection, getDocs, doc, getDoc, updateDoc, addDoc, query, where, serverTimestamp, writeBatch } from 'firebase/firestore';
+import type { Patient, Doctor, Appointment, Exam } from '@/types';
 
 
 export async function getPatients(): Promise<Patient[]> {
@@ -32,11 +32,17 @@ export async function getPatientByEmail(email: string): Promise<Patient | null> 
     return { id: patientDoc.id, ...patientDoc.data() } as Patient;
 }
 
-export async function addPatient(patientData: Omit<Patient, 'id'>): Promise<void> {
-    const patientsCol = collection(db, 'patients');
-    // In a real app, you wouldn't auto-assign an ID like this, but it's fine for the prototype seed.
-    // Firestore's addDoc will auto-generate a unique ID.
-    await addDoc(patientsCol, patientData);
+
+export async function addPatientWithAuth(patientData: Omit<Patient, 'id'>, hashedPassword: string): Promise<void> {
+    const batch = writeBatch(db);
+
+    const patientRef = doc(collection(db, 'patients'));
+    batch.set(patientRef, patientData);
+
+    const authRef = doc(db, 'patientAuth', patientRef.id);
+    batch.set(authRef, { password: hashedPassword });
+
+    await batch.commit();
 }
 
 export async function updatePatient(id: string, data: Partial<Patient>): Promise<void> {

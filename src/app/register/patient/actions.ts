@@ -1,10 +1,11 @@
 
 'use server';
 
-import { addPatient, getPatientByEmail } from '@/lib/firestore-adapter';
+import { addPatientWithAuth, getPatientByEmail } from '@/lib/firestore-adapter';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { differenceInYears } from 'date-fns';
+import bcrypt from 'bcrypt';
 
 const PatientSchema = z.object({
   fullName: z.string().min(3, { message: "O nome completo é obrigatório." }),
@@ -29,7 +30,6 @@ export async function createPatientAction(prevState: any, formData: FormData) {
   const { fullName, birthDate, email, password, ...rest } = validatedFields.data;
 
   try {
-    // Check if a patient with this email already exists
     const existingPatient = await getPatientByEmail(email);
     if (existingPatient) {
         return {
@@ -39,28 +39,26 @@ export async function createPatientAction(prevState: any, formData: FormData) {
         };
     }
 
-    // In a real app, you would hash the password here before saving
-    await addPatient({
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await addPatientWithAuth({
       name: fullName,
       birthDate: birthDate,
       age: differenceInYears(new Date(), new Date(birthDate)),
       lastVisit: new Date().toLocaleDateString('pt-BR'),
-      status: 'Requer Validação', // Initial status
+      status: 'Requer Validação',
       avatar: 'https://placehold.co/128x128.png',
       avatarHint: 'person portrait',
       conversationHistory: '',
       reportedSymptoms: '',
       examResults: '',
-      // Map the rest of the validated fields
       email: email,
-      password: password, // <-- Make sure password is included here
       cpf: rest.cpf,
       phone: rest.phone,
       gender: rest.gender,
-    });
+    }, hashedPassword);
 
     revalidatePath('/doctor/patients');
-    // Return a success state instead of redirecting
     return {
       ...prevState,
       message: 'Cadastro realizado com sucesso! Você será redirecionado para a página de login.',
