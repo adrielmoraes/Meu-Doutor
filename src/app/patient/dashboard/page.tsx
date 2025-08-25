@@ -26,7 +26,8 @@ async function getDashboardData(patientId: string): Promise<DashboardData> {
 
         // The health insights are now read directly from the patient object,
         // as they are generated and saved upon diagnosis validation by the doctor.
-        const healthInsights = (patient.healthGoals && patient.preventiveAlerts) ? {
+        // This check handles new patients who don't have these fields yet.
+        const healthInsights = (patient.healthGoals && patient.healthGoals.length > 0 && patient.preventiveAlerts && patient.preventiveAlerts.length > 0) ? {
             healthGoals: patient.healthGoals,
             preventiveAlerts: patient.preventiveAlerts,
         } : null;
