@@ -35,8 +35,8 @@ export async function loginAction(prevState: any, formData: FormData) {
     const patient = await getPatientByEmail(email);
     if (patient) {
       // Real app: verify password
-      // For prototype: redirect to dashboard with patient ID to simulate a session
-      redirect(`/patient/dashboard?id=${patient.id}`);
+      // For prototype: redirect to the main landing page.
+      redirect('/');
     }
 
     // If no user is found
