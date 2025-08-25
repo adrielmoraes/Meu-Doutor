@@ -1,7 +1,7 @@
 
 'use server';
 
-import { addPatient } from '@/lib/firestore-adapter';
+import { addPatient, getPatientByEmail } from '@/lib/firestore-adapter';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { differenceInYears } from 'date-fns';
@@ -31,9 +31,19 @@ export async function createPatientAction(prevState: any, formData: FormData) {
     };
   }
   
-  const { fullName, birthDate, ...rest } = validatedFields.data;
+  const { fullName, birthDate, email, ...rest } = validatedFields.data;
 
   try {
+    // Check if a patient with this email already exists
+    const existingPatient = await getPatientByEmail(email);
+    if (existingPatient) {
+        return {
+            ...prevState,
+            errors: { email: ['Este e-mail já está em uso.'] },
+            message: 'Falha no cadastro. O e-mail fornecido já está cadastrado.',
+        };
+    }
+
     // In a real app, you would hash the password here before saving
     await addPatient({
       name: fullName,
@@ -47,7 +57,7 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       reportedSymptoms: '',
       examResults: '',
       // Map the rest of the validated fields
-      email: rest.email,
+      email: email,
       cpf: rest.cpf,
       phone: rest.phone,
       gender: rest.gender,
