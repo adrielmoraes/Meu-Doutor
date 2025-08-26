@@ -50,6 +50,7 @@ const AIConsultationCard = () => {
   const femaleAvatarUrl = "https://placehold.co/128x128.png";
   const maleAvatarUrl = "https://placehold.co/128x128.png";
 
+
   useEffect(() => {
     // This ensures that the Audio object is only created on the client-side
     if (typeof window !== 'undefined' && !audioRef.current) {
@@ -71,11 +72,10 @@ const AIConsultationCard = () => {
     
     const isInitialMessage = userInput.toLowerCase() === "olá" && history.length === 0;
 
-    setHistory(prev => {
-        const newUserMessage = { role: 'user' as const, content: userInput };
-        // Optimistically update history for the user, except for the initial "Olá"
-        return isInitialMessage ? prev : [...prev, newUserMessage];
-    });
+    // Optimistically update history, except for the initial "Olá"
+    if (!isInitialMessage) {
+        setHistory(prev => [...prev, { role: 'user', content: userInput }]);
+    }
     
     setIsThinking(true);
   
@@ -85,12 +85,12 @@ const AIConsultationCard = () => {
       
       const result = await consultationFlow(input);
       const aiResponse = { role: 'model' as const, content: result.response };
-  
+      
       setHistory(prev => [...prev, aiResponse]);
-  
+      
       if (isDialogOpen) {
         const audioResponse = await textToSpeech({ text: result.response });
-        if (audioResponse && audioRef.current && audioResponse.audioDataUri) {
+        if (audioResponse?.audioDataUri && audioRef.current) {
             audioRef.current.src = audioResponse.audioDataUri;
             await audioRef.current.play();
         }
@@ -114,9 +114,7 @@ const AIConsultationCard = () => {
 
   const startConversation = useCallback(() => {
     if (history.length === 0) {
-        setTimeout(() => {
-            handleAiResponse("Olá");
-        }, 500);
+        handleAiResponse("Olá");
     }
   }, [handleAiResponse, history.length]);
 

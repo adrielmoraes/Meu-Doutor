@@ -16,13 +16,16 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGenerated
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [audioSrc, setAudioSrc] = useState<string | null>(preGeneratedAudioUri || null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    audioRef.current = new Audio();
+    // Only create audio object on the client side
+    if (typeof window !== 'undefined' && !audioRef.current) {
+        audioRef.current = new Audio();
+    }
     const audio = audioRef.current;
+    if (!audio) return;
 
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => {
@@ -39,7 +42,7 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGenerated
     audio.addEventListener('ended', handleEnded);
 
     if (preGeneratedAudioUri) {
-        setAudioSrc(preGeneratedAudioUri);
+        audio.src = preGeneratedAudioUri;
     }
 
     return () => {
@@ -58,25 +61,20 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGenerated
       return;
     }
 
-    if (isPaused) {
+    if (isPaused || audioRef.current.src) {
         audioRef.current.play().catch(e => console.error("Audio resume failed:", e));
         return;
-    }
-
-    // If audio is already loaded or generated, just play it
-    if (audioSrc) {
-      audioRef.current.src = audioSrc;
-      audioRef.current.play().catch(e => console.error("Audio play failed:", e));
-      return;
     }
     
     setIsGenerating(true);
     try {
       const response = await textToSpeech({ text: textToSpeak });
-      const newAudioSrc = response.audioDataUri;
-      setAudioSrc(newAudioSrc);
-      audioRef.current.src = newAudioSrc;
-      audioRef.current.play().catch(e => console.error("Audio play failed after generation:", e));
+      if (response?.audioDataUri) {
+        audioRef.current.src = response.audioDataUri;
+        audioRef.current.play().catch(e => console.error("Audio play failed after generation:", e));
+      } else {
+        throw new Error("TTS flow did not return audio data.");
+      }
     } catch (error) {
       console.error("Failed to generate audio:", error);
       toast({
