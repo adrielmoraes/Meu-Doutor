@@ -46,10 +46,11 @@ const AIConsultationCard = () => {
   const recognitionRef = useRef<any>(null);
   const userMediaStreamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
 
   const femaleAvatarUrl = "https://placehold.co/128x128.png";
   const maleAvatarUrl = "https://placehold.co/128x128.png";
-
 
   useEffect(() => {
     // This ensures that the Audio object is only created on the client-side
@@ -57,6 +58,10 @@ const AIConsultationCard = () => {
         audioRef.current = new Audio();
     }
   }, []);
+  
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [history]);
 
   const stopAiSpeaking = useCallback(() => {
     if (audioRef.current && !audioRef.current.paused) {
@@ -80,7 +85,13 @@ const AIConsultationCard = () => {
     setIsThinking(true);
   
     try {
-      const currentHistory = [...history, { role: 'user', content: userInput }];
+      // Use functional update to get the latest history without depending on it directly
+      let currentHistory: typeof history = [];
+      setHistory(prev => {
+        currentHistory = [...prev, { role: 'user' as const, content: userInput }];
+        return currentHistory;
+      });
+
       const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: currentHistory, userInput };
       
       const result = await consultationFlow(input);
@@ -110,7 +121,7 @@ const AIConsultationCard = () => {
     } finally {
       setIsThinking(false);
     }
-  }, [stopAiSpeaking, history, isDialogOpen, toast]);
+  }, [stopAiSpeaking, isDialogOpen, toast, history.length]);
 
   const startConversation = useCallback(() => {
     if (history.length === 0) {
@@ -324,6 +335,7 @@ const AIConsultationCard = () => {
                            <p className="rounded-lg px-3 py-2 text-sm bg-muted animate-pulse">...</p>
                          </div>
                       )}
+                       <div ref={messagesEndRef} />
                    </div>
                  </ScrollArea>
               </div>
