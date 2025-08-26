@@ -8,7 +8,6 @@ export type Patient = {
   cpf: string;
   phone: string;
   email: string;
-  password?: string; // Only used for auth verification, not stored in patient doc
   lastVisit: string;
   status: 'Requer Validação' | 'Validado';
   avatar: string;
@@ -28,6 +27,9 @@ export type Patient = {
   finalExplanationAudioUri?: string;
 };
 
+// Type for authentication that includes the hashed password
+export type PatientWithPassword = Patient & { password?: string | null };
+
 export type Doctor = {
   id: string;
   name: string;
@@ -36,7 +38,6 @@ export type Doctor = {
   avatar: string;
   avatarHint: string;
   email: string;
-  password?: string; // Only used for auth verification, not stored in doctor doc
   level: number;
   xp: number;
   xpToNextLevel: number;
@@ -47,6 +48,9 @@ export type Doctor = {
       description: string;
   }[];
 };
+
+// Type for authentication that includes the hashed password
+export type DoctorWithPassword = Doctor & { password?: string | null };
 
 export type Exam = {
   id: string;

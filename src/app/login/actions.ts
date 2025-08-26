@@ -26,30 +26,24 @@ export async function loginAction(prevState: any, formData: FormData) {
 
   try {
     const doctor = await getDoctorByEmailWithAuth(email);
-    if (doctor) {
-        if (!doctor.password) {
-             return { ...prevState, message: 'Credenciais de autenticação não encontradas para o médico.' };
-        }
+    if (doctor && doctor.password) {
         const passwordIsValid = await bcrypt.compare(password, doctor.password);
 
         if (passwordIsValid) {
             redirect('/doctor');
         } else {
-            return { ...prevState, message: 'Senha incorreta.' };
+            return { ...prevState, message: 'Senha incorreta para o médico.' };
         }
     }
 
     const patient = await getPatientByEmailWithAuth(email);
-    if (patient) {
-        if (!patient.password) {
-            return { ...prevState, message: 'Credenciais de autenticação não encontradas para o paciente.' };
-        }
+    if (patient && patient.password) {
         const passwordIsValid = await bcrypt.compare(password, patient.password);
 
         if (passwordIsValid) {
             redirect(`/patient/dashboard?id=${patient.id}`);
         } else {
-            return { ...prevState, message: 'Senha incorreta.' };
+            return { ...prevState, message: 'Senha incorreta para o paciente.' };
         }
     }
 
