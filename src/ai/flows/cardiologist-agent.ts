@@ -50,7 +50,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-export const cardiologistAgent = ai.defineFlow(
+const cardiologistAgentFlow = ai.defineFlow(
   {
     name: 'cardiologistAgentFlow',
     inputSchema: CardiologistAgentInputSchema,
@@ -61,3 +61,7 @@ export const cardiologistAgent = ai.defineFlow(
     return output!;
   }
 );
+
+export async function cardiologistAgent(input: CardiologistAgentInput): Promise<CardiologistAgentOutput> {
+    return await cardiologistAgentFlow(input);
+}

@@ -48,7 +48,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-export const orthopedistAgent = ai.defineFlow(
+const orthopedistAgentFlow = ai.defineFlow(
   {
     name: 'orthopedistAgentFlow',
     inputSchema: OrthopedistAgentInputSchema,
@@ -59,3 +59,7 @@ export const orthopedistAgent = ai.defineFlow(
     return output!;
   }
 );
+
+export async function orthopedistAgent(input: OrthopedistAgentInput): Promise<OrthopedistAgentOutput> {
+    return await orthopedistAgentFlow(input);
+}

@@ -48,7 +48,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-export const otolaryngologistAgent = ai.defineFlow(
+const otolaryngologistAgentFlow = ai.defineFlow(
   {
     name: 'otolaryngologistAgentFlow',
     inputSchema: OtolaryngologistAgentInputSchema,
@@ -59,3 +59,7 @@ export const otolaryngologistAgent = ai.defineFlow(
     return output!;
   }
 );
+
+export async function otolaryngologistAgent(input: OtolaryngologistAgentInput): Promise<OtolaryngologistAgentOutput> {
+    return await otolaryngologistAgentFlow(input);
+}

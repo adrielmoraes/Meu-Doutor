@@ -49,7 +49,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-export const endocrinologistAgent = ai.defineFlow(
+const endocrinologistAgentFlow = ai.defineFlow(
   {
     name: 'endocrinologistAgentFlow',
     inputSchema: EndocrinologistAgentInputSchema,
@@ -60,3 +60,7 @@ export const endocrinologistAgent = ai.defineFlow(
     return output!;
   }
 );
+
+export async function endocrinologistAgent(input: EndocrinologistAgentInput): Promise<EndocrinologistAgentOutput> {
+    return await endocrinologistAgentFlow(input);
+}

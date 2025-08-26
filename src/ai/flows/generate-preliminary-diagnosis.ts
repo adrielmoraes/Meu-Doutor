@@ -60,64 +60,77 @@ const GeneratePreliminaryDiagnosisOutputSchema = z.object({
   suggestions: z
     .string()
     .describe(
-      'Actionable suggestions for next steps and further tests, based on the combined specialist input.'
+      'A list of suggested next steps, further tests, or specialist referrals for the human doctor to consider.'
     ),
 });
 export type GeneratePreliminaryDiagnosisOutput = z.infer<
   typeof GeneratePreliminaryDiagnosisOutputSchema
 >;
 
-export async function generatePreliminaryDiagnosis(
-  input: GeneratePreliminaryDiagnosisInput
-): Promise<GeneratePreliminaryDiagnosisOutput> {
-  return generatePreliminaryDiagnosisFlow(input);
-}
-
-const synthesisPrompt = ai.definePrompt({
-  name: 'generatePreliminaryDiagnosisPrompt',
-  input: {schema: z.any()},
-  output: {schema: GeneratePreliminaryDiagnosisOutputSchema},
-  prompt: `You are an expert AI General Practitioner, an orchestrator for a team of AI medical specialists.
-Your role is to synthesize the findings from your specialist team into a single, coherent preliminary diagnosis.
-Your response must always be in Brazilian Portuguese.
-
-Patient's exam results:
-{{examResults}}
-
-Patient's history and symptoms summary:
-{{patientHistory}}
-
-You have consulted with your team of specialists, and here are their reports:
-{{{specialistReports}}}
-
-Synthesize all these reports into a clear, comprehensive preliminary diagnosis. Provide actionable suggestions for next steps or further tests based on the combined findings. Address the report to the human doctor reviewing the case.`,
-});
-
 const triagePrompt = ai.definePrompt({
-  name: 'triageSpecialistsPrompt',
+  name: 'specialistTriagePrompt',
   input: {schema: GeneratePreliminaryDiagnosisInputSchema},
   output: {
     schema: z.object({
       specialists: z
-        .array(z.string())
+        .array(z.enum(Object.keys(specialistAgents) as [Specialist, ...Specialist[]]))
         .describe(
-          'A list of specialist keys that should be consulted for this case.'
+          'A list of specialist agents to consult for this case, based on the patient data. Choose the most relevant specialists.'
         ),
     }),
   },
-  prompt: `You are a triage AI. Your job is to read the patient data and decide which specialists are most relevant to this case.
+  prompt: `You are a General Practitioner AI responsible for triaging patient cases to the correct specialist AI agents.
   Your response must always be in Brazilian Portuguese.
   
+  Based on the patient's history and exam results, identify which of the following specialists are most relevant to consult for a comprehensive diagnosis.
+
   Available specialists: ${Object.keys(specialistAgents).join(', ')}.
-  
+
   Patient's exam results:
   {{examResults}}
 
   Patient's history and symptoms summary:
   {{patientHistory}}
-
-  Based on the data, return a list of specialist keys that should be consulted. For example, if there are heart and lung issues, return ["cardiologist", "pulmonologist"]. If the patient is a child, always include "pediatrician".`,
+  
+  Select the specialists that are most appropriate for this case.`,
 });
+
+const synthesisPrompt = ai.definePrompt({
+  name: 'diagnosisSynthesisPrompt',
+  input: {
+    schema: z.object({
+      patientHistory: z.string(),
+      examResults: z.string(),
+      specialistReports: z.array(
+        z.object({
+          specialist: z.string(),
+          findings: z.string(),
+        })
+      ),
+    }),
+  },
+  output: {schema: GeneratePreliminaryDiagnosisOutputSchema},
+  prompt: `You are a highly skilled General Practitioner AI. Your task is to synthesize the findings from a team of specialist AI agents into a single, coherent preliminary diagnosis for a human doctor to review.
+  Your response must always be in Brazilian Portuguese.
+
+  1.  **Review all specialist reports.**
+  2.  **Synthesize the findings** into a comprehensive preliminary diagnosis.
+  3.  **Provide clear suggestions** for next steps, such as recommended further tests or specialist referrals.
+
+  Patient's History:
+  {{{patientHistory}}}
+
+  Patient's Exam Results:
+  {{{examResults}}}
+
+  Specialist Reports:
+  {{#each specialistReports}}
+  - **Dr. {{specialist}}'s Report:** {{{findings}}}
+  {{/each}}
+  
+  Provide the synthesized diagnosis and suggestions below.`,
+});
+
 
 const generatePreliminaryDiagnosisFlow = ai.defineFlow(
   {
@@ -126,18 +139,18 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     outputSchema: GeneratePreliminaryDiagnosisOutputSchema,
   },
   async input => {
-    // 1. Triage: Decide which specialists to call.
+    // Step 1: Triage to decide which specialists to call.
     const triageResult = await triagePrompt(input);
-    const specialistsToCall = triageResult.output!.specialists as Specialist[];
+    const specialistsToCall = triageResult.output?.specialists || [];
 
-    if (!specialistsToCall || specialistsToCall.length === 0) {
+    if (specialistsToCall.length === 0) {
       return {
-        diagnosis: "Nenhuma especialidade relevante foi identificada para este caso com base nos dados fornecidos.",
-        suggestions: "Recomenda-se uma avaliação médica geral para determinar os próximos passos."
-      }
+        diagnosis: 'Não foi possível determinar uma especialidade relevante para este caso.',
+        suggestions: 'Recomenda-se uma avaliação clínica geral para determinar os próximos passos.',
+      };
     }
 
-    // 2. Call only the selected specialist agents in parallel.
+    // Step 2: Call the selected specialist agents in parallel.
     const specialistPromises = specialistsToCall.map(specialistKey => {
       const agent = specialistAgents[specialistKey];
       return agent(input).then(report => ({
@@ -146,21 +159,21 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
       }));
     });
 
-    const specialistResults = await Promise.all(specialistPromises);
-
-    // 3. Format the reports for the final synthesis prompt.
-    const specialistReports = specialistResults.map(result => `
-## ${result.specialist.charAt(0).toUpperCase() + result.specialist.slice(1)} Report:
-${result.findings}
-    `).join('\n');
-
-
-    // 4. Call the synthesis prompt, feeding it only the relevant specialists' analyses.
-    const {output} = await synthesisPrompt({
+    const specialistReports = await Promise.all(specialistPromises);
+    
+    // Step 3: Synthesize the reports into a final diagnosis.
+    const synthesisResult = await synthesisPrompt({
       ...input,
-      specialistReports: specialistReports,
+      specialistReports,
     });
 
-    return output!;
+    return synthesisResult.output!;
   }
 );
+
+
+export async function generatePreliminaryDiagnosis(
+  input: GeneratePreliminaryDiagnosisInput
+): Promise<GeneratePreliminaryDiagnosisOutput> {
+  return generatePreliminaryDiagnosisFlow(input);
+}

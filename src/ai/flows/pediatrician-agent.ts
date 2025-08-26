@@ -48,7 +48,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-export const pediatricianAgent = ai.defineFlow(
+const pediatricianAgentFlow = ai.defineFlow(
   {
     name: 'pediatricianAgentFlow',
     inputSchema: PediatricianAgentInputSchema,
@@ -59,3 +59,7 @@ export const pediatricianAgent = ai.defineFlow(
     return output!;
   }
 );
+
+export async function pediatricianAgent(input: PediatricianAgentInput): Promise<PediatricianAgentOutput> {
+    return await pediatricianAgentFlow(input);
+}

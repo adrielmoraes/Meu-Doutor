@@ -49,7 +49,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-export const gastroenterologistAgent = ai.defineFlow(
+const gastroenterologistAgentFlow = ai.defineFlow(
   {
     name: 'gastroenterologistAgentFlow',
     inputSchema: GastroenterologistAgentInputSchema,
@@ -60,3 +60,7 @@ export const gastroenterologistAgent = ai.defineFlow(
     return output!;
   }
 );
+
+export async function gastroenterologistAgent(input: GastroenterologistAgentInput): Promise<GastroenterologistAgentOutput> {
+    return await gastroenterologistAgentFlow(input);
+}

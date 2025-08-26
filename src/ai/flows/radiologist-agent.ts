@@ -48,7 +48,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-export const radiologistAgent = ai.defineFlow(
+const radiologistAgentFlow = ai.defineFlow(
   {
     name: 'radiologistAgentFlow',
     inputSchema: RadiologistAgentInputSchema,
@@ -59,3 +59,7 @@ export const radiologistAgent = ai.defineFlow(
     return output!;
   }
 );
+
+export async function radiologistAgent(input: RadiologistAgentInput): Promise<RadiologistAgentOutput> {
+    return await radiologistAgentFlow(input);
+}
