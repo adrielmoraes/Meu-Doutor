@@ -48,7 +48,6 @@ const AIConsultationCard = () => {
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-
   const femaleAvatarUrl = "https://placehold.co/128x128.png";
   const maleAvatarUrl = "https://placehold.co/128x128.png";
 
@@ -74,25 +73,14 @@ const AIConsultationCard = () => {
     if (!userInput.trim()) return;
     
     stopAiSpeaking();
-    
-    const isInitialMessage = userInput.toLowerCase() === "olá" && history.length === 0;
-
-    // Optimistically update history, except for the initial "Olá"
-    if (!isInitialMessage) {
-        setHistory(prev => [...prev, { role: 'user', content: userInput }]);
-    }
-    
     setIsThinking(true);
+
+    const newUserMessage = { role: 'user' as const, content: userInput };
+    const newHistory = [...history, newUserMessage];
+    setHistory(newHistory);
   
     try {
-      // Use functional update to get the latest history without depending on it directly
-      let currentHistory: typeof history = [];
-      setHistory(prev => {
-        currentHistory = [...prev, { role: 'user' as const, content: userInput }];
-        return currentHistory;
-      });
-
-      const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: currentHistory, userInput };
+      const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: newHistory, userInput };
       
       const result = await consultationFlow(input);
       const aiResponse = { role: 'model' as const, content: result.response };
@@ -115,13 +103,18 @@ const AIConsultationCard = () => {
         description: "Não foi possível obter uma resposta. Tente novamente.",
       });
       // Rollback user message on error
-      if (!isInitialMessage) {
-        setHistory(prev => prev.slice(0, -1));
-      }
+      setHistory(prev => prev.slice(0, -1));
     } finally {
       setIsThinking(false);
     }
-  }, [stopAiSpeaking, isDialogOpen, toast, history.length]);
+  }, [stopAiSpeaking, isDialogOpen, toast, history]);
+
+
+  const handleAiResponseRef = useRef(handleAiResponse);
+  useEffect(() => {
+    handleAiResponseRef.current = handleAiResponse;
+  }, [handleAiResponse]);
+
 
   const startConversation = useCallback(() => {
     if (history.length === 0) {
@@ -157,7 +150,7 @@ const AIConsultationCard = () => {
     recognition.onresult = (event: any) => {
       const transcript = event.results[event.results.length - 1][0].transcript.trim();
       if(transcript) {
-        handleAiResponse(transcript);
+        handleAiResponseRef.current(transcript);
       }
     };
 
@@ -172,7 +165,7 @@ const AIConsultationCard = () => {
     };
     
     recognitionRef.current = recognition;
-  }, [toast, stopAiSpeaking, handleAiResponse]);
+  }, [toast, stopAiSpeaking]);
   
   const toggleMic = () => {
     const nextState = !isMicOn;
@@ -363,3 +356,5 @@ const AIConsultationCard = () => {
 };
 
 export default AIConsultationCard;
+
+    
