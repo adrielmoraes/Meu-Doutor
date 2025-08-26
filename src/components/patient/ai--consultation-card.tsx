@@ -66,16 +66,18 @@ const AIConsultationCard = () => {
     // Prevents adding the "Olá" trigger to the visual history
     const isInitialMessage = userInput.toLowerCase() === "olá" && history.length === 0;
 
+    let currentHistory = history;
     if (!isInitialMessage) {
-        setHistory(prev => [...prev, newUserMessage]);
+        setHistory(prev => {
+            currentHistory = [...prev, newUserMessage];
+            return currentHistory;
+        });
     }
     
     setIsThinking(true);
   
     try {
-      // Always pass the most current history state to the AI flow
-      const currentHistoryForAI = isInitialMessage ? [] : [...history, newUserMessage];
-      const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: currentHistoryForAI, userInput };
+      const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: isInitialMessage ? [] : currentHistory, userInput };
       
       const result = await consultationFlow(input);
       const aiResponse = { role: 'model' as const, content: result.response };
@@ -99,7 +101,7 @@ const AIConsultationCard = () => {
       });
       // Rollback user message on error
       if (!isInitialMessage) {
-        setHistory(prev => prev.filter(msg => msg.content !== userInput));
+        setHistory(prev => prev.slice(0, -1));
       }
     } finally {
       setIsThinking(false);
@@ -113,6 +115,7 @@ const AIConsultationCard = () => {
         }, 500);
     }
   }, [handleAiResponse, history.length]);
+
 
   const initializeSpeechRecognition = useCallback(() => {
     if (recognitionRef.current) return;
@@ -133,6 +136,7 @@ const AIConsultationCard = () => {
     recognition.onresult = (event: any) => {
       const transcript = event.results[event.results.length - 1][0].transcript.trim();
       if(transcript) {
+        // Here we call the stable function from the ref
         handleAiResponse(transcript);
       }
     };
@@ -141,12 +145,14 @@ const AIConsultationCard = () => {
       if (event.error !== 'no-speech' && event.error !== 'aborted') {
         console.error('Speech recognition error', event.error);
         toast({ variant: 'destructive', title: 'Erro no Reconhecimento de Voz', description: `Ocorreu um erro: ${event.error}.`});
-        recognitionRef.current.stop();
+        if(recognitionRef.current) {
+            recognitionRef.current.stop();
+        }
       }
     };
     
-    recognition.current = recognition;
-  }, [toast, handleAiResponse, stopAiSpeaking]);
+    recognitionRef.current = recognition;
+  }, [toast, stopAiSpeaking, handleAiResponse]);
   
   const toggleMic = () => {
     const nextState = !isMicOn;
@@ -223,7 +229,7 @@ const AIConsultationCard = () => {
     
     getMediaPermissions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDialogOpen, startConversation]);
+  }, [isDialogOpen]);
 
   return (
     <>
