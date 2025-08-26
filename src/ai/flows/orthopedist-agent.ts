@@ -10,7 +10,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 
-const AgentInputSchema = z.object({
+export const OrthopedistAgentInputSchema = z.object({
   examResults: z
     .string()
     .describe('The results of the medical exams as a single string, may contain imaging reports like X-rays.'),
@@ -18,15 +18,17 @@ const AgentInputSchema = z.object({
     .string()
     .describe('The patient medical history, may include joint pain, fractures, or mobility issues.'),
 });
+export type OrthopedistAgentInput = z.infer<typeof OrthopedistAgentInputSchema>;
 
-const AgentOutputSchema = z.object({
+export const OrthopedistAgentOutputSchema = z.object({
     findings: z.string().describe("The specialist's findings and opinions from an orthopedic perspective. If not relevant, state that clearly."),
 });
+export type OrthopedistAgentOutput = z.infer<typeof OrthopedistAgentOutputSchema>;
 
 const specialistPrompt = ai.definePrompt({
     name: 'orthopedistAgentPrompt',
-    input: {schema: AgentInputSchema},
-    output: {schema: AgentOutputSchema},
+    input: {schema: OrthopedistAgentInputSchema},
+    output: {schema: OrthopedistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI orthopedist.
     Your task is to analyze the provided patient data for issues related to the musculoskeletal system (bones, joints, ligaments, tendons, muscles).
@@ -49,8 +51,8 @@ const specialistPrompt = ai.definePrompt({
 export const orthopedistAgent = ai.defineFlow(
   {
     name: 'orthopedistAgentFlow',
-    inputSchema: AgentInputSchema,
-    outputSchema: AgentOutputSchema,
+    inputSchema: OrthopedistAgentInputSchema,
+    outputSchema: OrthopedistAgentOutputSchema,
   },
   async input => {
     const {output} = await specialistPrompt(input);

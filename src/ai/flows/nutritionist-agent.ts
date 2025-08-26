@@ -11,7 +11,7 @@ import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import { internetSearchTool } from '../tools/internet-search';
 
-const AgentInputSchema = z.object({
+export const NutritionistAgentInputSchema = z.object({
   examResults: z
     .string()
     .describe('The results of the medical exams, which may contain data like cholesterol levels, vitamin deficiencies, or glucose.'),
@@ -19,15 +19,17 @@ const AgentInputSchema = z.object({
     .string()
     .describe('The patient medical history, may include dietary habits, weight management goals, or food allergies.'),
 });
+export type NutritionistAgentInput = z.infer<typeof NutritionistAgentInputSchema>;
 
-const AgentOutputSchema = z.object({
+export const NutritionistAgentOutputSchema = z.object({
     findings: z.string().describe("The specialist's findings and dietary recommendations. If not relevant, state that dietary information was not provided."),
 });
+export type NutritionistAgentOutput = z.infer<typeof NutritionistAgentOutputSchema>;
 
 const specialistPrompt = ai.definePrompt({
     name: 'nutritionistAgentPrompt',
-    input: {schema: AgentInputSchema},
-    output: {schema: AgentOutputSchema},
+    input: {schema: NutritionistAgentInputSchema},
+    output: {schema: NutritionistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool, internetSearchTool],
     prompt: `You are a world-renowned AI nutritionist and dietitian.
     Your task is to analyze the provided patient data to provide dietary advice and recommendations.
@@ -53,8 +55,8 @@ const specialistPrompt = ai.definePrompt({
 export const nutritionistAgent = ai.defineFlow(
   {
     name: 'nutritionistAgentFlow',
-    inputSchema: AgentInputSchema,
-    outputSchema: AgentOutputSchema,
+    inputSchema: NutritionistAgentInputSchema,
+    outputSchema: NutritionistAgentOutputSchema,
   },
   async input => {
     const {output} = await specialistPrompt(input);

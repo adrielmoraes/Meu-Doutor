@@ -10,7 +10,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 
-const AgentInputSchema = z.object({
+export const RadiologistAgentInputSchema = z.object({
   examResults: z
     .string()
     .describe('The results of the medical exams as a single string, which may contain imaging reports.'),
@@ -18,17 +18,18 @@ const AgentInputSchema = z.object({
     .string()
     .describe('The patient medical history as a single string.'),
 });
+export type RadiologistAgentInput = z.infer<typeof RadiologistAgentInputSchema>;
 
-const AgentOutputSchema = z.object({
+export const RadiologistAgentOutputSchema = z.object({
     findings: z.string().describe("The specialist's findings and opinions from a radiology perspective, focusing on interpreting imaging results. If not relevant, state that clearly."),
 });
-export type AgentOutput = z.infer<typeof AgentOutputSchema>;
+export type RadiologistAgentOutput = z.infer<typeof RadiologistAgentOutputSchema>;
 
 
 const specialistPrompt = ai.definePrompt({
     name: 'radiologistAgentPrompt',
-    input: {schema: AgentInputSchema},
-    output: {schema: AgentOutputSchema},
+    input: {schema: RadiologistAgentInputSchema},
+    output: {schema: RadiologistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI radiologist.
     Your task is to analyze the provided patient data, looking specifically for reports from imaging exams (like X-Rays, CT Scans, MRIs) within the 'examResults' text.
@@ -50,8 +51,8 @@ const specialistPrompt = ai.definePrompt({
 export const radiologistAgent = ai.defineFlow(
   {
     name: 'radiologistAgentFlow',
-    inputSchema: AgentInputSchema,
-    outputSchema: AgentOutputSchema,
+    inputSchema: RadiologistAgentInputSchema,
+    outputSchema: RadiologistAgentOutputSchema,
   },
   async input => {
     const {output} = await specialistPrompt(input);

@@ -13,7 +13,7 @@ import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 
 // Input is the same as the main diagnosis flow, as it receives the same data
-const CardiologistAgentInputSchema = z.object({
+export const CardiologistAgentInputSchema = z.object({
   examResults: z
     .string()
     .describe('The results of the medical exams as a single string.'),
@@ -23,7 +23,7 @@ const CardiologistAgentInputSchema = z.object({
 });
 export type CardiologistAgentInput = z.infer<typeof CardiologistAgentInputSchema>;
 
-const CardiologistAgentOutputSchema = z.object({
+export const CardiologistAgentOutputSchema = z.object({
     findings: z.string().describe("The specialist's findings and opinions from a cardiology perspective. If not relevant, state that clearly."),
 });
 export type CardiologistAgentOutput = z.infer<typeof CardiologistAgentOutputSchema>;

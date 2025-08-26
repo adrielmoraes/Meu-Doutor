@@ -10,7 +10,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 
-const AgentInputSchema = z.object({
+export const EndocrinologistAgentInputSchema = z.object({
   examResults: z
     .string()
     .describe('The results of the medical exams as a single string, which may contain hormone levels or glucose tests.'),
@@ -18,15 +18,18 @@ const AgentInputSchema = z.object({
     .string()
     .describe('The patient medical history as a single string, may include symptoms like fatigue, weight changes, etc.'),
 });
+export type EndocrinologistAgentInput = z.infer<typeof EndocrinologistAgentInputSchema>;
 
-const AgentOutputSchema = z.object({
+
+export const EndocrinologistAgentOutputSchema = z.object({
     findings: z.string().describe("The specialist's findings and opinions from an endocrinology perspective. If not relevant, state that clearly."),
 });
+export type EndocrinologistAgentOutput = z.infer<typeof EndocrinologistAgentOutputSchema>;
 
 const specialistPrompt = ai.definePrompt({
     name: 'endocrinologistAgentPrompt',
-    input: {schema: AgentInputSchema},
-    output: {schema: AgentOutputSchema},
+    input: {schema: EndocrinologistAgentInputSchema},
+    output: {schema: EndocrinologistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI endocrinologist.
     Your task is to analyze the provided patient data for issues related to the endocrine system (hormones, metabolism, diabetes).
@@ -49,8 +52,8 @@ const specialistPrompt = ai.definePrompt({
 export const endocrinologistAgent = ai.defineFlow(
   {
     name: 'endocrinologistAgentFlow',
-    inputSchema: AgentInputSchema,
-    outputSchema: AgentOutputSchema,
+    inputSchema: EndocrinologistAgentInputSchema,
+    outputSchema: EndocrinologistAgentOutputSchema,
   },
   async input => {
     const {output} = await specialistPrompt(input);

@@ -10,7 +10,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 
-const AgentInputSchema = z.object({
+export const DermatologistAgentInputSchema = z.object({
   examResults: z
     .string()
     .describe('The results of the medical exams as a single string.'),
@@ -18,15 +18,19 @@ const AgentInputSchema = z.object({
     .string()
     .describe('The patient medical history, may include descriptions of skin conditions, rashes, moles, etc.'),
 });
+export type DermatologistAgentInput = z.infer<typeof DermatologistAgentInputSchema>;
 
-const AgentOutputSchema = z.object({
+
+export const DermatologistAgentOutputSchema = z.object({
     findings: z.string().describe("The specialist's findings and opinions from a dermatology perspective. If not relevant, state that clearly."),
 });
+export type DermatologistAgentOutput = z.infer<typeof DermatologistAgentOutputSchema>;
+
 
 const specialistPrompt = ai.definePrompt({
     name: 'dermatologistAgentPrompt',
-    input: {schema: AgentInputSchema},
-    output: {schema: AgentOutputSchema},
+    input: {schema: DermatologistAgentInputSchema},
+    output: {schema: DermatologistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI dermatologist.
     Your task is to analyze the provided patient data for issues related to skin, hair, and nails.
@@ -49,8 +53,8 @@ const specialistPrompt = ai.definePrompt({
 export const dermatologistAgent = ai.defineFlow(
   {
     name: 'dermatologistAgentFlow',
-    inputSchema: AgentInputSchema,
-    outputSchema: AgentOutputSchema,
+    inputSchema: DermatologistAgentInputSchema,
+    outputSchema: DermatologistAgentOutputSchema,
   },
   async input => {
     const {output} = await specialistPrompt(input);

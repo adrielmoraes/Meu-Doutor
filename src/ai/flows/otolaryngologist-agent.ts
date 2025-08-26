@@ -10,7 +10,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 
-const AgentInputSchema = z.object({
+export const OtolaryngologistAgentInputSchema = z.object({
   examResults: z
     .string()
     .describe('The results of the medical exams as a single string.'),
@@ -18,15 +18,17 @@ const AgentInputSchema = z.object({
     .string()
     .describe('The patient medical history, may include symptoms like ear pain, hearing loss, sore throat, or sinus issues.'),
 });
+export type OtolaryngologistAgentInput = z.infer<typeof OtolaryngologistAgentInputSchema>;
 
-const AgentOutputSchema = z.object({
+export const OtolaryngologistAgentOutputSchema = z.object({
     findings: z.string().describe("The specialist's findings and opinions from an otolaryngology (ENT) perspective. If not relevant, state that clearly."),
 });
+export type OtolaryngologistAgentOutput = z.infer<typeof OtolaryngologistAgentOutputSchema>;
 
 const specialistPrompt = ai.definePrompt({
     name: 'otolaryngologistAgentPrompt',
-    input: {schema: AgentInputSchema},
-    output: {schema: AgentOutputSchema},
+    input: {schema: OtolaryngologistAgentInputSchema},
+    output: {schema: OtolaryngologistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI otolaryngologist (Ear, Nose, and Throat specialist).
     Your task is to analyze the provided patient data for issues related to the ear, nose, throat, sinuses, and larynx.
@@ -49,8 +51,8 @@ const specialistPrompt = ai.definePrompt({
 export const otolaryngologistAgent = ai.defineFlow(
   {
     name: 'otolaryngologistAgentFlow',
-    inputSchema: AgentInputSchema,
-    outputSchema: AgentOutputSchema,
+    inputSchema: OtolaryngologistAgentInputSchema,
+    outputSchema: OtolaryngologistAgentOutputSchema,
   },
   async input => {
     const {output} = await specialistPrompt(input);

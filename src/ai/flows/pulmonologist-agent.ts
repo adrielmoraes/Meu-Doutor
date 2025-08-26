@@ -10,7 +10,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 
-const AgentInputSchema = z.object({
+export const PulmonologistAgentInputSchema = z.object({
   examResults: z
     .string()
     .describe('The results of the medical exams as a single string.'),
@@ -18,17 +18,18 @@ const AgentInputSchema = z.object({
     .string()
     .describe('The patient medical history as a single string.'),
 });
+export type PulmonologistAgentInput = z.infer<typeof PulmonologistAgentInputSchema>;
 
-const AgentOutputSchema = z.object({
+export const PulmonologistAgentOutputSchema = z.object({
     findings: z.string().describe("The specialist's findings and opinions from a pulmonology perspective. If not relevant, state that clearly."),
 });
-export type AgentOutput = z.infer<typeof AgentOutputSchema>;
+export type PulmonologistAgentOutput = z.infer<typeof PulmonologistAgentOutputSchema>;
 
 
 const specialistPrompt = ai.definePrompt({
     name: 'pulmonologistAgentPrompt',
-    input: {schema: AgentInputSchema},
-    output: {schema: AgentOutputSchema},
+    input: {schema: PulmonologistAgentInputSchema},
+    output: {schema: PulmonologistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI pulmonologist.
     Your task is to analyze the provided patient data and provide your expert opinion focusing specifically on respiratory and pulmonary health.
@@ -50,8 +51,8 @@ const specialistPrompt = ai.definePrompt({
 export const pulmonologistAgent = ai.defineFlow(
   {
     name: 'pulmonologistAgentFlow',
-    inputSchema: AgentInputSchema,
-    outputSchema: AgentOutputSchema,
+    inputSchema: PulmonologistAgentInputSchema,
+    outputSchema: PulmonologistAgentOutputSchema,
   },
   async input => {
     const {output} = await specialistPrompt(input);

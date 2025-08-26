@@ -10,7 +10,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 
-const AgentInputSchema = z.object({
+export const NeurologistAgentInputSchema = z.object({
   examResults: z
     .string()
     .describe('The results of the medical exams as a single string.'),
@@ -18,15 +18,17 @@ const AgentInputSchema = z.object({
     .string()
     .describe('The patient medical history as a single string, may include symptoms like headaches, dizziness, etc.'),
 });
+export type NeurologistAgentInput = z.infer<typeof NeurologistAgentInputSchema>;
 
-const AgentOutputSchema = z.object({
+export const NeurologistAgentOutputSchema = z.object({
     findings: z.string().describe("The specialist's findings and opinions from a neurology perspective. If not relevant, state that clearly."),
 });
+export type NeurologistAgentOutput = z.infer<typeof NeurologistAgentOutputSchema>;
 
 const specialistPrompt = ai.definePrompt({
     name: 'neurologistAgentPrompt',
-    input: {schema: AgentInputSchema},
-    output: {schema: AgentOutputSchema},
+    input: {schema: NeurologistAgentInputSchema},
+    output: {schema: NeurologistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI neurologist.
     Your task is to analyze the provided patient data and provide your expert opinion focusing specifically on neurological health.
@@ -49,8 +51,8 @@ const specialistPrompt = ai.definePrompt({
 export const neurologistAgent = ai.defineFlow(
   {
     name: 'neurologistAgentFlow',
-    inputSchema: AgentInputSchema,
-    outputSchema: AgentOutputSchema,
+    inputSchema: NeurologistAgentInputSchema,
+    outputSchema: NeurologistAgentOutputSchema,
   },
   async input => {
     const {output} = await specialistPrompt(input);

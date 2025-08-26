@@ -10,7 +10,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 
-const AgentInputSchema = z.object({
+export const GastroenterologistAgentInputSchema = z.object({
   examResults: z
     .string()
     .describe('The results of the medical exams as a single string.'),
@@ -18,15 +18,18 @@ const AgentInputSchema = z.object({
     .string()
     .describe('The patient medical history as a single string, may include digestive symptoms.'),
 });
+export type GastroenterologistAgentInput = z.infer<typeof GastroenterologistAgentInputSchema>;
 
-const AgentOutputSchema = z.object({
+export const GastroenterologistAgentOutputSchema = z.object({
     findings: z.string().describe("The specialist's findings and opinions from a gastroenterology perspective. If not relevant, state that clearly."),
 });
+export type GastroenterologistAgentOutput = z.infer<typeof GastroenterologistAgentOutputSchema>;
+
 
 const specialistPrompt = ai.definePrompt({
     name: 'gastroenterologistAgentPrompt',
-    input: {schema: AgentInputSchema},
-    output: {schema: AgentOutputSchema},
+    input: {schema: GastroenterologistAgentInputSchema},
+    output: {schema: GastroenterologistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI gastroenterologist.
     Your task is to analyze the provided patient data for issues related to the digestive system.
@@ -49,8 +52,8 @@ const specialistPrompt = ai.definePrompt({
 export const gastroenterologistAgent = ai.defineFlow(
   {
     name: 'gastroenterologistAgentFlow',
-    inputSchema: AgentInputSchema,
-    outputSchema: AgentOutputSchema,
+    inputSchema: GastroenterologistAgentInputSchema,
+    outputSchema: GastroenterologistAgentOutputSchema,
   },
   async input => {
     const {output} = await specialistPrompt(input);
