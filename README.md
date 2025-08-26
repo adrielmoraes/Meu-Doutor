@@ -22,9 +22,9 @@ O projeto foi desenhado para ser uma simulação de alta fidelidade, pronta para
 
 ---
 
-##  Firestore Database Structure
+## 🔒 Estrutura do Banco de Dados e Segurança
 
-O banco de dados do MediAI no Cloud Firestore é organizado da seguinte forma para garantir segurança e escalabilidade:
+O banco de dados do MediAI no Cloud Firestore é organizado para garantir segurança e escalabilidade.
 
 *   **`/patients`**: Uma coleção onde cada documento representa um paciente. Contém informações do perfil como nome, idade, e-mail e histórico médico.
     *   **`/patients/{patientId}/exams`**: Uma subcoleção dentro de cada paciente para armazenar todos os exames que ele enviou.
@@ -34,6 +34,10 @@ O banco de dados do MediAI no Cloud Firestore é organizado da seguinte forma pa
 *   **`/appointments`**: Uma coleção para armazenar todos os agendamentos entre pacientes e médicos.
 
 Essa estrutura separa os dados de perfil das credenciais de autenticação, o que é uma prática de segurança fundamental.
+
+### Regras de Segurança do Firestore
+
+Para um ambiente de produção, é crucial implementar as **Regras de Segurança do Firestore**. Elas controlam quem pode acessar quais dados. Um exemplo de conjunto de regras foi criado no arquivo `firestore.rules` na raiz do projeto. Você deve copiar o conteúdo deste arquivo e colá-lo na guia "Regras" do seu banco de dados no Console do Firebase para proteger os dados dos seus usuários.
 
 ---
 
