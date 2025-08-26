@@ -71,16 +71,16 @@ const AIConsultationCard = () => {
     
     const isInitialMessage = userInput.toLowerCase() === "olá" && history.length === 0;
 
-    const newUserMessage = { role: 'user' as const, content: userInput };
-    // Optimistically update history for the user, except for the initial "Olá"
-    if (!isInitialMessage) {
-      setHistory(prev => [...prev, newUserMessage]);
-    }
+    setHistory(prev => {
+        const newUserMessage = { role: 'user' as const, content: userInput };
+        // Optimistically update history for the user, except for the initial "Olá"
+        return isInitialMessage ? prev : [...prev, newUserMessage];
+    });
     
     setIsThinking(true);
   
     try {
-      const currentHistory = isInitialMessage ? [] : [...history, newUserMessage];
+      const currentHistory = [...history, { role: 'user', content: userInput }];
       const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: currentHistory, userInput };
       
       const result = await consultationFlow(input);
