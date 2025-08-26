@@ -42,13 +42,20 @@ const AIConsultationCard = () => {
   const [history, setHistory] = useState<{role: 'user' | 'model', content: string}[]>([]);
   const [isThinking, setIsThinking] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(new Audio());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
   const userMediaStreamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
 
   const femaleAvatarUrl = "https://placehold.co/128x128.png";
   const maleAvatarUrl = "https://placehold.co/128x128.png";
+
+  useEffect(() => {
+    // This ensures that the Audio object is only created on the client-side
+    if (typeof window !== 'undefined' && !audioRef.current) {
+        audioRef.current = new Audio();
+    }
+  }, []);
 
   const stopAiSpeaking = useCallback(() => {
     if (audioRef.current && !audioRef.current.paused) {
@@ -64,21 +71,17 @@ const AIConsultationCard = () => {
     
     const isInitialMessage = userInput.toLowerCase() === "olá" && history.length === 0;
 
+    const newUserMessage = { role: 'user' as const, content: userInput };
+    // Optimistically update history for the user, except for the initial "Olá"
     if (!isInitialMessage) {
-        setHistory(prev => [...prev, { role: 'user' as const, content: userInput }]);
+        setHistory(prev => [...prev, newUserMessage]);
     }
     
     setIsThinking(true);
   
     try {
-        // Use the functional form of setState to get the latest history
-        let latestHistory: {role: 'user' | 'model', content: string}[] = [];
-        setHistory(prev => {
-            latestHistory = isInitialMessage ? [] : [...prev];
-            return prev; // No immediate state change here, just getting the value
-        });
-
-      const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: latestHistory, userInput };
+      const currentHistory = isInitialMessage ? [] : [...history, newUserMessage];
+      const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: currentHistory, userInput };
       
       const result = await consultationFlow(input);
       const aiResponse = { role: 'model' as const, content: result.response };
@@ -107,7 +110,7 @@ const AIConsultationCard = () => {
     } finally {
       setIsThinking(false);
     }
-  }, [stopAiSpeaking, history.length, isDialogOpen, toast]);
+  }, [stopAiSpeaking, history, isDialogOpen, toast]);
 
   const startConversation = useCallback(() => {
     if (history.length === 0) {
