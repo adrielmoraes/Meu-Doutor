@@ -1,11 +1,10 @@
 
 'use server';
 
-import { getDoctorByEmail, getPatientByEmail } from '@/lib/firestore-adapter';
+import { getDoctorByEmailWithAuth, getPatientByEmailWithAuth } from '@/lib/firestore-adapter';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
-import { db } from '@/lib/firebase-admin';
 
 const LoginSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
@@ -26,33 +25,26 @@ export async function loginAction(prevState: any, formData: FormData) {
   const { email, password } = validatedFields.data;
 
   try {
-    if (!db) {
-        throw new Error("Conexão com o banco de dados não inicializada.");
-    }
-    const doctor = await getDoctorByEmail(email);
+    const doctor = await getDoctorByEmailWithAuth(email);
     if (doctor) {
-        const doctorAuthDoc = await db.collection('doctorAuth').doc(doctor.id).get();
-        if (!doctorAuthDoc.exists) {
-            return { ...prevState, message: 'Credenciais de autenticação não encontradas para o médico.' };
+        if (!doctor.password) {
+             return { ...prevState, message: 'Credenciais de autenticação não encontradas para o médico.' };
         }
-        const hashedPassword = doctorAuthDoc.data()?.password;
-        const passwordIsValid = await bcrypt.compare(password, hashedPassword);
+        const passwordIsValid = await bcrypt.compare(password, doctor.password);
 
-      if (passwordIsValid) {
-          redirect('/doctor');
-      } else {
-          return { ...prevState, message: 'Senha incorreta.' };
-      }
+        if (passwordIsValid) {
+            redirect('/doctor');
+        } else {
+            return { ...prevState, message: 'Senha incorreta.' };
+        }
     }
 
-    const patient = await getPatientByEmail(email);
+    const patient = await getPatientByEmailWithAuth(email);
     if (patient) {
-        const patientAuthDoc = await db.collection('patientAuth').doc(patient.id).get();
-         if (!patientAuthDoc.exists) {
+        if (!patient.password) {
             return { ...prevState, message: 'Credenciais de autenticação não encontradas para o paciente.' };
         }
-        const hashedPassword = patientAuthDoc.data()?.password;
-        const passwordIsValid = await bcrypt.compare(password, hashedPassword);
+        const passwordIsValid = await bcrypt.compare(password, patient.password);
 
         if (passwordIsValid) {
             redirect(`/patient/dashboard?id=${patient.id}`);
@@ -68,7 +60,6 @@ export async function loginAction(prevState: any, formData: FormData) {
 
   } catch (error) {
     console.error('Login error:', error);
-    console.error('Erro detalhado:', error);
     return {
       ...prevState,
       message: 'Ocorreu um erro no servidor. Por favor, tente novamente.',

@@ -8,6 +8,7 @@ export type Patient = {
   cpf: string;
   phone: string;
   email: string;
+  password?: string; // Only used for auth verification, not stored in patient doc
   lastVisit: string;
   status: 'Requer Validação' | 'Validado';
   avatar: string;
@@ -35,6 +36,7 @@ export type Doctor = {
   avatar: string;
   avatarHint: string;
   email: string;
+  password?: string; // Only used for auth verification, not stored in doctor doc
   level: number;
   xp: number;
   xpToNextLevel: number;
