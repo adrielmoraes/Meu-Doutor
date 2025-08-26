@@ -74,7 +74,7 @@ const AIConsultationCard = () => {
     const newUserMessage = { role: 'user' as const, content: userInput };
     // Optimistically update history for the user, except for the initial "Olá"
     if (!isInitialMessage) {
-        setHistory(prev => [...prev, newUserMessage]);
+      setHistory(prev => [...prev, newUserMessage]);
     }
     
     setIsThinking(true);
@@ -123,10 +123,18 @@ const AIConsultationCard = () => {
 
   const initializeSpeechRecognition = useCallback(() => {
     if (recognitionRef.current) return;
+    
+    const SpeechRecognition =
+      typeof window !== 'undefined'
+        ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+        : null;
 
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      toast({ variant: 'destructive', title: 'Navegador incompatível', description: 'Seu navegador não suporta reconhecimento de voz.' });
+      toast({
+        variant: 'destructive',
+        title: 'Navegador incompatível',
+        description: 'Seu navegador não suporta reconhecimento de voz.',
+      });
       return;
     }
 
