@@ -1,112 +1,16 @@
 
-// Essas regras são um ponto de partida para um ambiente de produção.
-// Para implantar, copie e cole o conteúdo deste arquivo na guia "Regras"
-// do seu banco de dados Firestore no Console do Firebase.
-
 rules_version = '2';
+
+// WARNING: These rules are for development purposes only and are insecure.
+// They allow anyone to read and write to your database.
+// For a production app, you must secure your data.
+// Refer to the previous version of this file for a secure ruleset example.
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // =================================
-    // Funções Auxiliares
-    // =================================
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isPatient() {
-      return isSignedIn() && exists(/databases/$(database)/documents/patients/$(request.auth.uid));
-    }
-
-    function isDoctor() {
-      return isSignedIn() && exists(/databases/$(database)/documents/doctors/$(request.auth.uid));
-    }
-    
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    // =================================
-    // Coleção de Pacientes
-    // =================================
-    match /patients/{patientId} {
-      // PERMISSÕES DE LEITURA (GET, LIST):
-      // - Um paciente pode ler seu próprio perfil.
-      // - Um médico pode ler o perfil de qualquer paciente.
-      allow get: if isDoctor() || (isPatient() && isOwner(patientId));
-      allow list: if isDoctor();
-
-      // PERMISSÃO DE CRIAÇÃO (CREATE):
-      // - Permite que um novo usuário (não autenticado ou autenticado) crie seu próprio perfil de paciente.
-      //   O ID do documento deve ser o mesmo do ID de autenticação do usuário.
-      allow create: if isSignedIn();
-
-      // PERMISSÃO DE ATUALIZAÇÃO (UPDATE):
-      // - Um paciente pode atualizar seu próprio perfil.
-      // - Um médico pode atualizar campos específicos de um paciente (como status, notas do médico, etc.).
-      allow update: if (isPatient() && isOwner(patientId)) || isDoctor();
-
-      // PERMISSÃO DE EXCLUSÃO (DELETE):
-      // - Geralmente não é recomendado permitir a exclusão de dados de pacientes. Desabilitado por padrão.
-      allow delete: if false;
-
-      // Subcoleção de exames
-      match /exams/{examId} {
-        // - Um paciente pode ler seus próprios exames.
-        // - Um médico pode ler os exames de qualquer paciente.
-        // - Um paciente pode adicionar novos exames para si mesmo.
-        allow read: if isDoctor() || (isPatient() && isOwner(patientId));
-        allow create: if isPatient() && isOwner(patientId);
-        allow update, delete: if false; // Não permitir modificação ou exclusão de exames
-      }
-    }
-
-    // =================================
-    // Coleção de Médicos
-    // =================================
-    match /doctors/{doctorId} {
-      // - Qualquer usuário autenticado (paciente ou médico) pode ler a lista de médicos e seus perfis
-      //   para encontrar um profissional e agendar uma consulta.
-      allow read: if isSignedIn();
-
-      // - A criação de médicos é feita através de um backend seguro (Server Action), então
-      //   a criação direta pelo cliente pode ser restrita. Permitimos aqui para o cadastro.
-      allow create: if isSignedIn();
-
-      // - Um médico só pode atualizar seu próprio perfil.
-      allow update: if isDoctor() && isOwner(doctorId);
-      
-      allow delete: if false;
-    }
-
-    // =================================
-    // Coleções de Autenticação (SENHAS)
-    // =================================
-    // NUNCA permita acesso de leitura ou escrita do lado do cliente a essas coleções.
-    // Elas só devem ser acessadas pelo seu backend (Firebase Admin SDK).
-    match /patientAuth/{userId} {
-      allow read, write: if false;
-    }
-
-    match /doctorAuth/{userId} {
-      allow read, write: if false;
-    }
-
-    // =================================
-    // Coleção de Agendamentos
-    // =================================
-    match /appointments/{appointmentId} {
-        // - Pacientes e Médicos podem criar agendamentos.
-        allow create: if isPatient() || isDoctor();
-        
-        // - Pacientes e Médicos envolvidos no agendamento podem lê-lo.
-        allow read: if isSignedIn() && (isOwner(resource.data.patientId) || isOwner(resource.data.doctorId));
-        
-        // - Permitir que o paciente ou médico atualize o status (ex: cancelar)
-        allow update: if isSignedIn() && (isOwner(resource.data.patientId) || isOwner(resource.data.doctorId));
-        
-        allow delete: if false;
+    // Allow read and write to all documents for development
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }
