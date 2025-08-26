@@ -22,6 +22,22 @@ O projeto foi desenhado para ser uma simulação de alta fidelidade, pronta para
 
 ---
 
+##  Firestore Database Structure
+
+O banco de dados do MediAI no Cloud Firestore é organizado da seguinte forma para garantir segurança e escalabilidade:
+
+*   **`/patients`**: Uma coleção onde cada documento representa um paciente. Contém informações do perfil como nome, idade, e-mail e histórico médico.
+    *   **`/patients/{patientId}/exams`**: Uma subcoleção dentro de cada paciente para armazenar todos os exames que ele enviou.
+*   **`/doctors`**: Uma coleção onde cada documento representa um médico. Contém informações profissionais como nome, especialidade e dados de gamificação.
+*   **`/patientAuth`**: Uma coleção separada para armazenar as credenciais de login dos pacientes. Cada documento aqui tem o mesmo ID do paciente correspondente na coleção `patients` e armazena a senha criptografada (hash).
+*   **`/doctorAuth`**: Similar à `patientAuth`, mas para os médicos. Armazena as senhas criptografadas dos profissionais.
+*   **`/appointments`**: Uma coleção para armazenar todos os agendamentos entre pacientes e médicos.
+
+Essa estrutura separa os dados de perfil das credenciais de autenticação, o que é uma prática de segurança fundamental.
+
+---
+
+
 ## 🌟 Funcionalidades Detalhadas
 
 ### Portal do Paciente
