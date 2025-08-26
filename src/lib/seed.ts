@@ -5,7 +5,7 @@
  * It's designed to be run from the command line via the `npm run db:seed` script.
  */
 import 'dotenv/config'; // Make sure to load environment variables
-import { db } from './firebase-admin'; // Use admin SDK for seeding
+import { getAdminDb } from './firebase-admin'; // Use admin SDK for seeding
 import { Patient, Doctor, Exam, Appointment } from '@/types';
 import { format, addDays, differenceInYears } from 'date-fns';
 import bcrypt from 'bcrypt';
@@ -166,13 +166,10 @@ async function seedCollection(
     data: { id: string, data: any, auth: { password?: string } }[],
     subCollections?: { [key: string]: { data: any[], collectionName: string } }
 ) {
-    if (!db) {
-        console.error(`Firestore Admin DB not initialized. Cannot seed collection ${collectionName}.`);
-        return;
-    }
+    const adminDb = getAdminDb();
 
-    const collectionRef = db.collection(collectionName);
-    const authCollectionRef = db.collection(authCollectionName);
+    const collectionRef = adminDb.collection(collectionName);
+    const authCollectionRef = adminDb.collection(authCollectionName);
 
     for (const item of data) {
         const docRef = collectionRef.doc(item.id);
@@ -193,7 +190,7 @@ async function seedCollection(
                  const sub = subCollections[item.id];
                  console.log(`    -> Adicionando subcoleção ${sub.collectionName} para ${collectionName}/${item.id}`);
                  
-                 const subColRef = db.collection(`${collectionName}/${item.id}/${sub.collectionName}`);
+                 const subColRef = adminDb.collection(`${collectionName}/${item.id}/${sub.collectionName}`);
                  for (const subItem of sub.data) {
                     await subColRef.add(subItem);
                  }
@@ -206,11 +203,8 @@ async function seedCollection(
 }
 
 async function seedAppointments() {
-     if (!db) {
-        console.error(`Firestore Admin DB not initialized. Cannot seed appointments.`);
-        return;
-    }
-    const collectionRef = db.collection('appointments');
+     const adminDb = getAdminDb();
+    const collectionRef = adminDb.collection('appointments');
     const snapshot = await collectionRef.get();
     if (snapshot.empty) {
         console.log('  -> Populando agendamentos...');

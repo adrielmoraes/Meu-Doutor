@@ -1,6 +1,6 @@
 
 import { db } from './firebase';
-import { db as adminDb } from './firebase-admin';
+import { getAdminDb } from './firebase-admin';
 import { collection, getDocs, doc, getDoc, updateDoc, addDoc, query, where, writeBatch } from 'firebase/firestore';
 import type { Patient, Doctor, Appointment, Exam, PatientWithPassword, DoctorWithPassword } from '@/types';
 
@@ -22,9 +22,7 @@ export async function getPatientById(id: string): Promise<Patient | null> {
 }
 
 export async function getPatientByEmail(email: string): Promise<Patient | null> {
-    if (!adminDb) {
-      throw new Error('Admin DB not initialized');
-    }
+    const adminDb = getAdminDb();
     const q = adminDb.collection('patients').where('email', '==', email);
     const patientSnapshot = await q.get();
     if (patientSnapshot.empty) {
@@ -35,9 +33,7 @@ export async function getPatientByEmail(email: string): Promise<Patient | null> 
 }
 
 export async function getPatientByEmailWithAuth(email: string): Promise<PatientWithPassword | null> {
-    if (!adminDb) {
-        throw new Error("Admin DB not initialized.");
-    }
+    const adminDb = getAdminDb();
     const q = adminDb.collection('patients').where('email', '==', email);
     const snapshot = await q.get();
 
@@ -54,11 +50,10 @@ export async function getPatientByEmailWithAuth(email: string): Promise<PatientW
 }
 
 export async function addPatientWithAuth(patientData: Omit<Patient, 'id'>, hashedPassword: string): Promise<void> {
-    if (!adminDb) {
-        throw new Error("Admin DB not initialized.");
-    }
+    const adminDb = getAdminDb();
     const batch = adminDb.batch();
 
+    // patientRef é criado localmente, o Firestore irá gerar um ID automaticamente
     const patientRef = adminDb.collection('patients').doc();
     batch.set(patientRef, patientData);
 
@@ -116,9 +111,7 @@ export async function getDoctorById(id: string): Promise<Doctor | null> {
 }
 
 export async function getDoctorByEmail(email: string): Promise<Doctor | null> {
-    if (!adminDb) {
-        throw new Error("Admin DB not initialized.");
-    }
+    const adminDb = getAdminDb();
     const q = adminDb.collection('doctors').where('email', '==', email);
     const doctorSnapshot = await q.get();
     if (doctorSnapshot.empty) {
@@ -130,9 +123,7 @@ export async function getDoctorByEmail(email: string): Promise<Doctor | null> {
 
 
 export async function getDoctorByEmailWithAuth(email: string): Promise<DoctorWithPassword | null> {
-    if (!adminDb) {
-        throw new Error("Admin DB not initialized.");
-    }
+    const adminDb = getAdminDb();
     const q = adminDb.collection('doctors').where('email', '==', email);
     const snapshot = await q.get();
 
@@ -175,9 +166,7 @@ export async function addAppointment(appointmentData: Omit<Appointment, 'id'>): 
 }
 
 export async function addDoctorWithAuth(doctorData: Omit<Doctor, 'id'>, hashedPassword: string): Promise<void> {
-    if (!adminDb) {
-        throw new Error("Admin DB not initialized.");
-    }
+    const adminDb = getAdminDb();
     const batch = adminDb.batch();
 
     const doctorRef = adminDb.collection('doctors').doc();
