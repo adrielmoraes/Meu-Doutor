@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getDoctorByEmailWithAuth, getPatientByEmailWithAuth } from '@/lib/firestore-adapter';
+import { getDoctorByEmailWithAuth, getPatientByEmailWithAuth } from '@/lib/firestore-admin-adapter';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';

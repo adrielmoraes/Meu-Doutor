@@ -5,7 +5,6 @@ import { Progress } from "@/components/ui/progress";
 import { getDoctors } from "@/lib/firestore-adapter";
 import { Award, Star, Clock, Zap, CheckSquare } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { notFound } from "next/navigation";
 
 // A map to render icons based on the badge name
 const iconMap: { [key: string]: React.ReactNode } = {
