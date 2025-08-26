@@ -59,25 +59,26 @@ const AIConsultationCard = () => {
 
   const handleAiResponse = useCallback(async (userInput: string) => {
     if (!userInput.trim()) return;
-
-    stopAiSpeaking();
-    const newUserMessage = { role: 'user' as const, content: userInput };
     
-    // Prevents adding the "Olá" trigger to the visual history
+    stopAiSpeaking();
+    
     const isInitialMessage = userInput.toLowerCase() === "olá" && history.length === 0;
 
-    let currentHistory = history;
     if (!isInitialMessage) {
-        setHistory(prev => {
-            currentHistory = [...prev, newUserMessage];
-            return currentHistory;
-        });
+        setHistory(prev => [...prev, { role: 'user' as const, content: userInput }]);
     }
     
     setIsThinking(true);
   
     try {
-      const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: isInitialMessage ? [] : currentHistory, userInput };
+        // Use the functional form of setState to get the latest history
+        let latestHistory: {role: 'user' | 'model', content: string}[] = [];
+        setHistory(prev => {
+            latestHistory = isInitialMessage ? [] : [...prev];
+            return prev; // No immediate state change here, just getting the value
+        });
+
+      const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: latestHistory, userInput };
       
       const result = await consultationFlow(input);
       const aiResponse = { role: 'model' as const, content: result.response };
@@ -106,7 +107,7 @@ const AIConsultationCard = () => {
     } finally {
       setIsThinking(false);
     }
-  }, [history, toast, stopAiSpeaking, isDialogOpen]);
+  }, [stopAiSpeaking, history.length, isDialogOpen, toast]);
 
   const startConversation = useCallback(() => {
     if (history.length === 0) {
@@ -136,7 +137,6 @@ const AIConsultationCard = () => {
     recognition.onresult = (event: any) => {
       const transcript = event.results[event.results.length - 1][0].transcript.trim();
       if(transcript) {
-        // Here we call the stable function from the ref
         handleAiResponse(transcript);
       }
     };
@@ -342,5 +342,3 @@ const AIConsultationCard = () => {
 };
 
 export default AIConsultationCard;
-
-    
