@@ -1,4 +1,3 @@
-
 # MediAI - Seu Assistente de Saúde Inteligente
 
 Bem-vindo ao MediAI, um protótipo funcional de uma plataforma de saúde inovadora que utiliza Inteligência Artificial para conectar pacientes e médicos. Esta aplicação demonstra um fluxo de trabalho completo, desde a consulta inicial do paciente com uma IA até a validação do diagnóstico por um médico humano, culminando na criação de um plano de bem-estar personalizado.
