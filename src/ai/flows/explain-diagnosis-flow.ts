@@ -63,26 +63,21 @@ const explainDiagnosisFlow = ai.defineFlow(
     outputSchema: ExplainDiagnosisOutputSchema,
   },
   async input => {
-    // 1. Generate the simplified text explanation.
-    const explanationPromise = explanationPrompt(input);
-    
-    // 2. Start generating the audio in parallel by creating a "preview" of the text.
-    // This is an optimization to reduce latency. We make a good guess of what the AI will say.
-    const audioTextPreview = `Aqui está uma explicação sobre seu diagnóstico: ${input.diagnosisAndNotes.substring(0, 150)}...`;
-    const audioPromise = textToSpeech({ text: audioTextPreview });
-
-    // 3. Wait for both promises to complete.
-    const [explanationResult, audioResult] = await Promise.all([explanationPromise, audioPromise]);
-
+    // Step 1: Generate the full, simplified text explanation first.
+    const explanationResult = await explanationPrompt(input);
     const explanationText = explanationResult.output?.explanation;
+
     if (!explanationText) {
         throw new Error("Failed to generate an explanation.");
     }
     
+    // Step 2: Now that we have the complete text, generate the audio for it.
+    const audioResult = await textToSpeech({ text: explanationText });
+
     // If the audio generation failed, we can still proceed with just the text.
     const audioDataUri = audioResult?.audioDataUri || "";
 
-    // 4. Return both the final text and the pre-generated audio.
+    // Step 3: Return both the final text and the complete audio.
     return {
       explanation: explanationText,
       audioDataUri: audioDataUri,
