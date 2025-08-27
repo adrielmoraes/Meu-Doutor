@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, type SpecialistAgentInput } from './specialist-agent-types';
 import {cardiologistAgent} from './cardiologist-agent';
 import {pulmonologistAgent} from './pulmonologist-agent';
 import {radiologistAgent} from './radiologist-agent';
@@ -24,21 +25,6 @@ import {nutritionistAgent} from './nutritionist-agent';
 import {pediatricianAgent} from './pediatrician-agent';
 
 // Define Schemas centrally
-export const SpecialistAgentInputSchema = z.object({
-  examResults: z
-    .string()
-    .describe('The results of the medical exams as a single string.'),
-  patientHistory: z
-    .string()
-    .describe('The patient medical history as a single string.'),
-});
-export type SpecialistAgentInput = z.infer<typeof SpecialistAgentInputSchema>;
-
-export const SpecialistAgentOutputSchema = z.object({
-    findings: z.string().describe("The specialist's findings and opinions. If not relevant, this will state so clearly."),
-});
-export type SpecialistAgentOutput = z.infer<typeof SpecialistAgentOutputSchema>;
-
 const GeneratePreliminaryDiagnosisInputSchema = SpecialistAgentInputSchema;
 export type GeneratePreliminaryDiagnosisInput = z.infer<
   typeof GeneratePreliminaryDiagnosisInputSchema
@@ -183,7 +169,7 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
 
 
 export async function generatePreliminaryDiagnosis(
-  input: GeneratePreliminaryDiagnosisInput
+  input: SpecialistAgentInput
 ): Promise<GeneratePreliminaryDiagnosisOutput> {
   return generatePreliminaryDiagnosisFlow(input);
 }

@@ -8,8 +8,8 @@
 
 import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
-import type { SpecialistAgentInput, SpecialistAgentOutput } from './generate-preliminary-diagnosis';
-import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './generate-preliminary-diagnosis';
+import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './specialist-agent-types';
 
 const specialistPrompt = ai.definePrompt({
     name: 'endocrinologistAgentPrompt',
@@ -34,7 +34,18 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
+const endocrinologistAgentFlow = ai.defineFlow(
+    {
+      name: 'endocrinologistAgentFlow',
+      inputSchema: SpecialistAgentInputSchema,
+      outputSchema: SpecialistAgentOutputSchema,
+    },
+    async (input) => {
+        const {output} = await specialistPrompt(input);
+        return output!;
+    }
+);
+
 export async function endocrinologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
-    const {output} = await specialistPrompt(input);
-    return output!;
+    return await endocrinologistAgentFlow(input);
 }

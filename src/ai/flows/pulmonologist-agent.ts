@@ -8,8 +8,8 @@
 
 import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
-import type { SpecialistAgentInput, SpecialistAgentOutput } from './generate-preliminary-diagnosis';
-import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './generate-preliminary-diagnosis';
+import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './specialist-agent-types';
 
 
 const specialistPrompt = ai.definePrompt({
@@ -34,7 +34,19 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
+const pulmonologistAgentFlow = ai.defineFlow(
+    {
+      name: 'pulmonologistAgentFlow',
+      inputSchema: SpecialistAgentInputSchema,
+      outputSchema: SpecialistAgentOutputSchema,
+    },
+    async (input) => {
+        const {output} = await specialistPrompt(input);
+        return output!;
+    }
+);
+
+
 export async function pulmonologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
-    const {output} = await specialistPrompt(input);
-    return output!;
+    return await pulmonologistAgentFlow(input);
 }
