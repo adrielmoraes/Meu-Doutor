@@ -7,29 +7,15 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
-
-export const PulmonologistAgentInputSchema = z.object({
-  examResults: z
-    .string()
-    .describe('The results of the medical exams as a single string.'),
-  patientHistory: z
-    .string()
-    .describe('The patient medical history as a single string.'),
-});
-export type PulmonologistAgentInput = z.infer<typeof PulmonologistAgentInputSchema>;
-
-export const PulmonologistAgentOutputSchema = z.object({
-    findings: z.string().describe("The specialist's findings and opinions from a pulmonology perspective. If not relevant, state that clearly."),
-});
-export type PulmonologistAgentOutput = z.infer<typeof PulmonologistAgentOutputSchema>;
+import type { SpecialistAgentInput, SpecialistAgentOutput } from './generate-preliminary-diagnosis';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './generate-preliminary-diagnosis';
 
 
 const specialistPrompt = ai.definePrompt({
     name: 'pulmonologistAgentPrompt',
-    input: {schema: PulmonologistAgentInputSchema},
-    output: {schema: PulmonologistAgentOutputSchema},
+    input: {schema: SpecialistAgentInputSchema},
+    output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI pulmonologist.
     Your task is to analyze the provided patient data and provide your expert opinion focusing specifically on respiratory and pulmonary health.
@@ -48,18 +34,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-const pulmonologistAgentFlow = ai.defineFlow(
-  {
-    name: 'pulmonologistAgentFlow',
-    inputSchema: PulmonologistAgentInputSchema,
-    outputSchema: PulmonologistAgentOutputSchema,
-  },
-  async input => {
+export async function pulmonologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
     const {output} = await specialistPrompt(input);
     return output!;
-  }
-);
-
-export async function pulmonologistAgent(input: PulmonologistAgentInput): Promise<PulmonologistAgentOutput> {
-    return await pulmonologistAgentFlow(input);
 }

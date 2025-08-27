@@ -7,29 +7,15 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
-
-export const RadiologistAgentInputSchema = z.object({
-  examResults: z
-    .string()
-    .describe('The results of the medical exams as a single string, which may contain imaging reports.'),
-  patientHistory: z
-    .string()
-    .describe('The patient medical history as a single string.'),
-});
-export type RadiologistAgentInput = z.infer<typeof RadiologistAgentInputSchema>;
-
-export const RadiologistAgentOutputSchema = z.object({
-    findings: z.string().describe("The specialist's findings and opinions from a radiology perspective, focusing on interpreting imaging results. If not relevant, state that clearly."),
-});
-export type RadiologistAgentOutput = z.infer<typeof RadiologistAgentOutputSchema>;
+import type { SpecialistAgentInput, SpecialistAgentOutput } from './generate-preliminary-diagnosis';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './generate-preliminary-diagnosis';
 
 
 const specialistPrompt = ai.definePrompt({
     name: 'radiologistAgentPrompt',
-    input: {schema: RadiologistAgentInputSchema},
-    output: {schema: RadiologistAgentOutputSchema},
+    input: {schema: SpecialistAgentInputSchema},
+    output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI radiologist.
     Your task is to analyze the provided patient data, looking specifically for reports from imaging exams (like X-Rays, CT Scans, MRIs) within the 'examResults' text.
@@ -48,18 +34,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-const radiologistAgentFlow = ai.defineFlow(
-  {
-    name: 'radiologistAgentFlow',
-    inputSchema: RadiologistAgentInputSchema,
-    outputSchema: RadiologistAgentOutputSchema,
-  },
-  async input => {
+export async function radiologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
     const {output} = await specialistPrompt(input);
     return output!;
-  }
-);
-
-export async function radiologistAgent(input: RadiologistAgentInput): Promise<RadiologistAgentOutput> {
-    return await radiologistAgentFlow(input);
 }

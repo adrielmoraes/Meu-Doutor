@@ -7,28 +7,15 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
+import type { SpecialistAgentInput, SpecialistAgentOutput } from './generate-preliminary-diagnosis';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './generate-preliminary-diagnosis';
 
-export const NeurologistAgentInputSchema = z.object({
-  examResults: z
-    .string()
-    .describe('The results of the medical exams as a single string.'),
-  patientHistory: z
-    .string()
-    .describe('The patient medical history as a single string, may include symptoms like headaches, dizziness, etc.'),
-});
-export type NeurologistAgentInput = z.infer<typeof NeurologistAgentInputSchema>;
-
-export const NeurologistAgentOutputSchema = z.object({
-    findings: z.string().describe("The specialist's findings and opinions from a neurology perspective. If not relevant, state that clearly."),
-});
-export type NeurologistAgentOutput = z.infer<typeof NeurologistAgentOutputSchema>;
 
 const specialistPrompt = ai.definePrompt({
     name: 'neurologistAgentPrompt',
-    input: {schema: NeurologistAgentInputSchema},
-    output: {schema: NeurologistAgentOutputSchema},
+    input: {schema: SpecialistAgentInputSchema},
+    output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI neurologist.
     Your task is to analyze the provided patient data and provide your expert opinion focusing specifically on neurological health.
@@ -48,18 +35,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-const neurologistAgentFlow = ai.defineFlow(
-  {
-    name: 'neurologistAgentFlow',
-    inputSchema: NeurologistAgentInputSchema,
-    outputSchema: NeurologistAgentOutputSchema,
-  },
-  async input => {
+export async function neurologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
     const {output} = await specialistPrompt(input);
     return output!;
-  }
-);
-
-export async function neurologistAgent(input: NeurologistAgentInput): Promise<NeurologistAgentOutput> {
-    return await neurologistAgentFlow(input);
 }

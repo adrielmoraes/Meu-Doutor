@@ -23,23 +23,8 @@ import {otolaryngologistAgent} from './otolaryngologist-agent';
 import {nutritionistAgent} from './nutritionist-agent';
 import {pediatricianAgent} from './pediatrician-agent';
 
-const specialistAgents = {
-  cardiologist: cardiologistAgent,
-  pulmonologist: pulmonologistAgent,
-  radiologist: radiologistAgent,
-  neurologist: neurologistAgent,
-  gastroenterologist: gastroenterologistAgent,
-  endocrinologist: endocrinologistAgent,
-  dermatologist: dermatologistAgent,
-  orthopedist: orthopedistAgent,
-  ophthalmologist: ophthalmologistAgent,
-  otolaryngologist: otolaryngologistAgent,
-  nutritionist: nutritionistAgent,
-  pediatrician: pediatricianAgent,
-};
-type Specialist = keyof typeof specialistAgents;
-
-const GeneratePreliminaryDiagnosisInputSchema = z.object({
+// Define Schemas centrally
+export const SpecialistAgentInputSchema = z.object({
   examResults: z
     .string()
     .describe('The results of the medical exams as a single string.'),
@@ -47,6 +32,14 @@ const GeneratePreliminaryDiagnosisInputSchema = z.object({
     .string()
     .describe('The patient medical history as a single string.'),
 });
+export type SpecialistAgentInput = z.infer<typeof SpecialistAgentInputSchema>;
+
+export const SpecialistAgentOutputSchema = z.object({
+    findings: z.string().describe("The specialist's findings and opinions. If not relevant, this will state so clearly."),
+});
+export type SpecialistAgentOutput = z.infer<typeof SpecialistAgentOutputSchema>;
+
+const GeneratePreliminaryDiagnosisInputSchema = SpecialistAgentInputSchema;
 export type GeneratePreliminaryDiagnosisInput = z.infer<
   typeof GeneratePreliminaryDiagnosisInputSchema
 >;
@@ -66,6 +59,23 @@ const GeneratePreliminaryDiagnosisOutputSchema = z.object({
 export type GeneratePreliminaryDiagnosisOutput = z.infer<
   typeof GeneratePreliminaryDiagnosisOutputSchema
 >;
+
+
+const specialistAgents = {
+  cardiologist: cardiologistAgent,
+  pulmonologist: pulmonologistAgent,
+  radiologist: radiologistAgent,
+  neurologist: neurologistAgent,
+  gastroenterologist: gastroenterologistAgent,
+  endocrinologist: endocrinologistAgent,
+  dermatologist: dermatologistAgent,
+  orthopedist: orthopedistAgent,
+  ophthalmologist: ophthalmologistAgent,
+  otolaryngologist: otolaryngologistAgent,
+  nutritionist: nutritionistAgent,
+  pediatrician: pediatricianAgent,
+};
+type Specialist = keyof typeof specialistAgents;
 
 const triagePrompt = ai.definePrompt({
   name: 'specialistTriagePrompt',

@@ -4,34 +4,18 @@
  * @fileOverview An AI specialist agent for cardiology.
  *
  * - cardiologistAgent - A flow that analyzes patient data from a cardiology perspective.
- * - CardiologistAgentInput - The input type for the flow.
- * - CardiologistAgentOutput - The return type for the flow.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
+import type { SpecialistAgentInput, SpecialistAgentOutput } from './generate-preliminary-diagnosis';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './generate-preliminary-diagnosis';
 
-// Input is the same as the main diagnosis flow, as it receives the same data
-export const CardiologistAgentInputSchema = z.object({
-  examResults: z
-    .string()
-    .describe('The results of the medical exams as a single string.'),
-  patientHistory: z
-    .string()
-    .describe('The patient medical history as a single string.'),
-});
-export type CardiologistAgentInput = z.infer<typeof CardiologistAgentInputSchema>;
-
-export const CardiologistAgentOutputSchema = z.object({
-    findings: z.string().describe("The specialist's findings and opinions from a cardiology perspective. If not relevant, state that clearly."),
-});
-export type CardiologistAgentOutput = z.infer<typeof CardiologistAgentOutputSchema>;
 
 const specialistPrompt = ai.definePrompt({
     name: 'cardiologistAgentPrompt',
-    input: {schema: CardiologistAgentInputSchema},
-    output: {schema: CardiologistAgentOutputSchema},
+    input: {schema: SpecialistAgentInputSchema},
+    output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI cardiologist.
     Your task is to analyze the provided patient data and provide your expert opinion focusing specifically on cardiovascular health.
@@ -50,18 +34,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-const cardiologistAgentFlow = ai.defineFlow(
-  {
-    name: 'cardiologistAgentFlow',
-    inputSchema: CardiologistAgentInputSchema,
-    outputSchema: CardiologistAgentOutputSchema,
-  },
-  async input => {
+export async function cardiologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
     const {output} = await specialistPrompt(input);
     return output!;
-  }
-);
-
-export async function cardiologistAgent(input: CardiologistAgentInput): Promise<CardiologistAgentOutput> {
-    return await cardiologistAgentFlow(input);
 }

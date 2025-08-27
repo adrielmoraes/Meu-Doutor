@@ -7,29 +7,15 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
-
-export const GastroenterologistAgentInputSchema = z.object({
-  examResults: z
-    .string()
-    .describe('The results of the medical exams as a single string.'),
-  patientHistory: z
-    .string()
-    .describe('The patient medical history as a single string, may include digestive symptoms.'),
-});
-export type GastroenterologistAgentInput = z.infer<typeof GastroenterologistAgentInputSchema>;
-
-export const GastroenterologistAgentOutputSchema = z.object({
-    findings: z.string().describe("The specialist's findings and opinions from a gastroenterology perspective. If not relevant, state that clearly."),
-});
-export type GastroenterologistAgentOutput = z.infer<typeof GastroenterologistAgentOutputSchema>;
+import type { SpecialistAgentInput, SpecialistAgentOutput } from './generate-preliminary-diagnosis';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './generate-preliminary-diagnosis';
 
 
 const specialistPrompt = ai.definePrompt({
     name: 'gastroenterologistAgentPrompt',
-    input: {schema: GastroenterologistAgentInputSchema},
-    output: {schema: GastroenterologistAgentOutputSchema},
+    input: {schema: SpecialistAgentInputSchema},
+    output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI gastroenterologist.
     Your task is to analyze the provided patient data for issues related to the digestive system.
@@ -49,18 +35,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-const gastroenterologistAgentFlow = ai.defineFlow(
-  {
-    name: 'gastroenterologistAgentFlow',
-    inputSchema: GastroenterologistAgentInputSchema,
-    outputSchema: GastroenterologistAgentOutputSchema,
-  },
-  async input => {
+export async function gastroenterologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
     const {output} = await specialistPrompt(input);
     return output!;
-  }
-);
-
-export async function gastroenterologistAgent(input: GastroenterologistAgentInput): Promise<GastroenterologistAgentOutput> {
-    return await gastroenterologistAgentFlow(input);
 }

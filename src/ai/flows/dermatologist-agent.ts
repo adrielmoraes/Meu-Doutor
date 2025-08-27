@@ -7,30 +7,15 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
-
-export const DermatologistAgentInputSchema = z.object({
-  examResults: z
-    .string()
-    .describe('The results of the medical exams as a single string.'),
-  patientHistory: z
-    .string()
-    .describe('The patient medical history, may include descriptions of skin conditions, rashes, moles, etc.'),
-});
-export type DermatologistAgentInput = z.infer<typeof DermatologistAgentInputSchema>;
-
-
-export const DermatologistAgentOutputSchema = z.object({
-    findings: z.string().describe("The specialist's findings and opinions from a dermatology perspective. If not relevant, state that clearly."),
-});
-export type DermatologistAgentOutput = z.infer<typeof DermatologistAgentOutputSchema>;
+import type { SpecialistAgentInput, SpecialistAgentOutput } from './generate-preliminary-diagnosis';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './generate-preliminary-diagnosis';
 
 
 const specialistPrompt = ai.definePrompt({
     name: 'dermatologistAgentPrompt',
-    input: {schema: DermatologistAgentInputSchema},
-    output: {schema: DermatologistAgentOutputSchema},
+    input: {schema: SpecialistAgentInputSchema},
+    output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI dermatologist.
     Your task is to analyze the provided patient data for issues related to skin, hair, and nails.
@@ -50,18 +35,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-const dermatologistAgentFlow = ai.defineFlow(
-  {
-    name: 'dermatologistAgentFlow',
-    inputSchema: DermatologistAgentInputSchema,
-    outputSchema: DermatologistAgentOutputSchema,
-  },
-  async input => {
+export async function dermatologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
     const {output} = await specialistPrompt(input);
     return output!;
-  }
-);
-
-export async function dermatologistAgent(input: DermatologistAgentInput): Promise<DermatologistAgentOutput> {
-    return await dermatologistAgentFlow(input);
 }

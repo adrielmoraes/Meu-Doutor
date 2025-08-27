@@ -7,29 +7,14 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
-
-export const EndocrinologistAgentInputSchema = z.object({
-  examResults: z
-    .string()
-    .describe('The results of the medical exams as a single string, which may contain hormone levels or glucose tests.'),
-  patientHistory: z
-    .string()
-    .describe('The patient medical history as a single string, may include symptoms like fatigue, weight changes, etc.'),
-});
-export type EndocrinologistAgentInput = z.infer<typeof EndocrinologistAgentInputSchema>;
-
-
-export const EndocrinologistAgentOutputSchema = z.object({
-    findings: z.string().describe("The specialist's findings and opinions from an endocrinology perspective. If not relevant, state that clearly."),
-});
-export type EndocrinologistAgentOutput = z.infer<typeof EndocrinologistAgentOutputSchema>;
+import type { SpecialistAgentInput, SpecialistAgentOutput } from './generate-preliminary-diagnosis';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './generate-preliminary-diagnosis';
 
 const specialistPrompt = ai.definePrompt({
     name: 'endocrinologistAgentPrompt',
-    input: {schema: EndocrinologistAgentInputSchema},
-    output: {schema: EndocrinologistAgentOutputSchema},
+    input: {schema: SpecialistAgentInputSchema},
+    output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI endocrinologist.
     Your task is to analyze the provided patient data for issues related to the endocrine system (hormones, metabolism, diabetes).
@@ -49,18 +34,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-const endocrinologistAgentFlow = ai.defineFlow(
-  {
-    name: 'endocrinologistAgentFlow',
-    inputSchema: EndocrinologistAgentInputSchema,
-    outputSchema: EndocrinologistAgentOutputSchema,
-  },
-  async input => {
+export async function endocrinologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
     const {output} = await specialistPrompt(input);
     return output!;
-  }
-);
-
-export async function endocrinologistAgent(input: EndocrinologistAgentInput): Promise<EndocrinologistAgentOutput> {
-    return await endocrinologistAgentFlow(input);
 }

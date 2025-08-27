@@ -7,28 +7,15 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
+import type { SpecialistAgentInput, SpecialistAgentOutput } from './generate-preliminary-diagnosis';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './generate-preliminary-diagnosis';
 
-export const PediatricianAgentInputSchema = z.object({
-  examResults: z
-    .string()
-    .describe('The results of the medical exams as a single string.'),
-  patientHistory: z
-    .string()
-    .describe('The patient medical history. Pay close attention to the patient age.'),
-});
-export type PediatricianAgentInput = z.infer<typeof PediatricianAgentInputSchema>;
-
-export const PediatricianAgentOutputSchema = z.object({
-    findings: z.string().describe("The specialist's findings and opinions from a pediatric perspective. If the patient is an adult, state that clearly."),
-});
-export type PediatricianAgentOutput = z.infer<typeof PediatricianAgentOutputSchema>;
 
 const specialistPrompt = ai.definePrompt({
     name: 'pediatricianAgentPrompt',
-    input: {schema: PediatricianAgentInputSchema},
-    output: {schema: PediatricianAgentOutputSchema},
+    input: {schema: SpecialistAgentInputSchema},
+    output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI pediatrician.
     Your task is to analyze the provided patient data for issues related to child health, from infants to adolescents.
@@ -48,18 +35,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-const pediatricianAgentFlow = ai.defineFlow(
-  {
-    name: 'pediatricianAgentFlow',
-    inputSchema: PediatricianAgentInputSchema,
-    outputSchema: PediatricianAgentOutputSchema,
-  },
-  async input => {
+export async function pediatricianAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
     const {output} = await specialistPrompt(input);
     return output!;
-  }
-);
-
-export async function pediatricianAgent(input: PediatricianAgentInput): Promise<PediatricianAgentOutput> {
-    return await pediatricianAgentFlow(input);
 }

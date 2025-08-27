@@ -7,28 +7,15 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
+import type { SpecialistAgentInput, SpecialistAgentOutput } from './generate-preliminary-diagnosis';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './generate-preliminary-diagnosis';
 
-export const OtolaryngologistAgentInputSchema = z.object({
-  examResults: z
-    .string()
-    .describe('The results of the medical exams as a single string.'),
-  patientHistory: z
-    .string()
-    .describe('The patient medical history, may include symptoms like ear pain, hearing loss, sore throat, or sinus issues.'),
-});
-export type OtolaryngologistAgentInput = z.infer<typeof OtolaryngologistAgentInputSchema>;
-
-export const OtolaryngologistAgentOutputSchema = z.object({
-    findings: z.string().describe("The specialist's findings and opinions from an otolaryngology (ENT) perspective. If not relevant, state that clearly."),
-});
-export type OtolaryngologistAgentOutput = z.infer<typeof OtolaryngologistAgentOutputSchema>;
 
 const specialistPrompt = ai.definePrompt({
     name: 'otolaryngologistAgentPrompt',
-    input: {schema: OtolaryngologistAgentInputSchema},
-    output: {schema: OtolaryngologistAgentOutputSchema},
+    input: {schema: SpecialistAgentInputSchema},
+    output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI otolaryngologist (Ear, Nose, and Throat specialist).
     Your task is to analyze the provided patient data for issues related to the ear, nose, throat, sinuses, and larynx.
@@ -48,18 +35,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-const otolaryngologistAgentFlow = ai.defineFlow(
-  {
-    name: 'otolaryngologistAgentFlow',
-    inputSchema: OtolaryngologistAgentInputSchema,
-    outputSchema: OtolaryngologistAgentOutputSchema,
-  },
-  async input => {
+export async function otolaryngologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
     const {output} = await specialistPrompt(input);
     return output!;
-  }
-);
-
-export async function otolaryngologistAgent(input: OtolaryngologistAgentInput): Promise<OtolaryngologistAgentOutput> {
-    return await otolaryngologistAgentFlow(input);
 }

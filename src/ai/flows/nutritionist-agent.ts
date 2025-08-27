@@ -7,29 +7,16 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import { internetSearchTool } from '../tools/internet-search';
+import type { SpecialistAgentInput, SpecialistAgentOutput } from './generate-preliminary-diagnosis';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './generate-preliminary-diagnosis';
 
-export const NutritionistAgentInputSchema = z.object({
-  examResults: z
-    .string()
-    .describe('The results of the medical exams, which may contain data like cholesterol levels, vitamin deficiencies, or glucose.'),
-  patientHistory: z
-    .string()
-    .describe('The patient medical history, may include dietary habits, weight management goals, or food allergies.'),
-});
-export type NutritionistAgentInput = z.infer<typeof NutritionistAgentInputSchema>;
-
-export const NutritionistAgentOutputSchema = z.object({
-    findings: z.string().describe("The specialist's findings and dietary recommendations. If not relevant, state that dietary information was not provided."),
-});
-export type NutritionistAgentOutput = z.infer<typeof NutritionistAgentOutputSchema>;
 
 const specialistPrompt = ai.definePrompt({
     name: 'nutritionistAgentPrompt',
-    input: {schema: NutritionistAgentInputSchema},
-    output: {schema: NutritionistAgentOutputSchema},
+    input: {schema: SpecialistAgentInputSchema},
+    output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool, internetSearchTool],
     prompt: `You are a world-renowned AI nutritionist and dietitian.
     Your task is to analyze the provided patient data to provide dietary advice and recommendations.
@@ -52,18 +39,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-const nutritionistAgentFlow = ai.defineFlow(
-  {
-    name: 'nutritionistAgentFlow',
-    inputSchema: NutritionistAgentInputSchema,
-    outputSchema: NutritionistAgentOutputSchema,
-  },
-  async input => {
+export async function nutritionistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
     const {output} = await specialistPrompt(input);
     return output!;
-  }
-);
-
-export async function nutritionistAgent(input: NutritionistAgentInput): Promise<NutritionistAgentOutput> {
-    return await nutritionistAgentFlow(input);
 }

@@ -7,28 +7,15 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
+import type { SpecialistAgentInput, SpecialistAgentOutput } from './generate-preliminary-diagnosis';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './generate-preliminary-diagnosis';
 
-export const OrthopedistAgentInputSchema = z.object({
-  examResults: z
-    .string()
-    .describe('The results of the medical exams as a single string, may contain imaging reports like X-rays.'),
-  patientHistory: z
-    .string()
-    .describe('The patient medical history, may include joint pain, fractures, or mobility issues.'),
-});
-export type OrthopedistAgentInput = z.infer<typeof OrthopedistAgentInputSchema>;
-
-export const OrthopedistAgentOutputSchema = z.object({
-    findings: z.string().describe("The specialist's findings and opinions from an orthopedic perspective. If not relevant, state that clearly."),
-});
-export type OrthopedistAgentOutput = z.infer<typeof OrthopedistAgentOutputSchema>;
 
 const specialistPrompt = ai.definePrompt({
     name: 'orthopedistAgentPrompt',
-    input: {schema: OrthopedistAgentInputSchema},
-    output: {schema: OrthopedistAgentOutputSchema},
+    input: {schema: SpecialistAgentInputSchema},
+    output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are a world-renowned AI orthopedist.
     Your task is to analyze the provided patient data for issues related to the musculoskeletal system (bones, joints, ligaments, tendons, muscles).
@@ -48,18 +35,7 @@ const specialistPrompt = ai.definePrompt({
     `,
 });
 
-const orthopedistAgentFlow = ai.defineFlow(
-  {
-    name: 'orthopedistAgentFlow',
-    inputSchema: OrthopedistAgentInputSchema,
-    outputSchema: OrthopedistAgentOutputSchema,
-  },
-  async input => {
+export async function orthopedistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
     const {output} = await specialistPrompt(input);
     return output!;
-  }
-);
-
-export async function orthopedistAgent(input: OrthopedistAgentInput): Promise<OrthopedistAgentOutput> {
-    return await orthopedistAgentFlow(input);
 }
