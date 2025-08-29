@@ -28,12 +28,15 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
   let diagnosisText = examData.preliminaryDiagnosis;
   let explanationText = examData.explanation;
   let audioToPlay: string | null = null;
+  let fullTextToSpeak = explanationText;
   
   if (isDiagnosisValidated) {
     title = "Diagnóstico Final Validado pelo Médico";
     diagnosisText = patient.doctorNotes!.split('\n')[0] || "Diagnóstico Final"; // Extract first line as title
     explanationText = patient.finalExplanation || "Seu médico validou este diagnóstico. Siga as orientações.";
     audioToPlay = patient.finalExplanationAudioUri || null; // Use the pre-generated audio for the final diagnosis
+    // Combine all relevant text for the audio playback
+    fullTextToSpeak = `${diagnosisText}. ${explanationText}`;
   }
 
   const examDate = new Date(examData.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -56,7 +59,7 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <AudioPlayback textToSpeak={explanationText} preGeneratedAudioUri={audioToPlay} />
+              <AudioPlayback textToSpeak={fullTextToSpeak} preGeneratedAudioUri={audioToPlay} />
               <div>
                 <h3 className="font-semibold text-lg">{isDiagnosisValidated ? "Diagnóstico Validado" : "Diagnóstico Preliminar da IA"}</h3>
                 <p className="text-xl text-primary font-bold">{diagnosisText}</p>
