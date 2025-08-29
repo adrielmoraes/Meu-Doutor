@@ -74,10 +74,11 @@ const explainDiagnosisFlow = ai.defineFlow(
     // Step 2: Now that we have the complete text, generate the audio for it.
     const audioResult = await textToSpeech({ text: explanationText });
 
-    // If the audio generation failed, we can still proceed with just the text.
+    // If the audio generation failed (e.g., due to quota limits), we can still proceed with just the text.
+    // This makes the validation process more resilient.
     const audioDataUri = audioResult?.audioDataUri || "";
 
-    // Step 3: Return both the final text and the complete audio.
+    // Step 3: Return both the final text and the (potentially empty) audio URI.
     return {
       explanation: explanationText,
       audioDataUri: audioDataUri,
