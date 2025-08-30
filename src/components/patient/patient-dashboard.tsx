@@ -1,5 +1,5 @@
 
-import { FileClock, UserPlus, HeartPulse, Video } from "lucide-react";
+import { FileClock, UserPlus, HeartPulse, Video, Activity } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import AIConsultationCard from "./ai--consultation-card";
@@ -15,6 +15,12 @@ interface PatientDashboardProps {
 
 const PatientDashboard = ({ patient, healthInsights }: PatientDashboardProps) => {
   const cards = [
+     {
+      title: "Monitoramento ao Vivo",
+      icon: <Activity className="h-8 w-8 text-primary" />,
+      href: "/patient/monitoring",
+      description: "Simule dados de seus wearables.",
+    },
     {
       title: "Consulta ao Vivo com IA",
       icon: <Video className="h-8 w-8 text-primary" />,
