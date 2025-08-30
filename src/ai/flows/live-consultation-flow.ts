@@ -12,7 +12,7 @@
  */
 
 import { defineAction, type Action } from 'genkit';
-import { z } from 'genkit/zod';
+import { z } from 'genkit';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // This is a workaround to define a Genkit action without the full flow wrapper,
