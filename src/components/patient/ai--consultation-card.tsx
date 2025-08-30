@@ -38,10 +38,10 @@ const AIConsultationCard = () => {
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [avatarGender, setAvatarGender] = useState<"male" | "female">("female");
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
-  const [hasMicPermission, setHasMicPermission] = useState<boolean | null>(null);
   const [history, setHistory] = useState<{role: 'user' | 'model', content: string}[]>([]);
   const [isThinking, setIsThinking] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const previewVideoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
   const userMediaStreamRef = useRef<MediaStream | null>(null);
@@ -61,6 +61,38 @@ const AIConsultationCard = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [history]);
+
+  // Proactively request media permissions when the component mounts
+  useEffect(() => {
+    const getMediaPermissions = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            userMediaStreamRef.current = stream;
+            setHasCameraPermission(true);
+            if (previewVideoRef.current) {
+                previewVideoRef.current.srcObject = stream;
+            }
+        } catch (err) {
+            console.error('Error accessing media devices:', err);
+            setHasCameraPermission(false);
+            toast({
+                variant: 'destructive',
+                title: 'Acesso à Mídia Negado',
+                description: 'Por favor, habilite o acesso à câmera e ao microfone nas configurações do seu navegador para usar a consulta por vídeo.',
+            });
+        }
+    };
+    getMediaPermissions();
+
+    // Cleanup function to stop media tracks when component unmounts
+    return () => {
+         if (userMediaStreamRef.current) {
+            userMediaStreamRef.current.getTracks().forEach(track => track.stop());
+            userMediaStreamRef.current = null;
+        }
+    }
+  }, [toast]);
+
 
   const stopAiSpeaking = useCallback(() => {
     if (audioRef.current && !audioRef.current.paused) {
@@ -189,14 +221,10 @@ const AIConsultationCard = () => {
     setIsDialogOpen(false); 
   };
 
-  // Effect to manage dialog lifecycle and media permissions
+  // Effect to manage dialog lifecycle
   useEffect(() => {
     if (!isDialogOpen) {
         // Cleanup when dialog closes
-        if (userMediaStreamRef.current) {
-            userMediaStreamRef.current.getTracks().forEach(track => track.stop());
-            userMediaStreamRef.current = null;
-        }
         if (recognitionRef.current) {
             recognitionRef.current.stop();
             recognitionRef.current = null;
@@ -209,38 +237,16 @@ const AIConsultationCard = () => {
 
         // Reset state for next call
         setHistory([]);
-        setHasMicPermission(null);
-        setHasCameraPermission(null);
         setIsMicOn(false);
         setIsVideoOn(true);
         return;
     }
 
-    const getMediaPermissions = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            userMediaStreamRef.current = stream;
-            setHasCameraPermission(true);
-            setHasMicPermission(true);
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-            }
-            startConversation();
-        } catch (err) {
-            console.error('Error accessing media devices:', err);
-            setHasCameraPermission(false);
-            setHasMicPermission(false);
-            setIsVideoOn(false);
-            setIsMicOn(false);
-            toast({
-                variant: 'destructive',
-                title: 'Acesso à Mídia Negado',
-                description: 'Por favor, habilite o acesso à câmera e ao microfone nas configurações do seu navegador.',
-            });
-        }
-    };
-    
-    getMediaPermissions();
+    // When dialog opens, connect the stream to the main video element
+    if (userMediaStreamRef.current && videoRef.current) {
+      videoRef.current.srcObject = userMediaStreamRef.current;
+    }
+    startConversation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDialogOpen]);
 
@@ -258,16 +264,21 @@ const AIConsultationCard = () => {
                 Consulta com a IA
               </CardTitle>
               <CardDescription className="text-primary-foreground/80">
-                Inicie uma videochamada com seu assistente.
+                Converse com seu assistente por vídeo e voz.
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="bg-black/20 rounded-md aspect-video overflow-hidden flex items-center justify-center text-primary-foreground/50">
+             <video ref={previewVideoRef} className={`w-full h-full object-cover ${hasCameraPermission ? '' : 'hidden'}`} autoPlay muted playsInline />
+             {hasCameraPermission === false && <p className="p-4 text-center text-sm">A câmera está desativada. Habilite nas configurações do seu navegador.</p>}
+          </div>
           <Button
             onClick={() => setIsDialogOpen(true)}
             className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90"
             size="lg"
+            disabled={!hasCameraPermission}
           >
             <Video className="mr-2 h-5 w-5" />
             Iniciar Chamada
@@ -289,18 +300,9 @@ const AIConsultationCard = () => {
             </div>
             <div className="flex flex-col gap-4">
               <div className="bg-black rounded-lg h-48 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
-                 <video ref={videoRef} className={`w-full h-full object-cover ${!isVideoOn || !hasCameraPermission ? 'hidden' : ''}`} autoPlay muted playsInline />
+                 <video ref={videoRef} className={`w-full h-full object-cover ${!isVideoOn ? 'hidden' : ''}`} autoPlay muted playsInline />
                  
-                 {hasCameraPermission === false && (
-                    <Alert variant="destructive" className="absolute inset-2">
-                        <AlertTitle>Câmera Desativada</AlertTitle>
-                        <AlertDescription>
-                            Permita o acesso à câmera nas configurações do navegador para continuar.
-                        </AlertDescription>
-                    </Alert>
-                  )}
-                 
-                 {hasCameraPermission && !isVideoOn && (
+                 {!isVideoOn && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4 text-white flex-col">
                         <VideoOff className="h-10 w-10 mb-2"/>
                         <span>Câmera desligada</span>
@@ -339,10 +341,10 @@ const AIConsultationCard = () => {
                 <ToggleGroupItem value="female" aria-label="Toggle female avatar">Feminino</ToggleGroupItem>
                 <ToggleGroupItem value="male" aria-label="Toggle male avatar">Masculino</ToggleGroupItem>
             </ToggleGroup>
-            <Button variant={isMicOn ? "secondary" : "destructive"} size="icon" onClick={toggleMic} disabled={hasMicPermission === false}>
+            <Button variant={isMicOn ? "secondary" : "destructive"} size="icon" onClick={toggleMic}>
               {isMicOn ? <Mic /> : <MicOff />}
             </Button>
-            <Button variant={isVideoOn ? "secondary" : "destructive"} size="icon" onClick={() => setIsVideoOn(!isVideoOn)} disabled={hasCameraPermission === false}>
+            <Button variant={isVideoOn ? "secondary" : "destructive"} size="icon" onClick={() => setIsVideoOn(!isVideoOn)}>
               {isVideoOn ? <Video /> : <VideoOff />}
             </Button>
             <Button variant="destructive" size="lg" onClick={handleEndCall}>
@@ -356,5 +358,3 @@ const AIConsultationCard = () => {
 };
 
 export default AIConsultationCard;
-
-    
