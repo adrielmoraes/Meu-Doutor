@@ -77,19 +77,25 @@ Para um ambiente de produção, é crucial implementar as **Regras de Segurança
 *   **Navegação Eficiente:** Uma barra lateral persistente e um layout profissional permitem acesso rápido a todas as funcionalidades do médico.
 *   **Visão Geral:** Cartões de acesso rápido levam para "Meus Pacientes", "Agenda" e "Histórico".
 
-#### 2. **Gerenciamento de Pacientes**
-*   **Lista de Pacientes:** Uma tabela exibe todos os pacientes, com um indicador de status visual ("Requer Validação" ou "Validado").
-*   **Visão Detalhada do Caso:** Ao clicar em um paciente, o médico acessa uma página completa com todas as informações relevantes.
+#### 2. **Gerenciamento de Pacientes com Priorização Inteligente**
+*   **Lista Priorizada:** Uma tabela exibe todos os pacientes que requerem validação, ordenados por um nível de urgência ("Urgente", "Alta", "Normal") que é automaticamente determinado por um fluxo de IA (`triageUrgency`). Isso garante que os casos mais críticos sejam vistos primeiro.
+*   **Indicadores Visuais:** Ícones e cores destacam o status e a prioridade de cada paciente, permitindo uma rápida identificação visual.
 
-#### 3. **Fluxo de Validação de Diagnóstico**
-*   **Síntese da IA:** O médico visualiza um resumo do histórico do paciente e o diagnóstico preliminar gerado pela orquestração de múltiplos especialistas de IA (Cardiologista, Neurologista, etc.).
-*   **Triagem Inteligente:** A IA primeiro realiza uma triagem para invocar apenas os especialistas relevantes para o caso, otimizando o processo.
+#### 3. **Fluxo de Validação de Diagnóstico com Múltiplos Especialistas**
+*   **Síntese da Equipe de IAs:** O médico visualiza um diagnóstico preliminar que não é gerado por uma única IA, mas sim pela colaboração de uma equipe de especialistas de IA.
+*   **Triagem Inteligente:** Um fluxo orquestrador (`generatePreliminaryDiagnosis`) primeiro realiza uma triagem para invocar apenas os agentes especialistas relevantes para o caso (ex: Cardiologista, Neurologista, Radiologista).
+*   **Pareceres Estruturados:** As descobertas de cada especialista são apresentadas de forma organizada e separada, permitindo que o médico humano entenda o raciocínio por trás da síntese final.
 *   **Edição e Validação:** O médico tem uma área de texto para editar as notas da IA, adicionar sua própria análise, diagnóstico final e prescrição.
-*   **Ações de Salvar e Validar:** O médico pode salvar seu trabalho como rascunho ou clicar em "Validar Diagnóstico", o que finaliza o caso e dispara a geração do plano de bem-estar para o paciente.
+*   **Ações de Salvar e Validar:** Ao clicar em "Validar Diagnóstico", o caso é finalizado e isso dispara a geração automática do plano de bem-estar e da explicação simplificada para o paciente.
 
-#### 4. **Agenda e Consultas**
-*   **Calendário Visual:** Uma página de agenda exibe as consultas marcadas em um calendário.
-*   **Agendamento Inteligente:** O paciente pode ver os horários disponíveis de um médico (o sistema verifica a disponibilidade no Firestore) e agendar uma nova consulta.
+#### 4. **Agenda e Consultas com Base na Localização**
+*   **Listagem Inteligente:** Quando um paciente busca por médicos, o sistema primeiro mostra os profissionais disponíveis em sua cidade, facilitando a conexão local. Se não houver médicos locais, ele exibe profissionais de outras regiões.
+*   **Calendário Visual:** Uma página de agenda exibe as consultas marcadas em um calendário, permitindo ao médico gerenciar seu tempo.
+*   **Agendamento Flexível:** O paciente pode ver os horários disponíveis de um médico (o sistema verifica a disponibilidade no Firestore) e agendar uma nova consulta.
+
+#### 5. **Perfil do Médico com Gamificação**
+*   **Progressão de Carreira:** Médicos sobem de nível (de "Residente" a "Mestre em Diagnóstico") e ganham pontos de experiência (XP) a cada diagnóstico que validam.
+*   **Estatísticas e Conquistas:** Uma página de perfil mostra estatísticas de desempenho, como o total de validações, e exibe "badges" (conquistas) por marcos alcançados, incentivando o engajamento e a excelência.
 
 ## 💰 Modelos de Negócio e Monetização
 
