@@ -27,6 +27,9 @@ import {ophthalmologistAgent} from './ophthalmologist-agent';
 import {otolaryngologistAgent} from './otolaryngologist-agent';
 import {nutritionistAgent} from './nutritionist-agent';
 import {pediatricianAgent} from './pediatrician-agent';
+import { gynecologistAgent } from './gynecologist-agent';
+import { urologistAgent } from './urologist-agent';
+import { psychiatristAgent } from './psychiatrist-agent';
 
 // Define Schemas centrally
 const GeneratePreliminaryDiagnosisInputSchema = SpecialistAgentInputSchema;
@@ -69,6 +72,9 @@ const specialistAgents = {
   'Dr. Rafael (Otorrinolaringologista)': otolaryngologistAgent,
   'Dra. Laura (Nutricionista)': nutritionistAgent,
   'Dra. Nathalia (Pediatra)': pediatricianAgent,
+  'Dra. Helena (Ginecologista)': gynecologistAgent,
+  'Dr. André (Urologista)': urologistAgent,
+  'Dra. Sofia (Psiquiatra)': psychiatristAgent,
 };
 type Specialist = keyof typeof specialistAgents;
 
