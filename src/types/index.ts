@@ -11,21 +11,23 @@ export type Patient = {
   city: string;
   state: string;
   lastVisit: string;
-  status: 'Requer Validação' | 'Validado';
+  // This top-level status can represent if the patient has any pending exams.
+  status: 'Requer Validação' | 'Validado'; 
   priority?: 'Urgente' | 'Alta' | 'Normal';
   avatar: string;
   avatarHint: string;
   gender: string;
   conversationHistory: string;
   reportedSymptoms: string;
-  examResults: string;
-  doctorNotes?: string;
+  examResults: string; // Summary of all results for AI context
+  doctorNotes?: string; // Kept for general notes, but validation is per exam.
   preventiveAlerts?: string[];
   healthGoals?: {
       title: string;
       description: string;
       progress: number;
   }[];
+  // Final explanation at patient level is being deprecated in favor of per-exam.
   finalExplanation?: string;
   finalExplanationAudioUri?: string;
 };
@@ -59,6 +61,7 @@ export type DoctorWithPassword = Doctor & { password?: string | null };
 
 export type Exam = {
   id: string;
+  patientId: string;
   type: string;
   date: string;
   result: string; // A summary of the result, e.g., the preliminary diagnosis
@@ -67,6 +70,10 @@ export type Exam = {
   explanation: string;
   suggestions: string;
   results?: { name: string; value: string; reference: string }[];
+  status: 'Requer Validação' | 'Validado';
+  doctorNotes?: string;
+  finalExplanation?: string;
+  finalExplanationAudioUri?: string;
 };
 
 export type Appointment = {

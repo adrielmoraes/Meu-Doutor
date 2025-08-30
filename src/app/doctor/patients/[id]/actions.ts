@@ -1,65 +1,63 @@
 
 'use server';
 
-import { getPatientById, updatePatient } from '@/lib/firestore-adapter';
+import { getPatientById, updatePatient, updateExam, getExamsByPatientId } from '@/lib/firestore-adapter';
 import { revalidatePath } from 'next/cache';
 import { generateHealthInsights } from '@/ai/flows/generate-health-insights';
 import { summarizePatientHistory } from '@/ai/flows/summarize-patient-history';
 import { explainDiagnosisToPatient } from '@/ai/flows/explain-diagnosis-flow';
 
-export async function validateDiagnosisAction(patientId: string, doctorNotes: string) {
+export async function validateExamDiagnosisAction(patientId: string, examId: string, doctorNotes: string) {
   try {
     const patient = await getPatientById(patientId);
     if (!patient) {
         throw new Error("Patient not found");
     }
 
-    // Generate a fresh summary to ensure insights are based on the latest data.
-    const historySummary = await summarizePatientHistory({
-        conversationHistory: patient.conversationHistory || "Nenhum histórico.",
-        reportedSymptoms: patient.reportedSymptoms || "Nenhum sintoma reportado.",
-    });
-
-    // Generate the preventive health insights and goals based on the final diagnosis
-    const healthInsights = await generateHealthInsights({
-        patientHistory: historySummary.summary,
-        validatedDiagnosis: doctorNotes,
-    });
-    
     // Generate the patient-friendly explanation and audio narration
     const finalExplanation = await explainDiagnosisToPatient({
         diagnosisAndNotes: doctorNotes,
     });
-
-
-    // Update the patient document with the validated status, doctor's notes, and the new health plan
-    await updatePatient(patientId, {
+    
+    // Update the specific exam with the validated status and doctor's notes
+    await updateExam(patientId, examId, {
       status: 'Validado',
       doctorNotes: doctorNotes,
-      preventiveAlerts: healthInsights.preventiveAlerts,
-      healthGoals: healthInsights.healthGoals,
       finalExplanation: finalExplanation.explanation,
       finalExplanationAudioUri: finalExplanation.audioDataUri,
     });
+
+    // After validating an exam, check if there are any other exams pending validation
+    const allExams = await getExamsByPatientId(patientId);
+    const hasPendingExams = allExams.some(exam => exam.status === 'Requer Validação');
+
+    // If no more exams are pending, update the patient's overall status to 'Validado'
+    if (!hasPendingExams) {
+        await updatePatient(patientId, {
+            status: 'Validado',
+        });
+    }
     
     // Revalidate paths to reflect changes immediately across the app
     revalidatePath(`/doctor/patients/${patientId}`);
     revalidatePath('/doctor/patients');
-    revalidatePath('/'); // Revalidate patient dashboard
+    revalidatePath(`/patient/history/${examId}`);
+    revalidatePath('/patient/dashboard'); // Revalidate patient dashboard
     
-    return { success: true, message: 'Diagnóstico validado com sucesso! Plano de saúde gerado.' };
+    return { success: true, message: 'Exame validado com sucesso!' };
   } catch (error) {
-    console.error('Failed to validate diagnosis:', error);
-    return { success: false, message: 'Erro ao validar o diagnóstico.' };
+    console.error('Failed to validate exam diagnosis:', error);
+    return { success: false, message: 'Erro ao validar o exame.' };
   }
 }
 
-export async function saveDraftNotesAction(patientId: string, doctorNotes: string) {
+export async function saveDraftNotesAction(patientId: string, examId: string, doctorNotes: string) {
     try {
-        await updatePatient(patientId, {
+        await updateExam(patientId, examId, {
             doctorNotes: doctorNotes,
         });
         revalidatePath(`/doctor/patients/${patientId}`);
+        revalidatePath(`/patient/history/${examId}`);
         return { success: true, message: 'Rascunho salvo com sucesso!' };
     } catch (error)
     {

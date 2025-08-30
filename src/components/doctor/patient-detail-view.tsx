@@ -7,83 +7,83 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Bot, FileText, User, Pen, CheckCircle, Send, Loader2 } from "lucide-react";
-import type { GeneratePreliminaryDiagnosisOutput } from "@/ai/flows/generate-preliminary-diagnosis";
+import { Bot, FileText, User, Pen, CheckCircle, Send, Loader2, FileWarning, Files } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { Patient } from "@/types";
-import { validateDiagnosisAction, saveDraftNotesAction } from "@/app/doctor/patients/[id]/actions";
+import type { Patient, Exam } from "@/types";
+import { validateExamDiagnosisAction, saveDraftNotesAction } from "@/app/doctor/patients/[id]/actions";
 import { Badge } from "../ui/badge";
 import AudioPlayback from "../patient/audio-playback";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
+import { ScrollArea } from "../ui/scroll-area";
+import { Separator } from "../ui/separator";
 
 type PatientDetailViewProps = {
   patient: Patient;
   summary: string;
-  diagnosis: GeneratePreliminaryDiagnosisOutput;
+  exams: Exam[];
+};
+
+type ExamValidationState = {
+  [examId: string]: {
+    notes: string;
+    isSaving: boolean;
+    isValidating: boolean;
+  };
 };
 
 export default function PatientDetailView({
   patient,
   summary,
-  diagnosis,
+  exams,
 }: PatientDetailViewProps) {
-  const [doctorNotes, setDoctorNotes] = useState(patient.doctorNotes || diagnosis.synthesis || "");
-  const [isSaving, setIsSaving] = useState(false);
-  const [isValidating, setIsValidating] = useState(false);
-  const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
 
-  const handleSaveDraft = async () => {
-    setIsSaving(true);
-    const result = await saveDraftNotesAction(patient.id, doctorNotes);
-    if (result.success) {
-      toast({
-        title: "Rascunho Salvo",
-        description: result.message,
-      });
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Erro ao Salvar",
-        description: result.message,
-      });
-    }
-    setIsSaving(false);
+  // Initialize state for each exam
+  const initialValidationState = exams.reduce((acc, exam) => {
+    acc[exam.id] = {
+      notes: exam.doctorNotes || exam.preliminaryDiagnosis || "",
+      isSaving: false,
+      isValidating: false,
+    };
+    return acc;
+  }, {} as ExamValidationState);
+
+  const [validationState, setValidationState] = useState(initialValidationState);
+
+  const handleNotesChange = (examId: string, newNotes: string) => {
+    setValidationState(prev => ({
+      ...prev,
+      [examId]: { ...prev[examId], notes: newNotes },
+    }));
   };
 
-  const handleValidateDiagnosis = async () => {
-    setIsValidating(true);
-    const result = await validateDiagnosisAction(patient.id, doctorNotes);
-     if (result.success) {
-      toast({
-        title: "Diagnóstico Validado",
-        description: `O diagnóstico para ${patient.name} foi validado.`,
-        className: "bg-green-100 text-green-800 border-green-200",
-      });
-    } else {
-        toast({
-            variant: "destructive",
-            title: "Erro ao Validar",
-            description: result.message,
-        });
-    }
-    setIsValidating(false);
-  };
-
-  const handleSendToPatient = () => {
-    setIsSending(true);
-    // Primeiro, salva as notas mais recentes.
-    saveDraftNotesAction(patient.id, doctorNotes).then(() => {
-        // Em uma aplicação real, aqui você enviaria uma notificação ao paciente.
-        console.log("Sending to patient:", doctorNotes);
-        toast({
-            title: "Enviado ao Paciente",
-            description: `O diagnóstico final foi enviado para ${patient.name}.`,
-            className: "bg-blue-100 text-blue-800 border-blue-200",
-        });
-        setIsSending(false);
+  const handleSaveDraft = async (examId: string) => {
+    setValidationState(prev => ({ ...prev, [examId]: { ...prev[examId], isSaving: true } }));
+    const result = await saveDraftNotesAction(patient.id, examId, validationState[examId].notes);
+    toast({
+      title: result.success ? "Rascunho Salvo" : "Erro ao Salvar",
+      description: result.message,
+      variant: result.success ? "default" : "destructive",
     });
+    setValidationState(prev => ({ ...prev, [examId]: { ...prev[examId], isSaving: false } }));
   };
+
+  const handleValidateDiagnosis = async (examId: string) => {
+    setValidationState(prev => ({ ...prev, [examId]: { ...prev[examId], isValidating: true } }));
+    const result = await validateExamDiagnosisAction(patient.id, examId, validationState[examId].notes);
+    toast({
+      title: result.success ? "Diagnóstico Validado" : "Erro ao Validar",
+      description: result.message,
+      variant: result.success ? "default" : "destructive",
+      className: result.success ? "bg-green-100 text-green-800 border-green-200" : "",
+    });
+    // State will be updated by page revalidation
+    setValidationState(prev => ({ ...prev, [examId]: { ...prev[examId], isValidating: false } }));
+  };
+
+  const pendingExams = exams.filter(e => e.status === 'Requer Validação');
+  const validatedExams = exams.filter(e => e.status === 'Validado');
+
 
   return (
     <div className="space-y-6">
@@ -112,118 +112,117 @@ export default function PatientDetailView({
         </CardHeader>
       </Card>
 
-      <Tabs defaultValue="diagnosis" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="diagnosis">
-            <Bot className="mr-2 h-4 w-4" /> Diagnóstico da IA
-          </TabsTrigger>
-          <TabsTrigger value="summary">
-            <User className="mr-2 h-4 w-4" /> Resumo do Paciente
-          </TabsTrigger>
-          <TabsTrigger value="raw_data">
-            <FileText className="mr-2 h-4 w-4" /> Dados Brutos
-          </TabsTrigger>
-        </TabsList>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left column for exams */}
+        <div className="lg:col-span-2 space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <FileWarning className="h-6 w-6 text-yellow-500" />
+                        Exames Pendentes de Validação ({pendingExams.length})
+                    </CardTitle>
+                    <CardDescription>Revise a análise da IA e forneça seu diagnóstico final para cada exame.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {pendingExams.length > 0 ? (
+                        <Accordion type="single" collapsible className="w-full" defaultValue={pendingExams[0].id}>
+                            {pendingExams.map(exam => {
+                                const state = validationState[exam.id];
+                                return (
+                                <AccordionItem value={exam.id} key={exam.id}>
+                                    <AccordionTrigger className="text-base font-medium hover:no-underline">
+                                        <div className="flex items-center gap-4">
+                                            <Files className="h-5 w-5 text-primary"/>
+                                            <span>{exam.type}</span>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="space-y-4 pt-4">
+                                        <div className="p-4 bg-muted/50 rounded-lg">
+                                            <h4 className="font-semibold text-sm mb-2 text-primary">Análise Preliminar da IA</h4>
+                                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{exam.preliminaryDiagnosis}</p>
+                                        </div>
+                                        <div className="p-4 bg-muted/50 rounded-lg">
+                                            <h4 className="font-semibold text-sm mb-2 text-primary">Explicação Simplificada (IA)</h4>
+                                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{exam.explanation}</p>
+                                        </div>
+                                        <div className="pt-4">
+                                            <h3 className="font-semibold mb-2">Sua Validação e Prescrição Final</h3>
+                                            <Textarea 
+                                                placeholder="Edite o diagnóstico e adicione sua prescrição oficial aqui..." 
+                                                rows={6}
+                                                value={state?.notes || ''}
+                                                onChange={(e) => handleNotesChange(exam.id, e.target.value)}
+                                            />
+                                            <div className="flex gap-2 mt-4">
+                                                <Button onClick={() => handleSaveDraft(exam.id)} disabled={state?.isSaving}>
+                                                    {state?.isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Pen className="mr-2 h-4 w-4" />}
+                                                    {state?.isSaving ? "Salvando..." : "Salvar Rascunho"}
+                                                </Button>
+                                                <Button onClick={() => handleValidateDiagnosis(exam.id)} variant="secondary" disabled={state?.isValidating}>
+                                                    {state?.isValidating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                                                    {state?.isValidating ? "Validando..." : "Validar Diagnóstico"}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
+                                );
+                            })}
+                        </Accordion>
+                    ) : (
+                        <p className="text-muted-foreground text-center py-4">Nenhum exame pendente de validação.</p>
+                    )}
+                </CardContent>
+            </Card>
 
-        <TabsContent value="diagnosis" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Análise e Diagnóstico Preliminar da IA</CardTitle>
-              <CardDescription>
-                Esta é a interpretação e sugestão da IA baseada nos dados fornecidos.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h3 className="font-semibold">Síntese do Diagnóstico Preliminar</h3>
-                <p className="text-muted-foreground whitespace-pre-wrap">{diagnosis.synthesis}</p>
-              </div>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <CheckCircle className="h-6 w-6 text-green-600" />
+                        Exames Já Validados ({validatedExams.length})
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                     {validatedExams.length > 0 ? (
+                        <ul className="space-y-2">
+                            {validatedExams.map(exam => (
+                                <li key={exam.id} className="p-3 border rounded-md">
+                                    <p className="font-semibold">{exam.type}</p>
+                                    <p className="text-sm text-muted-foreground truncate">{exam.doctorNotes}</p>
+                                </li>
+                            ))}
+                        </ul>
+                     ): (
+                        <p className="text-muted-foreground text-center py-4">Nenhum exame foi validado ainda.</p>
+                     )}
+                </CardContent>
+            </Card>
+        </div>
 
-               {diagnosis.structuredFindings && diagnosis.structuredFindings.length > 0 && (
-                <div>
-                  <h3 className="font-semibold mt-4 mb-2">Pareceres dos Especialistas</h3>
-                  <Accordion type="single" collapsible className="w-full">
-                    {diagnosis.structuredFindings.map((finding) => (
-                      <AccordionItem value={finding.specialist} key={finding.specialist}>
-                        <AccordionTrigger className="text-sm font-medium">{finding.specialist}</AccordionTrigger>
-                        <AccordionContent>
-                          <p className="text-muted-foreground whitespace-pre-wrap">{finding.findings}</p>
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
-                </div>
-              )}
-
-              <div>
-                <h3 className="font-semibold mt-4">Sugestões e Próximos Passos</h3>
-                <p className="text-muted-foreground whitespace-pre-wrap">{diagnosis.suggestions}</p>
-              </div>
-
-              <div className="pt-4 border-t">
-                 <h3 className="font-semibold mb-2">Validação e Prescrição Final do Médico</h3>
-                 <Textarea 
-                   placeholder="Edite o diagnóstico e adicione sua prescrição oficial aqui..." 
-                   rows={8}
-                   value={doctorNotes}
-                   onChange={(e) => setDoctorNotes(e.target.value)}
-                   disabled={patient.status === 'Validado'}
-                 />
-
-                 {patient.status === 'Validado' && patient.finalExplanation && (
-                    <div className="mt-4 p-4 border rounded-md bg-muted/50">
-                        <h4 className="font-semibold text-sm mb-2">Explicação gerada para o paciente:</h4>
-                        <p className="text-sm text-muted-foreground italic mb-3">"{patient.finalExplanation}"</p>
-                        <AudioPlayback 
-                            textToSpeak={patient.finalExplanation} 
-                            preGeneratedAudioUri={patient.finalExplanationAudioUri} 
-                        />
-                    </div>
-                  )}
-
-                 <div className="flex gap-2 mt-4">
-                    <Button onClick={handleSaveDraft} disabled={isSaving || patient.status === 'Validado'}>
-                      {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Pen className="mr-2 h-4 w-4" />}
-                      {isSaving ? "Salvando..." : "Salvar Rascunho"}
-                    </Button>
-                    <Button onClick={handleValidateDiagnosis} variant="secondary" disabled={isValidating || patient.status === 'Validado'}>
-                      {isValidating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-                      {isValidating ? "Validando..." : "Validar Diagnóstico"}
-                    </Button>
-                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="summary" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Resumo Executivo do Caso</CardTitle>
-              <CardDescription>
-                Gerado pela IA a partir das interações do paciente.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="whitespace-pre-wrap leading-relaxed text-muted-foreground">{summary}</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="raw_data" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Exames Brutos</CardTitle>
-              <CardDescription>
-                A informação original do exame carregado pelo paciente.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <pre className="p-4 bg-muted rounded-md text-sm text-muted-foreground overflow-x-auto">
-                <code>{patient.examResults}</code>
-              </pre>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        {/* Right column for patient summary */}
+        <div className="lg:col-span-1">
+            <Card>
+                <CardHeader>
+                <CardTitle className="flex items-center gap-2"><User className="h-5 w-5"/>Resumo do Paciente</CardTitle>
+                <CardDescription>
+                    Gerado pela IA a partir das interações do paciente.
+                </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ScrollArea className="h-48">
+                        <p className="whitespace-pre-wrap leading-relaxed text-sm text-muted-foreground pr-4">{summary}</p>
+                    </ScrollArea>
+                    <Separator className="my-4" />
+                     <h4 className="font-semibold mb-2 text-sm">Dados Brutos Combinados</h4>
+                     <ScrollArea className="h-48">
+                        <pre className="p-2 bg-muted rounded-md text-xs text-muted-foreground overflow-x-auto pr-4">
+                            <code>{patient.examResults || "Nenhum dado bruto registrado."}</code>
+                        </pre>
+                    </ScrollArea>
+                </CardContent>
+            </Card>
+        </div>
+      </div>
     </div>
   );
 }

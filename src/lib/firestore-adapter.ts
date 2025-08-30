@@ -30,7 +30,7 @@ export async function getExamsByPatientId(patientId: string): Promise<Exam[]> {
     const examsCol = collection(db, `patients/${patientId}/exams`);
     const examSnapshot = await getDocs(examsCol);
     const examList = examSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Exam));
-    return examList;
+    return examList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
 export async function getExamById(patientId: string, examId: string): Promise<Exam | null> {
@@ -43,14 +43,21 @@ export async function getExamById(patientId: string, examId: string): Promise<Ex
     return null;
 }
 
-export async function addExamToPatient(patientId: string, examData: Omit<Exam, 'id' | 'date'>): Promise<string> {
+export async function addExamToPatient(patientId: string, examData: Omit<Exam, 'id' | 'date' | 'status' | 'patientId'>): Promise<string> {
     const examsCol = collection(db, `patients/${patientId}/exams`);
     const examDocData = {
         ...examData,
+        patientId: patientId,
         date: new Date().toISOString(),
+        status: 'Requer Validação' as const,
     };
     const docRef = await addDoc(examsCol, examDocData);
     return docRef.id;
+}
+
+export async function updateExam(patientId: string, examId: string, data: Partial<Exam>): Promise<void> {
+    const examDocRef = doc(db, `patients/${patientId}/exams`, examId);
+    await updateDoc(examDocRef, data);
 }
 
 
