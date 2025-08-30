@@ -8,6 +8,8 @@ export type Patient = {
   cpf: string;
   phone: string;
   email: string;
+  city: string;
+  state: string;
   lastVisit: string;
   status: 'Requer Validação' | 'Validado';
   priority?: 'Urgente' | 'Alta' | 'Normal';
@@ -35,6 +37,8 @@ export type Doctor = {
   id: string;
   name: string;
   specialty: string;
+  city: string;
+  state: string;
   online: boolean;
   avatar: string;
   avatarHint: string;

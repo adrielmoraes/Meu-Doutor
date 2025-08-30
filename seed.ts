@@ -1,3 +1,4 @@
+
 /**
  * @fileoverview
  * This file contains the logic for seeding the Firestore database with initial data.
@@ -5,7 +6,7 @@
  */
 import 'dotenv/config'; // Make sure to load environment variables
 import { getAdminDb } from './src/lib/firebase-admin'; // Use admin SDK for seeding
-import { Patient, Doctor, Exam, Appointment } from './src/types';
+import type { Patient, Doctor, Exam, Appointment } from './src/types';
 import { format, addDays, differenceInYears } from 'date-fns';
 import bcrypt from 'bcrypt';
 
@@ -24,6 +25,8 @@ const PATIENTS = [
         cpf: '123.456.789-00',
         phone: '(11) 98765-4321',
         email: 'carlos.silva@example.com',
+        city: 'São Paulo',
+        state: 'SP',
         lastVisit: format(new Date(), 'dd/MM/yyyy'),
         status: 'Requer Validação',
         avatar: 'https://placehold.co/128x128.png',
@@ -47,6 +50,8 @@ const PATIENTS = [
             cpf: '987.654.321-00',
             phone: '(21) 91234-5678',
             email: 'mariana.oliveira@example.com',
+            city: 'Rio de Janeiro',
+            state: 'RJ',
             lastVisit: format(addDays(new Date(), -5), 'dd/MM/yyyy'),
             status: 'Validado',
             avatar: 'https://placehold.co/128x128.png',
@@ -96,6 +101,8 @@ const DOCTORS = [
         data: {
             name: 'Dra. Ana Costa',
             specialty: 'Cardiologista',
+            city: 'São Paulo',
+            state: 'SP',
             online: true,
             avatar: 'https://placehold.co/128x128.png',
             avatarHint: 'woman portrait',
@@ -118,6 +125,8 @@ const DOCTORS = [
         data: {
             name: 'Dr. Bruno Lima',
             specialty: 'Neurologista',
+            city: 'Salvador',
+            state: 'BA',
             online: false,
             avatar: 'https://placehold.co/128x128.png',
             avatarHint: 'man portrait',

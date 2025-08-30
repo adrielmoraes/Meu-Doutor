@@ -112,6 +112,19 @@ export default function PatientRegisterPage() {
                             </div>
                         </div>
 
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="city">Cidade</Label>
+                                <Input id="city" name="city" placeholder="Sua cidade" required />
+                                {state?.errors?.city && <p className="text-xs text-destructive">{state.errors.city[0]}</p>}
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="state">Estado</Label>
+                                <Input id="state" name="state" placeholder="UF" required maxLength={2} />
+                                {state?.errors?.state && <p className="text-xs text-destructive">{state.errors.state[0]}</p>}
+                            </div>
+                        </div>
+
                         <div className="border-t pt-4 mt-2 grid gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="email">E-mail de Acesso</Label>

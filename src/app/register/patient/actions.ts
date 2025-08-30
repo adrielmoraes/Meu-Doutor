@@ -15,6 +15,8 @@ const PatientSchema = z.object({
   cpf: z.string().min(11, { message: "CPF inválido." }),
   phone: z.string().min(10, { message: "Telefone inválido." }),
   gender: z.string().min(1, { message: "Por favor, selecione um gênero." }),
+  city: z.string().min(2, { message: "A cidade é obrigatória." }),
+  state: z.string().length(2, { message: "O estado (UF) é obrigatório." }),
 });
 
 export async function createPatientAction(prevState: any, formData: FormData) {
@@ -56,6 +58,8 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       cpf: rest.cpf,
       phone: rest.phone,
       gender: rest.gender,
+      city: rest.city,
+      state: rest.state.toUpperCase(),
     }, hashedPassword);
 
     revalidatePath('/doctor/patients');

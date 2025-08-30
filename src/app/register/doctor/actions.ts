@@ -10,6 +10,8 @@ const DoctorSchema = z.object({
   fullName: z.string().min(3, { message: "O nome completo é obrigatório." }),
   crm: z.string().min(5, { message: "O CRM é obrigatório." }),
   specialty: z.string().min(1, { message: "A especialidade é obrigatória." }),
+  city: z.string().min(2, { message: "A cidade é obrigatória." }),
+  state: z.string().length(2, { message: "O estado (UF) é obrigatório." }),
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
   password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres." }),
 });
@@ -24,7 +26,7 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
     };
   }
   
-  const { fullName, email, password, specialty, crm } = validatedFields.data;
+  const { fullName, email, password, specialty, crm, city, state } = validatedFields.data;
 
   try {
     const existingDoctor = await getDoctorByEmail(email);
@@ -42,6 +44,8 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
       name: fullName,
       email: email,
       specialty: specialty,
+      city: city,
+      state: state.toUpperCase(),
       online: false,
       avatar: 'https://placehold.co/128x128.png',
       avatarHint: 'person portrait',
