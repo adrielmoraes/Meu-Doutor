@@ -45,7 +45,6 @@ This is the most important instruction: You MUST use the 'patientDataAccessTool'
 Keep your responses concise, direct, and easy to understand to facilitate a real-time conversation. Start the conversation by introducing yourself and asking how you can help, unless a conversation is already in progress.
 Your response must always be in Brazilian Portuguese.`,
     tools: [patientDataAccessTool],
-    input: { schema: z.object({ userInput: z.string() }) },
 });
 
 
