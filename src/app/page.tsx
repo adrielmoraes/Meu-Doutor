@@ -22,7 +22,7 @@ export default function LandingPage() {
                   MediAI utiliza inteligência artificial para oferecer análises preliminares de exames e conectar você a médicos qualificados. Rápido, seguro e inovador.
                 </p>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button asChild size="lg">
+                  <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-white">
                     <Link href="/register">Quero me Cadastrar</Link>
                   </Button>
                   <Button asChild variant="outline" size="lg">
@@ -31,7 +31,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <Image
-                src="https://placehold.co/600x400.png"
+                src="https://picsum.photos/600/400"
                 alt="Médica sorrindo em um ambiente de consultório moderno"
                 width={600}
                 height={400}

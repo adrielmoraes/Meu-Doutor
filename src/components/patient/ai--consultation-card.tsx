@@ -48,8 +48,8 @@ const AIConsultationCard = () => {
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  const femaleAvatarUrl = "https://placehold.co/128x128.png";
-  const maleAvatarUrl = "https://placehold.co/128x128.png";
+  const femaleAvatarUrl = "https://picsum.photos/128/128";
+  const maleAvatarUrl = "https://picsum.photos/128/128";
 
   useEffect(() => {
     // This ensures that the Audio object is only created on the client-side
@@ -252,7 +252,7 @@ const AIConsultationCard = () => {
 
   return (
     <>
-      <Card className="flex flex-col justify-between transform transition-transform duration-300 hover:scale-105 hover:shadow-xl bg-primary text-primary-foreground">
+      <Card className="flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl bg-primary text-primary-foreground">
         <CardHeader>
           <div className="flex items-center gap-4">
             <Avatar className="h-12 w-12">
@@ -276,7 +276,7 @@ const AIConsultationCard = () => {
           </div>
           <Button
             onClick={() => setIsDialogOpen(true)}
-            className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+            className="w-full bg-accent hover:bg-accent/90 text-white"
             size="lg"
             disabled={!hasCameraPermission}
           >

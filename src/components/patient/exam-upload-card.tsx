@@ -89,7 +89,7 @@ const ExamUploadCard = () => {
   return (
     <>
       <Card
-        className="cursor-pointer transform transition-transform duration-300 hover:scale-105 hover:shadow-xl"
+        className="cursor-pointer transform transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl"
         onClick={() => !isAnalyzing && fileInputRef.current?.click()}
       >
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

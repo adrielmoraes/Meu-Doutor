@@ -13,7 +13,7 @@ import { MapPin } from "lucide-react";
 const MOCK_PATIENT_ID = '1';
 
 const DoctorCard = ({ doctor }: { doctor: Doctor }) => (
-    <Card key={doctor.id} className="flex flex-col">
+    <Card key={doctor.id} className="flex flex-col transform transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl">
         <CardHeader className="flex-grow">
         <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border-2 border-primary">

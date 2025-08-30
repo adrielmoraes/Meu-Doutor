@@ -29,8 +29,8 @@ export default function RegistrationTypeSelectionPage() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full">
           {options.map((portal) => (
-               <Link href={portal.href} key={portal.id}>
-                  <Card className="text-left transform transition-transform duration-300 hover:scale-105 hover:shadow-xl h-full">
+               <Link href={portal.href} key={portal.id} className="group">
+                  <Card className="text-left transform transition-transform duration-300 group-hover:scale-105 group-hover:shadow-xl h-full">
                       <CardHeader className="flex flex-row items-start gap-4">
                           {portal.icon}
                           <div>

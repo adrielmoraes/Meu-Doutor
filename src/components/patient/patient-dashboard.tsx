@@ -64,7 +64,7 @@ const PatientDashboard = ({ patient, healthInsights }: PatientDashboardProps) =>
         {cards.map((card) => (
           <Card
             key={card.title}
-            className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl"
+            className="transform transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl"
           >
             <Link href={card.href} className="block h-full">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
