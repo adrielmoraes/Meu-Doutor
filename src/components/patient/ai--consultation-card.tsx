@@ -18,13 +18,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "../ui/scroll-area";
 import { consultationFlow, type ConsultationInput } from "@/ai/flows/consultation-flow";
-import { textToSpeech } from "@/ai/flows/text-to-speech";
 import { saveConversationHistoryAction } from "./actions";
 
 
@@ -119,12 +117,9 @@ const AIConsultationCard = () => {
       
       setHistory(prev => [...prev, aiResponse]);
       
-      if (isDialogOpen) {
-        const audioResponse = await textToSpeech({ text: result.response });
-        if (audioResponse?.audioDataUri && audioRef.current) {
-            audioRef.current.src = audioResponse.audioDataUri;
-            await audioRef.current.play();
-        }
+      if (isDialogOpen && result.audioDataUri && audioRef.current) {
+        audioRef.current.src = result.audioDataUri;
+        await audioRef.current.play();
       }
 
     } catch (error) {
