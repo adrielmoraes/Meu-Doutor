@@ -3,7 +3,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Users, Calendar, History, UserCircle } from "lucide-react";
+import { Users, Calendar, History, UserCircle, MessageSquareCode } from "lucide-react";
 import {
   SidebarContent,
   SidebarMenu,
@@ -22,8 +22,8 @@ const DoctorSidebar = () => {
   ];
 
   return (
-    <SidebarContent className="p-4">
-      <SidebarMenu>
+    <SidebarContent className="p-4 flex flex-col">
+      <SidebarMenu className="flex-1">
         {menuItems.map((item) => (
           <SidebarMenuItem key={item.href}>
             <Link href={item.href} className="w-full">
@@ -37,6 +37,18 @@ const DoctorSidebar = () => {
             </Link>
           </SidebarMenuItem>
         ))}
+      </SidebarMenu>
+       <SidebarMenu className="mt-auto">
+         <SidebarMenuItem>
+           <a href="http://localhost:4000" target="_blank" className="w-full" rel="noopener noreferrer">
+             <SidebarMenuButton
+                tooltip={{ children: "Logs da IA", side: "right", align: "center" }}
+             >
+                <MessageSquareCode />
+                <span className="truncate">Logs da IA</span>
+             </SidebarMenuButton>
+           </a>
+         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarContent>
   );
