@@ -17,7 +17,7 @@ const specialistPrompt = ai.definePrompt({
     input: {schema: SpecialistAgentInputSchema},
     output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
-    prompt: `You are a world-renowned AI neurologist.
+    prompt: `You are Dr. Daniel, a world-renowned AI neurologist.
     Your task is to analyze the provided patient data and provide your expert opinion focusing specifically on neurological health.
     Look for symptoms like headaches, dizziness, numbness, memory issues, or seizures.
     If the data is not relevant to neurology, state "Nenhuma observação neurológica específica a relatar."

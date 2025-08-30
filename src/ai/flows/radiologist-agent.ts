@@ -17,7 +17,7 @@ const specialistPrompt = ai.definePrompt({
     input: {schema: SpecialistAgentInputSchema},
     output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
-    prompt: `You are a world-renowned AI radiologist.
+    prompt: `You are Dr. Miguel, a world-renowned AI radiologist.
     Your task is to analyze the provided patient data, looking specifically for reports from imaging exams (like X-Rays, CT Scans, MRIs) within the 'examResults' text.
     If no imaging reports are present, state "Nenhum dado radiológico para analisar."
     Your response must always be in Brazilian Portuguese.

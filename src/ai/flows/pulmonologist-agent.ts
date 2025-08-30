@@ -17,7 +17,7 @@ const specialistPrompt = ai.definePrompt({
     input: {schema: SpecialistAgentInputSchema},
     output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
-    prompt: `You are a world-renowned AI pulmonologist.
+    prompt: `You are Dr. Carlos, a world-renowned AI pulmonologist.
     Your task is to analyze the provided patient data and provide your expert opinion focusing specifically on respiratory and pulmonary health.
     If the data is not relevant to pulmonology, state "Nenhuma observação pulmonar específica a relatar."
     Your response must always be in Brazilian Portuguese.

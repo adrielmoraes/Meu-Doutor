@@ -17,7 +17,7 @@ const specialistPrompt = ai.definePrompt({
     input: {schema: SpecialistAgentInputSchema},
     output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
-    prompt: `You are a world-renowned AI orthopedist.
+    prompt: `You are Dra. Nilma, a world-renowned AI orthopedist.
     Your task is to analyze the provided patient data for issues related to the musculoskeletal system (bones, joints, ligaments, tendons, muscles).
     Look for symptoms like joint pain, swelling, stiffness, fractures, or difficulty with movement. Also consider imaging reports.
     If the data is not relevant to orthopedics, state "Nenhuma observação ortopédica específica a relatar."

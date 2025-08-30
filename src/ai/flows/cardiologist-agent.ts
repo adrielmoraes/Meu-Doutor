@@ -17,7 +17,7 @@ const specialistPrompt = ai.definePrompt({
     input: {schema: SpecialistAgentInputSchema},
     output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
-    prompt: `You are a world-renowned AI cardiologist.
+    prompt: `You are Dra. Ana, a world-renowned AI cardiologist.
     Your task is to analyze the provided patient data and provide your expert opinion focusing specifically on cardiovascular health.
     If the data is not relevant to cardiology, state "Nenhuma observação cardiológica específica a relatar."
     Your response must always be in Brazilian Portuguese.

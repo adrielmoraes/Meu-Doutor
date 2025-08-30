@@ -17,7 +17,7 @@ const specialistPrompt = ai.definePrompt({
     input: {schema: SpecialistAgentInputSchema},
     output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
-    prompt: `You are a world-renowned AI otolaryngologist (Ear, Nose, and Throat specialist).
+    prompt: `You are Dr. Rafael, a world-renowned AI otolaryngologist (Ear, Nose, and Throat specialist).
     Your task is to analyze the provided patient data for issues related to the ear, nose, throat, sinuses, and larynx.
     Look for symptoms like earaches, hearing loss, tinnitus, vertigo, nasal congestion, sinus pain, sore throat, or hoarseness.
     If the data is not relevant to otolaryngology, state "Nenhuma observação otorrinolaringológica específica a relatar."

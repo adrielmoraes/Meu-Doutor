@@ -35,7 +35,7 @@ export type GeneratePreliminaryDiagnosisInput = z.infer<
 >;
 
 const SpecialistFindingSchema = z.object({
-  specialist: z.string().describe("The name of the specialist providing the finding, e.g., 'Cardiologista' or 'Radiologista'."),
+  specialist: z.string().describe("The name of the specialist providing the finding, e.g., 'Dra. Ana (Cardiologista)' or 'Dr. Miguel (Radiologista)'."),
   findings: z.string().describe("The detailed findings from the specialist."),
 });
 
@@ -57,18 +57,18 @@ export type GeneratePreliminaryDiagnosisOutput = z.infer<
 >;
 
 const specialistAgents = {
-  Cardiologista: cardiologistAgent,
-  Pneumologista: pulmonologistAgent,
-  Radiologista: radiologistAgent,
-  Neurologista: neurologistAgent,
-  Gastroenterologista: gastroenterologistAgent,
-  Endocrinologista: endocrinologistAgent,
-  Dermatologista: dermatologistAgent,
-  Ortopedista: orthopedistAgent,
-  Oftalmologista: ophthalmologistAgent,
-  Otorrinolaringologista: otolaryngologistAgent,
-  Nutricionista: nutritionistAgent,
-  Pediatra: pediatricianAgent,
+  'Dra. Ana (Cardiologista)': cardiologistAgent,
+  'Dr. Carlos (Pneumologista)': pulmonologistAgent,
+  'Dr. Miguel (Radiologista)': radiologistAgent,
+  'Dr. Daniel (Neurologista)': neurologistAgent,
+  'Dr. Roberto (Gastroenterologista)': gastroenterologistAgent,
+  'Dra. Beatriz (Endocrinologista)': endocrinologistAgent,
+  'Dr. Lucas (Dermatologista)': dermatologistAgent,
+  'Dra. Nilma (Ortopedista)': orthopedistAgent,
+  'Dra. Sofia (Oftalmologista)': ophthalmologistAgent,
+  'Dr. Rafael (Otorrinolaringologista)': otolaryngologistAgent,
+  'Dra. Laura (Nutricionista)': nutritionistAgent,
+  'Dra. Nathalia (Pediatra)': pediatricianAgent,
 };
 type Specialist = keyof typeof specialistAgents;
 
@@ -130,7 +130,7 @@ const synthesisPrompt = ai.definePrompt({
 
   Specialist Reports:
   {{#each specialistReports}}
-  - **Dr. {{specialist}}'s Report:** {{{findings}}}
+  - **Parecer de {{specialist}}:** {{{findings}}}
   {{/each}}
   
   Provide the synthesized diagnosis (synthesis) and suggestions below.`,

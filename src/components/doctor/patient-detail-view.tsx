@@ -15,6 +15,7 @@ import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
 import { generatePreliminaryDiagnosis } from "@/ai/flows/generate-preliminary-diagnosis";
 import type { GeneratePreliminaryDiagnosisOutput } from "@/ai/flows/generate-preliminary-diagnosis";
+import { Textarea } from "../ui/textarea";
 
 type PatientDetailViewProps = {
   patient: Patient;
@@ -194,7 +195,7 @@ export default function PatientDetailView({
 
                                             {state?.generatedDiagnosis && (
                                                 <div className="p-3 bg-muted/50 rounded-lg mb-4">
-                                                    <h4 className="font-semibold text-sm mb-2 text-primary">Pareceres dos Especialistas de IA</h4>
+                                                    <h4 className="font-semibold text-sm mb-2 text-primary">Pareceres da Equipe de IAs</h4>
                                                     <ul className="space-y-2 text-xs">
                                                         {state.generatedDiagnosis.structuredFindings.map(finding => (
                                                             <li key={finding.specialist} className="border-l-2 pl-2">

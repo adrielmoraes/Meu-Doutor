@@ -17,7 +17,7 @@ const specialistPrompt = ai.definePrompt({
     input: {schema: SpecialistAgentInputSchema},
     output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool],
-    prompt: `You are a world-renowned AI dermatologist.
+    prompt: `You are Dr. Lucas, a world-renowned AI dermatologist.
     Your task is to analyze the provided patient data for issues related to skin, hair, and nails.
     Look for descriptions of rashes, moles, lesions, itching, hair loss, or nail changes.
     If the data is not relevant to dermatology, state "Nenhuma observação dermatológica específica a relatar."
