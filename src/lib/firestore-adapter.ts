@@ -34,14 +34,10 @@ export async function getExamsByPatientId(patientId: string): Promise<Exam[]> {
 }
 
 export async function getExamById(patientId: string, examId: string): Promise<Exam | null> {
-    const examsCol = collection(db, `patients/${patientId}/exams`);
-    // Query for the document where the 'id' field matches examId
-    const q = query(examsCol, where("id", "==", examId));
-    const querySnapshot = await getDocs(q);
+    const examDocRef = doc(db, `patients/${patientId}/exams/${examId}`);
+    const examDoc = await getDoc(examDocRef);
 
-    if (!querySnapshot.empty) {
-        // Should only be one document
-        const examDoc = querySnapshot.docs[0];
+    if (examDoc.exists()) {
         return { id: examDoc.id, ...examDoc.data() } as Exam;
     }
     return null;
