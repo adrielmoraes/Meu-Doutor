@@ -5,9 +5,25 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { HeartPulse, Gauge } from 'lucide-react';
-import { ChartTooltipContent } from '../ui/chart';
+import { ChartContainer, ChartTooltipContent, type ChartConfig } from '../ui/chart';
 
 const MAX_DATA_POINTS = 30; // Show last 30 seconds of data
+
+const chartConfig = {
+  hr: {
+    label: "Batimentos Cardíacos",
+    color: "hsl(var(--chart-2))",
+  },
+  systolic: {
+    label: "Pressão Sistólica",
+    color: "hsl(var(--chart-1))",
+  },
+  diastolic: {
+    label: "Pressão Diastólica",
+    color: "hsl(var(--chart-3))",
+  },
+} satisfies ChartConfig;
+
 
 // Helper to generate simulated vital signs data
 const generateVitals = (lastVitals: any) => {
@@ -114,19 +130,21 @@ export default function LiveMonitoringClient() {
                     <CardTitle>Histórico Recente de Sinais Vitais</CardTitle>
                 </CardHeader>
                 <CardContent className="h-[400px] w-full p-2">
-                    <ResponsiveContainer>
-                        <LineChart data={vitalsData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="time" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                            <YAxis yAxisId="left" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                            <YAxis yAxisId="right" orientation="right" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                            <Tooltip content={<ChartTooltipContent />} />
-                            <Legend />
-                            <Line yAxisId="left" type="monotone" dataKey="hr" name="Batimentos Cardíacos" stroke="#34D399" strokeWidth={2} dot={false} />
-                            <Line yAxisId="right" type="monotone" dataKey="systolic" name="Pressão Sistólica" stroke="#F87171" strokeWidth={2} dot={false} />
-                            <Line yAxisId="right" type="monotone" dataKey="diastolic" name="Pressão Diastólica" stroke="#60A5FA" strokeWidth={2} dot={false} />
-                        </LineChart>
-                    </ResponsiveContainer>
+                    <ChartContainer config={chartConfig} className="h-full w-full">
+                        <ResponsiveContainer>
+                            <LineChart data={vitalsData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="time" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                <YAxis yAxisId="left" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                <YAxis yAxisId="right" orientation="right" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                <Tooltip content={<ChartTooltipContent />} />
+                                <Legend />
+                                <Line yAxisId="left" type="monotone" dataKey="hr" name="Batimentos Cardíacos" stroke="var(--color-hr)" strokeWidth={2} dot={false} />
+                                <Line yAxisId="right" type="monotone" dataKey="systolic" name="Pressão Sistólica" stroke="var(--color-systolic)" strokeWidth={2} dot={false} />
+                                <Line yAxisId="right" type="monotone" dataKey="diastolic" name="Pressão Diastólica" stroke="var(--color-diastolic)" strokeWidth={2} dot={false} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </ChartContainer>
                 </CardContent>
             </Card>
         </div>
