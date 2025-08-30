@@ -53,10 +53,11 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
   
   // Step 1: Generate the text response using a model that supports tools.
   const { output: textGenerationOutput } = await ai.generate({
-      prompt: input.userInput,
+      prompt: {
+        prompt: consultationPrompt,
+        input: { userInput: input.userInput }
+      },
       history: input.history,
-      system: consultationPrompt.context.system,
-      tools: consultationPrompt.context.tools,
       toolRequest: {
           patientDataAccessTool: { patientId: input.patientId }
       },
