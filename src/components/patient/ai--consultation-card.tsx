@@ -22,8 +22,13 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "../ui/scroll-area";
-import { consultationFlow, type ConsultationInput } from "@/ai/flows/consultation-flow";
+import { consultationFlow } from "@/ai/flows/consultation-flow";
 import { saveConversationHistoryAction } from "./actions";
+
+type Message = {
+    role: 'user' | 'model';
+    content: { text: string }[];
+};
 
 
 // This should be replaced with the authenticated user's ID
@@ -36,7 +41,7 @@ const AIConsultationCard = () => {
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [avatarGender, setAvatarGender] = useState<"male" | "female">("female");
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
-  const [history, setHistory] = useState<{role: 'user' | 'model', content: string}[]>([]);
+  const [history, setHistory] = useState<Message[]>([]);
   const [isThinking, setIsThinking] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
@@ -105,17 +110,15 @@ const AIConsultationCard = () => {
     stopAiSpeaking();
     setIsThinking(true);
 
-    const newUserMessage = { role: 'user' as const, content: userInput };
+    const newUserMessage: Message = { role: 'user', content: [{ text: userInput }] };
     const newHistory = [...history, newUserMessage];
     setHistory(newHistory);
   
     try {
-      const input: ConsultationInput = { patientId: MOCK_PATIENT_ID, history: newHistory, userInput };
+      const result = await consultationFlow({ patientId: MOCK_PATIENT_ID, history: newHistory });
       
-      const result = await consultationFlow(input);
-      const aiResponse = { role: 'model' as const, content: result.response };
-      
-      setHistory(prev => [...prev, aiResponse]);
+      const aiResponseMessage: Message = { role: 'model', content: [{ text: result.response }] };
+      setHistory(prev => [...prev, aiResponseMessage]);
       
       if (isDialogOpen && result.audioDataUri && audioRef.current) {
         audioRef.current.src = result.audioDataUri;
@@ -226,8 +229,13 @@ const AIConsultationCard = () => {
         }
         stopAiSpeaking();
 
-        if (history.length > 1) { // Only save if there was a meaningful conversation
-            saveConversationHistoryAction(MOCK_PATIENT_ID, history);
+        // Convert history to storable format (string content) before saving.
+        if (history.length > 1) {
+            const storableHistory = history.map(msg => ({
+                role: msg.role,
+                content: msg.content[0].text, 
+            }));
+            saveConversationHistoryAction(MOCK_PATIENT_ID, storableHistory);
         }
 
         // Reset state for next call
@@ -315,7 +323,7 @@ const AIConsultationCard = () => {
                         <div key={index} className={`flex items-start gap-2 ${msg.role === 'user' ? 'justify-end' : ''}`}>
                           {msg.role === 'model' && <Avatar className="h-8 w-8"><AvatarFallback>AI</AvatarFallback></Avatar>}
                           <p className={`rounded-lg px-3 py-2 text-sm ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                            {msg.content}
+                            {msg.content[0].text}
                           </p>
                         </div>
                       ))}

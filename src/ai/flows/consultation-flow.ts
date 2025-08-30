@@ -19,13 +19,12 @@ const RoleSchema = z.enum(['user', 'model']);
 
 const MessageSchema = z.object({
   role: RoleSchema,
-  content: z.string(),
+  content: z.array(z.object({ text: z.string() })),
 });
 
 const ConsultationInputSchema = z.object({
   patientId: z.string().describe('The ID of the patient.'),
   history: z.array(MessageSchema).describe('The conversation history.'),
-  userInput: z.string().describe('The latest input from the user.'),
 });
 export type ConsultationInput = z.infer<typeof ConsultationInputSchema>;
 
@@ -53,16 +52,15 @@ Your response must always be in Brazilian Portuguese.`,
 export async function consultationFlow(input: ConsultationInput): Promise<ConsultationOutput> {
   
   // Step 1: Generate the text response using a model that supports tools.
-  const { output: textGenerationOutput } = await ai.generate({
+  const { output } = await ai.generate({
       prompt: consultationPrompt,
       history: input.history,
-      input: { userInput: input.userInput },
       toolRequest: {
           patientDataAccessTool: { patientId: input.patientId }
       },
   });
 
-  const textResponse = textGenerationOutput?.candidates[0].message.text;
+  const textResponse = output?.candidates[0].message.text;
 
   if (!textResponse) {
     throw new Error("AI did not return a text response.");
