@@ -1,9 +1,10 @@
 
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, ChevronRight, Droplets, Bone } from "lucide-react";
+import { FileText, ChevronRight, Droplets, Bone, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { getExamsByPatientId } from "@/lib/firestore-adapter";
 import type { Exam } from "@/types";
+import DeleteExamButton from "@/components/patient/delete-exam-button";
 
 // This should be replaced with the authenticated user's ID
 const MOCK_PATIENT_ID = '1';
@@ -38,23 +39,24 @@ export default async function ExamHistoryPage() {
         <div className="space-y-4">
           {exams.length > 0 ? (
             exams.map((exam) => (
-              <Link href={`/patient/history/${exam.id}`} key={exam.id}>
-                <Card className="transition-all hover:shadow-md hover:border-primary">
-                  <CardHeader className="flex flex-row items-center justify-between p-4">
-                      <div className="flex items-center gap-4">
-                          {getIconForExam(exam)}
-                          <div>
-                              <CardTitle className="text-lg">{exam.type}</CardTitle>
-                              <CardDescription>{new Date(exam.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</CardDescription>
-                          </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <p className="text-sm text-muted-foreground hidden md:block">{exam.result}</p>
-                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                  </CardHeader>
-                </Card>
-              </Link>
+              <Card key={exam.id} className="transition-all hover:shadow-md hover:border-primary flex items-center pr-4">
+                 <Link href={`/patient/history/${exam.id}`} className="flex-grow">
+                    <CardHeader className="flex flex-row items-center justify-between p-4">
+                        <div className="flex items-center gap-4">
+                            {getIconForExam(exam)}
+                            <div>
+                                <CardTitle className="text-lg">{exam.type}</CardTitle>
+                                <CardDescription>{new Date(exam.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</CardDescription>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <p className="text-sm text-muted-foreground hidden md:block">{exam.result}</p>
+                          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                    </CardHeader>
+                </Link>
+                <DeleteExamButton patientId={MOCK_PATIENT_ID} examId={exam.id} />
+              </Card>
             ))
           ) : (
             <Card>

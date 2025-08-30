@@ -1,7 +1,7 @@
 
 'use server';
 
-import { addExamToPatient, updatePatient, addAppointment } from "@/lib/firestore-adapter";
+import { addExamToPatient, updatePatient, addAppointment, deleteExam } from "@/lib/firestore-adapter";
 import { revalidatePath } from "next/cache";
 import type { Appointment } from "@/types";
 
@@ -52,5 +52,16 @@ export async function createAppointmentAction(appointmentData: Omit<Appointment,
     } catch (error) {
         console.error('Failed to create appointment:', error);
         return { success: false, message: 'Erro ao agendar a consulta.' };
+    }
+}
+
+export async function deleteExamAction(patientId: string, examId: string) {
+    try {
+        await deleteExam(patientId, examId);
+        revalidatePath('/patient/history');
+        return { success: true, message: 'Exame excluído com sucesso!' };
+    } catch (error) {
+        console.error('Failed to delete exam:', error);
+        return { success: false, message: 'Erro ao excluir o exame.' };
     }
 }

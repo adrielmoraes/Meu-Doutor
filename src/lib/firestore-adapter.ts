@@ -1,7 +1,7 @@
 
 
 import { db } from './firebase';
-import { collection, getDocs, doc, getDoc, updateDoc, addDoc, query, where } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc, addDoc, query, where, deleteDoc } from 'firebase/firestore';
 import type { Patient, Doctor, Appointment, Exam } from '@/types';
 
 
@@ -34,7 +34,7 @@ export async function getExamsByPatientId(patientId: string): Promise<Exam[]> {
 }
 
 export async function getExamById(patientId: string, examId: string): Promise<Exam | null> {
-    const examDocRef = doc(db, `patients/${patientId}/exams/${examId}`);
+    const examDocRef = doc(db, `patients/${patientId}/exams`, examId);
     const examDoc = await getDoc(examDocRef);
 
     if (examDoc.exists()) {
@@ -49,16 +49,16 @@ export async function addExamToPatient(patientId: string, examData: Omit<Exam, '
         ...examData,
         date: new Date().toISOString(),
     };
-    // Create the document first to get a reference
     const docRef = await addDoc(examsCol, examDocData);
-    
-    // Now, update the document with its own ID
-    await updateDoc(docRef, {
-      id: docRef.id
-    });
-
     return docRef.id;
 }
+
+
+export async function deleteExam(patientId: string, examId: string): Promise<void> {
+    const examDocRef = doc(db, `patients/${patientId}/exams`, examId);
+    await deleteDoc(examDocRef);
+}
+
 
 export async function getDoctors(): Promise<Doctor[]> {
     const doctorsCol = collection(db, 'doctors');
