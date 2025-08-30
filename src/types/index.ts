@@ -10,6 +10,7 @@ export type Patient = {
   email: string;
   lastVisit: string;
   status: 'Requer Validação' | 'Validado';
+  priority?: 'Urgente' | 'Alta' | 'Normal';
   avatar: string;
   avatarHint: string;
   gender: string;

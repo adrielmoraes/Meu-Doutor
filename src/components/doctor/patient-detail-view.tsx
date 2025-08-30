@@ -27,7 +27,7 @@ export default function PatientDetailView({
   summary,
   diagnosis,
 }: PatientDetailViewProps) {
-  const [doctorNotes, setDoctorNotes] = useState(patient.doctorNotes || `${diagnosis.synthesis}\n\nPrescrição:`);
+  const [doctorNotes, setDoctorNotes] = useState(patient.doctorNotes || diagnosis.synthesis || "");
   const [isSaving, setIsSaving] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -88,7 +88,7 @@ export default function PatientDetailView({
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center gap-4">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <Avatar className="h-20 w-20">
             <AvatarImage src={patient.avatar} data-ai-hint={patient.avatarHint}/>
             <AvatarFallback>{patient.name.substring(0, 2)}</AvatarFallback>
@@ -99,9 +99,16 @@ export default function PatientDetailView({
               {patient.age} anos, {patient.gender}. Última Interação: {patient.lastVisit}
             </CardDescription>
           </div>
-           <Badge variant={patient.status === 'Validado' ? 'secondary' : 'default'} className={`text-base ${patient.status === 'Validado' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+          <div className="flex flex-col sm:items-end gap-2">
+            <Badge variant={patient.status === 'Validado' ? 'secondary' : 'default'} className={`text-base ${patient.status === 'Validado' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                 {patient.status}
             </Badge>
+             {patient.status !== 'Validado' && patient.priority && (
+                <Badge variant="outline" className="text-sm border-2">
+                    Prioridade: <span className="font-bold ml-1">{patient.priority}</span>
+                </Badge>
+            )}
+          </div>
         </CardHeader>
       </Card>
 
@@ -129,7 +136,7 @@ export default function PatientDetailView({
             <CardContent className="space-y-4">
               <div>
                 <h3 className="font-semibold">Síntese do Diagnóstico Preliminar</h3>
-                <p className="text-muted-foreground">{diagnosis.synthesis}</p>
+                <p className="text-muted-foreground whitespace-pre-wrap">{diagnosis.synthesis}</p>
               </div>
 
                {diagnosis.structuredFindings && diagnosis.structuredFindings.length > 0 && (
@@ -157,7 +164,7 @@ export default function PatientDetailView({
                  <h3 className="font-semibold mb-2">Validação e Prescrição Final do Médico</h3>
                  <Textarea 
                    placeholder="Edite o diagnóstico e adicione sua prescrição oficial aqui..." 
-                   rows={5}
+                   rows={8}
                    value={doctorNotes}
                    onChange={(e) => setDoctorNotes(e.target.value)}
                    disabled={patient.status === 'Validado'}
