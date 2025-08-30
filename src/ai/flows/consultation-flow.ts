@@ -58,7 +58,7 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
         toolRequest: 'auto'
     });
 
-    const toolRequest = initialResponse.candidates[0].message.toolRequest;
+    const toolRequest = initialResponse.candidates?.[0]?.message.toolRequest;
 
     let textResponse: string | undefined;
 
