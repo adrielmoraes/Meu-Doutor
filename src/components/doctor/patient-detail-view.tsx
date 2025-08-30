@@ -14,6 +14,7 @@ import type { Patient } from "@/types";
 import { validateDiagnosisAction, saveDraftNotesAction } from "@/app/doctor/patients/[id]/actions";
 import { Badge } from "../ui/badge";
 import AudioPlayback from "../patient/audio-playback";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 
 type PatientDetailViewProps = {
   patient: Patient;
@@ -26,7 +27,7 @@ export default function PatientDetailView({
   summary,
   diagnosis,
 }: PatientDetailViewProps) {
-  const [doctorNotes, setDoctorNotes] = useState(patient.doctorNotes || `${diagnosis.diagnosis}\n\nPrescrição:`);
+  const [doctorNotes, setDoctorNotes] = useState(patient.doctorNotes || `${diagnosis.synthesis}\n\nPrescrição:`);
   const [isSaving, setIsSaving] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -127,11 +128,28 @@ export default function PatientDetailView({
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h3 className="font-semibold">Diagnóstico Preliminar</h3>
-                <p className="text-muted-foreground">{diagnosis.diagnosis}</p>
+                <h3 className="font-semibold">Síntese do Diagnóstico Preliminar</h3>
+                <p className="text-muted-foreground">{diagnosis.synthesis}</p>
               </div>
+
+               {diagnosis.structuredFindings && diagnosis.structuredFindings.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mt-4 mb-2">Pareceres dos Especialistas</h3>
+                  <Accordion type="single" collapsible className="w-full">
+                    {diagnosis.structuredFindings.map((finding) => (
+                      <AccordionItem value={finding.specialist} key={finding.specialist}>
+                        <AccordionTrigger className="text-sm font-medium">{finding.specialist}</AccordionTrigger>
+                        <AccordionContent>
+                          <p className="text-muted-foreground whitespace-pre-wrap">{finding.findings}</p>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </div>
+              )}
+
               <div>
-                <h3 className="font-semibold">Sugestões e Próximos Passos</h3>
+                <h3 className="font-semibold mt-4">Sugestões e Próximos Passos</h3>
                 <p className="text-muted-foreground whitespace-pre-wrap">{diagnosis.suggestions}</p>
               </div>
 

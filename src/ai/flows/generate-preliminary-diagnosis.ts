@@ -10,7 +10,11 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, type SpecialistAgentInput } from './specialist-agent-types';
+import {
+  SpecialistAgentInputSchema,
+  SpecialistAgentOutputSchema,
+  type SpecialistAgentInput,
+} from './specialist-agent-types';
 import {cardiologistAgent} from './cardiologist-agent';
 import {pulmonologistAgent} from './pulmonologist-agent';
 import {radiologistAgent} from './radiologist-agent';
@@ -30,36 +34,41 @@ export type GeneratePreliminaryDiagnosisInput = z.infer<
   typeof GeneratePreliminaryDiagnosisInputSchema
 >;
 
+const SpecialistFindingSchema = z.object({
+  specialist: z.string().describe("The name of the specialist providing the finding, e.g., 'Cardiologista' or 'Radiologista'."),
+  findings: z.string().describe("The detailed findings from the specialist."),
+});
+
 const GeneratePreliminaryDiagnosisOutputSchema = z.object({
-  diagnosis: z
+  synthesis: z
     .string()
     .describe(
-      'The comprehensive preliminary diagnosis synthesized by the orchestrator AI from all specialist findings.'
+      'A comprehensive preliminary diagnosis synthesized by the orchestrator AI from all specialist findings.'
     ),
   suggestions: z
     .string()
     .describe(
       'A list of suggested next steps, further tests, or specialist referrals for the human doctor to consider.'
     ),
+  structuredFindings: z.array(SpecialistFindingSchema).describe("The structured list of findings from each consulted specialist.")
 });
 export type GeneratePreliminaryDiagnosisOutput = z.infer<
   typeof GeneratePreliminaryDiagnosisOutputSchema
 >;
 
-
 const specialistAgents = {
-  cardiologist: cardiologistAgent,
-  pulmonologist: pulmonologistAgent,
-  radiologist: radiologistAgent,
-  neurologist: neurologistAgent,
-  gastroenterologist: gastroenterologistAgent,
-  endocrinologist: endocrinologistAgent,
-  dermatologist: dermatologistAgent,
-  orthopedist: orthopedistAgent,
-  ophthalmologist: ophthalmologistAgent,
-  otolaryngologist: otolaryngologistAgent,
-  nutritionist: nutritionistAgent,
-  pediatrician: pediatricianAgent,
+  Cardiologista: cardiologistAgent,
+  Pneumologista: pulmonologistAgent,
+  Radiologista: radiologistAgent,
+  Neurologista: neurologistAgent,
+  Gastroenterologista: gastroenterologistAgent,
+  Endocrinologista: endocrinologistAgent,
+  Dermatologista: dermatologistAgent,
+  Ortopedista: orthopedistAgent,
+  Oftalmologista: ophthalmologistAgent,
+  Otorrinolaringologista: otolaryngologistAgent,
+  Nutricionista: nutritionistAgent,
+  Pediatra: pediatricianAgent,
 };
 type Specialist = keyof typeof specialistAgents;
 
@@ -105,12 +114,12 @@ const synthesisPrompt = ai.definePrompt({
       ),
     }),
   },
-  output: {schema: GeneratePreliminaryDiagnosisOutputSchema},
+  output: {schema: z.object({ synthesis: z.string(), suggestions: z.string() })},
   prompt: `You are a highly skilled General Practitioner AI. Your task is to synthesize the findings from a team of specialist AI agents into a single, coherent preliminary diagnosis for a human doctor to review.
   Your response must always be in Brazilian Portuguese.
 
   1.  **Review all specialist reports.**
-  2.  **Synthesize the findings** into a comprehensive preliminary diagnosis.
+  2.  **Synthesize the findings** into a comprehensive preliminary diagnosis (synthesis).
   3.  **Provide clear suggestions** for next steps, such as recommended further tests or specialist referrals.
 
   Patient's History:
@@ -124,7 +133,7 @@ const synthesisPrompt = ai.definePrompt({
   - **Dr. {{specialist}}'s Report:** {{{findings}}}
   {{/each}}
   
-  Provide the synthesized diagnosis and suggestions below.`,
+  Provide the synthesized diagnosis (synthesis) and suggestions below.`,
 });
 
 
@@ -141,8 +150,9 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
 
     if (specialistsToCall.length === 0) {
       return {
-        diagnosis: 'Não foi possível determinar uma especialidade relevante para este caso.',
+        synthesis: 'Não foi possível determinar uma especialidade relevante para este caso.',
         suggestions: 'Recomenda-se uma avaliação clínica geral para determinar os próximos passos.',
+        structuredFindings: [],
       };
     }
 
@@ -163,7 +173,11 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
       specialistReports,
     });
 
-    return synthesisResult.output!;
+    return {
+        synthesis: synthesisResult.output!.synthesis,
+        suggestions: synthesisResult.output!.suggestions,
+        structuredFindings: specialistReports,
+    };
   }
 );
 
