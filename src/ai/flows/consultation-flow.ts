@@ -12,8 +12,8 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { patientDataAccessTool } from '../tools/patient-data-access';
-import {googleAI} from '@genkit-ai/googleai';
-import wav from 'wav';
+import { textToSpeech } from './text-to-speech';
+
 
 const RoleSchema = z.enum(['user', 'model']);
 
@@ -36,84 +36,43 @@ const ConsultationOutputSchema = z.object({
 export type ConsultationOutput = z.infer<typeof ConsultationOutputSchema>;
 
 
-async function toWav(
-  pcmData: Buffer,
-  channels = 1,
-  rate = 24000,
-  sampleWidth = 2
-): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const writer = new wav.Writer({
-      channels,
-      sampleRate: rate,
-      bitDepth: sampleWidth * 8,
-    });
-
-    let bufs: any[] = [];
-    writer.on('error', reject);
-    writer.on('data', function (d) {
-      bufs.push(d);
-    });
-    writer.on('end', function () {
-      resolve(Buffer.concat(bufs).toString('base64'));
-    });
-
-    writer.write(pcmData);
-    writer.end();
-  });
-}
-
-export async function consultationFlow(input: ConsultationInput): Promise<ConsultationOutput> {
-
-  const systemInstruction = `You are MediAI, a friendly and empathetic AI medical assistant. Your goal is to talk to the patient, understand their symptoms, and provide helpful, safe, and preliminary guidance.
+const consultationPrompt = ai.definePrompt({
+    name: 'consultationPrompt',
+    system: `You are MediAI, a friendly and empathetic AI medical assistant. Your goal is to talk to the patient, understand their symptoms, and provide helpful, safe, and preliminary guidance.
 IMPORTANT: You are not a doctor. You must not provide a diagnosis or prescribe medication. Always advise the patient to consult with a human doctor for a definitive diagnosis and treatment.
 
 This is the most important instruction: You MUST use the 'patientDataAccessTool' to access the patient's medical records when they ask questions about their history, past diagnoses, or exam results. You must use the tool to get the most up-to-date information. Do not invent information.
 
 Keep your responses concise, direct, and easy to understand to facilitate a real-time conversation. Start the conversation by introducing yourself and asking how you can help, unless a conversation is already in progress.
-Your response must always be in Brazilian Portuguese.`;
+Your response must always be in Brazilian Portuguese.`,
+    tools: [patientDataAccessTool],
+});
 
-  // We are calling the model directly to get both text and audio in one go.
-  // This is more efficient than calling a text model then a separate TTS model.
-  const { output } = await ai.generate({
-      system: systemInstruction,
+
+export async function consultationFlow(input: ConsultationInput): Promise<ConsultationOutput> {
+  
+  // Step 1: Generate the text response using a model that supports tools.
+  const { output: textGenerationOutput } = await ai.generate({
       prompt: input.userInput,
       history: input.history,
-      model: googleAI.model('gemini-2.5-flash-preview-tts'),
-      tools: [patientDataAccessTool],
+      system: consultationPrompt.context.system,
+      tools: consultationPrompt.context.tools,
       toolRequest: {
           patientDataAccessTool: { patientId: input.patientId }
       },
-      config: {
-        responseModalities: ['TEXT', 'AUDIO'], // Request both text and audio
-        speechConfig: {
-          voiceConfig: {
-              prebuiltVoiceConfig: {voiceName: 'Algenib'},
-          },
-        },
-      },
   });
-  
-  if (!output) {
-    throw new Error("AI did not return an output.");
-  }
-  
-  const textResponse = output.candidates[0].message.text;
-  const audioResponse = output.candidates[0].message.audio;
+
+  const textResponse = textGenerationOutput?.candidates[0].message.text;
 
   if (!textResponse) {
     throw new Error("AI did not return a text response.");
   }
+  
+  // Step 2: Generate the audio from the text response.
+  const audioResult = await textToSpeech({ text: textResponse });
 
-  let audioDataUri: string | undefined = undefined;
-  if (audioResponse) {
-      const audioBuffer = Buffer.from(
-        audioResponse.url.substring(audioResponse.url.indexOf(',') + 1),
-        'base64'
-      );
-      const wavBase64 = await toWav(audioBuffer);
-      audioDataUri = `data:audio/wav;base64,${wavBase64}`;
-  }
+  // Make the flow resilient. If audio fails, we can still return the text.
+  const audioDataUri = audioResult?.audioDataUri || "";
 
   return {
     response: textResponse,
