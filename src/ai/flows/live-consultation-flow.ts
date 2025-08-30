@@ -16,8 +16,6 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const LiveConsultationInputSchema = z.object({
   audioData: z.string().describe("A Base64 encoded string of the user's audio chunk."),
-  // We remove the callback passing as it's not a standard pattern.
-  // The flow will return the data directly.
 });
 export type LiveConsultationInput = z.infer<typeof LiveConsultationInputSchema>;
 
@@ -48,7 +46,7 @@ const liveConsultationFlowInternal = ai.defineFlow(
     
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({
-        model: 'gemini-1.5-flash-latest', // Note: Using a standard model name
+        model: 'gemini-1.5-pro-latest', // Correct model for multimodal capabilities
         systemInstruction: `You are MediAI, a friendly and empathetic AI medical assistant. 
         Your goal is to have a natural conversation with the patient, understand their symptoms, and provide helpful, safe, and preliminary guidance.
         Keep your responses concise and conversational. Your response must always be in Brazilian Portuguese.
@@ -58,8 +56,6 @@ const liveConsultationFlowInternal = ai.defineFlow(
     try {
         const chat = model.startChat();
         
-        // This is a simplified request-response cycle for demonstration.
-        // A full duplex stream is more complex and requires a WebSocket architecture.
         const result = await chat.sendMessageStream([
             {
                 inlineData: {
@@ -67,25 +63,20 @@ const liveConsultationFlowInternal = ai.defineFlow(
                     mimeType: 'audio/webm',
                 },
             },
-            { text: "Based on my audio, what do you think?" }
+            { text: "Transcreva o áudio e responda à pergunta de forma concisa." }
         ]);
 
-        let audioOutput = "";
         let transcript = "";
-
-        // Since we are not streaming back to the client in real-time via this HTTP response,
-        // we'll aggregate the full response first.
         for await (const chunk of result.stream) {
-            if (chunk.audio) {
-                 audioOutput += Buffer.from(chunk.audio).toString('base64');
-            }
-            if (chunk.text) {
-                transcript += chunk.text();
-            }
+          if (chunk.text) {
+            transcript += chunk.text();
+          }
         }
         
+        // Note: Audio output in this streaming context with the Node.js SDK is complex
+        // and often not supported directly. We will focus on returning the transcript.
+        // The `audioOutput` field is kept for future compatibility but will be empty for now.
         return {
-            audioOutput,
             transcript
         };
 
@@ -95,3 +86,4 @@ const liveConsultationFlowInternal = ai.defineFlow(
     }
   }
 );
+
