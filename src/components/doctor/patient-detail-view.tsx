@@ -1,21 +1,20 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { Bot, FileText, User, Pen, CheckCircle, Send, Loader2, FileWarning, Files } from "lucide-react";
+import { Bot, FileText, User, Pen, CheckCircle, Send, Loader2, FileWarning, Files, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Patient, Exam } from "@/types";
 import { validateExamDiagnosisAction, saveDraftNotesAction } from "@/app/doctor/patients/[id]/actions";
 import { Badge } from "../ui/badge";
-import AudioPlayback from "../patient/audio-playback";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
+import { generatePreliminaryDiagnosis } from "@/ai/flows/generate-preliminary-diagnosis";
+import type { GeneratePreliminaryDiagnosisOutput } from "@/ai/flows/generate-preliminary-diagnosis";
 
 type PatientDetailViewProps = {
   patient: Patient;
@@ -28,6 +27,8 @@ type ExamValidationState = {
     notes: string;
     isSaving: boolean;
     isValidating: boolean;
+    isGenerating: boolean;
+    generatedDiagnosis: GeneratePreliminaryDiagnosisOutput | null;
   };
 };
 
@@ -38,12 +39,13 @@ export default function PatientDetailView({
 }: PatientDetailViewProps) {
   const { toast } = useToast();
 
-  // Initialize state for each exam
   const initialValidationState = exams.reduce((acc, exam) => {
     acc[exam.id] = {
-      notes: exam.doctorNotes || exam.preliminaryDiagnosis || "",
+      notes: exam.doctorNotes || "", // Start with empty notes
       isSaving: false,
       isValidating: false,
+      isGenerating: false,
+      generatedDiagnosis: null,
     };
     return acc;
   }, {} as ExamValidationState);
@@ -57,6 +59,39 @@ export default function PatientDetailView({
     }));
   };
 
+  const handleGenerateDiagnosis = async (examId: string) => {
+    setValidationState(prev => ({ ...prev, [examId]: { ...prev[examId], isGenerating: true, generatedDiagnosis: null } }));
+    try {
+        const examToAnalyze = exams.find(e => e.id === examId);
+        if (!examToAnalyze) throw new Error("Exam not found");
+
+        const result = await generatePreliminaryDiagnosis({
+            patientHistory: summary,
+            examResults: examToAnalyze.preliminaryDiagnosis + "\n\n" + examToAnalyze.explanation
+        });
+        
+        setValidationState(prev => ({
+            ...prev,
+            [examId]: {
+                ...prev[examId],
+                generatedDiagnosis: result,
+                notes: `${result.synthesis}\n\nSugestões:\n${result.suggestions}`
+            }
+        }));
+
+    } catch (error) {
+        console.error("Failed to generate diagnosis:", error);
+        toast({
+            title: "Erro ao Gerar Diagnóstico",
+            description: "Não foi possível obter a síntese da equipe de IAs.",
+            variant: "destructive",
+        });
+    } finally {
+        setValidationState(prev => ({ ...prev, [examId]: { ...prev[examId], isGenerating: false } }));
+    }
+  };
+
+
   const handleSaveDraft = async (examId: string) => {
     setValidationState(prev => ({ ...prev, [examId]: { ...prev[examId], isSaving: true } }));
     const result = await saveDraftNotesAction(patient.id, examId, validationState[examId].notes);
@@ -69,6 +104,14 @@ export default function PatientDetailView({
   };
 
   const handleValidateDiagnosis = async (examId: string) => {
+    if (!validationState[examId].notes) {
+        toast({
+            title: "Diagnóstico Vazio",
+            description: "Por favor, gere ou escreva um diagnóstico antes de validar.",
+            variant: "destructive",
+        });
+        return;
+    }
     setValidationState(prev => ({ ...prev, [examId]: { ...prev[examId], isValidating: true } }));
     const result = await validateExamDiagnosisAction(patient.id, examId, validationState[examId].notes);
     toast({
@@ -141,24 +184,39 @@ export default function PatientDetailView({
                                             <h4 className="font-semibold text-sm mb-2 text-primary">Análise Preliminar da IA</h4>
                                             <p className="text-sm text-muted-foreground whitespace-pre-wrap">{exam.preliminaryDiagnosis}</p>
                                         </div>
-                                        <div className="p-4 bg-muted/50 rounded-lg">
-                                            <h4 className="font-semibold text-sm mb-2 text-primary">Explicação Simplificada (IA)</h4>
-                                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{exam.explanation}</p>
-                                        </div>
-                                        <div className="pt-4">
-                                            <h3 className="font-semibold mb-2">Sua Validação e Prescrição Final</h3>
+                                        
+                                        <div className="p-4 border rounded-lg">
+                                            <h3 className="font-semibold mb-2">Seu Diagnóstico e Validação</h3>
+                                            <Button onClick={() => handleGenerateDiagnosis(exam.id)} disabled={state?.isGenerating} className="mb-4 w-full">
+                                                {state?.isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                                                {state?.isGenerating ? "Consultando Especialistas..." : "Gerar Parecer da Equipe de IAs"}
+                                            </Button>
+
+                                            {state?.generatedDiagnosis && (
+                                                <div className="p-3 bg-muted/50 rounded-lg mb-4">
+                                                    <h4 className="font-semibold text-sm mb-2 text-primary">Pareceres dos Especialistas de IA</h4>
+                                                    <ul className="space-y-2 text-xs">
+                                                        {state.generatedDiagnosis.structuredFindings.map(finding => (
+                                                            <li key={finding.specialist} className="border-l-2 pl-2">
+                                                                <span className="font-bold">{finding.specialist}:</span> {finding.findings}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+
                                             <Textarea 
-                                                placeholder="Edite o diagnóstico e adicione sua prescrição oficial aqui..." 
-                                                rows={6}
+                                                placeholder="Clique em 'Gerar Parecer' para que a IA crie um rascunho. Edite o diagnóstico e adicione sua prescrição oficial aqui..." 
+                                                rows={8}
                                                 value={state?.notes || ''}
                                                 onChange={(e) => handleNotesChange(exam.id, e.target.value)}
                                             />
                                             <div className="flex gap-2 mt-4">
-                                                <Button onClick={() => handleSaveDraft(exam.id)} disabled={state?.isSaving}>
+                                                <Button onClick={() => handleSaveDraft(exam.id)} disabled={state?.isSaving || !state?.notes}>
                                                     {state?.isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Pen className="mr-2 h-4 w-4" />}
                                                     {state?.isSaving ? "Salvando..." : "Salvar Rascunho"}
                                                 </Button>
-                                                <Button onClick={() => handleValidateDiagnosis(exam.id)} variant="secondary" disabled={state?.isValidating}>
+                                                <Button onClick={() => handleValidateDiagnosis(exam.id)} variant="secondary" disabled={state?.isValidating || !state?.notes}>
                                                     {state?.isValidating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
                                                     {state?.isValidating ? "Validando..." : "Validar Diagnóstico"}
                                                 </Button>

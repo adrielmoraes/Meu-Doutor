@@ -23,7 +23,7 @@ const specialistPrompt = ai.definePrompt({
     If the patient is clearly an adult based on the history, state "Paciente é um adulto, a consulta pediátrica não é relevante."
     Your response must always be in Brazilian Portuguese.
 
-    Use the medicalKnowledgeBaseTool to look up child-specific conditions, medications, or normal developmental ranges.
+    Use the medicalKnowledgeBaseTool to look up child-specific conditions, medications, ou normal developmental ranges.
 
     Patient's exam results:
     {{examResults}}
