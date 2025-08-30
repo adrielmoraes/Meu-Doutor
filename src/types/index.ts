@@ -49,7 +49,7 @@ export type Doctor = {
   validations: number;
   badges: {
       name: string;
-      icon: 'Award' | 'Star' | 'Clock' | 'Zap';
+      icon: 'Award' | 'Star' | 'Clock' | 'Zap' | 'CheckSquare';
       description: string;
   }[];
 };
