@@ -25,7 +25,8 @@ export type AnalyzeMedicalExamInput = z.infer<typeof AnalyzeMedicalExamInputSche
 
 const AnalyzeMedicalExamOutputSchema = z.object({
   preliminaryDiagnosis: z.string().describe('The preliminary diagnosis based on the combined analysis of all documents.'),
-  explanation: z.string().describe('An understandable explanation of the exam results from all documents.'),
+  explanation: z.string().describe('An empathetic and simple explanation of the exam results for the patient.'),
+  suggestions: z.string().describe('A list of suggested next steps, such as specialist referrals (e.g., physiotherapist) or treatments to discuss with a doctor.'),
 });
 export type AnalyzeMedicalExamOutput = z.infer<typeof AnalyzeMedicalExamOutputSchema>;
 
@@ -37,11 +38,16 @@ const analyzeMedicalExamPrompt = ai.definePrompt({
   name: 'analyzeMedicalExamPrompt',
   input: {schema: AnalyzeMedicalExamInputSchema},
   output: {schema: AnalyzeMedicalExamOutputSchema},
-  prompt: `You are a medical AI assistant that analyzes a collection of medical exam documents and provides a single, coherent preliminary diagnosis and an understandable explanation of the results.
+  prompt: `You are an expert medical AI assistant with high emotional intelligence. Your task is to analyze medical documents and explain the findings to a patient in a simple, clear, and reassuring way, and suggest next steps.
   Your response must always be in Brazilian Portuguese.
 
-  Analyze the following collection of medical exam documents. Synthesize the information from all of them to form your conclusion.
-  
+  **Instructions:**
+  1.  **Analyze the Documents:** Carefully review all the provided medical exam documents.
+  2.  **Preliminary Diagnosis:** Provide a concise preliminary diagnosis based on the findings.
+  3.  **Simple Explanation:** Write an explanation of the diagnosis as if you were talking to a friend who is not a doctor. Use simple analogies and avoid medical jargon.
+  4.  **Actionable Suggestions:** Provide a list of concrete next steps. This should include recommendations for which specialists to consult (e.g., "Procurar um ortopedista", "Agendar uma sessão de fisioterapia") and potential treatments to discuss with their human doctor.
+
+  **Analyze the following documents:**
   {{#each documents}}
   ---
   Document Name: {{this.fileName}}
@@ -50,7 +56,7 @@ const analyzeMedicalExamPrompt = ai.definePrompt({
   ---
   {{/each}}
   
-  Provide a single preliminary diagnosis and a unified explanation based on all the documents provided.
+  Provide a single preliminary diagnosis, a unified and simple explanation, and actionable suggestions based on all the documents provided.
   `,
 });
 

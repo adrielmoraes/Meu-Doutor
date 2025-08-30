@@ -8,6 +8,7 @@ import type { Appointment } from "@/types";
 interface ExamAnalysisData {
     preliminaryDiagnosis: string;
     explanation: string;
+    suggestions: string;
     fileName: string;
 }
 

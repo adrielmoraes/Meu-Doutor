@@ -1,13 +1,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Printer, CheckCircle, BotMessageSquare, AlertTriangle } from "lucide-react";
+import { FileText, Printer, CheckCircle, BotMessageSquare, AlertTriangle, Lightbulb } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import AudioPlayback from "@/components/patient/audio-playback";
 import { getExamById, getPatientById } from "@/lib/firestore-adapter";
 import { notFound } from "next/navigation";
 import PrintButton from "@/components/patient/print-button";
 import Link from "next/link";
+import { Separator } from "@/components/ui/separator";
 
 // This should be replaced with the authenticated user's ID
 const MOCK_PATIENT_ID = '1';
@@ -24,7 +25,7 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
   const hasValidatedDiagnosis = patient.status === 'Validado' && !!patient.doctorNotes;
 
   const examDate = new Date(examData.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
-  const fullTextToSpeak = `${examData.preliminaryDiagnosis}. ${examData.explanation}`;
+  const fullTextToSpeak = `${examData.preliminaryDiagnosis}. ${examData.explanation}. ${examData.suggestions}`;
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -45,7 +46,7 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                  <PrintButton />
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <AudioPlayback textToSpeak={fullTextToSpeak} />
               <div>
                 <h3 className="font-semibold text-lg">Diagnóstico Preliminar da IA</h3>
@@ -54,6 +55,11 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
               <div>
                 <h3 className="font-semibold text-lg">Explicação Detalhada</h3>
                 <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{examData.explanation}</p>
+              </div>
+              <Separator />
+               <div>
+                <h3 className="font-semibold text-lg flex items-center gap-2"><Lightbulb className="h-5 w-5 text-amber-500" /> Sugestões e Próximos Passos</h3>
+                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{examData.suggestions}</p>
               </div>
             </CardContent>
           </Card>

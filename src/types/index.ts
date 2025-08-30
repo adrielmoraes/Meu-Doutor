@@ -65,6 +65,7 @@ export type Exam = {
   icon: string; // Lucide icon name
   preliminaryDiagnosis: string;
   explanation: string;
+  suggestions: string;
   results?: { name: string; value: string; reference: string }[];
 };
 
