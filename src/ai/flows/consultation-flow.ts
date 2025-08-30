@@ -57,9 +57,10 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
         tools: [patientDataAccessTool],
         toolRequest: 'auto'
     });
-
-    let textResponse = initialResponse.candidates?.[0]?.message.text;
-    const toolRequest = initialResponse.candidates?.[0]?.message.toolRequest;
+    
+    const initialMessage = initialResponse.candidates?.[0]?.message;
+    let textResponse = initialMessage?.text;
+    const toolRequest = initialMessage?.toolRequest;
 
     if (toolRequest) {
         // The model wants to use a tool.
