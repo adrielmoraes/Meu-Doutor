@@ -3,13 +3,14 @@
 
 import { addExamToPatient, updatePatient, addAppointment, deleteExam } from "@/lib/firestore-adapter";
 import { revalidatePath } from "next/cache";
-import type { Appointment } from "@/types";
+import type { Appointment, Exam } from "@/types";
 
 interface ExamAnalysisData {
     preliminaryDiagnosis: string;
     explanation: string;
     suggestions: string;
     fileName: string;
+    structuredResults?: { name: string; value: string; reference: string }[];
 }
 
 export async function saveExamAnalysisAction(patientId: string, analysisData: ExamAnalysisData): Promise<{ success: boolean; message: string; examId?: string; }> {
@@ -18,7 +19,10 @@ export async function saveExamAnalysisAction(patientId: string, analysisData: Ex
             type: analysisData.fileName,
             result: analysisData.preliminaryDiagnosis,
             icon: 'FileText',
-            ...analysisData
+            preliminaryDiagnosis: analysisData.preliminaryDiagnosis,
+            explanation: analysisData.explanation,
+            suggestions: analysisData.suggestions,
+            results: analysisData.structuredResults || [],
         });
         // Revalidate the history page to show the new exam
         revalidatePath('/patient/history');
