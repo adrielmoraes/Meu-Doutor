@@ -25,6 +25,8 @@ import '@/ai/flows/generate-wellness-plan.ts';
 import '@/ai/flows/generate-health-insights.ts';
 import '@/ai/flows/triage-urgency-flow.ts';
 import '@/ai/flows/live-consultation-flow.ts';
+import '@/ai/flows/summarize-vitals-flow.ts';
 import '@/ai/tools/medical-knowledge-base.ts';
 import '@/ai/tools/patient-data-access.ts';
 import '@/ai/tools/internet-search.ts';
+
