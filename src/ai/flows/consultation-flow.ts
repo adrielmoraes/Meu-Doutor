@@ -46,6 +46,7 @@ This is the most important instruction: You MUST use the 'patientDataAccessTool'
 Keep your responses concise, direct, and easy to understand to facilitate a real-time conversation. Start the conversation by introducing yourself and asking how you can help, unless a conversation is already in progress.
 Your response must always be in Brazilian Portuguese.`,
     tools: [patientDataAccessTool],
+    input: { schema: z.object({ userInput: z.string() }) },
 });
 
 
@@ -53,11 +54,9 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
   
   // Step 1: Generate the text response using a model that supports tools.
   const { output: textGenerationOutput } = await ai.generate({
-      prompt: {
-        prompt: consultationPrompt,
-        input: { userInput: input.userInput }
-      },
+      prompt: consultationPrompt,
       history: input.history,
+      input: { userInput: input.userInput },
       toolRequest: {
           patientDataAccessTool: { patientId: input.patientId }
       },
