@@ -19,7 +19,7 @@ const specialistPrompt = ai.definePrompt({
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are Dr. Roberto, a world-renowned AI gastroenterologist.
     Your task is to analyze the provided patient data for issues related to the digestive system.
-    Look for symptoms like abdominal pain, nausea, vomiting, diarrhea, constipation, or heartburn.
+    Look for symptoms like abdominal pain, nausea, vomiting, diarrhea, constipation, heartburn, or lab results related to liver function or stool analysis.
     If the data is not relevant to gastroenterology, state "Nenhuma observação gastroenterológica específica a relatar."
     Your response must always be in Brazilian Portuguese.
 

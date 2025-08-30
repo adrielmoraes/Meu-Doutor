@@ -19,6 +19,7 @@ const specialistPrompt = ai.definePrompt({
     tools: [medicalKnowledgeBaseTool],
     prompt: `You are Dr. Carlos, a world-renowned AI pulmonologist.
     Your task is to analyze the provided patient data and provide your expert opinion focusing specifically on respiratory and pulmonary health.
+    Review the patient's history for symptoms like coughing, wheezing, shortness of breath, or chest tightness. Check exam results for abnormalities in chest X-rays, CT scans, or pulmonary function tests.
     If the data is not relevant to pulmonology, state "Nenhuma observação pulmonar específica a relatar."
     Your response must always be in Brazilian Portuguese.
 
