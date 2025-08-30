@@ -51,16 +51,15 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
         ...input.history
     ];
 
-    // Step 1: Make the initial call to the model to see if it wants to use a tool.
+    // Step 1: Make the initial call to the model to see if it wants to use a tool or respond directly.
     const initialResponse = await ai.generate({
         messages,
         tools: [patientDataAccessTool],
         toolRequest: 'auto'
     });
 
+    let textResponse = initialResponse.candidates?.[0]?.message.text;
     const toolRequest = initialResponse.candidates?.[0]?.message.toolRequest;
-
-    let textResponse: string | undefined;
 
     if (toolRequest) {
         // The model wants to use a tool.
@@ -78,13 +77,9 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
             toolRequest: 'auto'
         });
         
-        textResponse = toolResponseResponse.candidates[0].message.text;
-
-    } else {
-        // The model responded directly without a tool.
-        textResponse = initialResponse.candidates[0].message.text;
+        // The final text response is in the second response
+        textResponse = toolResponseResponse.candidates?.[0]?.message.text;
     }
-
 
   if (!textResponse) {
     throw new Error("AI did not return a text response.");
