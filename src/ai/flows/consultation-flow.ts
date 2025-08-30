@@ -46,25 +46,51 @@ Your response must always be in Brazilian Portuguese.`;
 
 export async function consultationFlow(input: ConsultationInput): Promise<ConsultationOutput> {
   
-  // Step 1: Generate the text response using a model that supports tools.
-  const { output } = await ai.generate({
-      messages: [
+    const messages = [
         { role: 'system', content: [{ text: SYSTEM_PROMPT }] },
         ...input.history
-      ],
-      tools: [patientDataAccessTool],
-      toolRequest: {
-          patientDataAccessTool: { patientId: input.patientId }
-      },
-  });
+    ];
 
-  const textResponse = output?.candidates[0].message.text;
+    // Step 1: Make the initial call to the model to see if it wants to use a tool.
+    const initialResponse = await ai.generate({
+        messages,
+        tools: [patientDataAccessTool],
+        toolRequest: 'auto'
+    });
+
+    const toolRequest = initialResponse.candidates[0].message.toolRequest;
+
+    let textResponse: string | undefined;
+
+    if (toolRequest) {
+        // The model wants to use a tool.
+        console.log(`[Consultation Flow] AI requested tool: ${toolRequest.name}`);
+        const toolResult = await patientDataAccessTool(toolRequest.input);
+
+        // Step 2: Send the tool's result back to the model.
+        const toolResponseResponse = await ai.generate({
+            messages: [
+                ...messages,
+                { role: 'model', content: [{ toolRequest }] }, // Include the original request
+                { role: 'tool', content: [{ toolResponse: { name: toolRequest.name, output: toolResult } }] }
+            ],
+            tools: [patientDataAccessTool], // Still provide tools in case it needs another one
+            toolRequest: 'auto'
+        });
+        
+        textResponse = toolResponseResponse.candidates[0].message.text;
+
+    } else {
+        // The model responded directly without a tool.
+        textResponse = initialResponse.candidates[0].message.text;
+    }
+
 
   if (!textResponse) {
     throw new Error("AI did not return a text response.");
   }
   
-  // Step 2: Generate the audio from the text response.
+  // Step 3: Generate the audio from the final text response.
   const audioResult = await textToSpeech({ text: textResponse });
 
   // Make the flow resilient. If audio fails, we can still return the text.
