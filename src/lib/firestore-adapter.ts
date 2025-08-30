@@ -1,4 +1,5 @@
 
+
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, addDoc, query, where } from 'firebase/firestore';
 import type { Patient, Doctor, Appointment, Exam } from '@/types';
@@ -33,21 +34,34 @@ export async function getExamsByPatientId(patientId: string): Promise<Exam[]> {
 }
 
 export async function getExamById(patientId: string, examId: string): Promise<Exam | null> {
-    const examDocRef = doc(db, `patients/${patientId}/exams`, examId);
-    const examDoc = await getDoc(examDocRef);
-    if (examDoc.exists()) {
+    const examsCol = collection(db, `patients/${patientId}/exams`);
+    // Query for the document where the 'id' field matches examId
+    const q = query(examsCol, where("id", "==", examId));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+        // Should only be one document
+        const examDoc = querySnapshot.docs[0];
         return { id: examDoc.id, ...examDoc.data() } as Exam;
     }
     return null;
 }
 
-export async function addExamToPatient(patientId: string, examData: Omit<Exam, 'id' | 'date'>) {
+export async function addExamToPatient(patientId: string, examData: Omit<Exam, 'id' | 'date'>): Promise<string> {
     const examsCol = collection(db, `patients/${patientId}/exams`);
-    const examDoc = {
+    const examDocData = {
         ...examData,
         date: new Date().toISOString(),
     };
-    await addDoc(examsCol, examDoc);
+    // Create the document first to get a reference
+    const docRef = await addDoc(examsCol, examDocData);
+    
+    // Now, update the document with its own ID
+    await updateDoc(docRef, {
+      id: docRef.id
+    });
+
+    return docRef.id;
 }
 
 export async function getDoctors(): Promise<Doctor[]> {

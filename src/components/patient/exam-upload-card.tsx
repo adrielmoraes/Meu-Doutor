@@ -43,22 +43,26 @@ const ExamUploadCard = () => {
     reader.onload = async (e) => {
       const dataUri = e.target?.result as string;
       try {
-        const result = await analyzeMedicalExam({ examDataUri: dataUri });
+        const analysisResult = await analyzeMedicalExam({ examDataUri: dataUri });
         
-        // Save the result to Firestore
-        await saveExamAnalysisAction(MOCK_PATIENT_ID, {
-            ...result,
+        // Save the result to Firestore and get the new exam's ID
+        const saveResult = await saveExamAnalysisAction(MOCK_PATIENT_ID, {
+            ...analysisResult,
             fileName: file.name
         });
 
+        if (!saveResult.success || !saveResult.examId) {
+            throw new Error(saveResult.message || "Failed to save exam and get ID.");
+        }
+
         toast({
             title: "Análise Concluída",
-            description: "Seu exame foi analisado e salvo no seu histórico.",
+            description: "Seu exame foi analisado. Redirecionando...",
             className: "bg-green-100 border-green-200 text-green-800"
         });
         
-        // Redirect to history page to see all exams
-        router.push('/patient/history');
+        // Redirect to the detail page for the newly created exam
+        router.push(`/patient/history/${saveResult.examId}`);
         router.refresh();
 
       } catch (error) {

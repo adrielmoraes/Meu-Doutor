@@ -11,9 +11,9 @@ interface ExamAnalysisData {
     fileName: string;
 }
 
-export async function saveExamAnalysisAction(patientId: string, analysisData: ExamAnalysisData) {
+export async function saveExamAnalysisAction(patientId: string, analysisData: ExamAnalysisData): Promise<{ success: boolean; message: string; examId?: string; }> {
     try {
-        await addExamToPatient(patientId, {
+        const newExamId = await addExamToPatient(patientId, {
             type: analysisData.fileName,
             result: analysisData.preliminaryDiagnosis,
             icon: 'FileText',
@@ -21,7 +21,7 @@ export async function saveExamAnalysisAction(patientId: string, analysisData: Ex
         });
         // Revalidate the history page to show the new exam
         revalidatePath('/patient/history');
-        return { success: true, message: 'Análise salva com sucesso!' };
+        return { success: true, message: 'Análise salva com sucesso!', examId: newExamId };
     } catch (error) {
         console.error('Failed to save exam analysis:', error);
         return { success: false, message: 'Erro ao salvar a análise do exame.' };
