@@ -1,13 +1,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Printer, CheckCircle } from "lucide-react";
+import { FileText, Printer, CheckCircle, BotMessageSquare, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import AudioPlayback from "@/components/patient/audio-playback";
 import { getExamById, getPatientById } from "@/lib/firestore-adapter";
 import { notFound } from "next/navigation";
-import { BotMessageSquare } from "lucide-react";
 import PrintButton from "@/components/patient/print-button";
+import Link from "next/link";
 
 // This should be replaced with the authenticated user's ID
 const MOCK_PATIENT_ID = '1';
@@ -20,38 +20,25 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
     notFound();
   }
 
-  // A diagnosis is considered validated for this context if the patient object has been validated.
-  // A more complex app could link a specific exam to a specific validation event.
-  const isDiagnosisValidated = patient.status === 'Validado' && !!patient.doctorNotes;
-
-  let title = "Análise Preliminar do Exame pela IA";
-  let diagnosisText = examData.preliminaryDiagnosis;
-  let explanationText = examData.explanation;
-  let audioToPlay: string | null = null;
-  let fullTextToSpeak = explanationText;
-  
-  if (isDiagnosisValidated) {
-    title = "Diagnóstico Final Validado pelo Médico";
-    diagnosisText = patient.doctorNotes!.split('\n')[0] || "Diagnóstico Final"; // Extract first line as title
-    explanationText = patient.finalExplanation || "Seu médico validou este diagnóstico. Siga as orientações.";
-    audioToPlay = patient.finalExplanationAudioUri || null; // Use the pre-generated audio for the final diagnosis
-    // Combine all relevant text for the audio playback
-    fullTextToSpeak = `${diagnosisText}. ${explanationText}`;
-  }
+  // Check if there is a general validated diagnosis for the patient
+  const hasValidatedDiagnosis = patient.status === 'Validado' && !!patient.doctorNotes;
 
   const examDate = new Date(examData.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const fullTextToSpeak = `${examData.preliminaryDiagnosis}. ${examData.explanation}`;
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
       <div className="grid gap-8 md:grid-cols-3">
         <div className="md:col-span-2 space-y-6">
+          
+          {/* Main Card for AI Analysis of the specific exam */}
           <Card>
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
                   <CardTitle className="text-2xl flex items-center gap-2">
-                    {isDiagnosisValidated ? <CheckCircle className="h-6 w-6 text-green-600" /> : <BotMessageSquare className="h-6 w-6 text-primary" />} 
-                    {title}
+                    <BotMessageSquare className="h-6 w-6 text-primary" /> 
+                    Análise Preliminar do Exame pela IA
                   </CardTitle>
                   <CardDescription>{examData.type} - {examDate}</CardDescription>
                 </div>
@@ -59,28 +46,40 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <AudioPlayback textToSpeak={fullTextToSpeak} preGeneratedAudioUri={audioToPlay} />
+              <AudioPlayback textToSpeak={fullTextToSpeak} />
               <div>
-                <h3 className="font-semibold text-lg">{isDiagnosisValidated ? "Diagnóstico Validado" : "Diagnóstico Preliminar da IA"}</h3>
-                <p className="text-xl text-primary font-bold">{diagnosisText}</p>
+                <h3 className="font-semibold text-lg">Diagnóstico Preliminar da IA</h3>
+                <p className="text-xl text-primary font-bold">{examData.preliminaryDiagnosis}</p>
               </div>
               <div>
-                <h3 className="font-semibold text-lg">{isDiagnosisValidated ? "Explicação e Próximos Passos" : "Explicação Detalhada"}</h3>
-                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{explanationText}</p>
+                <h3 className="font-semibold text-lg">Explicação Detalhada</h3>
+                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{examData.explanation}</p>
               </div>
             </CardContent>
           </Card>
 
-          <Alert variant={isDiagnosisValidated ? "default" : "destructive"} className={isDiagnosisValidated ? "bg-green-50 border-green-200 text-green-800" : ""}>
-             {isDiagnosisValidated ? <CheckCircle className="h-4 w-4" /> : <BotMessageSquare className="h-4 w-4" />}
-            <AlertTitle>{isDiagnosisValidated ? "Este é o parecer final do seu médico" : "Atenção: Este é um Diagnóstico da IA"}</AlertTitle>
+          {/* Warning about AI diagnosis */}
+          <Alert variant="destructive">
+             <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Atenção: Este é um Diagnóstico da IA</AlertTitle>
             <AlertDescription>
-              {isDiagnosisValidated 
-                ? "Esta análise foi validada por um profissional qualificado. Siga as recomendações e entre em contato se tiver dúvidas."
-                : "Este diagnóstico é uma ferramenta auxiliar e não substitui a avaliação de um médico humano. A validação e a prescrição final devem ser feitas por um profissional qualificado."
-              }
+                Este diagnóstico é uma ferramenta auxiliar e não substitui a avaliação de um médico humano. A validação e a prescrição final devem ser feitas por um profissional qualificado.
             </AlertDescription>
           </Alert>
+
+           {/* Alert if a final doctor's diagnosis exists */}
+          {hasValidatedDiagnosis && (
+             <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <AlertTitle>Diagnóstico Final do Médico Disponível</AlertTitle>
+                <AlertDescription>
+                    Um médico já validou um diagnóstico final para o seu caso. Ele pode ou não estar relacionado a este exame específico. Para ver o parecer completo, seu plano de bem-estar e as recomendações finais, acesse o seu painel principal.
+                    <Button asChild variant="link" className="p-0 h-auto ml-1 text-green-800 font-bold">
+                        <Link href="/patient/dashboard">Ir para o Painel</Link>
+                    </Button>
+                </AlertDescription>
+            </Alert>
+          )}
 
         </div>
         <div className="space-y-6">
