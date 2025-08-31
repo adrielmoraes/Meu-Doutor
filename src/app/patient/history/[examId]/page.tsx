@@ -48,12 +48,12 @@ const RenderSuggestions = ({ suggestions }: { suggestions: string }) => {
       {lines.map((line, index) => {
         // Check if the line is a main heading (e.g., "- **Medicação:**")
         if (line.trim().startsWith('- **') && line.trim().endsWith('**')) {
-          const title = line.replace(/- \*\*/g, '').replace(/\*\*:/g, '');
+          const title = line.replace(/- \*\*/g, '').replace(/\*\*:/g, '').replace(/\*\*/g, '');
           return <h4 key={index} className="font-semibold text-lg mt-4">{title}</h4>;
         }
         // Render other lines as list items
         return (
-          <p key={index} className="pl-4 text-muted-foreground">{line.trim()}</p>
+          <p key={index} className="pl-4 text-slate-600">{line.replace(/^-/, '').trim()}</p>
         );
       })}
     </div>
@@ -154,7 +154,7 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                     </div>
                     <Separator />
                     <div>
-                      <h3 className="font-semibold text-lg flex items-center gap-2"><Lightbulb className="h-5 w-5 text-amber-500" /> Sugestões e Próximos Passos</h3>
+                       <h3 className="font-semibold text-lg flex items-center gap-2"><Lightbulb className="h-5 w-5 text-amber-500" /> Sugestões e Próximos Passos</h3>
                        <AudioPlayback textToSpeak={examData.suggestions || ""}/>
                        <RenderSuggestions suggestions={examData.suggestions || ""} />
                     </div>
@@ -199,4 +199,3 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
     </div>
   );
 }
-
