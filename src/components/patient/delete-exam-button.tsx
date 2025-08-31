@@ -29,20 +29,29 @@ export default function DeleteExamButton({ patientId, examId }: DeleteExamButton
 
   const handleDelete = async () => {
     setIsLoading(true);
-    const result = await deleteExamAction(patientId, examId);
-    if (result.success) {
-      toast({
-        title: "Sucesso",
-        description: "O exame foi excluído.",
-      });
-    } else {
-      toast({
+    try {
+      const result = await deleteExamAction(patientId, examId);
+      if (result.success) {
+        toast({
+          title: "Sucesso",
+          description: "O exame foi excluído.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erro",
+          description: result.message,
+        });
+      }
+    } catch (error) {
+       toast({
         variant: "destructive",
-        title: "Erro",
-        description: result.message,
+        title: "Erro Inesperado",
+        description: "Não foi possível completar a exclusão.",
       });
     }
     // No need to set isLoading to false if the component unmounts
+    // after a revalidation/redirect.
   };
 
   return (

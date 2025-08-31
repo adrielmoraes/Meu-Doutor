@@ -6,9 +6,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import type { Patient } from "@/types";
-
-// This will be the fallback if no ID is provided in the URL
-const MOCK_PATIENT_ID = '1';
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
 
 interface DashboardData {
     patient: Patient | null;
@@ -53,10 +52,13 @@ async function getDashboardData(patientId: string): Promise<DashboardData> {
 }
 
 
-export default async function PatientDashboardPage({ searchParams }: { searchParams?: { id?: string } }) {
-  // Use the ID from the URL search parameters, or fall back to the mock ID.
-  const patientId = searchParams?.id || MOCK_PATIENT_ID;
-  const { patient, healthInsights, error, fixUrl } = await getDashboardData(patientId);
+export default async function PatientDashboardPage() {
+  const session = await getSession();
+  if (!session || session.role !== 'patient') {
+      redirect('/login');
+  }
+
+  const { patient, healthInsights, error, fixUrl } = await getDashboardData(session.userId);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">

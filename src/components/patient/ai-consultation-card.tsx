@@ -1,0 +1,364 @@
+
+"use client";
+
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Mic, MicOff, Video, VideoOff, Phone, Loader2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import Image from "next/image";
+import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from "../ui/scroll-area";
+import { consultationFlow } from "@/ai/flows/consultation-flow";
+import { saveConversationHistoryAction } from "./actions";
+import { getSessionOnClient } from "@/lib/session";
+import type { SessionPayload } from "@/lib/session";
+
+type Message = {
+    role: 'user' | 'model';
+    content: { text: string }[];
+};
+
+const AIConsultationCard = () => {
+  const [session, setSession] = useState<SessionPayload | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isMicOn, setIsMicOn] = useState(false);
+  const [isVideoOn, setIsVideoOn] = useState(true);
+  const [avatarGender, setAvatarGender] = useState<"male" | "female">("female");
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [history, setHistory] = useState<Message[]>([]);
+  const [isThinking, setIsThinking] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const previewVideoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const recognitionRef = useRef<any>(null);
+  const userMediaStreamRef = useRef<MediaStream | null>(null);
+  const { toast } = useToast();
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  const femaleAvatarUrl = "https://picsum.photos/128/128";
+  const maleAvatarUrl = "https://picsum.photos/128/128";
+
+   useEffect(() => {
+    // Fetch session data on the client
+    getSessionOnClient().then(setSession);
+
+    // This ensures that the Audio object is only created on the client-side
+    if (typeof window !== 'undefined' && !audioRef.current) {
+        audioRef.current = new Audio();
+    }
+  }, []);
+  
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [history]);
+
+  // Proactively request media permissions when the component mounts
+  useEffect(() => {
+    const getMediaPermissions = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            userMediaStreamRef.current = stream;
+            setHasCameraPermission(true);
+            if (previewVideoRef.current) {
+                previewVideoRef.current.srcObject = stream;
+            }
+        } catch (err) {
+            console.error('Error accessing media devices:', err);
+            setHasCameraPermission(false);
+            toast({
+                variant: 'destructive',
+                title: 'Acesso à Mídia Negado',
+                description: 'Por favor, habilite o acesso à câmera e ao microfone nas configurações do seu navegador para usar a consulta por vídeo.',
+            });
+        }
+    };
+    getMediaPermissions();
+
+    // Cleanup function to stop media tracks when component unmounts
+    return () => {
+         if (userMediaStreamRef.current) {
+            userMediaStreamRef.current.getTracks().forEach(track => track.stop());
+            userMediaStreamRef.current = null;
+        }
+    }
+  }, [toast]);
+
+
+  const stopAiSpeaking = useCallback(() => {
+    if (audioRef.current && !audioRef.current.paused) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    }
+  }, []);
+
+  const handleAiResponse = useCallback(async (userInput: string) => {
+    if (!userInput.trim() || !session?.userId) return;
+    
+    stopAiSpeaking();
+    setIsThinking(true);
+
+    const newUserMessage: Message = { role: 'user', content: [{ text: userInput }] };
+    const newHistory = [...history, newUserMessage];
+    setHistory(newHistory);
+  
+    try {
+      const result = await consultationFlow({ patientId: session.userId, history: newHistory });
+      
+      const aiResponseMessage: Message = { role: 'model', content: [{ text: result.response }] };
+      setHistory(prev => [...prev, aiResponseMessage]);
+      
+      if (isDialogOpen && result.audioDataUri && audioRef.current) {
+        audioRef.current.src = result.audioDataUri;
+        await audioRef.current.play();
+      }
+
+    } catch (error) {
+      console.error("Failed to get AI response:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro na comunicação com a IA",
+        description: "Não foi possível obter uma resposta. Tente novamente.",
+      });
+      // Rollback user message on error
+      setHistory(prev => prev.slice(0, -1));
+    } finally {
+      setIsThinking(false);
+    }
+  }, [stopAiSpeaking, isDialogOpen, toast, history, session]);
+
+
+  const handleAiResponseRef = useRef(handleAiResponse);
+  useEffect(() => {
+    handleAiResponseRef.current = handleAiResponse;
+  }, [handleAiResponse]);
+
+
+  const startConversation = useCallback(() => {
+    if (history.length === 0) {
+        handleAiResponse("Olá");
+    }
+  }, [handleAiResponse, history.length]);
+
+
+  const initializeSpeechRecognition = useCallback(() => {
+    if (recognitionRef.current) return;
+    
+    const SpeechRecognition =
+      typeof window !== 'undefined'
+        ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+        : null;
+
+    if (!SpeechRecognition) {
+      toast({
+        variant: 'destructive',
+        title: 'Navegador incompatível',
+        description: 'Seu navegador não suporta reconhecimento de voz.',
+      });
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.lang = 'pt-BR';
+    recognition.interimResults = false;
+    
+    recognition.onspeechstart = stopAiSpeaking;
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[event.results.length - 1][0].transcript.trim();
+      if(transcript) {
+        handleAiResponseRef.current(transcript);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      if (event.error !== 'no-speech' && event.error !== 'aborted') {
+        console.error('Speech recognition error', event.error);
+        toast({ variant: 'destructive', title: 'Erro no Reconhecimento de Voz', description: `Ocorreu um erro: ${event.error}.`});
+        if(recognitionRef.current) {
+            recognitionRef.current.stop();
+        }
+      }
+    };
+    
+    recognitionRef.current = recognition;
+  }, [toast, stopAiSpeaking]);
+  
+  const toggleMic = () => {
+    const nextState = !isMicOn;
+    setIsMicOn(nextState);
+
+    if (nextState) {
+        if (!recognitionRef.current) initializeSpeechRecognition();
+        try {
+            recognitionRef.current.start();
+        } catch (e) {
+            // Already started
+        }
+    } else {
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+        }
+    }
+};
+
+  const handleEndCall = async () => {
+    setIsDialogOpen(false); 
+  };
+
+  // Effect to manage dialog lifecycle
+  useEffect(() => {
+    if (!isDialogOpen) {
+        // Cleanup when dialog closes
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+            recognitionRef.current = null;
+        }
+        stopAiSpeaking();
+
+        // Convert history to storable format (string content) before saving.
+        if (history.length > 1 && session?.userId) {
+            const storableHistory = history.map(msg => ({
+                role: msg.role,
+                content: msg.content[0].text, 
+            }));
+            saveConversationHistoryAction(session.userId, storableHistory);
+        }
+
+        // Reset state for next call
+        setHistory([]);
+        setIsMicOn(false);
+        setIsVideoOn(true);
+        return;
+    }
+
+    // When dialog opens, connect the stream to the main video element
+    if (userMediaStreamRef.current && videoRef.current) {
+      videoRef.current.srcObject = userMediaStreamRef.current;
+    }
+    startConversation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDialogOpen, session]);
+
+  return (
+    <>
+      <Card className="flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl bg-primary text-primary-foreground">
+        <CardHeader>
+          <div className="flex items-center gap-4">
+            <Avatar className="h-12 w-12">
+              <AvatarImage src={femaleAvatarUrl} data-ai-hint="woman portrait" />
+              <AvatarFallback>AI</AvatarFallback>
+            </Avatar>
+            <div>
+              <CardTitle className="text-2xl font-bold">
+                Consulta com a IA
+              </CardTitle>
+              <CardDescription className="text-primary-foreground/80">
+                Converse com seu assistente por vídeo e voz.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="bg-black/20 rounded-md aspect-video overflow-hidden flex items-center justify-center text-primary-foreground/50">
+             <video ref={previewVideoRef} className={`w-full h-full object-cover ${hasCameraPermission ? '' : 'hidden'}`} autoPlay muted playsInline />
+             {hasCameraPermission === false && <p className="p-4 text-center text-sm">A câmera está desativada. Habilite nas configurações do seu navegador.</p>}
+          </div>
+          <Button
+            onClick={() => setIsDialogOpen(true)}
+            className="w-full bg-accent hover:bg-accent/90 text-white"
+            size="lg"
+            disabled={!hasCameraPermission || !session}
+          >
+            <Video className="mr-2 h-5 w-5" />
+            Iniciar Chamada
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+          <DialogHeader className="p-4 border-b">
+            <DialogTitle>Consulta com Assistente de IA</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-background/90 overflow-hidden">
+            <div className="md:col-span-2 bg-black rounded-lg flex items-center justify-center relative overflow-hidden">
+               <Image src={avatarGender === 'female' ? femaleAvatarUrl : maleAvatarUrl} alt="AI Assistant" layout="fill" objectFit="cover" data-ai-hint={`${avatarGender} portrait`} />
+              <div className="absolute bottom-4 left-4 bg-black/50 text-white p-2 rounded-lg text-sm">
+                Assistente de IA { isThinking && (<span className="animate-pulse">está ouvindo...</span>) }
+              </div>
+            </div>
+            <div className="flex flex-col gap-4">
+              <div className="bg-black rounded-lg h-48 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
+                 <video ref={videoRef} className={`w-full h-full object-cover ${!isVideoOn ? 'hidden' : ''}`} autoPlay muted playsInline />
+                 
+                 {!isVideoOn && (
+                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4 text-white flex-col">
+                        <VideoOff className="h-10 w-10 mb-2"/>
+                        <span>Câmera desligada</span>
+                    </div>
+                 )}
+
+                 <div className="absolute bottom-4 left-4 bg-black/50 text-white p-2 rounded-lg text-sm">
+                  Você
+                </div>
+              </div>
+              <div className="bg-card p-4 rounded-lg flex-1 flex flex-col gap-2">
+                 <ScrollArea className="flex-1 pr-4">
+                   <div className="space-y-4">
+                      {history.map((msg, index) => (
+                        <div key={index} className={`flex items-start gap-2 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                          {msg.role === 'model' && <Avatar className="h-8 w-8"><AvatarFallback>AI</AvatarFallback></Avatar>}
+                          <p className={`rounded-lg px-3 py-2 text-sm ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                            {msg.content[0].text}
+                          </p>
+                        </div>
+                      ))}
+                      {isThinking && (
+                         <div className="flex items-start gap-2">
+                           <Avatar className="h-8 w-8"><AvatarFallback>AI</AvatarFallback></Avatar>
+                           <p className="rounded-lg px-3 py-2 text-sm bg-muted animate-pulse">...</p>
+                         </div>
+                      )}
+                       <div ref={messagesEndRef} />
+                   </div>
+                 </ScrollArea>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-center items-center gap-4 p-4 bg-card border-t">
+            <ToggleGroup type="single" value={avatarGender} onValueChange={(value: "male" | "female") => value && setAvatarGender(value)} className="mr-auto">
+                <ToggleGroupItem value="female" aria-label="Toggle female avatar">Feminino</ToggleGroupItem>
+                <ToggleGroupItem value="male" aria-label="Toggle male avatar">Masculino</ToggleGroupItem>
+            </ToggleGroup>
+            <Button variant={isMicOn ? "secondary" : "destructive"} size="icon" onClick={toggleMic}>
+              {isMicOn ? <Mic /> : <MicOff />}
+            </Button>
+            <Button variant={isVideoOn ? "secondary" : "destructive"} size="icon" onClick={() => setIsVideoOn(!isVideoOn)}>
+              {isVideoOn ? <Video /> : <VideoOff />}
+            </Button>
+            <Button variant="destructive" size="lg" onClick={handleEndCall}>
+              <Phone className="mr-2" /> Encerrar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+export default AIConsultationCard;

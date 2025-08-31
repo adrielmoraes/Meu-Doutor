@@ -10,11 +10,11 @@ import { Separator } from "@/components/ui/separator";
 import { MapPin, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
 
-// This should be replaced with the authenticated user's ID
-const MOCK_PATIENT_ID = '1';
 
-const DoctorCard = ({ doctor }: { doctor: Doctor }) => (
+const DoctorCard = ({ doctor, patientId }: { doctor: Doctor, patientId: string }) => (
     <Card key={doctor.id} className="flex flex-col transform transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl">
         <CardHeader className="flex-grow">
         <div className="flex items-center gap-4">
@@ -39,15 +39,15 @@ const DoctorCard = ({ doctor }: { doctor: Doctor }) => (
         <CardContent className="flex flex-col sm:flex-row gap-2">
         <StartConsultation doctor={doctor} type="video" />
         <StartConsultation doctor={doctor} type="voice" />
-        <ScheduleAppointment doctor={doctor} />
+        <ScheduleAppointment doctor={doctor} patientId={patientId} />
         </CardContent>
     </Card>
 );
 
-async function getDoctorsPageData(): Promise<{ localDoctors: Doctor[], otherDoctors: Doctor[], patient: Patient | null, error?: string, fixUrl?: string }> {
+async function getDoctorsPageData(patientId: string): Promise<{ localDoctors: Doctor[], otherDoctors: Doctor[], patient: Patient | null, error?: string, fixUrl?: string }> {
     try {
         const allDoctors = await getDoctors();
-        const patient = await getPatientById(MOCK_PATIENT_ID);
+        const patient = await getPatientById(patientId);
 
         const localDoctors = patient 
             ? allDoctors.filter(d => d.city.toLowerCase() === patient.city.toLowerCase() && d.state.toLowerCase() === patient.state.toLowerCase())
@@ -78,7 +78,12 @@ async function getDoctorsPageData(): Promise<{ localDoctors: Doctor[], otherDoct
 
 
 export default async function DoctorsPage() {
-  const { localDoctors, otherDoctors, patient, error, fixUrl } = await getDoctorsPageData();
+  const session = await getSession();
+  if (!session || session.role !== 'patient') {
+      redirect('/login');
+  }
+
+  const { localDoctors, otherDoctors, patient, error, fixUrl } = await getDoctorsPageData(session.userId);
 
   if (error) {
      return (
@@ -118,7 +123,7 @@ export default async function DoctorsPage() {
             <div className="mb-12">
                 <h2 className="text-2xl font-semibold tracking-tight mb-4">Médicos na sua cidade ({patient?.city})</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {localDoctors.map(doctor => <DoctorCard key={doctor.id} doctor={doctor} />)}
+                    {localDoctors.map(doctor => <DoctorCard key={doctor.id} doctor={doctor} patientId={session.userId} />)}
                 </div>
             </div>
         )}
@@ -134,7 +139,7 @@ export default async function DoctorsPage() {
                     </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {otherDoctors.map(doctor => <DoctorCard key={doctor.id} doctor={doctor} />)}
+                    {otherDoctors.map(doctor => <DoctorCard key={doctor.id} doctor={doctor} patientId={session.userId} />)}
                 </div>
             </div>
         )}

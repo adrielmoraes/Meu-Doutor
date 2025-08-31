@@ -5,6 +5,7 @@ import { getDoctorByEmailWithAuth, getPatientByEmailWithAuth } from '@/lib/fires
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
+import { login as createSession } from '@/lib/session';
 
 const LoginSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
@@ -24,28 +25,39 @@ export async function loginAction(prevState: any, formData: FormData) {
 
   const { email, password } = validatedFields.data;
 
+  let redirectPath: string | null = null;
+
   try {
     const doctor = await getDoctorByEmailWithAuth(email);
     if (doctor && doctor.password) {
         const passwordIsValid = await bcrypt.compare(password, doctor.password);
 
         if (passwordIsValid) {
-            redirect('/doctor');
+            await createSession({ userId: doctor.id, role: 'doctor' });
+            redirectPath = '/doctor';
         } else {
             return { ...prevState, message: 'Senha incorreta para o médico.' };
         }
     }
 
-    const patient = await getPatientByEmailWithAuth(email);
-    if (patient && patient.password) {
-        const passwordIsValid = await bcrypt.compare(password, patient.password);
+    if (!redirectPath) {
+        const patient = await getPatientByEmailWithAuth(email);
+        if (patient && patient.password) {
+            const passwordIsValid = await bcrypt.compare(password, patient.password);
 
-        if (passwordIsValid) {
-            redirect(`/patient/dashboard?id=${patient.id}`);
-        } else {
-            return { ...prevState, message: 'Senha incorreta para o paciente.' };
+            if (passwordIsValid) {
+                 await createSession({ userId: patient.id, role: 'patient' });
+                 redirectPath = '/patient/dashboard';
+            } else {
+                return { ...prevState, message: 'Senha incorreta para o paciente.' };
+            }
         }
     }
+    
+    if (redirectPath) {
+        redirect(redirectPath);
+    }
+
 
     return {
       ...prevState,
@@ -54,6 +66,10 @@ export async function loginAction(prevState: any, formData: FormData) {
 
   } catch (error) {
     console.error('Login error:', error);
+    // Handle redirect errors specifically
+    if ((error as any).code === 'NEXT_REDIRECT') {
+        throw error;
+    }
     return {
       ...prevState,
       message: 'Ocorreu um erro no servidor. Por favor, tente novamente.',

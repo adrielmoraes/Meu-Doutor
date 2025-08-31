@@ -15,15 +15,12 @@ import { format } from 'date-fns';
 import { getAvailableTimesAction } from '@/app/patient/doctors/actions';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
-// This should be replaced with the authenticated user's ID
-const MOCK_PATIENT_ID = '1';
-
-
 type ScheduleAppointmentProps = {
   doctor: Doctor;
+  patientId: string;
 };
 
-export default function ScheduleAppointment({ doctor }: ScheduleAppointmentProps) {
+export default function ScheduleAppointment({ doctor, patientId }: ScheduleAppointmentProps) {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
@@ -56,6 +53,7 @@ export default function ScheduleAppointment({ doctor }: ScheduleAppointmentProps
     if (isOpen && date) {
       fetchAvailableTimes(date);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, date]);
 
 
@@ -72,13 +70,13 @@ export default function ScheduleAppointment({ doctor }: ScheduleAppointmentProps
     setIsLoading(true);
     
     try {
-        const patient = await getPatientById(MOCK_PATIENT_ID);
+        const patient = await getPatientById(patientId);
         if (!patient) {
             throw new Error("Paciente não encontrado.");
         }
 
         const result = await createAppointmentAction({
-            patientId: MOCK_PATIENT_ID,
+            patientId: patientId,
             patientName: patient.name,
             patientAvatar: patient.avatar,
             doctorId: doctor.id,

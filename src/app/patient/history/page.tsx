@@ -7,10 +7,9 @@ import { getExamsByPatientId } from "@/lib/firestore-adapter";
 import type { Exam } from "@/types";
 import DeleteExamButton from "@/components/patient/delete-exam-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
 
-
-// This should be replaced with the authenticated user's ID
-const MOCK_PATIENT_ID = '1';
 
 const iconMap: { [key: string]: React.ReactNode } = {
     'Droplets': <Droplets className="h-6 w-6 text-primary" />,
@@ -27,9 +26,9 @@ const getIconForExam = (exam: Exam) => {
     return iconMap[exam.icon] || iconMap['default'];
 }
 
-async function getHistoryPageData(): Promise<{ exams: Exam[], error?: string, fixUrl?: string }> {
+async function getHistoryPageData(patientId: string): Promise<{ exams: Exam[], error?: string, fixUrl?: string }> {
     try {
-        const exams = await getExamsByPatientId(MOCK_PATIENT_ID);
+        const exams = await getExamsByPatientId(patientId);
         return { exams };
     } catch (e: any) {
         const errorMessage = e.message?.toLowerCase() || '';
@@ -50,7 +49,12 @@ async function getHistoryPageData(): Promise<{ exams: Exam[], error?: string, fi
 
 
 export default async function ExamHistoryPage() {
-  const { exams, error, fixUrl } = await getHistoryPageData();
+  const session = await getSession();
+  if (!session || session.role !== 'patient') {
+      redirect('/login');
+  }
+
+  const { exams, error, fixUrl } = await getHistoryPageData(session.userId);
 
   return (
       <div className="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -102,7 +106,7 @@ export default async function ExamHistoryPage() {
                                 </div>
                             </CardHeader>
                         </Link>
-                        <DeleteExamButton patientId={MOCK_PATIENT_ID} examId={exam.id} />
+                        <DeleteExamButton patientId={session.userId} examId={exam.id} />
                     </Card>
                     ))
                 ) : (

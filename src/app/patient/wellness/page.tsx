@@ -1,6 +1,6 @@
 
 import { getPatientById } from "@/lib/firestore-adapter";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { generateWellnessPlan } from "@/ai/flows/generate-wellness-plan";
 import WellnessReminders from "@/components/patient/wellness-reminders";
 import { FileText, Dumbbell, BrainCircuit, HeartPulse, AlertTriangle } from "lucide-react";
@@ -9,13 +9,12 @@ import AudioPlayback from "@/components/patient/audio-playback";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import type { Patient } from "@/types";
+import { getSession } from "@/lib/session";
 
-// This should be replaced with the authenticated user's ID
-const MOCK_PATIENT_ID = '1';
 
-async function getWellnessPageData(): Promise<{ patient: Patient | null, error?: string, fixUrl?: string }> {
+async function getWellnessPageData(patientId: string): Promise<{ patient: Patient | null, error?: string, fixUrl?: string }> {
     try {
-        const patient = await getPatientById(MOCK_PATIENT_ID);
+        const patient = await getPatientById(patientId);
         if (!patient) {
             notFound();
         }
@@ -39,7 +38,12 @@ async function getWellnessPageData(): Promise<{ patient: Patient | null, error?:
 
 
 export default async function WellnessPlanPage() {
-    const { patient, error, fixUrl } = await getWellnessPageData();
+    const session = await getSession();
+    if (!session || session.role !== 'patient') {
+        redirect('/login');
+    }
+
+    const { patient, error, fixUrl } = await getWellnessPageData(session.userId);
 
      if (error || !patient) {
         return (

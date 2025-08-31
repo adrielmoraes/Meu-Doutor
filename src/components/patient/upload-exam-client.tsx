@@ -21,6 +21,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import type { SessionPayload } from "@/lib/session";
+import { getSessionOnClient } from "@/lib/session";
 
 type StagedFile = {
   id: string;
@@ -30,10 +32,8 @@ type StagedFile = {
   type: "file" | "camera";
 };
 
-// This should be replaced with the authenticated user's ID
-const MOCK_PATIENT_ID = '1';
-
 export default function UploadExamClient() {
+  const [session, setSession] = useState<SessionPayload | null>(null);
   const [stagedFiles, setStagedFiles] = useState<StagedFile[]>([]);
   const [isAnalyzing, setIsAnalyzing] =useState(false);
   const [showCamera, setShowCamera] = useState(false);
@@ -44,6 +44,10 @@ export default function UploadExamClient() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
   const router = useRouter();
+
+  useEffect(() => {
+    getSessionOnClient().then(setSession);
+  }, []);
 
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,6 +122,10 @@ export default function UploadExamClient() {
         toast({ variant: 'destructive', title: 'Nenhum arquivo', description: 'Por favor, adicione pelo menos um arquivo ou foto para analisar.' });
         return;
     }
+    if (!session?.userId) {
+        toast({ variant: 'destructive', title: 'Sessão não encontrada', description: 'Por favor, faça login novamente.' });
+        return;
+    }
     setIsAnalyzing(true);
     try {
         const documentsToAnalyze = stagedFiles.map(sf => ({
@@ -127,7 +135,7 @@ export default function UploadExamClient() {
 
         const analysisResult = await analyzeMedicalExam({ documents: documentsToAnalyze });
 
-        const saveResult = await saveExamAnalysisAction(MOCK_PATIENT_ID, {
+        const saveResult = await saveExamAnalysisAction(session.userId, {
             ...analysisResult,
             fileName: `${stagedFiles.length} documento(s) analisado(s)`,
         });

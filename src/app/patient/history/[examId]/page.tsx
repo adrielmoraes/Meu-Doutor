@@ -5,14 +5,33 @@ import { FileText, Printer, CheckCircle, BotMessageSquare, AlertTriangle, Lightb
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import AudioPlayback from "@/components/patient/audio-playback";
 import { getExamById, getPatientById } from "@/lib/firestore-adapter";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import PrintButton from "@/components/patient/print-button";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import type { Exam, Patient } from "@/types";
+import { getSession } from "@/lib/session";
 
-// This should be replaced with the authenticated user's ID
-const MOCK_PATIENT_ID = '1';
+// Component to parse and render suggestions with proper formatting
+const RenderSuggestions = ({ suggestions }: { suggestions: string }) => {
+  const lines = suggestions.split('\n').filter(line => line.trim() !== '');
+
+  return (
+    <div className="space-y-4 text-base text-foreground">
+      {lines.map((line, index) => {
+        // Check if the line is a main heading (e.g., "- **Medicação:**")
+        if (line.trim().startsWith('- **') && line.trim().endsWith('**')) {
+          const title = line.replace(/- \*\*/g, '').replace(/\*\*:/g, '').replace(/\*\*/g, '');
+          return <h4 key={index} className="font-semibold text-lg mt-4">{title}</h4>;
+        }
+        // Render other lines as list items
+        return (
+          <p key={index} className="pl-4 text-slate-600">{line.replace(/^-/, '').trim()}</p>
+        );
+      })}
+    </div>
+  );
+};
 
 async function getExamPageData(patientId: string, examId: string): Promise<{ patient: Patient | null, examData: Exam | null, error?: string, fixUrl?: string }> {
     try {
@@ -39,30 +58,14 @@ async function getExamPageData(patientId: string, examId: string): Promise<{ pat
     }
 }
 
-// Component to parse and render suggestions with proper formatting
-const RenderSuggestions = ({ suggestions }: { suggestions: string }) => {
-  const lines = suggestions.split('\n').filter(line => line.trim() !== '');
-
-  return (
-    <div className="space-y-4 text-base text-foreground">
-      {lines.map((line, index) => {
-        // Check if the line is a main heading (e.g., "- **Medicação:**")
-        if (line.trim().startsWith('- **') && line.trim().endsWith('**')) {
-          const title = line.replace(/- \*\*/g, '').replace(/\*\*:/g, '').replace(/\*\*/g, '');
-          return <h4 key={index} className="font-semibold text-lg mt-4">{title}</h4>;
-        }
-        // Render other lines as list items
-        return (
-          <p key={index} className="pl-4 text-slate-600">{line.replace(/^-/, '').trim()}</p>
-        );
-      })}
-    </div>
-  );
-};
-
 
 export default async function ExamDetailPage({ params }: { params: { examId: string } }) {
-  const { patient, examData, error, fixUrl } = await getExamPageData(MOCK_PATIENT_ID, params.examId);
+  const session = await getSession();
+  if (!session || session.role !== 'patient') {
+      redirect('/login');
+  }
+  
+  const { patient, examData, error, fixUrl } = await getExamPageData(session.userId, params.examId);
 
   if (error || !examData || !patient) {
      return (
