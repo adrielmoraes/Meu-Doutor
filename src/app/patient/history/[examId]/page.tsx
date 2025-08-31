@@ -39,6 +39,27 @@ async function getExamPageData(patientId: string, examId: string): Promise<{ pat
     }
 }
 
+// Component to parse and render suggestions with proper formatting
+const RenderSuggestions = ({ suggestions }: { suggestions: string }) => {
+  const lines = suggestions.split('\n').filter(line => line.trim() !== '');
+
+  return (
+    <div className="space-y-4 text-base text-foreground">
+      {lines.map((line, index) => {
+        // Check if the line is a main heading (e.g., "- **Medicação:**")
+        if (line.trim().startsWith('- **') && line.trim().endsWith('**')) {
+          const title = line.replace(/- \*\*/g, '').replace(/\*\*:/g, '');
+          return <h4 key={index} className="font-semibold text-lg mt-4">{title}</h4>;
+        }
+        // Render other lines as list items
+        return (
+          <p key={index} className="pl-4 text-muted-foreground">{line.trim()}</p>
+        );
+      })}
+    </div>
+  );
+};
+
 
 export default async function ExamDetailPage({ params }: { params: { examId: string } }) {
   const { patient, examData, error, fixUrl } = await getExamPageData(MOCK_PATIENT_ID, params.examId);
@@ -70,6 +91,8 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
 
   const isExamValidated = examData.status === 'Validado';
   const examDate = new Date(examData.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const textForMainAudio = `${examData.preliminaryDiagnosis}. ${examData.explanation}`;
+
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -120,7 +143,7 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
               ) : (
                 // Show AI's preliminary analysis
                  <div className="space-y-6">
-                    <AudioPlayback textToSpeak={`${examData.preliminaryDiagnosis}. ${examData.explanation}`} />
+                    <AudioPlayback textToSpeak={textForMainAudio} />
                     <div>
                       <h3 className="font-semibold text-lg">Diagnóstico Preliminar da IA</h3>
                       <p className="text-xl text-primary font-bold">{examData.preliminaryDiagnosis}</p>
@@ -133,7 +156,7 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                     <div>
                       <h3 className="font-semibold text-lg flex items-center gap-2"><Lightbulb className="h-5 w-5 text-amber-500" /> Sugestões e Próximos Passos</h3>
                        <AudioPlayback textToSpeak={examData.suggestions || ""}/>
-                       <div className="whitespace-pre-wrap leading-relaxed prose prose-base max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-0 text-foreground">{examData.suggestions}</div>
+                       <RenderSuggestions suggestions={examData.suggestions || ""} />
                     </div>
                      <Alert variant="destructive">
                       <AlertTriangle className="h-4 w-4" />
@@ -176,3 +199,4 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
     </div>
   );
 }
+
