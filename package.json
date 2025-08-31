@@ -1,3 +1,4 @@
+
 {
   "name": "nextn",
   "version": "0.1.0",
@@ -62,6 +63,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.13",
     "@types/bcrypt": "^5.0.2",
     "@types/node": "^20",
     "@types/react": "^18",
