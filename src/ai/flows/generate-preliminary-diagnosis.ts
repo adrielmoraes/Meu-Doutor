@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview AI flow for orchestrating a team of specialist agents to generate a preliminary diagnosis.
@@ -93,7 +92,7 @@ const triagePrompt = ai.definePrompt({
   prompt: `You are a General Practitioner AI responsible for triaging patient cases to the correct specialist AI agents.
   Your response must always be in Brazilian Portuguese.
   
-  Based on the patient's history and exam results, identify which of the following specialists are most relevant to consult for a comprehensive diagnosis.
+  Based **strictly** on the patient's history and exam results provided below, identify which of the following specialists are **absolutely necessary** to consult for a comprehensive diagnosis. Do not select specialists for issues that are not mentioned in the data.
 
   Available specialists: ${Object.keys(specialistAgents).join(', ')}.
 
@@ -103,7 +102,7 @@ const triagePrompt = ai.definePrompt({
   Patient's history and symptoms summary:
   {{patientHistory}}
   
-  Select the specialists that are most appropriate for this case.`,
+  Select the specialists that are most appropriate for this specific case.`,
 });
 
 const synthesisPrompt = ai.definePrompt({
@@ -125,8 +124,8 @@ const synthesisPrompt = ai.definePrompt({
   Your response must always be in Brazilian Portuguese.
 
   1.  **Review all specialist reports.**
-  2.  **Synthesize the findings** into a comprehensive preliminary diagnosis (synthesis).
-  3.  **Provide clear suggestions** for next steps, such as recommended further tests or specialist referrals.
+  2.  **Synthesize the findings** into a comprehensive preliminary diagnosis (synthesis). Stick to the facts presented in the reports. Do not add new information or interpretations.
+  3.  **Provide clear suggestions** for next steps, such as recommended further tests or specialist referrals, based ONLY on the specialist findings.
 
   Patient's History:
   {{{patientHistory}}}
