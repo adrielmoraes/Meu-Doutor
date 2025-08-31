@@ -42,6 +42,10 @@ const textToSpeechFlow = ai.defineFlow(
   },
   async (input) => {
     try {
+      if (!input.text) {
+        throw new Error("Input text cannot be empty.");
+      }
+      
       const {media} = await ai.generate({
         model: googleAI.model('gemini-2.5-flash-preview-tts'),
         config: {
@@ -51,8 +55,7 @@ const textToSpeechFlow = ai.defineFlow(
       });
 
       if (!media) {
-          console.warn("Google AI TTS model did not return media.");
-          return null;
+          throw new Error("Google AI TTS model did not return media. The text might be too long or contain unsupported characters.");
       }
       
       const pcmBuffer = Buffer.from(
@@ -81,7 +84,11 @@ const textToSpeechFlow = ai.defineFlow(
 
     } catch (error) {
       console.error("[TTS Flow] Google AI TTS failed:", error);
-      return null;
+      // Re-throw the error with a more user-friendly message
+      if (error instanceof Error) {
+        throw new Error(`Falha na geração de áudio: ${error.message}`);
+      }
+      throw new Error("Ocorreu um erro desconhecido durante a geração de áudio.");
     }
   }
 );

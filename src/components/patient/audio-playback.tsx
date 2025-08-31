@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { PlayCircle, PauseCircle, Loader2, Volume2 } from "lucide-react";
+import { PlayCircle, PauseCircle, Loader2, Volume2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { textToSpeech } from "@/ai/flows/text-to-speech";
@@ -12,12 +12,16 @@ interface AudioPlaybackProps {
   preGeneratedAudioUri?: string | null;
 }
 
+const MAX_TTS_CHARS = 2000;
+
 const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGeneratedAudioUri }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
+
+  const isTextTooLong = textToSpeak.length > MAX_TTS_CHARS;
 
   useEffect(() => {
     // Only create audio object on the client side
@@ -73,14 +77,16 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGenerated
         audioRef.current.src = response.audioDataUri;
         audioRef.current.play().catch(e => console.error("Audio play failed after generation:", e));
       } else {
-        throw new Error("TTS flow did not return audio data.");
+        // This case should ideally not be hit if the flow throws an error.
+        throw new Error("A API de áudio não retornou dados.");
       }
     } catch (error) {
       console.error("Failed to generate audio:", error);
+      const errorMessage = error instanceof Error ? error.message : "Não foi possível gerar a narração. Tente novamente.";
       toast({
         variant: "destructive",
         title: "Erro ao Gerar Áudio",
-        description: "Não foi possível gerar a narração. Tente novamente.",
+        description: errorMessage,
       });
     } finally {
       setIsGenerating(false);
@@ -88,6 +94,9 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGenerated
   };
 
   const getButtonContent = () => {
+      if (isTextTooLong) {
+        return <><XCircle className="mr-2 h-5 w-5" /> Texto muito longo para narrar</>
+      }
       if (isGenerating) {
         return <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Gerando Áudio...</>
       }
@@ -104,7 +113,7 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGenerated
     <div className="mt-4">
         <Button
             onClick={toggleAudio}
-            disabled={isGenerating}
+            disabled={isGenerating || isTextTooLong}
             aria-label={isPlaying ? "Pausar áudio" : "Reproduzir áudio"}
             size="lg"
             className="w-full"
