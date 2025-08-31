@@ -1,13 +1,15 @@
 
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { getDoctors, getPatientById } from "@/lib/firestore-adapter";
 import ScheduleAppointment from "@/components/patient/schedule-appointment";
 import StartConsultation from "@/components/patient/start-consultation";
-import type { Doctor } from "@/types";
+import type { Doctor, Patient } from "@/types";
 import { Separator } from "@/components/ui/separator";
-import { MapPin } from "lucide-react";
+import { MapPin, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Link from "next/link";
 
 // This should be replaced with the authenticated user's ID
 const MOCK_PATIENT_ID = '1';
@@ -42,17 +44,66 @@ const DoctorCard = ({ doctor }: { doctor: Doctor }) => (
     </Card>
 );
 
-export default async function DoctorsPage() {
-  const allDoctors = await getDoctors();
-  const patient = await getPatientById(MOCK_PATIENT_ID);
+async function getDoctorsPageData(): Promise<{ localDoctors: Doctor[], otherDoctors: Doctor[], patient: Patient | null, error?: string, fixUrl?: string }> {
+    try {
+        const allDoctors = await getDoctors();
+        const patient = await getPatientById(MOCK_PATIENT_ID);
 
-  const localDoctors = patient 
-    ? allDoctors.filter(d => d.city.toLowerCase() === patient.city.toLowerCase() && d.state.toLowerCase() === patient.state.toLowerCase())
-    : [];
-  
-  const otherDoctors = patient
-    ? allDoctors.filter(d => d.city.toLowerCase() !== patient.city.toLowerCase() || d.state.toLowerCase() !== patient.state.toLowerCase())
-    : allDoctors;
+        const localDoctors = patient 
+            ? allDoctors.filter(d => d.city.toLowerCase() === patient.city.toLowerCase() && d.state.toLowerCase() === patient.state.toLowerCase())
+            : [];
+        
+        const otherDoctors = patient
+            ? allDoctors.filter(d => d.city.toLowerCase() !== patient.city.toLowerCase() || d.state.toLowerCase() !== patient.state.toLowerCase())
+            : allDoctors;
+        
+        return { localDoctors, otherDoctors, patient };
+
+    } catch (e: any) {
+        const errorMessage = e.message?.toLowerCase() || '';
+        const errorCode = e.code?.toLowerCase() || '';
+        
+        if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
+            const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
+            return { 
+                localDoctors: [], otherDoctors: [], patient: null,
+                error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada ou o cliente está offline.",
+                fixUrl: firestoreApiUrl 
+            };
+        }
+        console.error("Unexpected error fetching doctors list:", e);
+        return { localDoctors: [], otherDoctors: [], patient: null, error: "Ocorreu um erro inesperado ao carregar a lista de médicos." };
+    }
+}
+
+
+export default async function DoctorsPage() {
+  const { localDoctors, otherDoctors, patient, error, fixUrl } = await getDoctorsPageData();
+
+  if (error) {
+     return (
+        <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+            <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Erro de Configuração ou Conexão</AlertTitle>
+                <AlertDescription>
+                    {error}
+                    {fixUrl && (
+                        <p className="mt-2">
+                            Por favor, habilite a API manualmente visitando o seguinte link e clicando em "Habilitar":
+                            <br />
+                            <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
+                                Habilitar API do Firestore
+                            </Link>
+                            <br />
+                            <span className="text-xs">Após habilitar, aguarde alguns minutos e atualize esta página.</span>
+                        </p>
+                    )}
+                </AlertDescription>
+            </Alert>
+        </div>
+    )
+  }
 
   return (
       <div className="container mx-auto p-4 sm:p-6 lg:p-8">

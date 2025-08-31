@@ -3,8 +3,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { getDoctors } from "@/lib/firestore-adapter";
-import { Award, Star, Clock, Zap, CheckSquare } from "lucide-react";
+import { Award, Star, Clock, Zap, CheckSquare, AlertTriangle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { Doctor } from "@/types";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Link from "next/link";
 
 // A map to render icons based on the badge name
 const iconMap: { [key: string]: React.ReactNode } = {
@@ -14,15 +17,28 @@ const iconMap: { [key: string]: React.ReactNode } = {
   Zap: <Zap className="h-6 w-6 text-purple-500" />,
 };
 
-// Assuming we're showing the profile for the first doctor for this prototype
-async function getDoctorProfile() {
+async function getDoctorProfileData(): Promise<{ doctor: Doctor | null, error?: string, fixUrl?: string }> {
   try {
     const doctors = await getDoctors();
     // In a real app, you would get the logged-in doctor's ID
-    return doctors[0];
-  } catch (error) {
-    console.error("Failed to fetch doctors for profile:", error);
-    return null;
+    if (doctors.length === 0) {
+        return { doctor: null, error: "Nenhum médico encontrado. Execute `npm run db:seed` para popular o banco de dados." };
+    }
+    return { doctor: doctors[0] };
+  } catch (e: any) {
+    const errorMessage = e.message?.toLowerCase() || '';
+    const errorCode = e.code?.toLowerCase() || '';
+    
+    if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
+        const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
+        return { 
+            doctor: null,
+            error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada ou o cliente está offline.",
+            fixUrl: firestoreApiUrl 
+        };
+    }
+    console.error("Unexpected error fetching doctor profile:", e);
+    return { doctor: null, error: "Ocorreu um erro inesperado ao carregar o perfil do médico." };
   }
 }
 
@@ -32,18 +48,30 @@ const getLevelName = (level: number) => {
 }
 
 export default async function DoctorProfilePage() {
-  const doctor = await getDoctorProfile();
+  const { doctor, error, fixUrl } = await getDoctorProfileData();
 
-  if (!doctor) {
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Erro ao Carregar Perfil</CardTitle>
-                <CardDescription>
-                    Não foi possível carregar os dados do médico. Verifique a conexão com o banco de dados e se os dados de seed foram populados.
-                </CardDescription>
-            </CardHeader>
-        </Card>
+  if (error || !doctor) {
+     return (
+        <div className="container mx-auto">
+            <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Erro ao Carregar Perfil</AlertTitle>
+                <AlertDescription>
+                    {error}
+                    {fixUrl && (
+                        <p className="mt-2">
+                            Por favor, habilite a API manualmente visitando o seguinte link e clicando em "Habilitar":
+                            <br />
+                            <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
+                                Habilitar API do Firestore
+                            </Link>
+                            <br />
+                            <span className="text-xs">Após habilitar, aguarde alguns minutos e atualize esta página.</span>
+                        </p>
+                    )}
+                </AlertDescription>
+            </Alert>
+        </div>
     )
   }
 

@@ -9,10 +9,11 @@ import {
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Eye, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { getPatients } from "@/lib/firestore-adapter";
 import type { Patient } from "@/types";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Helper function to extract the diagnosis from doctor's notes
 const getValidatedDiagnosis = (patient: Patient): string => {
@@ -23,9 +24,31 @@ const getValidatedDiagnosis = (patient: Patient): string => {
   return patient.doctorNotes.split('\n')[0] || 'Diagnóstico não especificado';
 }
 
+async function getHistoryData(): Promise<{ history: Patient[], error?: string, fixUrl?: string }> {
+    try {
+        const allPatients = await getPatients();
+        const history = allPatients.filter(p => p.status === 'Validado');
+        return { history };
+    } catch (e: any) {
+         const errorMessage = e.message?.toLowerCase() || '';
+        const errorCode = e.code?.toLowerCase() || '';
+        
+        if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
+            const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
+            return { 
+                history: [],
+                error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada ou o cliente está offline.",
+                fixUrl: firestoreApiUrl 
+            };
+        }
+        console.error("Unexpected error fetching history:", e);
+        return { history: [], error: "Ocorreu um erro inesperado ao carregar o histórico." };
+    }
+}
+
+
 export default async function ProfessionalHistoryPage() {
-  const allPatients = await getPatients();
-  const history = allPatients.filter(p => p.status === 'Validado');
+  const { history, error, fixUrl } = await getHistoryData();
 
   return (
     <div>
@@ -35,51 +58,75 @@ export default async function ProfessionalHistoryPage() {
           Revise todos os pacientes que você atendeu e os diagnósticos que validou.
         </p>
       </div>
-      <div className="rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Paciente</TableHead>
-              <TableHead className="hidden md:table-cell">Data do Atendimento</TableHead>
-              <TableHead>Diagnóstico Validado</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {history.map(entry => (
-              <TableRow key={entry.id}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarFallback>{entry.name.substring(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    <span className="font-medium">{entry.name}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="hidden md:table-cell">{entry.lastVisit}</TableCell>
-                <TableCell>
-                    <p className="font-medium">{getValidatedDiagnosis(entry)}</p>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button asChild variant="ghost" size="icon">
-                    <Link href={`/doctor/patients/${entry.id}`}>
-                      <Eye className="h-4 w-4" />
-                      <span className="sr-only">Ver Detalhes do Caso</span>
-                    </Link>
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-             {history.length === 0 && (
-                <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                        Nenhum atendimento validado encontrado.
-                    </TableCell>
-                </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+
+       {error ? (
+           <div className="container mx-auto">
+               <Alert variant="destructive">
+                   <AlertTriangle className="h-4 w-4" />
+                   <AlertTitle>Erro de Configuração ou Conexão</AlertTitle>
+                   <AlertDescription>
+                       {error}
+                       {fixUrl && (
+                           <p className="mt-2">
+                               Por favor, habilite a API manualmente visitando o seguinte link e clicando em "Habilitar":
+                               <br />
+                               <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
+                                   Habilitar API do Firestore
+                               </Link>
+                               <br />
+                               <span className="text-xs">Após habilitar, aguarde alguns minutos e atualize esta página.</span>
+                           </p>
+                       )}
+                   </AlertDescription>
+               </Alert>
+           </div>
+        ) : (
+             <div className="rounded-lg border">
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>Paciente</TableHead>
+                    <TableHead className="hidden md:table-cell">Data do Atendimento</TableHead>
+                    <TableHead>Diagnóstico Validado</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {history.map(entry => (
+                    <TableRow key={entry.id}>
+                        <TableCell>
+                        <div className="flex items-center gap-3">
+                            <Avatar>
+                            <AvatarFallback>{entry.name.substring(0, 2)}</AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium">{entry.name}</span>
+                        </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">{entry.lastVisit}</TableCell>
+                        <TableCell>
+                            <p className="font-medium">{getValidatedDiagnosis(entry)}</p>
+                        </TableCell>
+                        <TableCell className="text-right">
+                        <Button asChild variant="ghost" size="icon">
+                            <Link href={`/doctor/patients/${entry.id}`}>
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">Ver Detalhes do Caso</span>
+                            </Link>
+                        </Button>
+                        </TableCell>
+                    </TableRow>
+                    ))}
+                    {history.length === 0 && (
+                        <TableRow>
+                            <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                                Nenhum atendimento validado encontrado.
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+                </Table>
+            </div>
+        )}
     </div>
   );
 }

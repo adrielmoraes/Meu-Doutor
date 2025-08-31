@@ -9,16 +9,63 @@ import { notFound } from "next/navigation";
 import PrintButton from "@/components/patient/print-button";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
+import type { Exam, Patient } from "@/types";
 
 // This should be replaced with the authenticated user's ID
 const MOCK_PATIENT_ID = '1';
 
-export default async function ExamDetailPage({ params }: { params: { examId: string } }) {
-  const patient = await getPatientById(MOCK_PATIENT_ID);
-  const examData = await getExamById(MOCK_PATIENT_ID, params.examId);
+async function getExamPageData(patientId: string, examId: string): Promise<{ patient: Patient | null, examData: Exam | null, error?: string, fixUrl?: string }> {
+    try {
+        const patient = await getPatientById(patientId);
+        const examData = await getExamById(patientId, examId);
+        if (!patient || !examData) {
+            notFound();
+        }
+        return { patient, examData };
+    } catch (e: any) {
+        const errorMessage = e.message?.toLowerCase() || '';
+        const errorCode = e.code?.toLowerCase() || '';
+        
+        if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
+            const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
+            return { 
+                patient: null, examData: null,
+                error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada ou o cliente está offline.",
+                fixUrl: firestoreApiUrl 
+            };
+        }
+        console.error(`Unexpected error fetching exam ${examId}:`, e);
+        return { patient: null, examData: null, error: "Ocorreu um erro inesperado ao carregar os detalhes do exame." };
+    }
+}
 
-  if (!examData || !patient) {
-    notFound();
+
+export default async function ExamDetailPage({ params }: { params: { examId: string } }) {
+  const { patient, examData, error, fixUrl } = await getExamPageData(MOCK_PATIENT_ID, params.examId);
+
+  if (error || !examData || !patient) {
+     return (
+        <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+            <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Erro ao Carregar Detalhes do Exame</AlertTitle>
+                <AlertDescription>
+                    {error || "Os dados do exame ou do paciente não puderam ser carregados."}
+                    {fixUrl && (
+                        <p className="mt-2">
+                            Por favor, habilite a API manualmente visitando o seguinte link e clicando em "Habilitar":
+                            <br />
+                            <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
+                                Habilitar API do Firestore
+                            </Link>
+                            <br />
+                            <span className="text-xs">Após habilitar, aguarde alguns minutos e atualize esta página.</span>
+                        </p>
+                    )}
+                </AlertDescription>
+            </Alert>
+        </div>
+    )
   }
 
   const isExamValidated = examData.status === 'Validado';

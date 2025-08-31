@@ -3,18 +3,67 @@ import { getPatientById } from "@/lib/firestore-adapter";
 import { notFound } from "next/navigation";
 import { generateWellnessPlan } from "@/ai/flows/generate-wellness-plan";
 import WellnessReminders from "@/components/patient/wellness-reminders";
-import { FileText, Dumbbell, BrainCircuit, HeartPulse } from "lucide-react";
+import { FileText, Dumbbell, BrainCircuit, HeartPulse, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AudioPlayback from "@/components/patient/audio-playback";
-
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Link from "next/link";
+import type { Patient } from "@/types";
 
 // This should be replaced with the authenticated user's ID
 const MOCK_PATIENT_ID = '1';
 
+async function getWellnessPageData(): Promise<{ patient: Patient | null, error?: string, fixUrl?: string }> {
+    try {
+        const patient = await getPatientById(MOCK_PATIENT_ID);
+        if (!patient) {
+            notFound();
+        }
+        return { patient };
+    } catch (e: any) {
+        const errorMessage = e.message?.toLowerCase() || '';
+        const errorCode = e.code?.toLowerCase() || '';
+        
+        if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
+            const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
+            return { 
+                patient: null,
+                error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada ou o cliente está offline.",
+                fixUrl: firestoreApiUrl 
+            };
+        }
+        console.error("Unexpected error fetching patient for wellness page:", e);
+        return { patient: null, error: "Ocorreu um erro inesperado ao carregar os dados para o plano de bem-estar." };
+    }
+}
+
+
 export default async function WellnessPlanPage() {
-    const patient = await getPatientById(MOCK_PATIENT_ID);
-    if (!patient) {
-        notFound();
+    const { patient, error, fixUrl } = await getWellnessPageData();
+
+     if (error || !patient) {
+        return (
+            <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+                <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Erro ao Carregar Página</AlertTitle>
+                    <AlertDescription>
+                        {error || "Não foi possível carregar os dados do paciente."}
+                        {fixUrl && (
+                            <p className="mt-2">
+                                Por favor, habilite a API manualmente visitando o seguinte link e clicando em "Habilitar":
+                                <br />
+                                <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
+                                    Habilitar API do Firestore
+                                </Link>
+                                <br />
+                                <span className="text-xs">Após habilitar, aguarde alguns minutos e atualize esta página.</span>
+                            </p>
+                        )}
+                    </AlertDescription>
+                </Alert>
+            </div>
+        )
     }
 
     // In a real app, you might only generate this once, or allow regeneration.
