@@ -9,12 +9,11 @@ if (process.env.GEMINI_API_KEY) {
   plugins.push(googleAI({apiKey: process.env.GEMINI_API_KEY}));
   console.log('[Genkit] Google AI Plugin enabled.');
 } else {
-    console.warn("[Genkit] GEMINI_API_KEY is not set. AI features may be disabled.");
+    console.warn("[Genkit] GEMINI_API_KEY is not set. AI features will be disabled.");
 }
 
 export const ai = genkit({
   plugins,
   enableTracing: true,
-  // Define o modelo a ser usado em todo o aplicativo.
   model: 'google/gemini-pro',
 });
