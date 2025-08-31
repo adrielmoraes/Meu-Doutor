@@ -24,7 +24,7 @@ export async function validateExamDiagnosisAction(patientId: string, examId: str
       status: 'Validado',
       doctorNotes: doctorNotes,
       finalExplanation: finalExplanation.explanation,
-      finalExplanationAudioUri: finalExplanation.audioDataUri,
+      finalExplanationAudioUri: finalExplanation.audioDataUri || "", // Ensure it's a string
     });
 
     // After validating an exam, check if there are any other exams pending validation
