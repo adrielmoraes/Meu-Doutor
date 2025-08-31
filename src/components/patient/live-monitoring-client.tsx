@@ -30,25 +30,6 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 
-// Helper to generate simulated vital signs data
-const generateVitals = (lastVitals: any) => {
-    // Heart Rate simulation
-    let newHr = lastVitals.hr + (Math.random() - 0.5) * 4;
-    newHr = Math.max(55, Math.min(130, newHr)); // Clamp between 55 and 130 bpm
-
-    // Blood Pressure simulation
-    let newSys = lastVitals.systolic + (Math.random() - 0.5) * 3;
-    let newDia = lastVitals.diastolic + (Math.random() - 0.5) * 2;
-    newSys = Math.max(100, Math.min(160, newSys));
-    newDia = Math.max(60, Math.min(100, newDia));
-
-    return {
-        hr: Math.round(newHr),
-        systolic: Math.round(newSys),
-        diastolic: Math.round(newDia)
-    };
-};
-
 const getStatusColor = (value: number, type: 'hr' | 'bp') => {
     if (type === 'hr') {
         if (value < 60 || value > 100) return 'text-red-500';
@@ -63,32 +44,35 @@ const getStatusColor = (value: number, type: 'hr' | 'bp') => {
 
 export default function LiveMonitoringClient() {
     const [vitalsData, setVitalsData] = useState<any[]>([]);
-    const [currentVitals, setCurrentVitals] = useState({ hr: 75, systolic: 120, diastolic: 80 });
+    const [currentVitals, setCurrentVitals] = useState({ hr: 0, systolic: 0, diastolic: 0 });
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisResult, setAnalysisResult] = useState<{ summary: string; audioDataUri: string; } | null>(null);
     const { toast } = useToast();
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentVitals(prev => {
-                const newVitals = generateVitals(prev);
-                setVitalsData(currentData => {
-                    const now = new Date();
-                    const newDataPoint = {
-                        time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-                        ...newVitals
-                    };
-                    const updatedData = [...currentData, newDataPoint];
-                    if (updatedData.length > MAX_DATA_POINTS) {
-                        return updatedData.slice(updatedData.length - MAX_DATA_POINTS);
-                    }
-                    return updatedData;
-                });
-                return newVitals;
-            });
-        }, 2000); // Update every 2 seconds
-
-        return () => clearInterval(interval);
+        // TODO: Implementar a integração com a API do dispositivo vestível aqui.
+        // A lógica abaixo deve ser substituída por uma chamada a uma API real (via WebSocket ou polling)
+        // para obter os dados do dispositivo do paciente em tempo real.
+        
+        // Exemplo de como você poderia estruturar a recepção de dados:
+        // const webSocket = new WebSocket('wss://sua-api-de-wearables.com/vitals');
+        // webSocket.onmessage = (event) => {
+        //     const newVitals = JSON.parse(event.data); // { hr: 78, systolic: 122, diastolic: 81 }
+        //     setCurrentVitals(newVitals);
+        //     setVitalsData(currentData => {
+        //          const now = new Date();
+        //          const newDataPoint = {
+        //              time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        //              ...newVitals
+        //          };
+        //          const updatedData = [...currentData, newDataPoint];
+        //          if (updatedData.length > MAX_DATA_POINTS) {
+        //              return updatedData.slice(updatedData.length - MAX_DATA_POINTS);
+        //          }
+        //          return updatedData;
+        //     });
+        // };
+        // return () => webSocket.close();
     }, []);
 
     const handleAnalyzeData = async () => {
@@ -132,7 +116,7 @@ export default function LiveMonitoringClient() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className={`text-6xl font-bold ${hrColor}`}>{currentVitals.hr}</p>
+                        <p className={`text-6xl font-bold ${hrColor}`}>{currentVitals.hr > 0 ? currentVitals.hr : '--'}</p>
                         <p className="text-muted-foreground">BPM</p>
                     </CardContent>
                 </Card>
@@ -144,8 +128,8 @@ export default function LiveMonitoringClient() {
                     </CardHeader>
                     <CardContent>
                         <p className={`text-6xl font-bold ${bpColor}`}>
-                            {currentVitals.systolic}
-                            <span className="text-3xl text-muted-foreground">/{currentVitals.diastolic}</span>
+                            {currentVitals.systolic > 0 ? currentVitals.systolic : '--'}
+                            <span className="text-3xl text-muted-foreground">/{currentVitals.diastolic > 0 ? currentVitals.diastolic : '--'}</span>
                         </p>
                         <p className="text-muted-foreground">mmHg (Sist/Diast)</p>
                     </CardContent>
@@ -155,7 +139,7 @@ export default function LiveMonitoringClient() {
                         <div className="h-16 w-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-2">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22C6.5 22 2 17.5 2 12S6.5 2 12 2s10 4.5 10 10-4.5 10-10 10Z"></path><path d="M12 12v-2"></path><path d="M16.2 7.8l-1.4 1.4"></path><path d="M18 12h-2"></path><path d="M16.2 16.2l-1.4-1.4"></path><path d="M12 12v2"></path><path d="M7.8 16.2l1.4-1.4"></path><path d="M6 12H4"></path><path d="M7.8 7.8l1.4 1.4"></path></svg>
                         </div>
-                        <p className="font-bold text-6xl">24 <span className="text-3xl text-muted-foreground">°C</span></p>
+                        <p className="font-bold text-6xl">-- <span className="text-3xl text-muted-foreground">°C</span></p>
                         <p className="text-muted-foreground">Temperatura Corporal</p>
                     </CardContent>
                 </Card>
@@ -165,6 +149,7 @@ export default function LiveMonitoringClient() {
             <Card>
                 <CardHeader>
                     <CardTitle>Histórico Recente de Sinais Vitais</CardTitle>
+                    <CardDescription>Aguardando dados do dispositivo do paciente...</CardDescription>
                 </CardHeader>
                 <CardContent className="h-[400px] w-full p-2">
                     <ChartContainer config={chartConfig} className="h-full w-full">
@@ -196,7 +181,7 @@ export default function LiveMonitoringClient() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Button onClick={handleAnalyzeData} disabled={isAnalyzing} size="lg" className="w-full md:w-auto">
+                    <Button onClick={handleAnalyzeData} disabled={isAnalyzing || vitalsData.length === 0} size="lg" className="w-full md:w-auto">
                         {isAnalyzing ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analisando...
@@ -221,3 +206,5 @@ export default function LiveMonitoringClient() {
         </div>
     );
 }
+
+    
