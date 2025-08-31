@@ -120,7 +120,7 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
               ) : (
                 // Show AI's preliminary analysis
                  <div className="space-y-6">
-                    <AudioPlayback textToSpeak={`${examData.preliminaryDiagnosis} ${examData.explanation}`} />
+                    <AudioPlayback textToSpeak={`${examData.preliminaryDiagnosis}. ${examData.explanation}`} />
                     <div>
                       <h3 className="font-semibold text-lg">Diagnóstico Preliminar da IA</h3>
                       <p className="text-xl text-primary font-bold">{examData.preliminaryDiagnosis}</p>
@@ -133,7 +133,7 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                     <div>
                       <h3 className="font-semibold text-lg flex items-center gap-2"><Lightbulb className="h-5 w-5 text-amber-500" /> Sugestões e Próximos Passos</h3>
                        <AudioPlayback textToSpeak={examData.suggestions || ""}/>
-                       <div className="text-muted-foreground whitespace-pre-wrap leading-relaxed prose prose-sm max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-0">{examData.suggestions}</div>
+                       <div className="whitespace-pre-wrap leading-relaxed prose prose-base max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-0 text-foreground">{examData.suggestions}</div>
                     </div>
                      <Alert variant="destructive">
                       <AlertTriangle className="h-4 w-4" />
