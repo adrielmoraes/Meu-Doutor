@@ -68,17 +68,18 @@ const textToSpeechFlow = ai.defineFlow(
   },
   async input => {
     try {
+        // Explicitamente usa o modelo TTS do Google, independentemente do provedor padrão
         const {media} = await ai.generate({
-        model: googleAI.model('gemini-2.5-flash-preview-tts'),
-        config: {
-            responseModalities: ['AUDIO'],
-            speechConfig: {
-            voiceConfig: {
-                prebuiltVoiceConfig: {voiceName: 'Algenib'},
+            model: googleAI.model('gemini-2.5-flash-preview-tts'),
+            config: {
+                responseModalities: ['AUDIO'],
+                speechConfig: {
+                    voiceConfig: {
+                        prebuiltVoiceConfig: {voiceName: 'Algenib'},
+                    },
+                },
             },
-            },
-        },
-        prompt: input.text,
+            prompt: input.text,
         });
 
         if (!media) {
@@ -94,11 +95,11 @@ const textToSpeechFlow = ai.defineFlow(
         const wavBase64 = await toWav(audioBuffer);
 
         return {
-        audioDataUri: `data:audio/wav;base64,${wavBase64}`,
+          audioDataUri: `data:audio/wav;base64,${wavBase64}`,
         };
     } catch (error) {
-        console.error("[TTS Flow] Failed to generate audio, likely due to quota limits:", error);
-        // Return null instead of throwing, making the app more resilient to quota errors.
+        console.error("[TTS Flow] Failed to generate audio. This may be due to missing GEMINI_API_KEY or quota limits:", error);
+        // Retorna nulo em vez de lançar erro, tornando a aplicação mais resiliente.
         return null;
     }
   }
