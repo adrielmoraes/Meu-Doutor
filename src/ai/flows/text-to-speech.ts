@@ -47,7 +47,7 @@ const textToSpeechFlow = ai.defineFlow(
         throw new Error("Input text cannot be empty.");
       }
 
-      const model = googleAI.model('gemini-2.5-flash-preview-tts');
+      const model = googleAI.model('tts-1');
 
       const {media} = await ai.generate({
         model: model,
