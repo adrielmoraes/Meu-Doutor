@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview Converts text to speech using Genkit and a Google AI TTS model.
+ * @fileOverview Converts text to speech using Genkit.
  *
  * - textToSpeech - A function that handles the text-to-speech conversion.
  * - TextToSpeechInput - The input type for the textToSpeech function.
@@ -41,7 +41,8 @@ async function toWav(
       bitDepth: sampleWidth * 8,
     });
 
-    const bufs: any[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bufs = [] as any[];
     writer.on('error', reject);
     writer.on('data', function (d) {
       bufs.push(d);
@@ -70,38 +71,34 @@ const textToSpeechFlow = ai.defineFlow(
   },
   async input => {
     try {
-        const {media} = await ai.generate({
-            model: googleAI('gemini-2.5-flash-preview-tts'),
-            config: {
-                responseModalities: ['AUDIO'],
-                speechConfig: {
-                  voiceConfig: {
-                    prebuiltVoiceConfig: { voiceName: 'Algenib' },
-                  },
-                },
-            },
-            prompt: input.text,
-        });
+      const {media} = await ai.generate({
+        model: googleAI.model('gemini-2.5-flash-preview-tts'),
+        config: {
+          responseModalities: ['AUDIO'],
+        },
+        prompt: input.text,
+      });
 
-        if (!media) {
-            console.warn("TTS model did not return media.");
-            return null;
-        }
-        
-        const audioBuffer = Buffer.from(
-            media.url.substring(media.url.indexOf(',') + 1),
-            'base64'
-        );
+      if (!media) {
+          console.warn("TTS model did not return media.");
+          return null;
+      }
+      
+      const audioBuffer = Buffer.from(
+        media.url.substring(media.url.indexOf(',') + 1),
+        'base64'
+      );
+      
+      const wavBase64 = await toWav(audioBuffer);
 
-        const wavBase64 = await toWav(audioBuffer);
+      return {
+        audioDataUri: 'data:audio/wav;base64,' + wavBase64,
+      };
 
-        return {
-          audioDataUri: 'data:audio/wav;base64,' + wavBase64,
-        };
     } catch (error) {
-        console.error("[TTS Flow] Failed to generate audio. This may be due to missing GEMINI_API_KEY or quota limits:", error);
-        // Retorna nulo em vez de lançar erro, tornando a aplicação mais resiliente.
-        return null;
+      console.error("[TTS Flow] Failed to generate audio:", error);
+      // Returns null instead of throwing an error, making the application more resilient.
+      return null;
     }
   }
 );

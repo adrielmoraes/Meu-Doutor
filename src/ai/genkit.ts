@@ -4,7 +4,7 @@ import {googleAI} from '@genkit-ai/googleai';
 // Lista de provedores de modelos a serem usados.
 const plugins = [];
 
-// Configura o provedor Google Gemini se a chave de API estiver definida.
+// Configura o provedor Google Gemini se a chave de API estiver definida (para fallback ou serviços específicos)
 if (process.env.GEMINI_API_KEY) {
   plugins.push(googleAI({apiKey: process.env.GEMINI_API_KEY}));
   console.log('[Genkit] Google AI Plugin enabled.');
@@ -14,5 +14,7 @@ if (process.env.GEMINI_API_KEY) {
 
 export const ai = genkit({
   plugins,
-  enableTracing: true
+  enableTracing: true,
+  // Define o modelo a ser usado em todo o aplicativo.
+  model: 'google/gemini-pro',
 });
