@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview Converts text to speech using Genkit and a TTS model.
+ * @fileOverview Converts text to speech using Genkit and a Google AI TTS model.
  *
  * - textToSpeech - A function that handles the text-to-speech conversion.
  * - TextToSpeechInput - The input type for the textToSpeech function.
@@ -27,11 +27,6 @@ const TextToSpeechOutputSchema = z.object({
 });
 export type TextToSpeechOutput = z.infer<typeof TextToSpeechOutputSchema>;
 
-export async function textToSpeech(
-  input: TextToSpeechInput
-): Promise<TextToSpeechOutput | null> {
-  return textToSpeechFlow(input);
-}
 
 async function toWav(
   pcmData: Buffer,
@@ -46,7 +41,7 @@ async function toWav(
       bitDepth: sampleWidth * 8,
     });
 
-    let bufs: any[] = [];
+    const bufs: any[] = [];
     writer.on('error', reject);
     writer.on('data', function (d) {
       bufs.push(d);
@@ -60,6 +55,13 @@ async function toWav(
   });
 }
 
+
+export async function textToSpeech(
+  input: TextToSpeechInput
+): Promise<TextToSpeechOutput | null> {
+  return textToSpeechFlow(input);
+}
+
 const textToSpeechFlow = ai.defineFlow(
   {
     name: 'textToSpeechFlow',
@@ -68,15 +70,14 @@ const textToSpeechFlow = ai.defineFlow(
   },
   async input => {
     try {
-        // Explicitamente usa o modelo TTS do Google, independentemente do provedor padrão
         const {media} = await ai.generate({
-            model: googleAI.model('gemini-2.5-flash-preview-tts'),
+            model: googleAI('gemini-2.5-flash-preview-tts'),
             config: {
                 responseModalities: ['AUDIO'],
                 speechConfig: {
-                    voiceConfig: {
-                        prebuiltVoiceConfig: {voiceName: 'Algenib'},
-                    },
+                  voiceConfig: {
+                    prebuiltVoiceConfig: { voiceName: 'Algenib' },
+                  },
                 },
             },
             prompt: input.text,
@@ -86,16 +87,16 @@ const textToSpeechFlow = ai.defineFlow(
             console.warn("TTS model did not return media.");
             return null;
         }
-
+        
         const audioBuffer = Buffer.from(
-        media.url.substring(media.url.indexOf(',') + 1),
-        'base64'
+            media.url.substring(media.url.indexOf(',') + 1),
+            'base64'
         );
 
         const wavBase64 = await toWav(audioBuffer);
 
         return {
-          audioDataUri: `data:audio/wav;base64,${wavBase64}`,
+          audioDataUri: 'data:audio/wav;base64,' + wavBase64,
         };
     } catch (error) {
         console.error("[TTS Flow] Failed to generate audio. This may be due to missing GEMINI_API_KEY or quota limits:", error);
