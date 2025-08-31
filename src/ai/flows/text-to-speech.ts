@@ -84,8 +84,12 @@ const textToSpeechFlow = ai.defineFlow(
 
     } catch (error) {
       console.error("[TTS Flow] Google AI TTS failed:", error);
-      // Re-throw the error with a more user-friendly message
+      
       if (error instanceof Error) {
+        // Check for specific API not enabled error
+        if (error.message.includes('403') && (error.message.includes('API_KEY_SERVICE_BLOCKED') || error.message.includes('generativelanguage.googleapis.com are blocked'))) {
+            throw new Error(`A API Generative Language não está habilitada no seu projeto do Google Cloud. Por favor, ative-a e tente novamente.`);
+        }
         throw new Error(`Falha na geração de áudio: ${error.message}`);
       }
       throw new Error("Ocorreu um erro desconhecido durante a geração de áudio.");
