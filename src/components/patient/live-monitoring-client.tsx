@@ -1,15 +1,16 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { HeartPulse, Gauge, Bot, Loader2 } from 'lucide-react';
+import { HeartPulse, Gauge, Bot, Loader2, Bluetooth, BluetoothConnected, BluetoothOff } from 'lucide-react';
 import { ChartContainer, ChartTooltipContent, type ChartConfig } from '../ui/chart';
 import { Button } from '../ui/button';
 import { summarizeVitals } from '@/ai/flows/summarize-vitals-flow';
 import AudioPlayback from './audio-playback';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 
 
 const MAX_DATA_POINTS = 30; // Show last 30 seconds of data
@@ -48,32 +49,81 @@ export default function LiveMonitoringClient() {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisResult, setAnalysisResult] = useState<{ summary: string; audioDataUri: string; } | null>(null);
     const { toast } = useToast();
+    const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
+    const [bluetoothDevice, setBluetoothDevice] = useState<BluetoothDevice | null>(null);
 
-    useEffect(() => {
-        // TODO: Implementar a integração com a API do dispositivo vestível aqui.
-        // A lógica abaixo deve ser substituída por uma chamada a uma API real (via WebSocket ou polling)
-        // para obter os dados do dispositivo do paciente em tempo real.
+    const handleHeartRateNotification = (event: Event) => {
+        const value = (event.target as any).value as DataView;
+        const flags = value.getUint8(0);
+        const rate16Bits = (flags & 0x1) !== 0;
+        let heartRate: number;
+        if (rate16Bits) {
+            heartRate = value.getUint16(1, true);
+        } else {
+            heartRate = value.getUint8(1);
+        }
         
-        // Exemplo de como você poderia estruturar a recepção de dados:
-        // const webSocket = new WebSocket('wss://sua-api-de-wearables.com/vitals');
-        // webSocket.onmessage = (event) => {
-        //     const newVitals = JSON.parse(event.data); // { hr: 78, systolic: 122, diastolic: 81 }
-        //     setCurrentVitals(newVitals);
-        //     setVitalsData(currentData => {
-        //          const now = new Date();
-        //          const newDataPoint = {
-        //              time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        //              ...newVitals
-        //          };
-        //          const updatedData = [...currentData, newDataPoint];
-        //          if (updatedData.length > MAX_DATA_POINTS) {
-        //              return updatedData.slice(updatedData.length - MAX_DATA_POINTS);
-        //          }
-        //          return updatedData;
-        //     });
-        // };
-        // return () => webSocket.close();
-    }, []);
+        setCurrentVitals(prev => ({...prev, hr: heartRate }));
+        setVitalsData(currentData => {
+             const now = new Date();
+             const newDataPoint = {
+                 time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                 hr: heartRate,
+                 // BP data is not available from standard heart rate service, so we keep it static for now
+                 systolic: prev => prev.systolic, 
+                 diastolic: prev => prev.diastolic,
+             };
+             const updatedData = [...currentData, newDataPoint];
+             return updatedData.length > MAX_DATA_POINTS ? updatedData.slice(1) : updatedData;
+        });
+    };
+
+    const disconnectDevice = useCallback(async () => {
+        if (bluetoothDevice && bluetoothDevice.gatt?.connected) {
+             bluetoothDevice.gatt.disconnect();
+        }
+        setBluetoothDevice(null);
+        setConnectionStatus('disconnected');
+        toast({ title: "Dispositivo Desconectado", description: "A conexão Bluetooth foi encerrada." });
+    }, [bluetoothDevice, toast]);
+
+    const connectToDevice = async () => {
+        if (!navigator.bluetooth) {
+            toast({ variant: 'destructive', title: 'Bluetooth não suportado', description: 'Seu navegador não suporta a Web Bluetooth API.' });
+            setConnectionStatus('error');
+            return;
+        }
+
+        setConnectionStatus('connecting');
+        try {
+            const device = await navigator.bluetooth.requestDevice({
+                filters: [{ services: ['heart_rate'] }],
+                optionalServices: ['battery_service']
+            });
+            
+            setBluetoothDevice(device);
+            device.addEventListener('gattserverdisconnected', () => {
+                setConnectionStatus('disconnected');
+                toast({ title: "Dispositivo Desconectado", description: "A conexão foi perdida.", variant: "destructive" });
+            });
+            
+            const server = await device.gatt?.connect();
+            setConnectionStatus('connected');
+            toast({ title: "Conectado!", description: `Conectado com sucesso a ${device.name}.` });
+
+            const service = await server?.getPrimaryService('heart_rate');
+            const characteristic = await service?.getCharacteristic('heart_rate_measurement');
+            await characteristic?.startNotifications();
+
+            characteristic?.addEventListener('characteristicvaluechanged', handleHeartRateNotification);
+
+        } catch (error) {
+            console.error('Falha na conexão Bluetooth:', error);
+            toast({ variant: 'destructive', title: 'Falha na Conexão', description: 'Não foi possível conectar ao dispositivo. Tente novamente.' });
+            setConnectionStatus('error');
+        }
+    };
+
 
     const handleAnalyzeData = async () => {
         if (vitalsData.length < 5) {
@@ -105,8 +155,40 @@ export default function LiveMonitoringClient() {
     const hrColor = getStatusColor(currentVitals.hr, 'hr');
     const bpColor = getStatusColor(currentVitals.systolic, 'bp');
 
+    const renderConnectionButton = () => {
+        switch (connectionStatus) {
+            case 'connecting':
+                return <Button disabled><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Conectando...</Button>;
+            case 'connected':
+                return <Button variant="destructive" onClick={disconnectDevice}><BluetoothOff className="mr-2" /> Desconectar</Button>;
+            case 'disconnected':
+            case 'error':
+            default:
+                return <Button onClick={connectToDevice}><Bluetooth className="mr-2" /> Conectar Dispositivo Bluetooth</Button>;
+        }
+    }
+
     return (
         <div className="grid gap-6 md:grid-cols-1">
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                        <span>Controle de Conexão</span>
+                        {connectionStatus === 'connected' && <span className="text-sm font-medium flex items-center gap-2 text-green-600"><BluetoothConnected className="h-4 w-4" />Conectado a {bluetoothDevice?.name}</span>}
+                    </CardTitle>
+                    <CardDescription>Use o botão abaixo para conectar ou desconectar seu monitor cardíaco via Bluetooth.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {renderConnectionButton()}
+                     {connectionStatus === 'error' && (
+                        <Alert variant="destructive" className="mt-4">
+                            <AlertTitle>Erro de Conexão</AlertTitle>
+                            <AlertDescription>Não foi possível conectar. Verifique se o Bluetooth está ativo e o dispositivo está próximo.</AlertDescription>
+                        </Alert>
+                    )}
+                </CardContent>
+            </Card>
+
             <div className="grid gap-6 md:grid-cols-3">
                  {/* Status Cards */}
                 <Card>
@@ -149,7 +231,9 @@ export default function LiveMonitoringClient() {
             <Card>
                 <CardHeader>
                     <CardTitle>Histórico Recente de Sinais Vitais</CardTitle>
-                    <CardDescription>Aguardando dados do dispositivo do paciente...</CardDescription>
+                    <CardDescription>
+                         {connectionStatus === 'connected' ? 'Recebendo dados em tempo real...' : 'Aguardando conexão com o dispositivo do paciente...'}
+                    </CardDescription>
                 </CardHeader>
                 <CardContent className="h-[400px] w-full p-2">
                     <ChartContainer config={chartConfig} className="h-full w-full">
