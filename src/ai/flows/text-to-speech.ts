@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview Converts text to speech using Genkit, prioritizing OpenRouter.
+ * @fileOverview Converts text to speech using the Google AI TTS model via Genkit.
  *
  * - textToSpeech - A function that handles the text-to-speech conversion.
  * - TextToSpeechInput - The input type for the textToSpeech function.
@@ -40,10 +40,8 @@ const textToSpeechFlow = ai.defineFlow(
     inputSchema: TextToSpeechInputSchema,
     outputSchema: z.nullable(TextToSpeechOutputSchema),
   },
-  async input => {
-    // Google AI TTS (used as fallback or if OpenRouter is not configured)
+  async (input) => {
     try {
-      console.log("[TTS Flow] Using Google AI for TTS...");
       const {media} = await ai.generate({
         model: googleAI.model('gemini-2.5-flash-preview-tts'),
         config: {
