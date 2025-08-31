@@ -12,7 +12,7 @@ interface AudioPlaybackProps {
   preGeneratedAudioUri?: string | null;
 }
 
-const MAX_TTS_CHARS = 2000;
+const MAX_TTS_CHARS = 4000;
 
 const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGeneratedAudioUri }) => {
   const [isPlaying, setIsPlaying] = useState(false);

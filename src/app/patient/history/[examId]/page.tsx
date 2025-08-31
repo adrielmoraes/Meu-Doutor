@@ -120,7 +120,7 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
               ) : (
                 // Show AI's preliminary analysis
                  <div className="space-y-6">
-                    <AudioPlayback textToSpeak={`${examData.preliminaryDiagnosis}. ${examData.explanation}. ${examData.suggestions}`} />
+                    <AudioPlayback textToSpeak={`${examData.preliminaryDiagnosis}. ${examData.explanation}.`} />
                     <div>
                       <h3 className="font-semibold text-lg">Diagnóstico Preliminar da IA</h3>
                       <p className="text-xl text-primary font-bold">{examData.preliminaryDiagnosis}</p>
