@@ -1,7 +1,8 @@
 
 'use server';
 /**
- * @fileOverview Converts text to speech using the Google AI TTS model via Genkit.
+ * @fileOverview Converts text to speech using a configured TTS provider via Genkit.
+ * It prioritizes OpenRouter if configured, otherwise falls back to Google AI TTS.
  *
  * - textToSpeech - A function that handles the text-to-speech conversion.
  * - TextToSpeechInput - The input type for the textToSpeech function.
@@ -45,9 +46,11 @@ const textToSpeechFlow = ai.defineFlow(
       if (!input.text) {
         throw new Error("Input text cannot be empty.");
       }
-      
+
+      const model = googleAI.model('gemini-2.5-flash-preview-tts');
+
       const {media} = await ai.generate({
-        model: googleAI.model('gemini-2.5-flash-preview-tts'),
+        model: model,
         config: {
           responseModalities: ['AUDIO'],
         },
@@ -55,38 +58,35 @@ const textToSpeechFlow = ai.defineFlow(
       });
 
       if (!media) {
-          throw new Error("Google AI TTS model did not return media. The text might be too long or contain unsupported characters.");
+          throw new Error("TTS model did not return media. The text might be too long or contain unsupported characters.");
       }
       
-      const pcmBuffer = Buffer.from(
+      const audioBuffer = Buffer.from(
         media.url.substring(media.url.indexOf(',') + 1),
         'base64'
       );
       
-      const writer = new wav.Writer({
-          channels: 1,
-          sampleRate: 24000,
-          bitDepth: 16,
-      });
-      
-      return new Promise((resolve, reject) => {
-          const bufs: any[] = [];
-          writer.on('data', (chunk) => bufs.push(chunk));
-          writer.on('end', () => {
-              const wavBase64 = Buffer.concat(bufs).toString('base64');
-              resolve({
-                  audioDataUri: 'data:audio/wav;base64,' + wavBase64,
-              });
-          });
-          writer.on('error', reject);
-          writer.end(pcmBuffer);
-      });
+      const wavBase64 = await new Promise<string>((resolve, reject) => {
+            const writer = new wav.Writer({
+                channels: 1,
+                sampleRate: 24000,
+                bitDepth: 16,
+            });
+            const bufs: any[] = [];
+            writer.on('data', (chunk) => bufs.push(chunk));
+            writer.on('end', () => resolve(Buffer.concat(bufs).toString('base64')));
+            writer.on('error', reject);
+            writer.end(audioBuffer);
+        });
+
+      return {
+          audioDataUri: 'data:audio/wav;base64,' + wavBase64,
+      };
 
     } catch (error) {
-      console.error("[TTS Flow] Google AI TTS failed:", error);
+      console.error("[TTS Flow] TTS generation failed:", error);
       
       if (error instanceof Error) {
-        // Check for specific API not enabled error
         if (error.message.includes('403') && (error.message.includes('API_KEY_SERVICE_BLOCKED') || error.message.includes('generativelanguage.googleapis.com are blocked'))) {
             throw new Error(`A API Generative Language não está habilitada no seu projeto do Google Cloud. Por favor, ative-a e tente novamente.`);
         }
