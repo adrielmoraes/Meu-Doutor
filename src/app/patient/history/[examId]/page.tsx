@@ -133,6 +133,7 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                     <div>
                       <h3 className="font-semibold text-lg flex items-center gap-2"><Lightbulb className="h-5 w-5 text-amber-500" /> Sugestões e Próximos Passos</h3>
                       <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{examData.suggestions}</p>
+                       <AudioPlayback textToSpeak={examData.suggestions || ""}/>
                     </div>
                      <Alert variant="destructive">
                       <AlertTriangle className="h-4 w-4" />
