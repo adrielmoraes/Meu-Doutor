@@ -47,7 +47,8 @@ const textToSpeechFlow = ai.defineFlow(
         throw new Error("Input text cannot be empty.");
       }
 
-      const model = googleAI.model('tts-1');
+      // Use the recommended model for text-to-speech.
+      const model = googleAI.model('gemini-1.5-flash-preview-tts');
 
       const {media} = await ai.generate({
         model: model,
@@ -89,6 +90,9 @@ const textToSpeechFlow = ai.defineFlow(
       if (error instanceof Error) {
         if (error.message.includes('403') && (error.message.includes('API_KEY_SERVICE_BLOCKED') || error.message.includes('generativelanguage.googleapis.com are blocked'))) {
             throw new Error(`A API Generative Language não está habilitada no seu projeto do Google Cloud. Por favor, ative-a e tente novamente.`);
+        }
+        if (error.message.includes('404 Not Found')) {
+             throw new Error(`Falha na geração de áudio: O modelo de TTS especificado não foi encontrado. Verifique o nome do modelo.`);
         }
         throw new Error(`Falha na geração de áudio: ${error.message}`);
       }
