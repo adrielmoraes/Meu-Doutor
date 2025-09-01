@@ -22,6 +22,51 @@ O projeto foi desenhado para ser uma simulação de alta fidelidade, pronta para
 
 ---
 
+## ⚙️ Como Executar o Projeto
+
+### Pré-requisitos
+*   Node.js (versão 20 ou superior)
+*   Um projeto Firebase com o Cloud Firestore habilitado.
+
+### Passos para Instalação
+
+1.  **Clone o repositório:**
+    ```bash
+    git clone <URL_DO_REPOSITORIO>
+    cd <NOME_DA_PASTA>
+    ```
+
+2.  **Instale as dependências:**
+    ```bash
+    npm install
+    ```
+
+3.  **Configure as Variáveis de Ambiente:**
+    *   Renomeie o arquivo `.env.example` (se existir) para `.env`.
+    *   Preencha as variáveis de ambiente no arquivo `.env` com as credenciais do seu projeto Firebase.
+
+4.  **Execute o servidor de desenvolvimento:**
+    ```bash
+    npm run dev
+    ```
+
+5.  **Acesse a aplicação:**
+    *   Abra seu navegador e acesse `http://localhost:9002`.
+
+### Variáveis de Ambiente Essenciais (`.env`)
+
+Para que a aplicação funcione, você **precisará** preencher o arquivo `.env` com as chaves do seu projeto Firebase.
+
+*   `NEXT_PUBLIC_FIREBASE_*`: Informações do seu projeto Firebase. Você pode encontrá-las nas configurações do seu projeto no Console do Firebase > Configurações do Projeto > Geral > "Seus aplicativos".
+*   `JWT_SECRET`: Uma chave secreta para a sessão do usuário. Você pode gerar uma com o comando: `openssl rand -base64 32`.
+*   `GEMINI_API_KEY`: Sua chave de API para usar os modelos do Gemini.
+*   **`FIREBASE_SERVICE_ACCOUNT_KEY` (MUITO IMPORTANTE):** Esta é a credencial que permite que o backend (servidor Next.js) realize ações administrativas, como **criar novos usuários**.
+    1.  Vá para o Console do Firebase > Configurações do Projeto > Contas de Serviço.
+    2.  Clique em "Gerar nova chave privada".
+    3.  Um arquivo JSON será baixado. **Abra este arquivo, copie todo o seu conteúdo** e cole-o como o valor da variável `FIREBASE_SERVICE_ACCOUNT_KEY` no seu arquivo `.env`. O valor deve ser uma string única, contendo todo o JSON.
+
+---
+
 ## 🔒 Estrutura do Banco de Dados e Segurança
 
 O banco de dados do MediAI no Cloud Firestore é organizado para garantir segurança e escalabilidade.
@@ -110,37 +155,3 @@ A estrutura do MediAI permite diversos modelos de monetização, que podem ser c
 | **Híbrido** | Ambos | Combina diferentes modelos. Ex: Plano gratuito para pacientes, mas a validação de diagnóstico é paga; ou uma assinatura para médicos que oferece um número limitado de análises, com pacotes adicionais para compra. | - Flexível, permite capturar diferentes segmentos de mercado.<br>- Maximiza o potencial de receita. | - Pode se tornar complexo para comunicar e gerenciar. |
 
 A escolha do modelo ideal dependerá da estratégia de mercado e do público-alvo principal. A `Análise de Custos` do projeto fornece uma base para o cálculo dos preços de cada serviço.
-
----
-
-## ⚙️ Como Executar o Projeto
-
-### Pré-requisitos
-*   Node.js (versão 20 ou superior)
-*   Um projeto Firebase com o Cloud Firestore habilitado.
-
-### Passos para Instalação
-
-1.  **Clone o repositório:**
-    ```bash
-    git clone <URL_DO_REPOSITORIO>
-    cd <NOME_DA_PASTA>
-    ```
-
-2.  **Instale as dependências:**
-    ```bash
-    npm install
-    ```
-
-3.  **Configure as Variáveis de Ambiente:**
-    *   Renomeie o arquivo `.env.example` para `.env`.
-    *   Preencha as variáveis de ambiente no arquivo `.env` com as credenciais do seu projeto Firebase.
-    *   Para habilitar as ferramentas de busca com APIs reais, preencha as variáveis `GOOGLE_API_KEY` e `GOOGLE_SEARCH_ENGINE_ID`. Caso contrário, o aplicativo usará dados de demonstração.
-
-4.  **Execute o servidor de desenvolvimento:**
-    ```bash
-    npm run dev
-    ```
-
-5.  **Acesse a aplicação:**
-    *   Abra seu navegador e acesse `http://localhost:9002`.

@@ -15,15 +15,14 @@ const initializeFirebaseAdmin = () => {
     try {
         const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
         if (!serviceAccountJson) {
-            throw new Error("A variável de ambiente FIREBASE_SERVICE_ACCOUNT_KEY não está definida.");
+            throw new Error("A variável de ambiente FIREBASE_SERVICE_ACCOUNT_KEY não está definida. Por favor, adicione-a ao seu arquivo .env.");
         }
         
-        // Verifique se o JSON não está vazio ou malformado
         let serviceAccount;
         try {
             serviceAccount = JSON.parse(serviceAccountJson);
         } catch (e) {
-            throw new Error("Falha ao analisar FIREBASE_SERVICE_ACCOUNT_KEY. Verifique se é um JSON válido.");
+            throw new Error("Falha ao analisar FIREBASE_SERVICE_ACCOUNT_KEY. Verifique se é um JSON válido. Copie o conteúdo completo do arquivo de chave de serviço.");
         }
 
         admin.initializeApp({
@@ -35,15 +34,12 @@ const initializeFirebaseAdmin = () => {
 
     } catch (error: any) {
         console.error('[Firebase Admin] Falha ao inicializar o app Firebase Admin. Detalhes:', error.message);
-        // Lançar o erro impede que a aplicação continue em um estado quebrado.
         throw new Error("A inicialização do Firebase Admin falhou: " + error.message);
     }
     
     return adminDb;
 };
 
-// Esta é a função que será importada por outros arquivos do servidor.
-// Ela garante que a inicialização tenha ocorrido antes de retornar o db.
 export const getAdminDb = () => {
     return adminDb || initializeFirebaseAdmin();
 };
