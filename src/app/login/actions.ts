@@ -36,7 +36,7 @@ export async function loginAction(prevState: any, formData: FormData) {
             await createSession({ userId: doctor.id, role: 'doctor' });
             redirectPath = '/doctor';
         } else {
-            return { ...prevState, message: 'Senha incorreta para o médico.' };
+            // Do not reveal if the user exists, just say invalid credentials for the doctor part
         }
     }
 
@@ -48,8 +48,6 @@ export async function loginAction(prevState: any, formData: FormData) {
             if (passwordIsValid) {
                  await createSession({ userId: patient.id, role: 'patient' });
                  redirectPath = '/patient/dashboard';
-            } else {
-                return { ...prevState, message: 'Senha incorreta para o paciente.' };
             }
         }
     }
@@ -58,10 +56,10 @@ export async function loginAction(prevState: any, formData: FormData) {
         redirect(redirectPath);
     }
 
-
+    // Generic error message for security reasons
     return {
       ...prevState,
-      message: 'Nenhum usuário encontrado com este e-mail.',
+      message: 'E-mail ou senha inválidos.',
     };
 
   } catch (error) {
