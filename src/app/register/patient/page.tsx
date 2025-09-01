@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useEffect, useActionState } from 'react';
+import { useEffect } from 'react';
+import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button"
 import {
@@ -139,7 +140,7 @@ export default function PatientRegisterPage() {
                             <div className="grid gap-2">
                                 <Label htmlFor="password">Crie uma Senha (mínimo 6 caracteres)</Label>
                                 <Input id="password" name="password" type="password" required />
-                                {state?.errors?.password && <p className="text-xs text-destructive">{state.errors.password[0]}</p>}\
+                                {state?.errors?.password && <p className="text-xs text-destructive">{state.errors.password[0]}</p>}
                             </div>
                         </div>
                         
