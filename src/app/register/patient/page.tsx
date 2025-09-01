@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useEffect } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -18,7 +18,6 @@ import Link from "next/link"
 import { createPatientAction } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useRouter } from 'next/navigation';
 
 function SubmitButton() {
@@ -36,7 +35,7 @@ export default function PatientRegisterPage() {
   const { toast } = useToast();
   const router = useRouter();
   const initialState = { message: null, errors: null, success: false };
-  const [state, dispatch] = useFormState(createPatientAction, initialState);
+  const [state, formAction] = useActionState(createPatientAction, initialState);
 
   useEffect(() => {
     if (state.success && state.message) {
@@ -68,7 +67,7 @@ export default function PatientRegisterPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <form action={dispatch}>
+                <form action={formAction}>
                     <div className="grid gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="fullName">Nome Completo</Label>
@@ -140,19 +139,10 @@ export default function PatientRegisterPage() {
                             <div className="grid gap-2">
                                 <Label htmlFor="password">Crie uma Senha (mínimo 6 caracteres)</Label>
                                 <Input id="password" name="password" type="password" required />
-                                {state?.errors?.password && <p className="text-xs text-destructive">{state.errors.password[0]}</p>}
+                                {state?.errors?.password && <p className="text-xs text-destructive">{state.errors.password[0]}</p>}\
                             </div>
                         </div>
                         
-                        {state.success && state.message && (
-                             <Alert variant="default" className="bg-green-100 border-green-200">
-                                <AlertTitle>Cadastro realizado!</AlertTitle>
-                                <AlertDescription>
-                                    {state.message}
-                                </AlertDescription>
-                            </Alert>
-                        )}
-
                         <SubmitButton />
                     </div>
                 </form>

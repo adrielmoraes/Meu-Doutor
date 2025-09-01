@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useEffect } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -35,7 +35,7 @@ export default function DoctorRegisterPage() {
   const { toast } = useToast();
   const router = useRouter();
   const initialState = { message: null, errors: null, success: false };
-  const [state, dispatch] = useFormState(createDoctorAction, initialState);
+  const [state, formAction] = useActionState(createDoctorAction, initialState);
 
   useEffect(() => {
     if (state.success && state.message) {
@@ -66,7 +66,7 @@ export default function DoctorRegisterPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <form action={dispatch}>
+                <form action={formAction}>
                     <div className="grid gap-4">
                     <div className="grid gap-2">
                         <Label htmlFor="fullName">Nome Completo</Label>
