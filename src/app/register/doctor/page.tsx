@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useActionState, useEffect } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useEffect } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -35,7 +35,7 @@ export default function DoctorRegisterPage() {
   const { toast } = useToast();
   const router = useRouter();
   const initialState = { message: null, errors: null, success: false };
-  const [state, dispatch] = useActionState(createDoctorAction, initialState);
+  const [state, dispatch] = useFormState(createDoctorAction, initialState);
 
   useEffect(() => {
     if (state.success && state.message) {

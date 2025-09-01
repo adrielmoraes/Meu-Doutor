@@ -1,8 +1,7 @@
 
 'use client';
 
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useFormState, useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,7 +24,7 @@ function SubmitButton() {
 
 export default function LoginPage() {
     const initialState = { message: null, errors: {} };
-    const [state, dispatch] = useActionState(loginAction, initialState);
+    const [state, dispatch] = useFormState(loginAction, initialState);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/20">
