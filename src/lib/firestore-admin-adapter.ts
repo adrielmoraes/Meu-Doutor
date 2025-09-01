@@ -39,7 +39,7 @@ export async function addDoctorWithAuth(doctorData: Omit<Doctor, 'id'>, hashedPa
     const adminDb = getAdminDb();
     const batch = adminDb.batch();
 
-    const doctorRef = adminDb.collection('doctors').doc();
+    const doctorRef = adminDb.collection('doctors').doc(); // Firestore generates the ID
     batch.set(doctorRef, doctorData);
 
     const authRef = adminDb.collection('doctorAuth').doc(doctorRef.id);
@@ -80,8 +80,7 @@ export async function addPatientWithAuth(patientData: Omit<Patient, 'id'>, hashe
     const adminDb = getAdminDb();
     const batch = adminDb.batch();
 
-    // patientRef é criado localmente, o Firestore irá gerar um ID automaticamente
-    const patientRef = adminDb.collection('patients').doc();
+    const patientRef = adminDb.collection('patients').doc(); // Firestore generates the ID
     batch.set(patientRef, patientData);
 
     const authRef = adminDb.collection('patientAuth').doc(patientRef.id);
