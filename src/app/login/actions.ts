@@ -28,31 +28,43 @@ export async function loginAction(prevState: any, formData: FormData) {
   let redirectPath: string | null = null;
 
   try {
+    console.log('Tentando login com email:', email);
     const doctor = await getDoctorByEmailWithAuth(email);
     if (doctor && doctor.password) {
         const passwordIsValid = await bcrypt.compare(password, doctor.password);
 
         if (passwordIsValid) {
+            console.log('Login bem-sucedido para médico:', doctor.id);
             await createSession({ userId: doctor.id, role: 'doctor' });
+            console.log('Sessão criada para médico, redirecionando...');
             redirectPath = '/doctor';
         } else {
-            // Do not reveal if the user exists, just say invalid credentials for the doctor part
+            console.log('Senha inválida para médico');
         }
     }
 
     if (!redirectPath) {
+        console.log('Verificando paciente...');
         const patient = await getPatientByEmailWithAuth(email);
         if (patient && patient.password) {
             const passwordIsValid = await bcrypt.compare(password, patient.password);
 
             if (passwordIsValid) {
+                 console.log('Login bem-sucedido para paciente:', patient.id);
                  await createSession({ userId: patient.id, role: 'patient' });
+                 console.log('Sessão criada para paciente, redirecionando...');
                  redirectPath = '/patient/dashboard';
+            } else {
+                console.log('Senha inválida para paciente');
             }
+        } else {
+            console.log('Paciente não encontrado ou sem senha');
         }
     }
     
     if (redirectPath) {
+        // O redirect é tratado como uma exceção no Next.js
+        // Não precisa de try-catch aqui, apenas redirecionar
         redirect(redirectPath);
     }
 
@@ -64,9 +76,9 @@ export async function loginAction(prevState: any, formData: FormData) {
 
   } catch (error) {
     console.error('Login error:', error);
-    // Handle redirect errors specifically
-    if ((error as any).code === 'NEXT_REDIRECT') {
-        throw error;
+    // Handle redirect errors specifically - NEXT_REDIRECT is expected behavior
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+        throw error; // Let Next.js handle the redirect
     }
     return {
       ...prevState,

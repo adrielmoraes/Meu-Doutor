@@ -12,7 +12,14 @@ export type SessionPayload = {
     expires?: Date;
 }
 
-const secretKey = process.env.JWT_SECRET;
+// Robust handling for JWT secret to prevent runtime crashes when env is missing
+const providedSecret = process.env.JWT_SECRET;
+if (!providedSecret) {
+  console.warn('[Session] JWT_SECRET não definido. Usando uma chave fraca apenas para desenvolvimento. Defina JWT_SECRET no seu .env para segurança.');
+} else {
+  console.log('[Session] JWT_SECRET carregado com sucesso');
+}
+const secretKey = providedSecret || 'dev-insecure-secret';
 const encodedKey = new TextEncoder().encode(secretKey);
 
 export async function encrypt(payload: SessionPayload) {
@@ -40,21 +47,28 @@ export async function login(payload: Omit<SessionPayload, 'expires'>) {
   const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
   const session = await encrypt({ ...payload, expires });
 
-  cookies().set('session', session, {
+  console.log('Criando sessão para usuário:', payload.userId, 'role:', payload.role);
+  
+  const cookieStore = await cookies();
+  cookieStore.set('session', session, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     expires: expires,
     path: '/',
   });
+  
+  console.log('Cookie de sessão definido com sucesso');
 }
 
 export async function logout() {
-  cookies().set('session', '', { expires: new Date(0) });
+  const cookieStore = await cookies();
+  cookieStore.set('session', '', { expires: new Date(0), path: '/' });
   redirect('/login');
 }
 
 export async function getSession(): Promise<SessionPayload | null> {
-  const sessionCookie = cookies().get('session')?.value;
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get('session')?.value;
   return decrypt(sessionCookie);
 }
 
