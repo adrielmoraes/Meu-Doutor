@@ -9,7 +9,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import type { Doctor } from '@/types';
 import { createAppointmentAction } from './actions';
-import { getPatientById } from '@/lib/firestore-adapter';
+import { getPatientById } from '@/lib/firestore-client-adapter';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
 import { format } from 'date-fns';
 import { getAvailableTimesAction } from '@/app/patient/doctors/actions';

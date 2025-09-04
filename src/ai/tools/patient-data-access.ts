@@ -5,7 +5,7 @@
  */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { getPatientById, getExamsByPatientId } from '@/lib/firestore-adapter';
+import { getPatientById, getExamsByPatientId } from '@/lib/firestore-client-adapter';
 
 export const patientDataAccessTool = ai.defineTool(
     {

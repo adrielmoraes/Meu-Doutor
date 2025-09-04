@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FileText, Printer, CheckCircle, BotMessageSquare, AlertTriangle, Lightbulb } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import AudioPlayback from "@/components/patient/audio-playback";
-import { getExamById, getPatientById } from "@/lib/firestore-adapter";
+import { getExamById, getPatientById } from "@/lib/firestore-client-adapter";
 import { notFound, redirect } from "next/navigation";
 import PrintButton from "@/components/patient/print-button";
 import Link from "next/link";

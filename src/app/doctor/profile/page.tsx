@@ -2,7 +2,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { getDoctors } from "@/lib/firestore-adapter";
+import { getDoctors } from "@/lib/firestore-client-adapter";
 import { Award, Star, Clock, Zap, CheckSquare, AlertTriangle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Doctor } from "@/types";

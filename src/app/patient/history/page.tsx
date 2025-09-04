@@ -3,7 +3,7 @@
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, ChevronRight, Droplets, Bone, Trash2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { getExamsByPatientId } from "@/lib/firestore-adapter";
+import { getExamsByPatientId } from "@/lib/firestore-client-adapter";
 import type { Exam } from "@/types";
 import DeleteExamButton from "@/components/patient/delete-exam-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

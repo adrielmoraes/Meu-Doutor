@@ -1,7 +1,7 @@
 
 'use server';
 
-import { addExamToPatient, updatePatient, addAppointment, deleteExam } from "@/lib/firestore-adapter";
+import { addExamToPatient, updatePatient, addAppointment, deleteExam } from "@/lib/firestore-client-adapter";
 import { revalidatePath } from "next/cache";
 import type { Appointment, Exam } from "@/types";
 

@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getAppointmentsByDate } from "@/lib/firestore-adapter";
+import { getAppointmentsByDate } from "@/lib/firestore-client-adapter";
 import { format } from "date-fns";
 
 // Defines a standard work day for doctors

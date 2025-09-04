@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Eye, AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { getPatients } from "@/lib/firestore-adapter";
+import { getPatients } from "@/lib/firestore-client-adapter";
 import type { Patient } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 

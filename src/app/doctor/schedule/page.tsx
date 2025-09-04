@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Video, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getAppointments } from "@/lib/firestore-adapter";
+import { getAppointments } from '@/lib/firestore-client-adapter';
 import type { Appointment } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";

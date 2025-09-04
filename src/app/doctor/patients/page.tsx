@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Eye, ShieldAlert, ArrowUp, ArrowDown } from "lucide-react";
 import Link from "next/link";
-import { getPatients } from "@/lib/firestore-adapter";
+import { getPatients } from "@/lib/firestore-client-adapter";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Patient } from "@/types";
 

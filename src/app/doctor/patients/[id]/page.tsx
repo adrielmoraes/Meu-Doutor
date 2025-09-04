@@ -1,6 +1,6 @@
 import { summarizePatientHistory } from "@/ai/flows/summarize-patient-history";
 import PatientDetailView from "@/components/doctor/patient-detail-view";
-import { getPatientById, getExamsByPatientId, updatePatient } from "@/lib/firestore-adapter";
+import { getPatientById, getExamsByPatientId, updatePatient } from "@/lib/firestore-client-adapter";
 import { notFound } from "next/navigation";
 import { triageUrgency } from "@/ai/flows/triage-urgency-flow";
 

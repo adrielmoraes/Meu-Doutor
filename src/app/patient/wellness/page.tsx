@@ -1,5 +1,5 @@
 
-import { getPatientById } from "@/lib/firestore-adapter";
+import { getPatientById } from "@/lib/firestore-client-adapter";
 import { notFound, redirect } from "next/navigation";
 import { generateWellnessPlan } from "@/ai/flows/generate-wellness-plan";
 import WellnessReminders from "@/components/patient/wellness-reminders";

@@ -1,6 +1,6 @@
 
 import PatientDashboard from "@/components/patient/patient-dashboard";
-import { getPatientById } from "@/lib/firestore-adapter";
+import { getPatientById } from "@/lib/firestore-client-adapter";
 import type { GenerateHealthInsightsOutput } from "@/ai/flows/generate-health-insights";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
