@@ -54,8 +54,6 @@ export async function loginAction(prevState: any, formData: FormData) {
                  await createSession({ userId: patient.id, role: 'patient' });
                  console.log('Sessão criada para paciente, redirecionando...');
                  redirectPath = '/patient/dashboard';
-            } else {
-                console.log('Senha inválida para paciente');
             }
         } else {
             console.log('Paciente não encontrado ou sem senha');
@@ -74,12 +72,13 @@ export async function loginAction(prevState: any, formData: FormData) {
       message: 'E-mail ou senha inválidos.',
     };
 
-  } catch (error) {
-    console.error('Login error:', error);
-    // Handle redirect errors specifically - NEXT_REDIRECT is expected behavior
-    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
-        throw error; // Let Next.js handle the redirect
+  } catch (error: any) {
+    // Se for um redirect do Next.js, repropaga o erro para o framework tratar corretamente
+    if (error?.digest && typeof error.digest === 'string' && error.digest.startsWith('NEXT_REDIRECT')) {
+        throw error;
     }
+    // Log apenas para outros tipos de erros
+    console.error('Login error:', error);
     return {
       ...prevState,
       message: 'Ocorreu um erro no servidor. Por favor, tente novamente.',
