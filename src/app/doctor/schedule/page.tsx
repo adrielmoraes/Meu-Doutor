@@ -4,124 +4,125 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Video, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getAppointments } from '@/lib/firestore-client-adapter';
-import type { Appointment } from "@/types";
+import { getAllAppointmentsForDoctor, getDoctorById } from '@/lib/firestore-admin-adapter'; // Importar getDoctorById
+import type { Appointment, Doctor } from "@/types"; // Importar Doctor type
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
+import { getSession } from "@/lib/session";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { isToday, isThisWeek, isThisMonth, parseISO } from 'date-fns';
+import ManageAvailability from '@/components/doctor/manage-availability';
+import ScheduleCalendarManager from '@/components/doctor/schedule-calendar-manager'; // Importar o novo componente
 
 
-async function getScheduleData(): Promise<{ appointments: Appointment[], error?: string, fixUrl?: string }> {
+async function getScheduleData(doctorId: string): Promise<{ appointments: Appointment[], doctor: Doctor | null, error?: string, fixUrl?: string }> {
     try {
-        const appointments = await getAppointments();
-        return { appointments };
+        console.log('[SchedulePage Debug] Buscando agendamentos para Doctor ID:', doctorId);
+        const appointments = await getAllAppointmentsForDoctor(doctorId);
+        console.log('[SchedulePage Debug] Agendamentos recebidos (bruto):', appointments);
+
+        // Validar que `appointments` é um array antes de tentar filtrar
+        if (!Array.isArray(appointments)) {
+            console.error('[SchedulePage Debug] Erro: getAllAppointmentsForDoctor não retornou um array.', appointments);
+            return { appointments: [], doctor: null, error: "Formato de dados de agendamentos inválido." };
+        }
+
+        // Validar cada agendamento para garantir que 'date' existe
+        const validatedAppointments = appointments.map(appt => {
+            if (!appt.date || !appt.time || !appt.patientName) {
+                console.warn('[SchedulePage Debug] Agendamento malformado encontrado, ignorando:', appt);
+                return null; // Retorna null para agendamentos inválidos
+            }
+            return appt; // Retorna agendamento válido
+        }).filter(Boolean) as Appointment[]; // Filtra os nulos
+
+        // Obter os dados do médico para a disponibilidade
+        const doctor = await getDoctorById(doctorId);
+        if (!doctor) {
+            console.error('[SchedulePage Debug] Erro: Doutor não encontrado com o ID:', doctorId);
+            return { appointments: [], doctor: null, error: "Perfil do médico não encontrado para carregar a agenda." };
+        }
+
+        return { appointments: validatedAppointments, doctor };
     } catch (e: any) {
         const errorMessage = e.message?.toLowerCase() || '';
-        const errorCode = e.code?.toLowerCase() || '';
+        const errorCode = (typeof e.code === 'string' ? e.code.toLowerCase() : '') || '';
         
+        console.error('[SchedulePage Debug] Erro inesperado em getScheduleData:', e);
+        console.error('[SchedulePage Debug] Tipo do erro:', typeof e, 'Erro completo:', e);
+
         if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
             const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
             return { 
-                appointments: [],
+                appointments: [], doctor: null,
                 error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada ou o cliente está offline.",
                 fixUrl: firestoreApiUrl 
             };
         }
-        console.error("Unexpected error fetching appointments:", e);
-        return { appointments: [], error: "Ocorreu um erro inesperado ao carregar os agendamentos." };
+        // Para outros erros, retornar uma mensagem mais genérica
+        return { appointments: [], doctor: null, error: "Ocorreu um erro inesperado ao carregar os agendamentos." };
     }
 }
 
 
 export default async function SchedulePage() {
-  const { appointments, error, fixUrl } = await getScheduleData();
+  const session = await getSession();
+  console.log('[SchedulePage Debug] Sessão do Médico:', session ? `ID: ${session.userId}, Role: ${session.role}` : 'Nenhuma sessão');
 
-  if (error) {
+  if (!session || session.role !== 'doctor') {
+      redirect('/login');
+  }
+
+  if (!session.userId) {
+      console.error('[SchedulePage Debug] Erro: session.userId é nulo ou indefinido.', session);
+      return (
+         <div className="container mx-auto">
+             <Alert variant="destructive">
+                 <AlertTriangle className="h-4 w-4" />
+                 <AlertTitle>Erro de Sessão</AlertTitle>
+                 <AlertDescription>Não foi possível obter o ID do médico logado para carregar a agenda.</AlertDescription>
+             </Alert>
+         </div>
+      );
+  }
+
+  const { appointments, doctor, error, fixUrl } = await getScheduleData(session.userId); // Passar o ID do doutor logado
+
+  if (error || !doctor) {
      return (
         <div className="container mx-auto">
             <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Erro de Configuração ou Conexão</AlertTitle>
                 <AlertDescription>
-                    {error}
-                    {fixUrl && (
-                        <p className="mt-2">
-                            Por favor, habilite a API manualmente visitando o seguinte link e clicando em "Habilitar":
-                            <br />
-                            <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
-                                Habilitar API do Firestore
-                            </Link>
-                            <br />
-                            <span className="text-xs">Após habilitar, aguarde alguns minutos e atualize esta página.</span>
-                        </p>
-                    )}
-                </AlertDescription>
-            </Alert>
-        </div>
-    )
+                       {error || 'Não foi possível carregar os dados do médico.'}
+                       {fixUrl && (
+                           <p className="mt-2">
+                               Por favor, habilite a API manualmente visitando o seguinte link e clicando em "Habilitar":
+                               <br />
+                               <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
+                                   Habilitar API do Firestore
+                               </Link>
+                               <br />
+                               <span className="text-xs">Após habilitar, aguarde alguns minutos e atualize esta página.</span>
+                           </p>
+                       )}
+                   </AlertDescription>
+               </Alert>
+           </div>
+        );
   }
 
   return (
-    <div className="grid md:grid-cols-3 gap-8">
-      <div className="md:col-span-2">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">Agenda de Consultas</h1>
-          <p className="text-muted-foreground">
-            Visualize seus agendamentos e gerencie seu tempo.
-          </p>
-        </div>
-        <Card>
-          <CardContent className="p-0">
-             <Calendar
-                mode="single"
-                selected={new Date()}
-                className="p-3"
-                classNames={{
-                    months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                    month: "space-y-4",
-                    caption_label: "text-lg font-medium",
-                    head_cell: "text-muted-foreground rounded-md w-12 font-normal text-[0.8rem]",
-                    row: "flex w-full mt-2",
-                    cell: "h-12 w-12 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                    day: "h-12 w-12 p-0 font-normal aria-selected:opacity-100 rounded-md",
-                    day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                    day_today: "bg-accent text-accent-foreground",
-                }}
-            />
-          </CardContent>
-        </Card>
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">Agenda e Disponibilidade</h1>
+        <p className="text-muted-foreground">
+          Visualize suas consultas e gerencie seus horários de atendimento.
+        </p>
       </div>
-      <div>
-        <Card className="mt-20">
-            <CardHeader>
-                <CardTitle>Consultas de Hoje</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <ul className="space-y-4">
-                    {appointments.map(appt => (
-                        <li key={appt.id} className="flex items-center gap-4">
-                            <Avatar>
-                                <AvatarImage src={appt.patientAvatar} />
-                                <AvatarFallback>{appt.patientName.substring(0, 1)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-grow">
-                                <p className="font-semibold">{appt.time}</p>
-                                <p className="text-sm text-muted-foreground">{appt.patientName}</p>
-                                <p className="text-xs text-muted-foreground">{appt.type}</p>
-                            </div>
-                            <Button size="icon" variant="ghost">
-                                <Video className="h-5 w-5 text-primary" />
-                            </Button>
-                        </li>
-                    ))}
-                    {appointments.length === 0 && (
-                        <li className="text-center text-muted-foreground py-4">
-                            Nenhuma consulta para hoje.
-                        </li>
-                    )}
-                </ul>
-            </CardContent>
-        </Card>
-      </div>
+      {/* Renderizar o novo Client Component com o calendário unificado */}
+      <ScheduleCalendarManager appointments={appointments} doctor={doctor} />
     </div>
   );
 }

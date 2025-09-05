@@ -54,6 +54,8 @@ export type Doctor = {
       icon: 'Award' | 'Star' | 'Clock' | 'Zap' | 'CheckSquare';
       description: string;
   }[];
+  // NOVO CAMPO: Disponibilidade do médico
+  availability?: { date: string; time: string; available: boolean }[];
 };
 
 // Type for authentication that includes the hashed password

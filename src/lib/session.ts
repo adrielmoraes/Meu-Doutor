@@ -5,6 +5,7 @@ import 'server-only';
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { updateDoctorStatus } from '@/lib/firestore-admin-adapter'; // Importar a função de atualização
 
 export type SessionPayload = {
     userId: string;
@@ -20,6 +21,10 @@ if (!providedSecret) {
   console.log('[Session] JWT_SECRET carregado com sucesso');
 }
 const secretKey = providedSecret || 'dev-insecure-secret';
+
+// Debug: Log a part of the secret key to ensure consistency
+console.log('[Session Debug] JWT_SECRET (partial):', secretKey.substring(0, 5) + '...');
+
 const encodedKey = new TextEncoder().encode(secretKey);
 
 export async function encrypt(payload: SessionPayload) {
@@ -62,6 +67,19 @@ export async function login(payload: Omit<SessionPayload, 'expires'>) {
 
 export async function logout() {
   const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get('session')?.value; // Obter o cookie antes de excluí-lo
+  const session = await decrypt(sessionCookie); // Descriptografar para obter o userId e role
+
+  // Se for um médico, atualizar o status para offline
+  if (session && session.role === 'doctor' && session.userId) {
+    try {
+      await updateDoctorStatus(session.userId, false); // Definir como offline
+      console.log(`[Logout] Médico ${session.userId} definido como offline.`);
+    } catch (e) {
+      console.error("Failed to update doctor status to offline during logout:", e);
+    }
+  }
+
   cookieStore.set('session', '', { expires: new Date(0), path: '/' });
   redirect('/login');
 }
@@ -69,7 +87,14 @@ export async function logout() {
 export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get('session')?.value;
-  return decrypt(sessionCookie);
+
+  console.log('[Session Debug] getSession - sessionCookie:', sessionCookie ? sessionCookie.substring(0, 20) + '...' : 'Nenhum cookie de sessão');
+
+  const decryptedSession = await decrypt(sessionCookie);
+
+  console.log('[Session Debug] getSession - decryptedSession:', decryptedSession ? JSON.stringify(decryptedSession) : 'Falha na descriptografia ou cookie ausente');
+
+  return decryptedSession;
 }
 
 // Client-side helper

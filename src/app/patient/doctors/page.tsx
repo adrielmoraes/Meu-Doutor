@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { getDoctors, getPatientById } from "@/lib/firestore-client-adapter";
+import { getDoctors, getPatientById } from "@/lib/firestore-admin-adapter";
 import ScheduleAppointment from "@/components/patient/schedule-appointment";
 import StartConsultation from "@/components/patient/start-consultation";
 import type { Doctor, Patient } from "@/types";
@@ -38,8 +38,7 @@ const DoctorCard = ({ doctor, patientId }: { doctor: Doctor, patientId: string }
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row gap-2">
         <StartConsultation doctor={doctor} type="video" />
-        <StartConsultation doctor={doctor} type="voice" />
-        <ScheduleAppointment doctor={doctor} patientId={patientId} />
+        <ScheduleAppointment doctor={doctor} patientId={patientId} doctorAvailability={doctor.availability || []} /> { /* Passar a disponibilidade */}
         </CardContent>
     </Card>
 );
@@ -50,12 +49,20 @@ async function getDoctorsPageData(patientId: string): Promise<{ localDoctors: Do
         const patient = await getPatientById(patientId);
 
         const localDoctors = patient 
-            ? allDoctors.filter(d => d.city.toLowerCase() === patient.city.toLowerCase() && d.state.toLowerCase() === patient.state.toLowerCase())
+            ? allDoctors.filter(d => 
+                d.city && patient.city && d.state && patient.state &&
+                d.city.toLowerCase() === patient.city.toLowerCase() && 
+                d.state.toLowerCase() === patient.state.toLowerCase()
+              )
             : [];
         
         const otherDoctors = patient
-            ? allDoctors.filter(d => d.city.toLowerCase() !== patient.city.toLowerCase() || d.state.toLowerCase() !== patient.state.toLowerCase())
-            : allDoctors;
+            ? allDoctors.filter(d => 
+                d.city && patient.city && d.state && patient.state && (
+                d.city.toLowerCase() !== patient.city.toLowerCase() || 
+                d.state.toLowerCase() !== patient.state.toLowerCase())
+              )
+            : allDoctors; // Se o paciente não tiver dados de localização, mostra todos como 'outros'
         
         return { localDoctors, otherDoctors, patient };
 

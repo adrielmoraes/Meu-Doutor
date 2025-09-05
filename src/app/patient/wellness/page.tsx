@@ -1,5 +1,5 @@
 
-import { getPatientById } from "@/lib/firestore-client-adapter";
+import { getPatientById } from "@/lib/firestore-admin-adapter"; // Importar getPatientById do admin-adapter
 import { notFound, redirect } from "next/navigation";
 import { generateWellnessPlan } from "@/ai/flows/generate-wellness-plan";
 import WellnessReminders from "@/components/patient/wellness-reminders";
@@ -14,7 +14,7 @@ import { getSession } from "@/lib/session";
 
 async function getWellnessPageData(patientId: string): Promise<{ patient: Patient | null, error?: string, fixUrl?: string }> {
     try {
-        const patient = await getPatientById(patientId);
+        const patient = await getPatientById(patientId); // Usar a função getPatientById do admin
         if (!patient) {
             notFound();
         }

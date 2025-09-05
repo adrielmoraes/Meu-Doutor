@@ -1,7 +1,7 @@
 
 'use server';
 
-import type { Doctor, DoctorWithPassword, Patient, PatientWithPassword } from '@/types';
+import type { Doctor, DoctorWithPassword, Patient, PatientWithPassword, Exam, Appointment } from '@/types'; // Importar Exam e Appointment types
 import { getAdminDb } from './firebase-admin';
 
 
@@ -13,6 +13,16 @@ export async function getDoctorByEmail(email: string): Promise<Doctor | null> {
         return null;
     }
     const doctorDoc = doctorSnapshot.docs[0];
+    return { id: doctorDoc.id, ...doctorDoc.data() } as Doctor;
+}
+
+// NOVO: getDoctorById (precisamos para o agendamento)
+export async function getDoctorById(id: string): Promise<Doctor | null> {
+    const adminDb = getAdminDb();
+    const doctorDoc = await adminDb.collection('doctors').doc(id).get();
+    if (!doctorDoc.exists) {
+        return null;
+    }
     return { id: doctorDoc.id, ...doctorDoc.data() } as Doctor;
 }
 
@@ -35,6 +45,16 @@ export async function getDoctorByEmailWithAuth(email: string): Promise<DoctorWit
     return { id: doctorDoc.id, ...doctorData, password };
 }
 
+export async function getDoctors(): Promise<Doctor[]> {
+    const adminDb = getAdminDb();
+    const doctorsSnapshot = await adminDb.collection('doctors').get();
+    const doctors: Doctor[] = [];
+    doctorsSnapshot.forEach(doc => {
+        doctors.push({ id: doc.id, ...doc.data() } as Doctor);
+    });
+    return doctors;
+}
+
 export async function addDoctorWithAuth(doctorData: Omit<Doctor, 'id'>, hashedPassword: string): Promise<void> {
     const adminDb = getAdminDb();
     const batch = adminDb.batch();
@@ -48,6 +68,16 @@ export async function addDoctorWithAuth(doctorData: Omit<Doctor, 'id'>, hashedPa
     await batch.commit();
 }
 
+export async function getPatients(): Promise<Patient[]> {
+    const adminDb = getAdminDb();
+    const patientsSnapshot = await adminDb.collection('patients').get();
+    const patients: Patient[] = [];
+    patientsSnapshot.forEach(doc => {
+        patients.push({ id: doc.id, ...doc.data() } as Patient);
+    });
+    return patients;
+}
+
 export async function getPatientByEmail(email: string): Promise<Patient | null> {
     const adminDb = getAdminDb();
     const q = adminDb.collection('patients').where('email', '==', email);
@@ -57,6 +87,68 @@ export async function getPatientByEmail(email: string): Promise<Patient | null> 
     }
     const patientDoc = patientSnapshot.docs[0];
     return { id: patientDoc.id, ...patientDoc.data() } as Patient;
+}
+
+export async function getPatientById(id: string): Promise<Patient | null> {
+    const adminDb = getAdminDb();
+    const patientDoc = await adminDb.collection('patients').doc(id).get();
+    if (!patientDoc.exists) {
+        return null;
+    }
+    return { id: patientDoc.id, ...patientDoc.data() } as Patient;
+}
+
+export async function getExamsByPatientId(patientId: string): Promise<Exam[]> {
+    const adminDb = getAdminDb();
+    const examsSnapshot = await adminDb.collection('patients').doc(patientId).collection('exams').orderBy('date', 'desc').get();
+    const exams: Exam[] = [];
+    examsSnapshot.forEach(doc => {
+        exams.push({ id: doc.id, ...doc.data() } as Exam);
+    });
+    return exams;
+}
+
+export async function getAppointmentsByDate(doctorId: string, date: string): Promise<Appointment[]> {
+    const adminDb = getAdminDb();
+    const appointmentsSnapshot = await adminDb.collection('appointments')
+        .where('doctorId', '==', doctorId)
+        .where('date', '==', date)
+        .get();
+    const appointments: Appointment[] = [];
+    appointmentsSnapshot.forEach(doc => {
+        appointments.push({ id: doc.id, ...doc.data() } as Appointment);
+    });
+    return appointments;
+}
+
+export async function addAppointment(appointmentData: Omit<Appointment, 'id'>): Promise<void> {
+    const adminDb = getAdminDb();
+    await adminDb.collection('appointments').add(appointmentData);
+}
+
+export async function updateDoctorAvailability(doctorId: string, availability: { date: string; time: string; available: boolean }[]): Promise<void> {
+    const adminDb = getAdminDb();
+    await adminDb.collection('doctors').doc(doctorId).update({ availability });
+}
+
+export async function getAllAppointmentsForDoctor(doctorId: string): Promise<Appointment[]> {
+    const adminDb = getAdminDb();
+    const appointmentsSnapshot = await adminDb.collection('appointments')
+        .where('doctorId', '==', doctorId)
+        .orderBy('date', 'desc')
+        .orderBy('time', 'asc')
+        .get();
+    const appointments: Appointment[] = [];
+    appointmentsSnapshot.forEach(doc => {
+        appointments.push({ id: doc.id, ...doc.data() } as Appointment);
+    });
+    return appointments;
+}
+
+// NOVA FUNÇÃO: Atualizar o status online/offline do médico
+export async function updateDoctorStatus(doctorId: string, status: boolean): Promise<void> {
+    const adminDb = getAdminDb();
+    await adminDb.collection('doctors').doc(doctorId).update({ online: status });
 }
 
 export async function getPatientByEmailWithAuth(email: string): Promise<PatientWithPassword | null> {

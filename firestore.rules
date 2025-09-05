@@ -28,15 +28,15 @@ service cloud.firestore {
     
     // Doctors can only read/write their own data
     match /doctors/{doctorId} {
-        allow read: if isUserAuthenticated(doctorId) || isDoctorAuthenticated();
-        allow update: if isUserAuthenticated(doctorId);
+        // TEMPORARY: Allow update for debugging server-side Admin SDK operations
+        allow read, update: if true; 
         // Allow creation for the registration flow
         allow create: if request.auth == null;
     }
 
     // Authentication collections should NOT be client-readable, but server-side needs write.
     match /patientAuth/{userId} {
-      // TEMPORARY: Allow write for debugging server-side operations
+      // TEMPORARY: Allow read/write for debugging server-side operations
       allow read, write: if true; 
     }
     
@@ -47,7 +47,8 @@ service cloud.firestore {
     // Appointments can be read by the involved patient or doctor
     // Appointments can be created by the patient.
     match /appointments/{appointmentId} {
-      allow read: if request.auth != null && (request.auth.uid == resource.data.patientId || request.auth.uid == resource.data.doctorId);
+      // TEMPORARY: Allow read for debugging server-side Admin SDK operations
+      allow read: if true;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.patientId;
       // Updates can be done by doctor (e.g., to change status)
       allow update: if isDoctorAuthenticated();

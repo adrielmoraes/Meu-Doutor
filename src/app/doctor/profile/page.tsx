@@ -2,12 +2,15 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { getDoctors } from "@/lib/firestore-client-adapter";
+// REMOVER: import { getDoctors } from "@/lib/firestore-admin-adapter"; 
 import { Award, Star, Clock, Zap, CheckSquare, AlertTriangle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Doctor } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
+import { getSession } from "@/lib/session"; // Importar getSession para obter o ID do doutor logado
+// REMOVER: import ManageAvailability from '@/components/doctor/manage-availability'; 
+import { getDoctorById } from '@/lib/firestore-admin-adapter'; // Adicionar importação para getDoctorById
 
 // A map to render icons based on the badge name
 const iconMap: { [key: string]: React.ReactNode } = {
@@ -17,17 +20,19 @@ const iconMap: { [key: string]: React.ReactNode } = {
   Zap: <Zap className="h-6 w-6 text-purple-500" />,
 };
 
-async function getDoctorProfileData(): Promise<{ doctor: Doctor | null, error?: string, fixUrl?: string }> {
+async function getDoctorProfileData(doctorId: string): Promise<{ doctor: Doctor | null, error?: string, fixUrl?: string }> {
   try {
-    const doctors = await getDoctors();
-    // In a real app, you would get the logged-in doctor's ID
-    if (doctors.length === 0) {
-        return { doctor: null, error: "Nenhum médico encontrado. Execute `npm run db:seed` para popular o banco de dados." };
+    const adminDb = (await import('@/lib/firebase-admin')).getAdminDb();
+    const doctorDoc = await adminDb.collection('doctors').doc(doctorId).get();
+
+    if (!doctorDoc.exists) {
+        return { doctor: null, error: "Perfil do médico não encontrado." };
     }
-    return { doctor: doctors[0] };
+    return { doctor: { id: doctorDoc.id, ...doctorDoc.data() } as Doctor };
+
   } catch (e: any) {
     const errorMessage = e.message?.toLowerCase() || '';
-    const errorCode = e.code?.toLowerCase() || '';
+    const errorCode = (typeof e.code === 'string' ? e.code.toLowerCase() : '') || '';
     
     if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
         const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
@@ -48,7 +53,12 @@ const getLevelName = (level: number) => {
 }
 
 export default async function DoctorProfilePage() {
-  const { doctor, error, fixUrl } = await getDoctorProfileData();
+  const session = await getSession();
+  if (!session || session.role !== 'doctor') {
+      redirect('/login');
+  }
+
+  const { doctor, error, fixUrl } = await getDoctorProfileData(session.userId); 
 
   if (error || !doctor) {
      return (
@@ -150,6 +160,10 @@ export default async function DoctorProfilePage() {
           </CardContent>
         </Card>
       </div>
+       {/* REMOVER: Manage Availability Component */}
+      {/* <div className="lg:col-span-3">
+        <ManageAvailability doctorId={doctor.id} initialAvailability={doctor.availability || []} />
+      </div> */}
     </div>
   );
 }

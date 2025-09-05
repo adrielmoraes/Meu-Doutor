@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Eye, AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { getPatients } from "@/lib/firestore-client-adapter";
+import { getPatients } from "@/lib/firestore-admin-adapter"; // Importar do admin-adapter
 import type { Patient } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -26,7 +26,7 @@ const getValidatedDiagnosis = (patient: Patient): string => {
 
 async function getHistoryData(): Promise<{ history: Patient[], error?: string, fixUrl?: string }> {
     try {
-        const allPatients = await getPatients();
+        const allPatients = await getPatients(); // Usar getPatients do admin
         const history = allPatients.filter(p => p.status === 'Validado');
         return { history };
     } catch (e: any) {

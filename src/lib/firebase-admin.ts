@@ -1,13 +1,16 @@
 
 import { initializeApp, applicationDefault, cert, getApps } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth'; // Importar getAuth
 
 let adminDb: FirebaseFirestore.Firestore | null = null;
+let adminAuth: any | null = null; // Declarar adminAuth
 
 const initializeFirebaseAdmin = () => {
   // Reutiliza a instância se já estiver inicializada
   if (getApps().length > 0) {
     if (!adminDb) adminDb = getFirestore();
+    if (!adminAuth) adminAuth = getAuth(); // Inicializar auth se não estiver
     return adminDb;
   }
 
@@ -51,6 +54,7 @@ const initializeFirebaseAdmin = () => {
     }
 
     adminDb = getFirestore();
+    adminAuth = getAuth(); // Inicializar Firebase Admin Auth
     return adminDb;
   } catch (error: any) {
     // Log controlado sem vazar chaves
@@ -61,4 +65,10 @@ const initializeFirebaseAdmin = () => {
 
 export const getAdminDb = () => {
   return adminDb || initializeFirebaseAdmin();
+};
+
+export const getAdminAuth = () => {
+  // Garante que o Firebase Admin App foi inicializado antes de obter o Auth
+  initializeFirebaseAdmin(); 
+  return adminAuth;
 };

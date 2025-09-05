@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import { login as createSession } from '@/lib/session';
+import { getAdminAuth } from '@/lib/firebase-admin'; // Importar getAdminAuth
 
 const LoginSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
@@ -26,6 +27,7 @@ export async function loginAction(prevState: any, formData: FormData) {
   const { email, password } = validatedFields.data;
 
   let redirectPath: string | null = null;
+  let customToken: string | null = null; // Para armazenar o token personalizado
 
   try {
     console.log('Tentando login com email:', email);
@@ -36,6 +38,8 @@ export async function loginAction(prevState: any, formData: FormData) {
         if (passwordIsValid) {
             console.log('Login bem-sucedido para médico:', doctor.id);
             await createSession({ userId: doctor.id, role: 'doctor' });
+            // Gerar Custom Token para o médico
+            customToken = await getAdminAuth().createCustomToken(doctor.id);
             console.log('Sessão criada para médico, redirecionando...');
             redirectPath = '/doctor';
         } else {
@@ -52,6 +56,8 @@ export async function loginAction(prevState: any, formData: FormData) {
             if (passwordIsValid) {
                  console.log('Login bem-sucedido para paciente:', patient.id);
                  await createSession({ userId: patient.id, role: 'patient' });
+                 // Gerar Custom Token para o paciente
+                 customToken = await getAdminAuth().createCustomToken(patient.id);
                  console.log('Sessão criada para paciente, redirecionando...');
                  redirectPath = '/patient/dashboard';
             }
@@ -61,9 +67,15 @@ export async function loginAction(prevState: any, formData: FormData) {
     }
     
     if (redirectPath) {
-        // O redirect é tratado como uma exceção no Next.js
-        // Não precisa de try-catch aqui, apenas redirecionar
-        redirect(redirectPath);
+        // Não redirecionamos diretamente aqui, mas retornamos o token para o cliente
+        // para que ele possa fazer o login no cliente Firebase Auth e depois redirecionar.
+        return {
+            ...prevState,
+            success: true,
+            redirectPath,
+            customToken, // Retorna o token para o cliente
+            message: 'Login bem-sucedido!',
+        };
     }
 
     // Generic error message for security reasons

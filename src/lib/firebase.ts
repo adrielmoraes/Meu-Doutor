@@ -1,6 +1,7 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
+import { getAuth } from "firebase/auth"; // Importar getAuth
 
 const firebaseConfig = {
     projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
@@ -14,6 +15,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
+const auth = getAuth(app); // Inicializar Firebase Authentication
 
 // Enable offline persistence
 if (typeof window !== 'undefined') {
@@ -36,4 +38,4 @@ if (typeof window !== 'undefined') {
 }
 
 
-export { app, db };
+export { app, db, auth }; // Exportar 'auth'

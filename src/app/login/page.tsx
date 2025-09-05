@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useActionState } from 'react'; // Importar useEffect e useActionState
+import { useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,10 @@ import Link from "next/link";
 import { loginAction } from './actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
-
+import { useRouter } from 'next/navigation'; // Importar useRouter
+import { useToast } from '@/hooks/use-toast'; // Importar useToast
+import { auth } from '@/lib/firebase'; // Importar auth
+import { signInWithCustomToken } from 'firebase/auth'; // Importar signInWithCustomToken
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -23,8 +27,41 @@ function SubmitButton() {
 }
 
 export default function LoginPage() {
-    const initialState = { message: null, errors: {} };
-    const [state, dispatch] = useFormState(loginAction, initialState);
+    const { toast } = useToast();
+    const router = useRouter();
+    // Atualizar initialState para incluir customToken, redirectPath e success
+    const initialState = { message: null, errors: {}, success: false, customToken: null, redirectPath: null };
+    const [state, dispatch] = useActionState(loginAction, initialState); // Usar useActionState
+
+    useEffect(() => {
+        if (state.success && state.customToken && state.redirectPath) {
+            // Fazer login no Firebase Auth do lado do cliente com o token personalizado
+            signInWithCustomToken(auth, state.customToken)
+                .then(() => {
+                    toast({
+                        title: 'Login Sucesso!',
+                        description: state.message || 'Você foi logado com sucesso.',
+                        className: "bg-green-100 text-green-800 border-green-200",
+                    });
+                    router.push(state.redirectPath);
+                })
+                .catch((error) => {
+                    console.error("Erro ao fazer login com custom token:", error);
+                    toast({
+                        variant: "destructive",
+                        title: 'Erro de Autenticação',
+                        description: 'Falha ao autenticar no cliente. Por favor, tente novamente.',
+                    });
+                });
+        } else if (state.message && !state.success) {
+            // Exibir erro se houver uma mensagem e não for sucesso
+            toast({
+                variant: "destructive",
+                title: 'Falha no Login',
+                description: state.message,
+            });
+        }
+    }, [state, router, toast]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/20">
@@ -63,12 +100,13 @@ export default function LoginPage() {
                      {state?.errors?.password && <p className="text-xs text-destructive">{state.errors.password[0]}</p>}
                     </div>
 
-                    {state?.message && (
+                    {/* A exibição de erros agora é feita pelo useToast, então este Alert pode ser removido se desejar. */}
+                    {/* state?.message && !state.success && (
                         <Alert variant="destructive">
                             <AlertTitle>Falha no Login</AlertTitle>
                             <AlertDescription>{state.message}</AlertDescription>
                         </Alert>
-                    )}
+                    )*/}
 
                     <SubmitButton />
                     <Button variant="outline" className="w-full" type="button">

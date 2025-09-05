@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Eye, ShieldAlert, ArrowUp, ArrowDown } from "lucide-react";
 import Link from "next/link";
-import { getPatients } from "@/lib/firestore-client-adapter";
+import { getPatients } from "@/lib/firestore-admin-adapter"; // Importar do admin-adapter
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Patient } from "@/types";
 
@@ -55,7 +55,7 @@ const sortPatients = (patients: Patient[]): Patient[] => {
 
 async function getPatientsData(): Promise<{ patients: Patient[] | null, error?: string, fixUrl?: string}> {
     try {
-        const patients = await getPatients();
+        const patients = await getPatients(); // Usar getPatients do admin
         const sortedPatients = sortPatients(patients);
         return { patients: sortedPatients };
     } catch (e: any) {

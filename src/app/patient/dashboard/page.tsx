@@ -1,6 +1,6 @@
 
 import PatientDashboard from "@/components/patient/patient-dashboard";
-import { getPatientById } from "@/lib/firestore-client-adapter";
+import { getPatientById } from "@/lib/firestore-admin-adapter"; // Importar getPatientById do admin-adapter
 import type { GenerateHealthInsightsOutput } from "@/ai/flows/generate-health-insights";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
@@ -18,7 +18,7 @@ interface DashboardData {
 
 async function getDashboardData(patientId: string): Promise<DashboardData> {
     try {
-        const patient = await getPatientById(patientId);
+        const patient = await getPatientById(patientId); // Usar a função getPatientById diretamente
         if (!patient) {
              return { patient: null, healthInsights: null, error: `Paciente com ID "${patientId}" não encontrado. Verifique se os dados iniciais foram carregados ou se o ID está correto.` };
         }
@@ -79,8 +79,7 @@ export default async function PatientDashboardPage() {
                                <br />
                                <span className="text-xs">Após habilitar, aguarde alguns minutos e atualize esta página.</span>
                            </p>
-                       )}
-                   </AlertDescription>
+                       )}\n                   </AlertDescription>
                </Alert>
            </div>
         ) : (

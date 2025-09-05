@@ -3,12 +3,30 @@ import DoctorSidebar from "@/components/layout/doctor-sidebar";
 import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { Stethoscope } from "lucide-react";
+import { getSession } from "@/lib/session"; // Importar getSession
+import { redirect } from "next/navigation";
+import { updateDoctorStatus } from '@/lib/firestore-admin-adapter'; // Importar a função de atualização
 
-export default function DoctorLayout({
+export default async function DoctorLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await getSession();
+
+  // Redirecionar se não for médico ou não estiver logado
+  if (!session || session.role !== 'doctor' || !session.userId) {
+    redirect('/login');
+  }
+
+  // Atualizar o status do médico para online no Firestore
+  // Isso será executado em cada requisição para uma rota de doutor
+  try {
+    await updateDoctorStatus(session.userId, true); // Definir como online
+  } catch (e) {
+    console.error("Failed to update doctor status to online:", e);
+  }
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen">
