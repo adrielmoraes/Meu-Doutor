@@ -1,7 +1,7 @@
 
 'use server';
 
-import type { Doctor, DoctorWithPassword, Patient, PatientWithPassword, Exam, Appointment } from '@/types'; // Importar Exam e Appointment types
+import type { Doctor, DoctorWithPassword, Patient, PatientWithPassword, Exam, Appointment } from '@/types';
 import { getAdminDb } from './firebase-admin';
 
 
@@ -16,7 +16,6 @@ export async function getDoctorByEmail(email: string): Promise<Doctor | null> {
     return { id: doctorDoc.id, ...doctorDoc.data() } as Doctor;
 }
 
-// NOVO: getDoctorById (precisamos para o agendamento)
 export async function getDoctorById(id: string): Promise<Doctor | null> {
     const adminDb = getAdminDb();
     const doctorDoc = await adminDb.collection('doctors').doc(id).get();
@@ -59,7 +58,7 @@ export async function addDoctorWithAuth(doctorData: Omit<Doctor, 'id'>, hashedPa
     const adminDb = getAdminDb();
     const batch = adminDb.batch();
 
-    const doctorRef = adminDb.collection('doctors').doc(); // Firestore generates the ID
+    const doctorRef = adminDb.collection('doctors').doc(); 
     batch.set(doctorRef, doctorData);
 
     const authRef = adminDb.collection('doctorAuth').doc(doctorRef.id);
@@ -145,10 +144,23 @@ export async function getAllAppointmentsForDoctor(doctorId: string): Promise<App
     return appointments;
 }
 
-// NOVA FUNÇÃO: Atualizar o status online/offline do médico
 export async function updateDoctorStatus(doctorId: string, status: boolean): Promise<void> {
     const adminDb = getAdminDb();
     await adminDb.collection('doctors').doc(doctorId).update({ online: status });
+}
+
+export async function getAppointmentsForPatient(patientId: string): Promise<Appointment[]> {
+    const adminDb = getAdminDb();
+    const appointmentsSnapshot = await adminDb.collection('appointments')
+        .where('patientId', '==', patientId)
+        .orderBy('date', 'asc')
+        .orderBy('time', 'asc')
+        .get();
+    const appointments: Appointment[] = [];
+    appointmentsSnapshot.forEach(doc => {
+        appointments.push({ id: doc.id, ...doc.data() } as Appointment);
+    });
+    return appointments;
 }
 
 export async function getPatientByEmailWithAuth(email: string): Promise<PatientWithPassword | null> {
@@ -172,7 +184,7 @@ export async function addPatientWithAuth(patientData: Omit<Patient, 'id'>, hashe
     const adminDb = getAdminDb();
     const batch = adminDb.batch();
 
-    const patientRef = adminDb.collection('patients').doc(); // Firestore generates the ID
+    const patientRef = adminDb.collection('patients').doc();
     batch.set(patientRef, patientData);
 
     const authRef = adminDb.collection('patientAuth').doc(patientRef.id);

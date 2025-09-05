@@ -1,4 +1,6 @@
 
+// REMOVER: 'use client';
+
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,10 +11,12 @@ import type { Appointment, Doctor } from "@/types"; // Importar Doctor type
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
+import { redirect } from 'next/navigation'; // Importar redirect de next/navigation
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isToday, isThisWeek, isThisMonth, parseISO } from 'date-fns';
 import ManageAvailability from '@/components/doctor/manage-availability';
 import ScheduleCalendarManager from '@/components/doctor/schedule-calendar-manager'; // Importar o novo componente
+import CancelAppointmentButton from '@/components/ui/cancel-appointment-button'; // Importar CancelAppointmentButton
 
 
 async function getScheduleData(doctorId: string): Promise<{ appointments: Appointment[], doctor: Doctor | null, error?: string, fixUrl?: string }> {
@@ -88,6 +92,23 @@ export default async function SchedulePage() {
 
   const { appointments, doctor, error, fixUrl } = await getScheduleData(session.userId); // Passar o ID do doutor logado
 
+  // Filtrar agendamentos por Hoje, Esta Semana, Este Mês
+  const today = new Date();
+  const formattedToday = today.toISOString().split('T')[0]; // YYYY-MM-DD
+
+  const todaysAppointments = Array.isArray(appointments)
+    ? appointments.filter(appt => isToday(parseISO(appt.date)))
+    : [];
+
+  const thisWeekAppointments = Array.isArray(appointments)
+    ? appointments.filter(appt => isThisWeek(parseISO(appt.date)) && !isToday(parseISO(appt.date))) // Exclui os de hoje
+    : [];
+
+  const thisMonthAppointments = Array.isArray(appointments)
+    ? appointments.filter(appt => isThisMonth(parseISO(appt.date)) && !isThisWeek(parseISO(appt.date))) // Exclui os da semana
+    : [];
+
+
   if (error || !doctor) {
      return (
         <div className="container mx-auto">
@@ -112,6 +133,34 @@ export default async function SchedulePage() {
            </div>
         );
   }
+
+  const renderAppointmentList = (apts: Appointment[]) => (
+    <ul className="space-y-4">
+        {apts.length > 0 ? (
+            apts.map(appt => (
+                <Card key={appt.id} className="p-4 flex items-center gap-4 transition-all hover:shadow-md">
+                    <Avatar>
+                        <AvatarImage src={appt.patientAvatar} />
+                        <AvatarFallback>{appt.patientName.substring(0, 1)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-grow">
+                        <p className="font-semibold text-lg">{appt.time} - {appt.patientName}</p>
+                        <p className="text-sm text-muted-foreground">{appt.type}</p>
+                        <p className="text-xs text-muted-foreground">{new Date(appt.date).toLocaleDateString('pt-BR')}</p>
+                    </div>
+                    <Button size="icon" variant="ghost">
+                        <Video className="h-5 w-5 text-primary" />
+                    </Button>
+                    <CancelAppointmentButton appointment={appt} />
+                </Card>
+            ))
+        ) : (
+            <li className="text-center text-muted-foreground py-4">
+                Nenhuma consulta encontrada.
+            </li>
+        )}
+    </ul>
+  );
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">

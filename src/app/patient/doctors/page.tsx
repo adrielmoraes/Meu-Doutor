@@ -2,16 +2,17 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { getDoctors, getPatientById } from "@/lib/firestore-admin-adapter";
+import { getDoctors, getPatientById, getAppointmentsForPatient } from "@/lib/firestore-admin-adapter"; // Adicionar getAppointmentsForPatient
 import ScheduleAppointment from "@/components/patient/schedule-appointment";
 import StartConsultation from "@/components/patient/start-consultation";
-import type { Doctor, Patient } from "@/types";
+import type { Doctor, Patient, Appointment } from "@/types"; // Adicionar Appointment type
 import { Separator } from "@/components/ui/separator";
-import { MapPin, AlertTriangle } from "lucide-react";
+import { MapPin, AlertTriangle, CalendarCheck } from "lucide-react"; // Adicionar CalendarCheck icon
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
+import CancelAppointmentButton from "@/components/ui/cancel-appointment-button"; // Importar CancelAppointmentButton
 
 
 const DoctorCard = ({ doctor, patientId }: { doctor: Doctor, patientId: string }) => (
@@ -38,15 +39,23 @@ const DoctorCard = ({ doctor, patientId }: { doctor: Doctor, patientId: string }
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row gap-2">
         <StartConsultation doctor={doctor} type="video" />
-        <ScheduleAppointment doctor={doctor} patientId={patientId} doctorAvailability={doctor.availability || []} /> { /* Passar a disponibilidade */}
+        <ScheduleAppointment doctor={doctor} patientId={patientId} doctorAvailability={doctor.availability || []} />
         </CardContent>
     </Card>
 );
 
-async function getDoctorsPageData(patientId: string): Promise<{ localDoctors: Doctor[], otherDoctors: Doctor[], patient: Patient | null, error?: string, fixUrl?: string }> {
+async function getDoctorsPageData(patientId: string): Promise<{ localDoctors: Doctor[], otherDoctors: Doctor[], patient: Patient | null, appointments: Appointment[], error?: string, fixUrl?: string }> {
     try {
+        console.log('[DoctorsPage Debug] Buscando dados para patientId:', patientId);
+        
         const allDoctors = await getDoctors();
+        console.log('[DoctorsPage Debug] Médicos encontrados:', allDoctors.length);
+        
         const patient = await getPatientById(patientId);
+        console.log('[DoctorsPage Debug] Paciente encontrado:', patient ? patient.name : 'Nenhum');
+        
+        const appointments = await getAppointmentsForPatient(patientId);
+        console.log('[DoctorsPage Debug] Agendamentos encontrados:', appointments.length);
 
         const localDoctors = patient 
             ? allDoctors.filter(d => 
@@ -62,24 +71,25 @@ async function getDoctorsPageData(patientId: string): Promise<{ localDoctors: Do
                 d.city.toLowerCase() !== patient.city.toLowerCase() || 
                 d.state.toLowerCase() !== patient.state.toLowerCase())
               )
-            : allDoctors; // Se o paciente não tiver dados de localização, mostra todos como 'outros'
+            : allDoctors; 
         
-        return { localDoctors, otherDoctors, patient };
+        return { localDoctors, otherDoctors, patient, appointments };
 
     } catch (e: any) {
         const errorMessage = e.message?.toLowerCase() || '';
-        const errorCode = e.code?.toLowerCase() || '';
+        const errorCode = (typeof e.code === 'string' ? e.code.toLowerCase() : '') || '';
         
+        console.error('[DoctorsPage Debug] Erro em getDoctorsPageData:', e);
+
         if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
             const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
             return { 
-                localDoctors: [], otherDoctors: [], patient: null,
+                localDoctors: [], otherDoctors: [], patient: null, appointments: [],
                 error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada ou o cliente está offline.",
                 fixUrl: firestoreApiUrl 
             };
         }
-        console.error("Unexpected error fetching doctors list:", e);
-        return { localDoctors: [], otherDoctors: [], patient: null, error: "Ocorreu um erro inesperado ao carregar a lista de médicos." };
+        return { localDoctors: [], otherDoctors: [], patient: null, appointments: [], error: "Ocorreu um erro inesperado ao carregar a lista de médicos." };
     }
 }
 
@@ -90,7 +100,7 @@ export default async function DoctorsPage() {
       redirect('/login');
   }
 
-  const { localDoctors, otherDoctors, patient, error, fixUrl } = await getDoctorsPageData(session.userId);
+  const { localDoctors, otherDoctors, patient, appointments, error, fixUrl } = await getDoctorsPageData(session.userId);
 
   if (error) {
      return (
@@ -125,6 +135,31 @@ export default async function DoctorsPage() {
             Conecte-se com médicos qualificados para validar seu diagnóstico.
           </p>
         </div>
+        
+        {/* NOVA SEÇÃO: Consultas Agendadas */}
+        {appointments.length > 0 && (
+            <div className="mb-12">
+                <h2 className="text-2xl font-semibold tracking-tight mb-4 flex items-center gap-2"><CalendarCheck className="h-6 w-6" /> Minhas Consultas Agendadas</h2>
+                <div className="space-y-4">
+                    {appointments.map(appt => (
+                        <Card key={appt.id} className="p-4 flex items-center justify-between transition-all hover:shadow-md">
+                            <div className="flex-grow">
+                                <p className="font-bold text-lg">{appt.doctorName}</p>
+                                <p className="text-sm text-muted-foreground">{appt.doctorSpecialty}</p>
+                            </div>
+                            <div className="flex-shrink-0">
+                                <p className="font-semibold">{new Date(appt.date).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}</p>
+                                <p className="text-muted-foreground text-right">{appt.time}</p>
+                            </div>
+                            <div className="ml-4 flex-shrink-0">
+                                <CancelAppointmentButton appointment={appt} />
+                            </div>
+                        </Card>
+                    ))}
+                </div>
+                <Separator className="my-8" />
+            </div>
+        )}
 
         {localDoctors.length > 0 && (
             <div className="mb-12">
