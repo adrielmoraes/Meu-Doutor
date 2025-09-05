@@ -1,18 +1,16 @@
 
 import { initializeApp, applicationDefault, cert, getApps } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { getAuth } from 'firebase-admin/auth';
-import { getStorage } from 'firebase-admin/storage'; // Importar apenas getStorage
+import { getAuth } from 'firebase-admin/auth'; // Importar getAuth
 
 let adminDb: FirebaseFirestore.Firestore | null = null;
-let adminAuth: any | null = null;
-let adminStorage: any | null = null;
+let adminAuth: any | null = null; // Declarar adminAuth
 
 const initializeFirebaseAdmin = () => {
+  // Reutiliza a instância se já estiver inicializada
   if (getApps().length > 0) {
     if (!adminDb) adminDb = getFirestore();
-    if (!adminAuth) adminAuth = getAuth();
-    if (!adminStorage) adminStorage = getStorage();
+    if (!adminAuth) adminAuth = getAuth(); // Inicializar auth se não estiver
     return adminDb;
   }
 
@@ -24,6 +22,7 @@ const initializeFirebaseAdmin = () => {
       );
     }
 
+    // Parse seguro da chave de serviço
     let parsed: any;
     try {
       parsed = JSON.parse(serviceAccountJson);
@@ -33,10 +32,12 @@ const initializeFirebaseAdmin = () => {
       );
     }
 
+    // Extrai campos necessários e normaliza a privateKey (\n -> quebra de linha real)
     const projectId = parsed.project_id || process.env.FIREBASE_PROJECT_ID;
     const clientEmail = parsed.client_email || process.env.FIREBASE_CLIENT_EMAIL;
     let privateKey = (parsed.private_key || process.env.FIREBASE_PRIVATE_KEY) as string | undefined;
 
+    // Normaliza a privateKey (\n -> quebra de linha real)
     if (privateKey) {
       privateKey = privateKey.replace(/\\n/g, '\n');
     }
@@ -44,21 +45,19 @@ const initializeFirebaseAdmin = () => {
     if (clientEmail && privateKey) {
       initializeApp({
         credential: cert({ projectId, clientEmail, privateKey }),
-        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
       });
     } else {
       console.warn('[Firebase Admin] Credenciais explícitas ausentes. Tentando applicationDefault(). Configure FIREBASE_SERVICE_ACCOUNT_KEY ou GOOGLE_APPLICATION_CREDENTIALS.');
       initializeApp({
         credential: applicationDefault(),
-        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
       });
     }
 
     adminDb = getFirestore();
-    adminAuth = getAuth();
-    adminStorage = getStorage();
+    adminAuth = getAuth(); // Inicializar Firebase Admin Auth
     return adminDb;
   } catch (error: any) {
+    // Log controlado sem vazar chaves
     console.error('[Firebase Admin] Falha ao inicializar o app Firebase Admin. Detalhes:', error?.message || error);
     throw new Error('A inicialização do Firebase Admin falhou: ' + (error?.message || error));
   }
@@ -69,25 +68,7 @@ export const getAdminDb = () => {
 };
 
 export const getAdminAuth = () => {
+  // Garante que o Firebase Admin App foi inicializado antes de obter o Auth
   initializeFirebaseAdmin(); 
   return adminAuth;
-};
-
-export const getAdminStorage = () => {
-    initializeFirebaseAdmin();
-    return adminStorage;
-};
-
-export const uploadFileToStorage = async (fileBuffer: Buffer, filePath: string, contentType: string): Promise<string> => {
-    initializeFirebaseAdmin();
-    const bucket = getStorage().bucket(); // CORREÇÃO: Chamar getStorage().bucket()
-    const file = bucket.file(filePath);
-
-    await file.save(fileBuffer, {
-        metadata: { contentType },
-        public: true,
-        predefinedAcl: 'publicRead',
-    });
-
-    return `https://storage.googleapis.com/${bucket.name}/${filePath}`;
 };
