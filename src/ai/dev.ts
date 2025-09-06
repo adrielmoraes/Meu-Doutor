@@ -7,7 +7,7 @@ import '@/ai/flows/summarize-patient-history.ts';
 import '@/ai/flows/generate-preliminary-diagnosis.ts';
 import '@/ai/flows/analyze-medical-exam.ts';
 import '@/ai/flows/text-to-speech.ts';
-import '@/ai/flows/consultation-flow.ts';
+// import '@/ai/flows/consultation-flow.ts'; // Legacy, replaced by live-consultation-flow
 import '@/ai/flows/cardiologist-agent.ts';
 import '@/ai/flows/pulmonologist-agent.ts';
 import '@/ai/flows/radiologist-agent.ts';
@@ -27,7 +27,7 @@ import '@/ai/flows/explain-diagnosis-flow.ts';
 import '@/ai/flows/generate-wellness-plan.ts';
 import '@/ai/flows/generate-health-insights.ts';
 import '@/ai/flows/triage-urgency-flow.ts';
-// import '@/ai/flows/live-consultation-flow.ts'; // Temporarily disabled
+import '@/ai/flows/live-consultation-flow.ts'; // Re-enabled for proper live consultation
 import '@/ai/flows/summarize-vitals-flow.ts';
 import '@/ai/tools/medical-knowledge-base.ts';
 import '@/ai/tools/patient-data-access.ts';

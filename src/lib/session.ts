@@ -97,10 +97,42 @@ export async function getSession(): Promise<SessionPayload | null> {
   return decryptedSession;
 }
 
-// Client-side helper
+// Client-side helper, made isomorphic to also work when called from the server.
 export async function getSessionOnClient() {
-    const response = await fetch('/api/session');
-    if (!response.ok) return null;
-    const { session } = await response.json();
-    return session as SessionPayload | null;
+    // This function is executed on the server, either via an RPC call from a client component
+    // or a direct call from another server-side function. In either case, it's running on the server.
+    // Server-side 'fetch' requires an absolute URL.
+    const host = process.env.NEXT_PUBLIC_VERCEL_URL
+        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+        : 'http://localhost:3000';
+    
+    const url = `${host}/api/session`;
+
+    // When this function is executed on the server, `fetch` does not automatically
+    // send the cookies of the client that initiated the request.
+    // The `/api/session` route needs the session cookie to identify the user,
+    // so we must manually forward the cookies.
+    const cookieHeader = cookies().toString();
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                // Forward the cookie from the incoming request to the API route.
+                'Cookie': cookieHeader,
+            }
+        });
+
+        if (!response.ok) {
+            console.error(`[getSessionOnClient] Failed to fetch session. Status: ${response.status}`);
+            return null;
+        }
+
+        const data = await response.json();
+        return data.session as SessionPayload | null;
+
+    } catch (error) {
+        // Catching potential errors, like the 'Invalid URL' one.
+        console.error(`[getSessionOnClient] An error occurred while fetching the session:`, error);
+        return null;
+    }
 }

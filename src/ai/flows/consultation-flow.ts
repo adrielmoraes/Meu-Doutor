@@ -59,27 +59,32 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
     });
     
     const initialMessage = initialResponse.candidates?.[0]?.message;
-    let textResponse = initialMessage?.text;
+    // Get initial text, default to empty string. This makes the flow more robust.
+    let textResponse = initialMessage?.text || '';
     const toolRequest = initialMessage?.toolRequest;
 
+    // Step 2: If the model wants to use a tool, execute it and get a follow-up response.
     if (toolRequest) {
-        // The model wants to use a tool.
         console.log(`[Consultation Flow] AI requested tool: ${toolRequest.name}`);
         const toolResult = await patientDataAccessTool(toolRequest.input);
 
-        // Step 2: Send the tool's result back to the model.
-        const toolResponseResponse = await ai.generate({
+        // Send the tool's result back to the model.
+        const toolFollowUpResponse = await ai.generate({
             messages: [
                 ...messages,
-                { role: 'model', content: [{ toolRequest }] }, // Include the original request
+                // It's important to include the model's prior message, which contains the tool request.
+                initialMessage, 
                 { role: 'tool', content: [{ toolResponse: { name: toolRequest.name, output: toolResult } }] }
             ],
-            tools: [patientDataAccessTool], // Still provide tools in case it needs another one
+            tools: [patientDataAccessTool], // Still provide tools in case it needs another one.
             toolRequest: 'auto'
         });
         
-        // The final text response is in the second response
-        textResponse = toolResponseResponse.candidates?.[0]?.message.text;
+        // For this fix, we assume the next response is text. A more complex implementation could loop here.
+        const followUpText = toolFollowUpResponse.candidates?.[0]?.message.text || '';
+        
+        // Append the follow-up text to any initial text we might have received.
+        textResponse = (textResponse + ' ' + followUpText).trim();
     }
 
   if (!textResponse) {

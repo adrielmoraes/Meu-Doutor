@@ -20,7 +20,7 @@ const DoctorCard = ({ doctor, patientId }: { doctor: Doctor, patientId: string }
         <CardHeader className="flex-grow">
         <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border-2 border-primary">
-            <AvatarImage src={doctor.avatar} data-ai-hint={doctor.avatarHint} />
+            <AvatarImage src={doctor.avatarUrl} />
             <AvatarFallback>{doctor.name.substring(0, 2)}</AvatarFallback>
             </Avatar>
             <div>
