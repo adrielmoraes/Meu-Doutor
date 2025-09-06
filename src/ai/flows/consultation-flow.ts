@@ -51,6 +51,8 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
         ...input.history
     ];
 
+    console.log('[Consultation Flow] Messages sent to AI:', JSON.stringify(messages, null, 2));
+
     // Step 1: Make the initial call to the model to see if it wants to use a tool or respond directly.
     const initialResponse = await ai.generate({
         messages,
@@ -58,37 +60,47 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
         toolRequest: 'auto'
     });
     
+    console.log('[Consultation Flow] Initial AI response:', JSON.stringify(initialResponse, null, 2));
+
     const initialMessage = initialResponse.candidates?.[0]?.message;
-    // Get initial text, default to empty string. This makes the flow more robust.
-    let textResponse = initialMessage?.text || '';
+    // Correctly extract the text from the initial response, if any
+    let textResponse = initialMessage?.content?.parts?.[0]?.text || '';
     const toolRequest = initialMessage?.toolRequest;
 
     // Step 2: If the model wants to use a tool, execute it and get a follow-up response.
     if (toolRequest) {
-        console.log(`[Consultation Flow] AI requested tool: ${toolRequest.name}`);
+        console.log(`[Consultation Flow] AI requested tool: ${toolRequest.name} with input:`, JSON.stringify(toolRequest.input, null, 2));
         const toolResult = await patientDataAccessTool(toolRequest.input);
+        console.log(`[Consultation Flow] Tool ${toolRequest.name} result:`, JSON.stringify(toolResult, null, 2));
 
         // Send the tool's result back to the model.
         const toolFollowUpResponse = await ai.generate({
             messages: [
                 ...messages,
-                // It's important to include the model's prior message, which contains the tool request.
-                initialMessage, 
+                initialMessage, // Corrected: Use the full initialMessage here
                 { role: 'tool', content: [{ toolResponse: { name: toolRequest.name, output: toolResult } }] }
             ],
             tools: [patientDataAccessTool], // Still provide tools in case it needs another one.
             toolRequest: 'auto'
         });
         
-        // For this fix, we assume the next response is text. A more complex implementation could loop here.
-        const followUpText = toolFollowUpResponse.candidates?.[0]?.message.text || '';
+        console.log('[Consultation Flow] Tool follow-up AI response:', JSON.stringify(toolFollowUpResponse, null, 2));
+
+        // Correctly extract the text from the follow-up response
+        const followUpText = toolFollowUpResponse.candidates?.[0]?.content?.parts?.[0]?.text || '';
         
         // Append the follow-up text to any initial text we might have received.
         textResponse = (textResponse + ' ' + followUpText).trim();
     }
 
   if (!textResponse) {
-    throw new Error("AI did not return a text response.");
+    console.error("[Consultation Flow] AI did not return a text response. Final textResponse was empty.");
+    const errorMessage = "Desculpe, tive um problema para processar sua solicitação. Poderia tentar de novo?";
+    const audioError = await textToSpeech({ text: errorMessage });
+    return {
+      response: errorMessage,
+      audioDataUri: audioError.audioDataUri, 
+    };
   }
   
   // Step 3: Generate the audio from the final text response.
