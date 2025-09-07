@@ -15,7 +15,6 @@ const LiveConsultationInputSchema = z.object({
   audioData: z.string().describe("A Base64 encoded string of the user's audio chunk (webm format)."),
   videoData: z.string().optional().describe("A Base64 encoded string of the user's video chunk (e.g., webm or mp4 format, or image frames)."),
   patientId: z.string().describe("The ID of the patient for contextual data access."),
-  // History is crucial for maintaining conversation context.
   history: z.array(z.object({
     role: z.enum(['user', 'model']),
     content: z.array(z.object({ text: z.string() })),
@@ -46,76 +45,129 @@ Your response must always be in Brazilian Portuguese.`;
 export async function liveConsultationFlow(input: LiveConsultationInput): Promise<LiveConsultationOutput> {
   const mediaParts: any[] = [];
 
-  // Construct the data URI for the audio content.
   if (input.audioData) {
     const audioURI = `data:audio/webm;base64,${input.audioData}`;
     mediaParts.push({ media: { url: audioURI, contentType: 'audio/webm' } });
   }
 
-  // Construct the data URI for the video content, if provided.
-  // NOTE: The client-side implementation will need to determine the correct contentType
-  // and encoding for video frames/chunks. For simplicity, we assume webm here.
   if (input.videoData) {
-    const videoURI = `data:video/webm;base64,${input.videoData}`; // Or image/jpeg for image frames
-    mediaParts.push({ media: { url: videoURI, contentType: 'video/webm' } }); // Adjust contentType as needed
+    const videoURI = `data:video/webm;base64,${input.videoData}`;
+    mediaParts.push({ media: { url: videoURI, contentType: 'video/webm' } });
   }
 
-  // The user's message is the audio/video chunk.
-  const userMessage = { role: 'user', content: mediaParts };
+  const userMessage = { role: 'user' as const, content: mediaParts };
 
   const messages = [
-    { role: 'system', content: [{ text: SYSTEM_PROMPT }] },
+    { role: 'system' as const, content: [{ text: SYSTEM_PROMPT }] },
     ...(input.history || []),
     userMessage
   ];
 
-  // Step 1: Call the multimodal model (Gemini 1.5 Pro) with the audio and video.
   const initialResponse = await ai.generate({
-    model: gemini15Pro, // Using the specified multimodal model
+    model: gemini15Pro,
     messages: messages,
     tools: [patientDataAccessTool],
     toolRequest: 'auto'
   });
 
-  const initialMessage = initialResponse.candidates?.[0]?.message;
-  let textResponse = initialMessage?.text || '';
-  const toolRequest = initialMessage?.toolRequest;
+  // Extração direta do texto da resposta
+  let textResponse = '';
+  
+  // Baseado no log, o texto está em initialResponse.message.content[0].text
+  if (initialResponse.message?.content?.[0]?.text) {
+    textResponse = initialResponse.message.content[0].text;
+  } else if (Array.isArray(initialResponse.message?.content)) {
+    // Fallback: concatena todos os textos do array
+    textResponse = initialResponse.message.content
+      .filter(item => item.text)
+      .map(item => item.text)
+      .join(' ');
+  }
+  
+  console.log('[Live Consultation] Texto extraído:', textResponse);
+  const toolRequest = initialResponse.message?.toolRequest;
+  
+  let toolFollowUpResponse: any = null;
 
-  // Step 2: If the model requests a tool, execute it and get a follow-up response.
   if (toolRequest) {
     console.log(`[Live Consultation] AI requested tool: ${toolRequest.name}`);
     const toolResult = await patientDataAccessTool(toolRequest.input);
 
-    const toolFollowUpResponse = await ai.generate({
+    const toolMessages = [
+      ...messages,
+      initialResponse.message, // Adiciona a resposta do modelo que pediu a ferramenta
+      { role: 'tool' as const, content: [{ toolResponse: { name: toolRequest.name, output: toolResult } }] }
+    ];
+
+    toolFollowUpResponse = await ai.generate({
       model: gemini15Pro,
-      messages: [
-        ...messages,
-        initialMessage, // Include the model's prior message with the tool request
-        { role: 'tool', content: [{ toolResponse: { name: toolRequest.name, output: toolResult } }] }
-      ],
+      messages: toolMessages,
       tools: [patientDataAccessTool],
     });
 
-    const followUpText = toolFollowUpResponse.candidates?.[0]?.message.text || '';
-    textResponse = (textResponse + ' ' + followUpText).trim();
+    // DEBUG COMPLETO: Inspeciona resposta de follow-up
+    console.log('[Live Consultation] Resposta RAW do follow-up:', JSON.stringify(toolFollowUpResponse, null, 2));
+    
+    let toolFollowUpText = '';
+    
+    console.log('[Live Consultation] Verificando caminhos de extração do follow-up:');
+    console.log('[Live Consultation] toolFollowUpResponse.message:', toolFollowUpResponse.message);
+    console.log('[Live Consultation] toolFollowUpResponse.message?.content:', toolFollowUpResponse.message?.content);
+    console.log('[Live Consultation] toolFollowUpResponse.message?.content?.[0]:', toolFollowUpResponse.message?.content?.[0]);
+    console.log('[Live Consultation] toolFollowUpResponse.custom?.candidates:', toolFollowUpResponse.custom?.candidates);
+    
+    if (toolFollowUpResponse.message?.content?.[0]?.text) {
+      toolFollowUpText = toolFollowUpResponse.message.content[0].text;
+      console.log('[Live Consultation] Texto extraído de follow-up.message.content[0].text:', toolFollowUpText);
+    }
+    else if (toolFollowUpResponse.custom?.candidates?.[0]?.content?.parts?.[0]?.text) {
+      toolFollowUpText = toolFollowUpResponse.custom.candidates[0].content.parts[0].text;
+      console.log('[Live Consultation] Texto extraído de follow-up.custom.candidates:', toolFollowUpText);
+    }
+    else if (Array.isArray(toolFollowUpResponse.message?.content)) {
+      const texts = toolFollowUpResponse.message.content
+        .filter(item => item.text)
+        .map(item => item.text);
+      toolFollowUpText = texts.join(' ');
+      console.log('[Live Consultation] Texto concatenado do array de follow-up:', toolFollowUpText);
+    }
+    
+    textResponse = toolFollowUpText;
+    console.log('[Live Consultation] Texto final de follow-up extraído:', textResponse);
   }
 
-  // Step 3: Handle cases where no text response is generated.
-  if (!textResponse) {
-    console.error("[Live Consultation] AI did not return a text response.");
+  if (!textResponse || textResponse.trim() === '') {
+    if (toolFollowUpResponse) {
+      console.error("[Live Consultation] AI did not return a text response AFTER a tool call. Raw tool follow-up response:", JSON.stringify(toolFollowUpResponse, null, 2));
+    } else {
+      console.error("[Live Consultation] AI did not return a text response on initial call. Raw initial response:", JSON.stringify(initialResponse, null, 2));
+    }
+    
     const errorMessage = "Desculpe, tive um problema para processar sua solicitação. Poderia tentar de novo?";
     const audioError = await textToSpeech({ text: errorMessage });
     return {
       transcript: errorMessage,
-      audioOutput: audioError.audioDataUri?.split('base64,')[1], // Return raw base64
+      audioOutput: audioError?.audioDataUri?.split('base64,')[1] || '',
     };
   }
 
-  // Step 4: Convert the final text response to audio.
-  const audioResult = await textToSpeech({ text: textResponse });
-  const audioBase64 = audioResult.audioDataUri?.split('base64,')[1] || '';
+  console.log("[Live Consultation] AI response received:", textResponse.substring(0, 100) + (textResponse.length > 100 ? '...' : ''));
 
-  // Step 5: Return the final transcript and audio.
+  let audioBase64 = '';
+  try {
+    console.log("[Live Consultation] Converting text to speech, length:", textResponse.length);
+    const audioResult = await textToSpeech({ text: textResponse });
+    audioBase64 = audioResult?.audioDataUri?.split('base64,')[1] || '';
+    if (!audioBase64) {
+      console.warn("[Live Consultation] Audio conversion returned empty result - continuing with text only");
+    } else {
+      console.log("[Live Consultation] Audio conversion successful, audio length:", audioBase64.length);
+    }
+  } catch (error) {
+    console.error("[Live Consultation] Error converting text to speech:", error);
+    console.warn("[Live Consultation] Continuing with text response only (no audio)");
+  }
+
   return {
     transcript: textResponse,
     audioOutput: audioBase64,
