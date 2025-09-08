@@ -62,9 +62,9 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
     
     console.log('[Consultation Flow] Initial AI response:', JSON.stringify(initialResponse, null, 2));
 
-    const initialMessage = initialResponse.candidates?.[0]?.message;
-    // Correctly extract the text from the initial response, if any
-    let textResponse = initialMessage?.content?.parts?.[0]?.text || '';
+    const initialMessage = initialResponse.message;
+    // Correctly extract the text from the initial response using the modern Genkit 1.x syntax
+    let textResponse = initialResponse.text || '';
     const toolRequest = initialMessage?.toolRequest;
 
     // Step 2: If the model wants to use a tool, execute it and get a follow-up response.
@@ -87,7 +87,7 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
         console.log('[Consultation Flow] Tool follow-up AI response:', JSON.stringify(toolFollowUpResponse, null, 2));
 
         // Correctly extract the text from the follow-up response
-        const followUpText = toolFollowUpResponse.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const followUpText = toolFollowUpResponse.text || '';
         
         // Append the follow-up text to any initial text we might have received.
         textResponse = (textResponse + ' ' + followUpText).trim();
