@@ -32,6 +32,7 @@ type Message = {
     content: { text: string }[];
 };
 
+
 const AIConsultationCard = () => {
   const [session, setSession] = useState<SessionPayload | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -66,28 +67,7 @@ const AIConsultationCard = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [history]);
 
-  // Proactively request media permissions when the component mounts
   useEffect(() => {
-    const getMediaPermissions = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            userMediaStreamRef.current = stream;
-            setHasCameraPermission(true);
-            if (previewVideoRef.current) {
-                previewVideoRef.current.srcObject = stream;
-            }
-        } catch (err) {
-            console.error('Error accessing media devices:', err);
-            setHasCameraPermission(false);
-            toast({
-                variant: 'destructive',
-                title: 'Acesso à Mídia Negado',
-                description: 'Por favor, habilite o acesso à câmera e ao microfone nas configurações do seu navegador para usar a consulta por vídeo.',
-            });
-        }
-    };
-    getMediaPermissions();
-
     // Cleanup function to stop media tracks when component unmounts
     return () => {
          if (userMediaStreamRef.current) {
@@ -95,7 +75,7 @@ const AIConsultationCard = () => {
             userMediaStreamRef.current = null;
         }
     }
-  }, [toast]);
+  }, []);
 
 
   const stopAiSpeaking = useCallback(() => {
@@ -106,7 +86,16 @@ const AIConsultationCard = () => {
   }, []);
 
   const handleAiResponse = useCallback(async (userInput: string) => {
-    if (!userInput.trim() || !session?.userId) return;
+    if (!userInput.trim() || !session?.userId) {
+        if (!session?.userId) {
+             toast({
+                variant: 'destructive',
+                title: 'Erro de Autenticação',
+                description: 'Não foi possível identificar o usuário. Por favor, faça login novamente.',
+            });
+        }
+        return;
+    }
     
     stopAiSpeaking();
     setIsThinking(true);
@@ -243,6 +232,11 @@ const AIConsultationCard = () => {
         setHistory([]);
         setIsMicOn(false);
         setIsVideoOn(true);
+        if (userMediaStreamRef.current) {
+          userMediaStreamRef.current.getTracks().forEach(track => track.stop());
+          userMediaStreamRef.current = null;
+        }
+        setHasCameraPermission(null);
         return;
     }
 
@@ -275,14 +269,31 @@ const AIConsultationCard = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="bg-black/20 rounded-md aspect-video overflow-hidden flex items-center justify-center text-primary-foreground/50">
-             <video ref={previewVideoRef} className={`w-full h-full object-cover ${hasCameraPermission ? '' : 'hidden'}`} autoPlay muted playsInline />
-             {hasCameraPermission === false && <p className="p-4 text-center text-sm">A câmera está desativada. Habilite nas configurações do seu navegador.</p>}
+             <Image src="/hologram-placeholder.png" alt="Hologram Placeholder" layout="fill" objectFit="cover" />
           </div>
           <Button
-            onClick={() => setIsDialogOpen(true)}
+            onClick={async () => {
+              try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                userMediaStreamRef.current = stream;
+                setHasCameraPermission(true);
+                if (previewVideoRef.current) {
+                    previewVideoRef.current.srcObject = stream;
+                }
+                setIsDialogOpen(true);
+              } catch (err) {
+                  console.error('Error accessing media devices:', err);
+                  setHasCameraPermission(false);
+                  toast({
+                      variant: 'destructive',
+                      title: 'Acesso à Mídia Negado',
+                      description: 'Por favor, habilite o acesso à câmera e ao microfone nas configurações do seu navegador para usar a consulta por vídeo.',
+                  });
+              }
+            }}
             className="w-full bg-accent hover:bg-accent/90 text-white"
             size="lg"
-            disabled={!hasCameraPermission || !session}
+            disabled={!session}
           >
             <Video className="mr-2 h-5 w-5" />
             Iniciar Chamada
@@ -362,3 +373,5 @@ const AIConsultationCard = () => {
 };
 
 export default AIConsultationCard;
+
+    

@@ -40,11 +40,10 @@ const AIConsultationCard = () => {
   const [isMicOn, setIsMicOn] = useState(false);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [avatarGender, setAvatarGender] = useState<"male" | "female">("female");
-  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  
   const [history, setHistory] = useState<Message[]>([]);
   const [isThinking, setIsThinking] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const previewVideoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
   const userMediaStreamRef = useRef<MediaStream | null>(null);
@@ -65,36 +64,16 @@ const AIConsultationCard = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [history]);
 
-  // Proactively request media permissions when the component mounts
+  // Removido pedido automático de mídia; a câmera só será ativada após clicar em "Iniciar Chamada"
   useEffect(() => {
-    const getMediaPermissions = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            userMediaStreamRef.current = stream;
-            setHasCameraPermission(true);
-            if (previewVideoRef.current) {
-                previewVideoRef.current.srcObject = stream;
-            }
-        } catch (err) {
-            console.error('Error accessing media devices:', err);
-            setHasCameraPermission(false);
-            toast({
-                variant: 'destructive',
-                title: 'Acesso à Mídia Negado',
-                description: 'Por favor, habilite o acesso à câmera e ao microfone nas configurações do seu navegador para usar a consulta por vídeo.',
-            });
-        }
-    };
-    getMediaPermissions();
-
-    // Cleanup function to stop media tracks when component unmounts
+    // Nenhuma solicitação de mídia automática; limpa recursos ao desmontar
     return () => {
-         if (userMediaStreamRef.current) {
-            userMediaStreamRef.current.getTracks().forEach(track => track.stop());
-            userMediaStreamRef.current = null;
-        }
-    }
-  }, [toast]);
+      if (userMediaStreamRef.current) {
+        userMediaStreamRef.current.getTracks().forEach(track => track.stop());
+        userMediaStreamRef.current = null;
+      }
+    };
+  }, []);
 
 
   const stopAiSpeaking = useCallback(() => {
@@ -216,7 +195,12 @@ const AIConsultationCard = () => {
 };
 
   const handleEndCall = async () => {
-    setIsDialogOpen(false); 
+    // Encerra todas as tracks para liberar câmera/microfone
+    if (userMediaStreamRef.current) {
+      userMediaStreamRef.current.getTracks().forEach(t => t.stop());
+      userMediaStreamRef.current = null;
+    }
+    setIsDialogOpen(false);
   };
 
   // Effect to manage dialog lifecycle
@@ -274,14 +258,33 @@ const AIConsultationCard = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="bg-black/20 rounded-md aspect-video overflow-hidden flex items-center justify-center text-primary-foreground/50">
-             <video ref={previewVideoRef} className={`w-full h-full object-cover ${hasCameraPermission ? '' : 'hidden'}`} autoPlay muted playsInline />
-             {hasCameraPermission === false && <p className="p-4 text-center text-sm">A câmera está desativada. Habilite nas configurações do seu navegador.</p>}
+             <Video className="w-12 h-12 opacity-50" />
           </div>
           <Button
-            onClick={() => setIsDialogOpen(true)}
+            onClick={async () => {
+              try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                userMediaStreamRef.current = stream;
+
+                // Conecta imediatamente ao elemento de vídeo, caso já exista
+                if (videoRef.current) {
+                  videoRef.current.srcObject = stream;
+                  try { await (videoRef.current as HTMLVideoElement).play(); } catch { /* autoplay bloqueado */ }
+                }
+                setIsDialogOpen(true);
+              } catch (err) {
+                console.error('Error accessing media devices:', err);
+                
+                toast({
+                  variant: 'destructive',
+                  title: 'Acesso à Mídia Negado',
+                  description: 'Por favor, habilite o acesso à câmera e ao microfone nas configurações do seu navegador para usar a consulta por vídeo.',
+                });
+              }
+            }}
             className="w-full bg-accent hover:bg-accent/90 text-white"
             size="lg"
-            disabled={!hasCameraPermission}
+
           >
             <Video className="mr-2 h-5 w-5" />
             Iniciar Chamada
@@ -295,14 +298,15 @@ const AIConsultationCard = () => {
             <DialogTitle>Consulta com Assistente de IA</DialogTitle>
           </DialogHeader>
           <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-background/90 overflow-hidden">
-            <div className="md:col-span-2 bg-black rounded-lg flex items-center justify-center relative overflow-hidden">
-               <Image src={avatarGender === 'female' ? femaleAvatarUrl : maleAvatarUrl} alt="AI Assistant" layout="fill" objectFit="cover" data-ai-hint={`${avatarGender} portrait`} />
+            <div className="md:col-span-2 bg-black rounded-lg flex items-center justify-center relative z-10 overflow-hidden bg-[url('/hologram-placeholder.png')] bg-cover bg-center border border-cyan-400/30 shadow-[0_0_20px_rgba(0,255,255,0.4)]">
+               
+              <div className="absolute inset-0 pointer-events-none bg-[url('/hologram-placeholder.png')] bg-cover mix-blend-screen animate-pulse" />
               <div className="absolute bottom-4 left-4 bg-black/50 text-white p-2 rounded-lg text-sm">
                 Assistente de IA { isThinking && (<span className="animate-pulse">está ouvindo...</span>) }
               </div>
             </div>
-            <div className="flex flex-col gap-4">
-              <div className="bg-black rounded-lg h-48 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
+            <div className="flex flex-col gap-4 z-0">
+              <div className="bg-black/80 rounded-lg h-48 flex-shrink-0 relative overflow-hidden flex items-center justify-center sticky top-4 border border-cyan-400/50 shadow-[0_0_15px_rgba(0,255,255,0.6)] backdrop-blur-sm">
                  <video ref={videoRef} className={`w-full h-full object-cover ${!isVideoOn ? 'hidden' : ''}`} autoPlay muted playsInline />
                  
                  {!isVideoOn && (
@@ -347,7 +351,14 @@ const AIConsultationCard = () => {
             <Button variant={isMicOn ? "secondary" : "destructive"} size="icon" onClick={toggleMic}>
               {isMicOn ? <Mic /> : <MicOff />}
             </Button>
-            <Button variant={isVideoOn ? "secondary" : "destructive"} size="icon" onClick={() => setIsVideoOn(!isVideoOn)}>
+            <Button variant={isVideoOn ? "secondary" : "destructive"} size="icon" onClick={() => {
+              const next = !isVideoOn;
+              setIsVideoOn(next);
+              if (next && userMediaStreamRef.current && videoRef.current) {
+                videoRef.current.srcObject = userMediaStreamRef.current;
+                try { (videoRef.current as HTMLVideoElement).play(); } catch {}
+              }
+            }}>
               {isVideoOn ? <Video /> : <VideoOff />}
             </Button>
             <Button variant="destructive" size="lg" onClick={handleEndCall}>

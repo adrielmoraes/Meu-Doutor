@@ -53,20 +53,7 @@ const Header = () => {
           <nav className="flex items-center gap-2">
             {/* Renderizar links condicionalmente */}
             {!session ? (
-              <>
-                <Button variant="ghost" asChild>
-                  <Link href="/patient/dashboard">
-                    <User className="mr-2 h-4 w-4" />
-                    Portal do Paciente
-                  </Link>
-                </Button>
-                <Button variant="ghost" asChild>
-                  <Link href="/doctor">
-                    <Stethoscope className="mr-2 h-4 w-4" />
-                    Portal do Médico
-                  </Link>
-                </Button>
-              </>
+              <></>
             ) : (
               // Se estiver logado, você pode querer mostrar um link para o próprio portal
               // ou um botão de logout, dependendo do papel.
