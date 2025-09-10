@@ -64,7 +64,7 @@ export default function LoginPage() {
     }, [state, router, toast]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/20">
+    <div className="flex min-h-screen items-center justify-center" style={{ background: 'linear-gradient(to right, #edb6d9, #f2f3ef)' }}>
       <Card className="mx-auto max-w-sm w-full">
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>

@@ -58,7 +58,7 @@ export default function PatientRegisterPage() {
   }, [state, toast, router]);
 
   return (
-     <div className="flex min-h-screen items-center justify-center bg-muted/20 py-12">
+     <div className="flex min-h-screen items-center justify-center py-12" style={{ background: 'linear-gradient(to right, #edb6d9, #f2f3ef)' }}>
         <Card className="mx-auto max-w-lg w-full">
             <CardHeader>
                 <CardTitle className="text-xl">Cadastro de Paciente</CardTitle>

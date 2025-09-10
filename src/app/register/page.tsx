@@ -22,7 +22,7 @@ export default function RegistrationTypeSelectionPage() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen items-center justify-center bg-muted/20 p-4">
+    <div className="flex flex-col min-h-screen items-center justify-center p-4" style={{ background: 'linear-gradient(to right, #edb6d9, #f2f3ef)' }}>
        <div className="mx-auto text-center max-w-2xl mb-8">
           <h1 className="text-3xl font-bold tracking-tight mb-2">Seja bem-vindo(a) ao MediAI</h1>
           <p className="text-lg text-muted-foreground">Para começar, escolha o tipo de conta que você deseja criar.</p>

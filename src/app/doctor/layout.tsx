@@ -50,7 +50,7 @@ export default async function DoctorLayout({
              {/* Can add user profile dropdown here */}
           </header>
           <SidebarInset>
-            <main className="flex-1 p-4 sm:p-6 lg:p-8">
+            <main className="flex-1 p-4 sm:p-6 lg:p-8" style={{ background: 'linear-gradient(to right, #edb6d9, #f2f3ef)' }}>
                 {children}
             </main>
           </SidebarInset>

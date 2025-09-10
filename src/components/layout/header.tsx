@@ -6,6 +6,7 @@ import { Stethoscope, User, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from 'react'; // Importar useEffect e useState
 import { getSessionOnClient, SessionPayload } from '@/lib/session'; // Importar getSessionOnClient e SessionPayload
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 const Header = () => {
   const [session, setSession] = useState<SessionPayload | null>(null); // Estado para a sessão
@@ -55,14 +56,26 @@ const Header = () => {
             {!session ? (
               <></>
             ) : (
-              // Se estiver logado, você pode querer mostrar um link para o próprio portal
-              // ou um botão de logout, dependendo do papel.
-              <Button variant="ghost" asChild>
-                <Link href={session.role === 'patient' ? '/patient/dashboard' : '/doctor'}>
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    Meu Portal
-                </Link>
-              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost">
+                    <User className="mr-2 h-4 w-4" />
+                    Perfil
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent>
+                  <div className="space-y-2">
+                    <h4 className="font-medium">Perfil do Usuário</h4>
+                    <p className="text-sm">ID do Usuário: {session?.userId}</p>
+                    <p className="text-sm">Função: {session?.role === 'patient' ? 'Paciente' : 'Médico'}</p>
+                    <Button variant="outline" asChild className="w-full">
+                      <Link href={session.role === 'patient' ? '/patient/dashboard' : '/doctor'}>
+                        Ir para Meu Portal
+                      </Link>
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             )}
           </nav>
         </div>
