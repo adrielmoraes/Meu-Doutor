@@ -19,9 +19,15 @@ import { signInWithCustomToken } from 'firebase/auth'; // Importar signInWithCus
 function SubmitButton() {
     const { pending } = useFormStatus();
     return (
-        <Button type="submit" className="w-full" disabled={pending}>
-            {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {pending ? "Entrando..." : "Login"}
+        <Button type="submit" className="w-full bg-[#ea339e] hover:bg-[#d12b8d]" disabled={pending}>
+            {pending ? (
+                <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Entrando...
+                </>
+            ) : (
+                "Login"
+            )}
         </Button>
     );
 }
@@ -65,10 +71,10 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center" style={{ background: 'linear-gradient(to right, #edb6d9, #f2f3ef)' }}>
-      <Card className="mx-auto max-w-sm w-full">
+      <Card className="mx-auto max-w-sm w-full shadow-xl" style={{ background: 'linear-gradient(to bottom right, #fff8fc, #f9e6f3)' }}>
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl font-bold text-[#ea339e]">Login</CardTitle>
+          <CardDescription className="text-black font-medium">
             Entre com seu e-mail para acessar sua conta
           </CardDescription>
         </CardHeader>
@@ -76,47 +82,40 @@ export default function LoginPage() {
             <form action={dispatch}>
                 <div className="grid gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="email">E-mail</Label>
+                        <Label htmlFor="email" className="text-black font-semibold">E-mail</Label>
                         <Input
                             id="email"
                             name="email"
                             type="email"
                             placeholder="seu@email.com"
                             required
+                            className="border-[#ea339e]/30 focus:border-[#ea339e] bg-white/80"
                         />
                          {state?.errors?.email && <p className="text-xs text-destructive">{state.errors.email[0]}</p>}
                     </div>
                     <div className="grid gap-2">
                     <div className="flex items-center">
-                        <Label htmlFor="password">Senha</Label>
+                        <Label htmlFor="password" className="text-black font-semibold">Senha</Label>
                         <Link
                         href="#"
-                        className="ml-auto inline-block text-sm underline"
+                        className="ml-auto inline-block text-sm underline text-[#ea339e] hover:text-[#d12b8d]"
                         >
                         Esqueceu sua senha?
                         </Link>
                     </div>
-                    <Input id="password" name="password" type="password" required />
+                    <Input id="password" name="password" type="password" required className="border-[#ea339e]/30 focus:border-[#ea339e] bg-white/80" />
                      {state?.errors?.password && <p className="text-xs text-destructive">{state.errors.password[0]}</p>}
                     </div>
 
-                    {/* A exibição de erros agora é feita pelo useToast, então este Alert pode ser removido se desejar. */}
-                    {/* state?.message && !state.success && (
-                        <Alert variant="destructive">
-                            <AlertTitle>Falha no Login</AlertTitle>
-                            <AlertDescription>{state.message}</AlertDescription>
-                        </Alert>
-                    )*/}
-
                     <SubmitButton />
-                    <Button variant="outline" className="w-full" type="button">
+                    <Button variant="outline" className="w-full border-[#ea339e]/30 hover:bg-[#ea339e]/10 text-black" type="button">
                     Login com Google
                     </Button>
                 </div>
             </form>
-          <div className="mt-4 text-center text-sm">
+          <div className="mt-4 text-center text-sm text-black">
             Não tem uma conta?{" "}
-            <Link href="/register" className="underline">
+            <Link href="/register" className="underline text-[#ea339e] hover:text-[#d12b8d] font-medium">
               Cadastre-se
             </Link>
           </div>

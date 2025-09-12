@@ -28,7 +28,7 @@ export default function LandingPage() {
                   </Button>
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="xl" className="w-full min-[400px]:w-auto h-14 sm:h-14 border-2 border-white/30 text-white hover:bg-white/10 hover:text-white font-semibold text-base sm:text-lg px-6 sm:px-8 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-2">
+                      <Button variant="outline" size="xl" className="w-full min-[400px]:w-auto h-14 sm:h-14 border-2 border-emerald-500/70 text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 font-semibold text-base sm:text-lg px-6 sm:px-8 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-2">
                         <PlayCircle className="h-5 w-5" />
                         Ver Demo
                       </Button>
@@ -72,9 +72,9 @@ export default function LandingPage() {
             </div>
             <div className="mx-auto grid max-w-6xl items-start gap-10 sm:grid-cols-2 md:gap-14 lg:grid-cols-3">
               {/* Feature 1 */}
-              <div className="flex flex-col items-center text-center space-y-5 p-8 rounded-xl transition-all duration-300 hover:scale-105" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 10px 15px -3px rgba(241, 62, 169, 0.5)' }}>
+              <div className="flex flex-col items-center text-center space-y-5 p-8 rounded-xl transition-all duration-300 hover:scale-105" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.1)' }}>
                 <div className="p-4 rounded-full bg-primary/20 transition-all duration-300 hover:bg-primary/30">
-                  <Zap className="h-9 w-9" style={{ color: '#ea339e' }} />
+                  <Zap className="h-9 w-9" style={{ color: '#10b981' }} />
                 </div>
                 <h3 className="text-2xl font-bold text-black">Análise Rápida com IA</h3>
                 <p className="text-base text-black leading-relaxed">
@@ -82,9 +82,9 @@ export default function LandingPage() {
                 </p>
               </div>
               {/* Feature 2 */}
-              <div className="flex flex-col items-center text-center space-y-5 p-8 rounded-xl transition-all duration-300 hover:scale-105" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 10px 15px -3px rgba(241, 62, 169, 0.5)' }}>
+              <div className="flex flex-col items-center text-center space-y-5 p-8 rounded-xl transition-all duration-300 hover:scale-105" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.1)' }}>
                 <div className="p-4 rounded-full bg-primary/20 transition-all duration-300 hover:bg-primary/30">
-                    <Stethoscope className="h-9 w-9" style={{ color: '#ea339e' }} />
+                    <Stethoscope className="h-9 w-9" style={{ color: '#10b981' }} />
                 </div>
                 <h3 className="text-2xl font-bold text-black">Conexão com Médicos</h3>
                 <p className="text-base text-black leading-relaxed">
@@ -92,10 +92,10 @@ export default function LandingPage() {
                 </p>
               </div>
               {/* Feature 3 */}
-              <div className="flex flex-col items-center text-center space-y-5 p-8 rounded-xl transition-all duration-300 hover:scale-105" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 10px 15px -3px rgba(241, 62, 169, 0.5)' }}>
+              <div className="flex flex-col items-center text-center space-y-5 p-8 rounded-xl transition-all duration-300 hover:scale-105" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.1)' }}>
                  <div className="p-4 rounded-full bg-primary/20 transition-all duration-300 hover:bg-primary/30">
-                    <ShieldCheck className="h-9 w-9" style={{ color: '#ea339e' }} />
-                </div>
+                     <ShieldCheck className="h-9 w-9" style={{ color: '#10b981' }} />
+                 </div>
                 <h3 className="text-2xl font-bold text-black">Seguro e Confiável</h3>
                 <p className="text-base text-black leading-relaxed">
                   Seus dados são protegidos com criptografia de ponta a ponta, garantindo total privacidade e conformidade com as normas de saúde.
@@ -137,9 +137,9 @@ export default function LandingPage() {
             </div>
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
               {/* Highlight 1 */}
-              <div className="flex items-start gap-4 p-6 rounded-xl transition-all duration-300" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 10px 15px -3px rgba(241, 62, 169, 0.5)' }}>
+              <div className="flex items-start gap-4 p-6 rounded-xl transition-all duration-300" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.1)' }}>
                 <div className="p-3 rounded-full bg-primary/15">
-                  <Sparkles className="h-6 w-6" style={{ color: '#ea339e' }} />
+                  <Sparkles className="h-6 w-6" style={{ color: '#10b981' }} />
                 </div>
                 <div>
                   <h3 className="font-semibold text-black">Conversas naturais</h3>
@@ -147,9 +147,9 @@ export default function LandingPage() {
                 </div>
               </div>
               {/* Highlight 2 */}
-              <div className="flex items-start gap-4 p-6 rounded-xl transition-all duration-300" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 10px 15px -3px rgba(241, 62, 169, 0.5)' }}>
+              <div className="flex items-start gap-4 p-6 rounded-xl transition-all duration-300" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.1)' }}>
                 <div className="p-3 rounded-full bg-primary/15">
-                  <Lock className="h-6 w-6" style={{ color: '#ea339e' }} />
+                  <Lock className="h-6 w-6" style={{ color: '#10b981' }} />
                 </div>
                 <div>
                   <h3 className="font-semibold text-black">Segurança e privacidade</h3>
@@ -157,9 +157,9 @@ export default function LandingPage() {
                 </div>
               </div>
               {/* Highlight 3 */}
-              <div className="flex items-start gap-4 p-6 rounded-xl transition-all duration-300" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 10px 15px -3px rgba(241, 62, 169, 0.5)' }}>
+              <div className="flex items-start gap-4 p-6 rounded-xl transition-all duration-300" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.1)' }}>
                 <div className="p-3 rounded-full bg-primary/15">
-                  <Plug className="h-6 w-6" style={{ color: '#ea339e' }} />
+                  <Plug className="h-6 w-6" style={{ color: '#10b981' }} />
                 </div>
                 <div>
                   <h3 className="font-semibold text-black">Integração fácil</h3>
@@ -167,9 +167,9 @@ export default function LandingPage() {
                 </div>
               </div>
               {/* Highlight 4 */}
-              <div className="flex items-start gap-4 p-6 rounded-xl transition-all duration-300" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 10px 15px -3px rgba(241, 62, 169, 0.5)' }}>
+              <div className="flex items-start gap-4 p-6 rounded-xl transition-all duration-300" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.1)' }}>
                 <div className="p-3 rounded-full bg-primary/15">
-                  <Globe className="h-6 w-6" style={{ color: '#ea339e' }} />
+                  <Globe className="h-6 w-6" style={{ color: '#10b981' }} />
                 </div>
                 <div>
                   <h3 className="font-semibold text-black">Alcance global</h3>

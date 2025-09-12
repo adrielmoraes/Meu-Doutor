@@ -182,13 +182,13 @@ export default function UploadExamClient() {
 
         {/* Upload Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">
-          <Button onClick={() => fileInputRef.current?.click()} className="flex-1" size="lg">
+          <Button onClick={() => fileInputRef.current?.click()} className="flex-1 py-6 text-base sm:py-4" size="lg">
             <FileUp className="mr-2" />
             Adicionar Arquivo (PDF, Imagem)
           </Button>
           <input type="file" ref={fileInputRef} onChange={handleFileChange} multiple accept=".pdf,.jpg,.jpeg,.png" className="hidden" />
           
-          <Button onClick={startCamera} className="flex-1" size="lg" variant="secondary">
+          <Button onClick={startCamera} className="flex-1 py-6 text-base sm:py-4" size="lg" variant="secondary">
             <Camera className="mr-2" />
             Usar Câmera
           </Button>

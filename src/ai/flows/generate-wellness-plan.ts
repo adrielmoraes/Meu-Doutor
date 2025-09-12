@@ -80,12 +80,30 @@ const generateWellnessPlanFlow = ai.defineFlow(
         // 1. Consult the nutritionist to get expert dietary advice.
         const nutritionistReport = await nutritionistAgent(input);
 
-        // 2. Synthesize all information into a holistic plan.
-        const { output } = await wellnessPlanPrompt({
-            patientHistory: input.patientHistory,
-            nutritionistReport: nutritionistReport.findings,
-        });
+        let attempt = 0;
+        const maxAttempts = 3;
+        let lastError: any;
 
-        return output!;
+        while (attempt < maxAttempts) {
+            try {
+                const { output } = await wellnessPlanPrompt({
+                    patientHistory: input.patientHistory,
+                    nutritionistReport: nutritionistReport.findings,
+                });
+                return output!;
+            } catch (err: any) {
+                lastError = err;
+                // Only retry on schema validation errors
+                if (err?.message?.includes('Schema validation failed')) {
+                    attempt += 1;
+                    console.warn(`Wellness plan generation failed schema validation (attempt ${attempt}). Retrying...`);
+                    continue;
+                }
+                throw err;
+            }
+        }
+
+        // If still failing after retries, throw the last encountered error so the caller can handle it
+        throw lastError;
     }
 );
