@@ -12,6 +12,28 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 3, 2025 - Major AI System Upgrade to Gemini 2.5 Flash with Enhanced Specialist Agents
+- **AI Model Upgrade**: Migrated entire AI system from Gemini 2.0 Flash to Gemini 2.5 Flash (gemini-2.0-flash-exp)
+  - Updated default model in genkit.ts configuration
+  - Improved performance, accuracy, and clinical reasoning capabilities
+- **Enhanced Specialist Agent Schemas**: Comprehensive structured output system
+  - Added `findings`: Detailed clinical findings specific to each specialty
+  - Added `clinicalAssessment`: Standardized severity classification (normal/mild/moderate/severe/critical/Not Applicable)
+  - Added `recommendations`: Actionable specialty-specific recommendations
+  - Added optional `relevantMetrics`: Structured clinical metrics for data analysis
+- **Completely Overhauled All 15 Specialist Agent Prompts**:
+  - Professional identities with full credentials (e.g., "Dra. Ana Silva, MD, PhD - Board-Certified Cardiologist")
+  - Comprehensive clinical assessment frameworks specific to each specialty
+  - Detailed indicator checklists for thorough analysis
+  - Explicit JSON output format instructions to ensure schema compliance
+  - Clear rules for handling missing data to prevent AI hallucinations
+  - Specialists: Cardiologist, Pulmonologist, Radiologist, Neurologist, Gastroenterologist, Endocrinologist, Dermatologist, Orthopedist, Ophthalmologist, Otolaryngologist, Nutritionist, Pediatrician, Gynecologist, Urologist, Psychiatrist
+- **Improved Orchestrator Prompts**:
+  - Enhanced triage system for intelligent specialist selection
+  - Better synthesis logic integrating findings from multiple specialists
+  - Clinical integration principles for comprehensive diagnostic summaries
+- **System Robustness**: All prompts now include absolute final instructions ensuring bare JSON output without markdown fences or extraneous text
+
 ### October 3, 2025 - Enhanced AI "Central Brain" System with Avatar Support
 - **AI Tools Enhancement**:
   - Added `consultationHistoryAccessTool`: AI can now access and learn from previous consultation transcriptions and summaries
