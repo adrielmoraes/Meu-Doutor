@@ -12,6 +12,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 3, 2025 - Patient Registration Form Fixed
+- **Bug Fix**: Corrected patient registration form to include all required fields
+  - Added missing fields: CPF, birth date, phone, gender, city, state
+  - Fixed field name from `name` to `fullName` to match validation schema
+  - Form now properly validates and creates patient accounts
+  - Maintained futuristic dark theme styling across all new fields
+
 ### October 3, 2025 - Futuristic Dark Theme Applied Across All Pages
 - **Complete UI/UX Redesign**: Applied consistent futuristic dark theme across entire application
   - **Background**: Dark gradient from slate-950 via blue-950 to slate-900 with animated glow orbs
