@@ -80,7 +80,8 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
     const initialMessage = initialResponse.message;
     // Correctly extract the text from the initial response using the modern Genkit 1.x syntax
     let textResponse = initialResponse.text || '';
-    const toolRequest = initialMessage?.toolRequest;
+    const toolRequests = initialMessage?.toolRequests;
+    const toolRequest = toolRequests?.[0];
 
     // Step 2: If the model wants to use a tool, execute it and get a follow-up response.
     if (toolRequest) {
@@ -123,7 +124,7 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
     const audioError = await textToSpeech({ text: errorMessage });
     return {
       response: errorMessage,
-      audioDataUri: audioError.audioDataUri, 
+      audioDataUri: audioError?.audioDataUri || '', 
     };
   }
   

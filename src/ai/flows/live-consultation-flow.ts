@@ -105,7 +105,8 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
 
   const initialMessage = initialResponse.message;
   let textResponse = initialResponse.text || '';
-  const toolRequest = initialMessage?.toolRequest;
+  const toolRequests = initialMessage?.toolRequests;
+  const toolRequest = toolRequests?.[0];
 
   // Step 2: If the model requests a tool, execute it and get a follow-up response.
   if (toolRequest) {
@@ -141,13 +142,13 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
     const audioError = await textToSpeech({ text: errorMessage });
     return {
       transcript: errorMessage,
-      audioOutput: audioError.audioDataUri?.split('base64,')[1], // Return raw base64
+      audioOutput: audioError?.audioDataUri?.split('base64,')[1] || '', // Return raw base64
     };
   }
 
   // Step 4: Convert the final text response to audio.
   const audioResult = await textToSpeech({ text: textResponse });
-  const audioBase64 = audioResult.audioDataUri?.split('base64,')[1] || '';
+  const audioBase64 = audioResult?.audioDataUri?.split('base64,')[1] || '';
 
   // Step 5: Return the final transcript and audio.
   return {
