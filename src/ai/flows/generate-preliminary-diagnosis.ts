@@ -183,7 +183,14 @@ Create a unified, actionable preliminary diagnosis by integrating all specialist
 - Suggest treatment considerations for the attending physician to evaluate
 - Include timeline recommendations (urgent, short-term, routine follow-up)
 
-Remember: Your synthesis will be reviewed by a human physician who will make the final diagnostic and treatment decisions.`,
+Remember: Your synthesis will be reviewed by a human physician who will make the final diagnostic and treatment decisions.
+
+**REQUIRED OUTPUT FORMAT:**
+You MUST return a valid JSON object with exactly these two fields:
+{
+  "synthesis": "Integrated preliminary diagnosis in Brazilian Portuguese",
+  "suggestions": "Recommended next steps in Brazilian Portuguese"
+}`,
 });
 
 

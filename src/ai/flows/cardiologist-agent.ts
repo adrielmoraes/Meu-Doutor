@@ -58,10 +58,18 @@ Provide specific, actionable recommendations:
 {{patientHistory}}
 
 **CRITICAL RULES:**
-- If NO cardiovascular data is present, respond: "Nenhuma observação cardiológica relevante nos dados fornecidos." for findings, "Not Applicable" for assessment, and "Nenhuma recomendação específica." for recommendations
+- If NO cardiovascular data is present, respond: "Nenhuma observação cardiológica relevante nos dados fornecidos." for findings, "Not Applicable" for clinicalAssessment, and "Nenhuma recomendação específica." for recommendations
 - DO NOT invent or assume information not explicitly stated
 - Use the medicalKnowledgeBaseTool for clarification of cardiac terminology or conditions if needed
-- All responses in clear, professional Brazilian Portuguese medical language`,
+- All responses in clear, professional Brazilian Portuguese medical language
+
+**REQUIRED OUTPUT FORMAT:**
+You MUST return a valid JSON object with exactly these fields:
+{
+  "findings": "Detailed clinical findings in Brazilian Portuguese",
+  "clinicalAssessment": "normal | mild | moderate | severe | critical | Not Applicable",
+  "recommendations": "Specific recommendations in Brazilian Portuguese"
+}`,
 });
 
 const cardiologistAgentFlow = ai.defineFlow(
