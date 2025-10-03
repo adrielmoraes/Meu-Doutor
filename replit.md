@@ -12,6 +12,24 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 3, 2025 - Enhanced AI "Central Brain" System with Avatar Support
+- **AI Tools Enhancement**:
+  - Added `consultationHistoryAccessTool`: AI can now access and learn from previous consultation transcriptions and summaries
+  - Added `doctorsListAccessTool`: AI can search and recommend doctors from the platform by specialty
+  - Updated AI prompts to position MediAI as the "central AI brain" coordinating patient care
+- **Realistic Avatar System** (In Progress):
+  - Created `RealisticAvatar` component with support for 3D avatars and D-ID integration
+  - UI integration in patient consultation interface with avatar type/gender controls
+  - Audio playback management for TTS responses
+  - **Next Steps**: Full implementation requires:
+    - TalkingHead.js library integration for 3D lip-sync (open-source)
+    - OR D-ID API integration for realistic photo-to-video avatars (commercial)
+    - See AVATAR_IMPLEMENTATION.md for detailed instructions
+- **Call Recording & Transcription**:
+  - Audio recording system in VideoCall component using MediaRecorder and AudioContext
+  - Automatic transcription and summarization via Gemini AI after calls end
+  - Storage in Firestore (callRooms, patient consultations, doctor summaries)
+
 ### October 3, 2025 - Migration from Vercel to Replit
 - **Deployment Platform**: Migrated from Vercel to Replit for development and hosting
 - **Server Configuration**: Updated Next.js dev server to bind to port 5000 (0.0.0.0) for Replit proxy compatibility
@@ -51,7 +69,13 @@ Preferred communication style: Simple, everyday language.
 **AI Agent System**:
 - **Specialist Agents**: 15+ domain-specific agents (cardiology, pulmonology, radiology, neurology, gastroenterology, endocrinology, dermatology, orthopedics, ophthalmology, otolaryngology, nutrition, pediatrics, gynecology, urology, psychiatry)
 - **Orchestrator Pattern**: General practitioner AI coordinates specialist consultations
-- **Tool Integration**: Medical knowledge base lookups, patient data access, internet search for current medical information
+- **Central Brain Concept**: MediAI AI acts as intelligent coordinator connecting patients with right care
+- **Tool Integration**:
+  - `medicalKnowledgeBaseTool`: Medical terminology and condition lookups
+  - `patientDataAccessTool`: Access patient medical records and exam results
+  - `consultationHistoryAccessTool`: Review previous consultation summaries/transcriptions
+  - `doctorsListAccessTool`: Search and recommend doctors by specialty
+  - `internetSearchTool`: Up-to-date medical information
 
 **API Layer**: Next.js API routes (App Router)
 - Server actions for secure data mutations

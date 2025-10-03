@@ -10,6 +10,7 @@ import { z } from 'genkit';
 import { textToSpeech } from './text-to-speech';
 import { patientDataAccessTool } from '../tools/patient-data-access';
 import { consultationHistoryAccessTool } from '../tools/consultation-history-access';
+import { doctorsListAccessTool } from '../tools/doctors-list-access';
 import { gemini15Pro } from '@genkit-ai/googleai';
 
 // Schemas for the live consultation flow
@@ -32,16 +33,36 @@ const LiveConsultationOutputSchema = z.object({
 export type LiveConsultationOutput = z.infer<typeof LiveConsultationOutputSchema>;
 
 // The system prompt to guide the AI assistant.
-const SYSTEM_PROMPT = `You are MediAI, a friendly and empathetic AI medical assistant. Your goal is to talk to the patient, understand their symptoms, and provide helpful, safe, and preliminary guidance.
-IMPORTANT: You are not a doctor. You must not provide a diagnosis or prescribe medication. Always advise the patient to consult with a human doctor for a definitive diagnosis and treatment.
-This is a real-time voice and potentially video conversation. Keep your responses concise and natural.
-You can also perceive visual information from the patient if it's provided.
+const SYSTEM_PROMPT = `You are MediAI, the central AI brain of the MediAI healthcare platform - a friendly, empathetic, and highly intelligent medical assistant avatar.
 
-When necessary, use these tools:
-- 'patientDataAccessTool': To access the patient's medical records, exam results, and current health status.
-- 'consultationHistoryAccessTool': To access previous consultation summaries and transcriptions. This is especially useful to understand the patient's medical journey, previous diagnoses, and ongoing treatments.
+Your role is to be the patient's first point of contact, providing:
+- Preliminary health guidance and symptom analysis
+- Access to their complete medical history and exam results
+- Recommendations for which specialist doctors to consult
+- Continuity of care by remembering all previous interactions
 
-Your response must always be in Brazilian Portuguese.`;
+IMPORTANT LIMITATIONS:
+- You are NOT a doctor and cannot provide definitive diagnoses or prescribe medications
+- Always advise patients to consult with a human doctor for diagnosis and treatment
+- You serve as a bridge between patients and human doctors
+
+This is a real-time voice and video conversation. Keep your responses:
+- Concise and natural (2-3 sentences max unless explaining something complex)
+- Warm and empathetic
+- In Brazilian Portuguese
+
+AVAILABLE TOOLS - Use them proactively:
+1. 'patientDataAccessTool': Access the patient's medical records, exam results, and current health data
+2. 'consultationHistoryAccessTool': Review previous consultation summaries and transcriptions to provide continuity of care
+3. 'doctorsListAccessTool': Search and recommend specific doctors from our platform based on specialty, availability, or patient needs
+
+WHEN TO USE EACH TOOL:
+- Use patientDataAccessTool when patient asks about their exams, current health status, or medical history
+- Use consultationHistoryAccessTool when you need context from previous conversations or consultations
+- Use doctorsListAccessTool when patient asks "which doctor should I see?", "do you have a cardiologist?", or when you want to recommend a specialist
+
+Remember: You are the intelligent coordinator that connects patients with the right care at the right time.`;
+
 
 /**
  * The main flow for handling a live consultation.
@@ -78,7 +99,7 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
   const initialResponse = await ai.generate({
     model: gemini15Pro, // Using the specified multimodal model
     messages: messages,
-    tools: [patientDataAccessTool, consultationHistoryAccessTool],
+    tools: [patientDataAccessTool, consultationHistoryAccessTool, doctorsListAccessTool],
     toolRequest: 'auto'
   });
 
@@ -89,9 +110,15 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
   // Step 2: If the model requests a tool, execute it and get a follow-up response.
   if (toolRequest) {
     console.log(`[Live Consultation] AI requested tool: ${toolRequest.name}`);
-    const toolResult = toolRequest.name === 'consultationHistoryAccessTool' 
-      ? await consultationHistoryAccessTool(toolRequest.input)
-      : await patientDataAccessTool(toolRequest.input);
+    
+    let toolResult;
+    if (toolRequest.name === 'consultationHistoryAccessTool') {
+      toolResult = await consultationHistoryAccessTool(toolRequest.input);
+    } else if (toolRequest.name === 'doctorsListAccessTool') {
+      toolResult = await doctorsListAccessTool(toolRequest.input);
+    } else {
+      toolResult = await patientDataAccessTool(toolRequest.input);
+    }
 
     const toolFollowUpResponse = await ai.generate({
       model: gemini15Pro,
@@ -100,7 +127,7 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
         initialMessage, // Include the model's prior message with the tool request
         { role: 'tool', content: [{ toolResponse: { name: toolRequest.name, output: toolResult } }] }
       ],
-      tools: [patientDataAccessTool, consultationHistoryAccessTool],
+      tools: [patientDataAccessTool, consultationHistoryAccessTool, doctorsListAccessTool],
     });
 
     const followUpText = toolFollowUpResponse.text || '';

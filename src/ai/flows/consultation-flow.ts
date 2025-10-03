@@ -13,6 +13,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { patientDataAccessTool } from '../tools/patient-data-access';
 import { consultationHistoryAccessTool } from '../tools/consultation-history-access';
+import { doctorsListAccessTool } from '../tools/doctors-list-access';
 import { textToSpeech } from './text-to-speech';
 
 
@@ -36,16 +37,25 @@ const ConsultationOutputSchema = z.object({
 export type ConsultationOutput = z.infer<typeof ConsultationOutputSchema>;
 
 
-const SYSTEM_PROMPT = `You are MediAI, a friendly and empathetic AI medical assistant. Your goal is to talk to the patient, understand their symptoms, and provide helpful, safe, and preliminary guidance.
-IMPORTANT: You are not a doctor. You must not provide a diagnosis or prescribe medication. Always advise the patient to consult with a human doctor for a definitive diagnosis and treatment.
+const SYSTEM_PROMPT = `You are MediAI, the central AI brain of the MediAI healthcare platform - a friendly, empathetic, and highly intelligent medical assistant.
 
-This is the most important instruction: You MUST use these tools to access the patient's information:
-- 'patientDataAccessTool': To access the patient's medical records, current health status, and exam results.
-- 'consultationHistoryAccessTool': To access previous medical consultations, including summaries and transcriptions from video calls. This helps you understand the patient's medical history and ongoing treatments.
+Your role is to be the patient's first point of contact, providing:
+- Preliminary health guidance and symptom analysis
+- Access to their complete medical history and exam results
+- Recommendations for which specialist doctors to consult
+- Continuity of care by remembering all previous interactions
 
-Do not invent information. Always use the tools to get the most up-to-date information.
+IMPORTANT LIMITATIONS:
+- You are NOT a doctor and cannot provide definitive diagnoses or prescribe medications
+- Always advise patients to consult with a human doctor for diagnosis and treatment
+- You serve as a bridge between patients and human doctors
 
-Keep your responses concise, direct, and easy to understand to facilitate a real-time conversation. Start the conversation by introducing yourself and asking how you can help, unless a conversation is already in progress.
+AVAILABLE TOOLS - Use them proactively:
+1. 'patientDataAccessTool': Access the patient's medical records, exam results, and current health data
+2. 'consultationHistoryAccessTool': Review previous consultation summaries and transcriptions
+3. 'doctorsListAccessTool': Search and recommend specific doctors from our platform based on specialty or patient needs
+
+Keep your responses concise, direct, and easy to understand. Start conversations by introducing yourself warmly.
 Your response must always be in Brazilian Portuguese.`;
 
 
@@ -61,7 +71,7 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
     // Step 1: Make the initial call to the model to see if it wants to use a tool or respond directly.
     const initialResponse = await ai.generate({
         messages,
-        tools: [patientDataAccessTool, consultationHistoryAccessTool],
+        tools: [patientDataAccessTool, consultationHistoryAccessTool, doctorsListAccessTool],
         toolRequest: 'auto'
     });
     
@@ -75,9 +85,16 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
     // Step 2: If the model wants to use a tool, execute it and get a follow-up response.
     if (toolRequest) {
         console.log(`[Consultation Flow] AI requested tool: ${toolRequest.name} with input:`, JSON.stringify(toolRequest.input, null, 2));
-        const toolResult = toolRequest.name === 'consultationHistoryAccessTool'
-            ? await consultationHistoryAccessTool(toolRequest.input)
-            : await patientDataAccessTool(toolRequest.input);
+        
+        let toolResult;
+        if (toolRequest.name === 'consultationHistoryAccessTool') {
+            toolResult = await consultationHistoryAccessTool(toolRequest.input);
+        } else if (toolRequest.name === 'doctorsListAccessTool') {
+            toolResult = await doctorsListAccessTool(toolRequest.input);
+        } else {
+            toolResult = await patientDataAccessTool(toolRequest.input);
+        }
+        
         console.log(`[Consultation Flow] Tool ${toolRequest.name} result:`, JSON.stringify(toolResult, null, 2));
 
         // Send the tool's result back to the model.
@@ -87,7 +104,7 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
                 initialMessage, // Corrected: Use the full initialMessage here
                 { role: 'tool', content: [{ toolResponse: { name: toolRequest.name, output: toolResult } }] }
             ],
-            tools: [patientDataAccessTool, consultationHistoryAccessTool], // Still provide tools in case it needs another one.
+            tools: [patientDataAccessTool, consultationHistoryAccessTool, doctorsListAccessTool], // Still provide tools in case it needs another one.
             toolRequest: 'auto'
         });
         

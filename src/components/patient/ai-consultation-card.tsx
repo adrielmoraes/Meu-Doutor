@@ -22,6 +22,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "../ui/scroll-area";
+import { RealisticAvatar } from "./realistic-avatar";
 import { consultationFlow } from "@/ai/flows/consultation-flow";
 import { saveConversationHistoryAction } from "./actions";
 import { getSessionOnClient } from "@/lib/session";
@@ -39,9 +40,12 @@ const AIConsultationCard = () => {
   const [isMicOn, setIsMicOn] = useState(false);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [avatarGender, setAvatarGender] = useState<"male" | "female">("female");
+  const [avatarType, setAvatarType] = useState<'3d' | 'd-id'>('3d');
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [history, setHistory] = useState<Message[]>([]);
   const [isThinking, setIsThinking] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [currentAudioBase64, setCurrentAudioBase64] = useState<string | undefined>();
   const videoRef = useRef<HTMLVideoElement>(null);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -99,6 +103,7 @@ const AIConsultationCard = () => {
     
     stopAiSpeaking();
     setIsThinking(true);
+    setIsSpeaking(false);
 
     const newUserMessage: Message = { role: 'user', content: [{ text: userInput }] };
     const newHistory = [...history, newUserMessage];
@@ -110,9 +115,12 @@ const AIConsultationCard = () => {
       const aiResponseMessage: Message = { role: 'model', content: [{ text: result.response }] };
       setHistory(prev => [...prev, aiResponseMessage]);
       
-      if (isDialogOpen && result.audioDataUri && audioRef.current) {
-        audioRef.current.src = result.audioDataUri;
-        await audioRef.current.play();
+      if (isDialogOpen && result.audioDataUri) {
+        const base64Audio = result.audioDataUri.split('base64,')[1];
+        if (base64Audio) {
+          setCurrentAudioBase64(base64Audio);
+          setIsSpeaking(true);
+        }
       }
 
     } catch (error) {
@@ -308,10 +316,14 @@ const AIConsultationCard = () => {
           </DialogHeader>
           <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-background/90 overflow-hidden">
             <div className="md:col-span-2 bg-black rounded-lg flex items-center justify-center relative overflow-hidden">
-               <Image src={avatarGender === 'female' ? femaleAvatarUrl : maleAvatarUrl} alt="AI Assistant" layout="fill" objectFit="cover" data-ai-hint={`${avatarGender} portrait`} />
-              <div className="absolute bottom-4 left-4 bg-black/50 text-white p-2 rounded-lg text-sm">
-                Assistente de IA { isThinking && (<span className="animate-pulse">está ouvindo...</span>) }
-              </div>
+              <RealisticAvatar
+                isListening={isMicOn}
+                isSpeaking={isSpeaking}
+                audioBase64={currentAudioBase64}
+                onAudioEnd={() => setIsSpeaking(false)}
+                avatarType={avatarType}
+                gender={avatarGender}
+              />
             </div>
             <div className="flex flex-col gap-4">
               <div className="bg-black rounded-lg h-48 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
@@ -352,10 +364,16 @@ const AIConsultationCard = () => {
             </div>
           </div>
           <div className="flex justify-center items-center gap-4 p-4 bg-card border-t">
-            <ToggleGroup type="single" value={avatarGender} onValueChange={(value: "male" | "female") => value && setAvatarGender(value)} className="mr-auto">
-                <ToggleGroupItem value="female" aria-label="Toggle female avatar">Feminino</ToggleGroupItem>
-                <ToggleGroupItem value="male" aria-label="Toggle male avatar">Masculino</ToggleGroupItem>
-            </ToggleGroup>
+            <div className="flex gap-2 mr-auto">
+              <ToggleGroup type="single" value={avatarGender} onValueChange={(value: "male" | "female") => value && setAvatarGender(value)}>
+                  <ToggleGroupItem value="female" aria-label="Toggle female avatar">Feminino</ToggleGroupItem>
+                  <ToggleGroupItem value="male" aria-label="Toggle male avatar">Masculino</ToggleGroupItem>
+              </ToggleGroup>
+              <ToggleGroup type="single" value={avatarType} onValueChange={(value: '3d' | 'd-id') => value && setAvatarType(value)}>
+                  <ToggleGroupItem value="3d" aria-label="Toggle 3D avatar">3D</ToggleGroupItem>
+                  <ToggleGroupItem value="d-id" aria-label="Toggle D-ID avatar">D-ID</ToggleGroupItem>
+              </ToggleGroup>
+            </div>
             <Button variant={isMicOn ? "secondary" : "destructive"} size="icon" onClick={toggleMic}>
               {isMicOn ? <Mic /> : <MicOff />}
             </Button>
