@@ -12,6 +12,22 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 3, 2025 - Futuristic Dark Theme Applied Across All Pages
+- **Complete UI/UX Redesign**: Applied consistent futuristic dark theme across entire application
+  - **Background**: Dark gradient from slate-950 via blue-950 to slate-900 with animated glow orbs
+  - **Color Palette**: Cyan/blue/purple gradients for primary elements, neon accents, semi-transparent cards
+  - **Visual Effects**: Radial gradients, grid patterns, blur effects, glow shadows, gradient text
+- **Updated Pages**:
+  - Login: Dark card with cyan gradient buttons and glow effects
+  - Register (choice): Two-card layout with cyan (patient) and purple (doctor) theming
+  - Register Patient: Cyan-themed form with gradient buttons
+  - Register Doctor: Purple-themed form with gradient buttons
+  - Header: Dark backdrop with cyan accents and gradient logo text
+  - Patient Dashboard: Dark gradient background with themed cards
+  - Doctor Dashboard: Dark gradient with animated orbs and themed cards
+- **Layouts**: Added dark gradient backgrounds to patient and doctor layouts for consistency
+- **Design Consistency**: All pages now match the landing page's futuristic aesthetic with cohesive visual language
+
 ### October 3, 2025 - Major AI System Upgrade to Gemini 2.5 Flash with Enhanced Specialist Agents
 - **AI Model Upgrade**: Migrated entire AI system from Gemini 2.0 Flash to Gemini 2.5 Flash (gemini-2.0-flash-exp)
   - Updated default model in genkit.ts configuration
@@ -72,7 +88,8 @@ Preferred communication style: Simple, everyday language.
 **UI Components**: shadcn/ui with Radix UI primitives
 - Consistent design system with Tailwind CSS
 - Accessible, reusable component library
-- Custom theme supporting light/dark modes with medical-friendly color palette (deep blues, teals)
+- Futuristic dark theme with cyan/blue/purple gradient palette, neon accents, and glow effects
+- Semi-transparent cards with backdrop blur, animated background orbs, gradient text
 
 **Routing Structure**:
 - Public routes: Landing page (`/`), login (`/login`), registration (`/register`)
