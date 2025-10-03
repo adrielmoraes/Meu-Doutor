@@ -67,13 +67,10 @@ IMPORTANT: This is a screening assessment, not a formal diagnosis. Highlight con
 - Use medicalKnowledgeBaseTool for psychiatric terminology and conditions
 - All responses in Brazilian Portuguese
 
-**REQUIRED OUTPUT FORMAT:**
-You MUST return a valid JSON object with exactly these fields:
-{
-  "findings": "Detailed psychiatric findings in Brazilian Portuguese",
-  "clinicalAssessment": "normal | mild | moderate | severe | critical | Not Applicable",
-  "recommendations": "Specific psychiatric recommendations in Brazilian Portuguese"
-}`,
+**ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
+Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
+Example structure:
+{"findings": "Text here in Portuguese", "clinicalAssessment": "critical", "recommendations": "Text here in Portuguese"}`,
 });
 
 

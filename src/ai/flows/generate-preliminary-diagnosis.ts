@@ -185,12 +185,10 @@ Create a unified, actionable preliminary diagnosis by integrating all specialist
 
 Remember: Your synthesis will be reviewed by a human physician who will make the final diagnostic and treatment decisions.
 
-**REQUIRED OUTPUT FORMAT:**
-You MUST return a valid JSON object with exactly these two fields:
-{
-  "synthesis": "Integrated preliminary diagnosis in Brazilian Portuguese",
-  "suggestions": "Recommended next steps in Brazilian Portuguese"
-}`,
+**ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
+Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
+Example structure:
+{"synthesis": "Integrated analysis text in Portuguese", "suggestions": "Recommended next steps text in Portuguese"}`,
 });
 
 

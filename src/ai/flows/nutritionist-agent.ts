@@ -65,13 +65,10 @@ IMPORTANT: Use internetSearchTool for evidence-based dietary recommendations and
 - Use tools to provide evidence-based, personalized dietary recommendations
 - All responses in Brazilian Portuguese
 
-**REQUIRED OUTPUT FORMAT:**
-You MUST return a valid JSON object with exactly these fields:
-{
-  "findings": "Detailed nutritional findings in Brazilian Portuguese",
-  "clinicalAssessment": "normal | mild | moderate | severe | critical | Not Applicable",
-  "recommendations": "Specific nutritional recommendations in Brazilian Portuguese"
-}`,
+**ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
+Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
+Example structure:
+{"findings": "Text here in Portuguese", "clinicalAssessment": "mild", "recommendations": "Text here in Portuguese"}`,
 });
 
 const nutritionistAgentFlow = ai.defineFlow(

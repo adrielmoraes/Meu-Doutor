@@ -62,13 +62,10 @@ Analyze neurological indicators if present:
 - Use medicalKnowledgeBaseTool for neurological terminology clarification
 - All responses in Brazilian Portuguese
 
-**REQUIRED OUTPUT FORMAT:**
-You MUST return a valid JSON object with exactly these fields:
-{
-  "findings": "Detailed neurological findings in Brazilian Portuguese",
-  "clinicalAssessment": "normal | mild | moderate | severe | critical | Not Applicable",
-  "recommendations": "Specific neurological recommendations in Brazilian Portuguese"
-}`,
+**ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
+Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
+Example structure:
+{"findings": "Text here in Portuguese", "clinicalAssessment": "severe", "recommendations": "Text here in Portuguese"}`,
 });
 
 const neurologistAgentFlow = ai.defineFlow(

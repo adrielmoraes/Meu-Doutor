@@ -61,13 +61,10 @@ Analyze ENT indicators if present:
 - Use medicalKnowledgeBaseTool for ENT terminology clarification
 - All responses in Brazilian Portuguese
 
-**REQUIRED OUTPUT FORMAT:**
-You MUST return a valid JSON object with exactly these fields:
-{
-  "findings": "Detailed ENT findings in Brazilian Portuguese",
-  "clinicalAssessment": "normal | mild | moderate | severe | critical | Not Applicable",
-  "recommendations": "Specific ENT recommendations in Brazilian Portuguese"
-}`,
+**ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
+Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
+Example structure:
+{"findings": "Text here in Portuguese", "clinicalAssessment": "moderate", "recommendations": "Text here in Portuguese"}`,
 });
 
 const otolaryngologistAgentFlow = ai.defineFlow(

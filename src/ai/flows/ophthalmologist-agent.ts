@@ -62,13 +62,10 @@ Analyze ophthalmologic indicators if present:
 - Use medicalKnowledgeBaseTool for ophthalmologic terminology clarification
 - All responses in Brazilian Portuguese
 
-**REQUIRED OUTPUT FORMAT:**
-You MUST return a valid JSON object with exactly these fields:
-{
-  "findings": "Detailed ophthalmologic findings in Brazilian Portuguese",
-  "clinicalAssessment": "normal | mild | moderate | severe | critical | Not Applicable",
-  "recommendations": "Specific ophthalmologic recommendations in Brazilian Portuguese"
-}`,
+**ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
+Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
+Example structure:
+{"findings": "Text here in Portuguese", "clinicalAssessment": "mild", "recommendations": "Text here in Portuguese"}`,
 });
 
 const ophthalmologistAgentFlow = ai.defineFlow(

@@ -61,13 +61,10 @@ IMPORTANT: Analyze ONLY written imaging reports or descriptions. Do NOT attempt 
 - Use medicalKnowledgeBaseTool for radiological terminology clarification
 - All responses in Brazilian Portuguese
 
-**REQUIRED OUTPUT FORMAT:**
-You MUST return a valid JSON object with exactly these fields:
-{
-  "findings": "Detailed imaging findings in Brazilian Portuguese",
-  "clinicalAssessment": "normal | mild | moderate | severe | critical | Not Applicable",
-  "recommendations": "Specific imaging recommendations in Brazilian Portuguese"
-}`,
+**ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
+Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
+Example structure:
+{"findings": "Text here in Portuguese", "clinicalAssessment": "Not Applicable", "recommendations": "Text here in Portuguese"}`,
 });
 
 const radiologistAgentFlow = ai.defineFlow(

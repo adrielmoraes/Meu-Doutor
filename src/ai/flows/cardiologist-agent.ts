@@ -63,13 +63,10 @@ Provide specific, actionable recommendations:
 - Use the medicalKnowledgeBaseTool for clarification of cardiac terminology or conditions if needed
 - All responses in clear, professional Brazilian Portuguese medical language
 
-**REQUIRED OUTPUT FORMAT:**
-You MUST return a valid JSON object with exactly these fields:
-{
-  "findings": "Detailed clinical findings in Brazilian Portuguese",
-  "clinicalAssessment": "normal | mild | moderate | severe | critical | Not Applicable",
-  "recommendations": "Specific recommendations in Brazilian Portuguese"
-}`,
+**ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
+Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
+Example structure:
+{"findings": "Text here in Portuguese", "clinicalAssessment": "normal", "recommendations": "Text here in Portuguese"}`,
 });
 
 const cardiologistAgentFlow = ai.defineFlow(
