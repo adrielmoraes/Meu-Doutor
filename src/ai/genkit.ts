@@ -18,7 +18,6 @@ if(plugins.length === 0) {
 
 export const ai = genkit({
   plugins,
-  enableTracing: true,
   // Define um modelo padrão, mas pode ser sobrescrito em cada chamada.
   model: googleAI.model('gemini-1.5-flash-latest'),
 });
