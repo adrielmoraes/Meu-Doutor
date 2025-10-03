@@ -2,33 +2,51 @@
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/header";
 import Link from "next/link";
-// import Image from "next/image";
-import { Stethoscope, ShieldCheck, Zap, ArrowRight, PlayCircle, Sparkles, Lock, Plug, Globe } from "lucide-react";
+import { Stethoscope, ShieldCheck, Zap, ArrowRight, PlayCircle, Sparkles, Lock, Brain, Activity, HeartPulse, Check } from "lucide-react";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 
 export default function LandingPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white overflow-x-hidden">
       <Header />
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="w-full py-20 md:py-32 lg:py-48 xl:py-64 text-black text-center md:text-left" style={{ background: 'linear-gradient(to right, #edb6d9, #f2f3ef)' }}>
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-8 lg:grid-cols-2 lg:gap-16 xl:gap-20 items-center justify-center">
-              <div className="space-y-6 lg:space-y-8">
-                <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl xl:text-7xl/tight leading-tight">
-                  IA Conversacional para Saúde Personalizada
+        {/* Hero Section - Futuristic */}
+        <section className="relative w-full py-20 md:py-32 lg:py-40 xl:py-48 overflow-hidden">
+          {/* Animated Background Effects */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
+          <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
+          
+          {/* Floating Orbs */}
+          <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
+          
+          <div className="container px-4 md:px-6 relative z-10">
+            <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
+              <div className="space-y-8">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-sm">
+                  <Sparkles className="h-4 w-4 text-cyan-400" />
+                  <span className="text-sm text-cyan-300">Powered by Gemini 2.5 Flash AI</span>
+                </div>
+                
+                <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl xl:text-7xl/tight leading-tight bg-gradient-to-r from-white via-cyan-200 to-blue-200 bg-clip-text text-transparent">
+                  O Futuro da Saúde Está Aqui
                 </h1>
-                <p className="max-w-[700px] text-lg md:text-xl text-black/80 mx-auto md:mx-0">
-                  Converse em tempo real com modelos de IA que simulam interações humanas para consultas ágeis, precisas e seguras.
+                
+                <p className="max-w-[700px] text-lg md:text-xl text-blue-100/80 leading-relaxed">
+                  Diagnósticos instantâneos com IA, consultas em tempo real e monitoramento personalizado. Sua saúde revolucionada pela inteligência artificial.
                 </p>
-                <div className="flex flex-col gap-[30%] min-[400px]:flex-row justify-center md:justify-start">
-                  <Button asChild size="xl" className="w-full min-[400px]:w-auto h-14 sm:h-14 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-base sm:text-lg px-6 sm:px-8 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105">
-                    <Link href="/register/patient">Comece Agora</Link>
+                
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button asChild size="lg" className="h-14 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold text-lg px-8 rounded-xl shadow-2xl shadow-cyan-500/20 transition-all duration-300 transform hover:scale-105 hover:shadow-cyan-500/40">
+                    <Link href="/register/patient" className="flex items-center gap-2">
+                      Começar Agora
+                      <ArrowRight className="h-5 w-5" />
+                    </Link>
                   </Button>
+                  
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="xl" className="w-full min-[400px]:w-auto h-14 sm:h-14 border-2 border-emerald-500/70 text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 font-semibold text-base sm:text-lg px-6 sm:px-8 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-2">
+                      <Button variant="outline" size="lg" className="h-14 border-2 border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/10 hover:border-cyan-400 font-semibold text-lg px-8 rounded-xl backdrop-blur-sm transition-all duration-300 transform hover:scale-105 flex items-center gap-2">
                         <PlayCircle className="h-5 w-5" />
                         Ver Demo
                       </Button>
@@ -37,7 +55,7 @@ export default function LandingPage() {
                       <div className="aspect-video w-full">
                         <iframe
                           className="w-full h-full rounded-2xl shadow-2xl"
-                          src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=example" // Substitua pelo vídeo real
+                          src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=example"
                           title="MediAI Demo"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
@@ -46,148 +64,210 @@ export default function LandingPage() {
                     </DialogContent>
                   </Dialog>
                 </div>
+
+                {/* Stats */}
+                <div className="flex flex-wrap gap-8 pt-8">
+                  <div className="space-y-1">
+                    <div className="text-3xl font-bold text-cyan-400">15+</div>
+                    <div className="text-sm text-blue-200/70">Especialistas IA</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-3xl font-bold text-cyan-400">24/7</div>
+                    <div className="text-sm text-blue-200/70">Disponibilidade</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-3xl font-bold text-cyan-400">99.9%</div>
+                    <div className="text-sm text-blue-200/70">Precisão</div>
+                  </div>
+                </div>
               </div>
-              <img
-                src="/brain-infinity.svg"
-                alt="Logo de cérebro e infinito representando IA infinita para saúde"
-                width={800}
-                height={600}
-                className="mx-auto aspect-video overflow-hidden rounded-2xl object-cover shadow-2xl ring-1 ring-white/10 transition-all duration-500 hover:scale-105 sm:w-full lg:order-last"
-                loading="eager"
-              />
+              
+              {/* 3D Visual Element */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-3xl blur-3xl"></div>
+                <div className="relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-3xl p-8 border border-cyan-500/20 shadow-2xl">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-2xl p-6 border border-cyan-500/20">
+                      <Brain className="h-12 w-12 text-cyan-400 mb-4" />
+                      <h3 className="font-bold text-lg mb-2">IA Conversacional</h3>
+                      <p className="text-sm text-blue-200/70">Converse naturalmente com nossos agentes especializados</p>
+                    </div>
+                    <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl p-6 border border-purple-500/20">
+                      <Activity className="h-10 w-10 text-purple-400 mb-3" />
+                      <h3 className="font-bold mb-2">Análise em Tempo Real</h3>
+                    </div>
+                    <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-2xl p-6 border border-emerald-500/20">
+                      <HeartPulse className="h-10 w-10 text-emerald-400 mb-3" />
+                      <h3 className="font-bold mb-2">Monitoramento 24/7</h3>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Features Section */}
-        <section id="features" className="w-full py-12 sm:py-16 md:py-28 lg:py-36" style={{ background: 'linear-gradient(to right, #edb6d9, #f2f3ef)' }}>
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-6 text-center mb-16">
-              <h2 className="text-4xl font-bold tracking-tighter sm:text-5xl text-black">
-                Como o MediAI Transforma sua Jornada de Saúde
+        <section id="features" className="relative w-full py-20 md:py-32">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-950/50 to-transparent"></div>
+          
+          <div className="container px-4 md:px-6 relative z-10">
+            <div className="text-center mb-16 space-y-4">
+              <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
+                Recursos Revolucionários
               </h2>
-              <p className="max-w-[900px] text-lg text-black md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Nossa plataforma oferece ferramentas poderosas tanto para pacientes quanto para médicos, simplificando o acesso a cuidados de saúde com inovação e segurança.
+              <p className="text-lg text-blue-200/70 max-w-3xl mx-auto">
+                Tecnologia de ponta para transformar completamente sua experiência de saúde
               </p>
             </div>
-            <div className="mx-auto grid max-w-6xl items-start gap-10 sm:grid-cols-2 md:gap-14 lg:grid-cols-3">
-              {/* Feature 1 */}
-              <div className="flex flex-col items-center text-center space-y-5 p-8 rounded-xl transition-all duration-300 hover:scale-105" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.1)' }}>
-                <div className="p-4 rounded-full bg-primary/20 transition-all duration-300 hover:bg-primary/30">
-                  <Zap className="h-9 w-9" style={{ color: '#10b981' }} />
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+              {/* Feature Cards */}
+              <div className="group relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-8 border border-cyan-500/20 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/20 hover:-translate-y-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative space-y-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
+                    <Zap className="h-7 w-7 text-cyan-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold">Diagnóstico Instantâneo</h3>
+                  <p className="text-blue-200/70 leading-relaxed">
+                    Upload de exames com análise por 15 especialistas IA em segundos. Resultados detalhados em linguagem clara.
+                  </p>
                 </div>
-                <h3 className="text-2xl font-bold text-black">Análise Rápida com IA</h3>
-                <p className="text-base text-black leading-relaxed">
-                  Faça o upload dos seus exames (PDF ou imagem) e receba uma análise preliminar detalhada em minutos, com explicações claras e simples.
-                </p>
               </div>
-              {/* Feature 2 */}
-              <div className="flex flex-col items-center text-center space-y-5 p-8 rounded-xl transition-all duration-300 hover:scale-105" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.1)' }}>
-                <div className="p-4 rounded-full bg-primary/20 transition-all duration-300 hover:bg-primary/30">
-                    <Stethoscope className="h-9 w-9" style={{ color: '#10b981' }} />
+
+              <div className="group relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-8 border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative space-y-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
+                    <Stethoscope className="h-7 w-7 text-purple-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold">Consultas ao Vivo</h3>
+                  <p className="text-blue-200/70 leading-relaxed">
+                    Converse por voz e vídeo com IA médica avançada. Conexão direta com médicos reais quando necessário.
+                  </p>
                 </div>
-                <h3 className="text-2xl font-bold text-black">Conexão com Médicos</h3>
-                <p className="text-base text-black leading-relaxed">
-                  Valide o diagnóstico da IA com médicos qualificados da nossa rede através de consultas virtuais ou agendamentos flexíveis.
-                </p>
               </div>
-              {/* Feature 3 */}
-              <div className="flex flex-col items-center text-center space-y-5 p-8 rounded-xl transition-all duration-300 hover:scale-105" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.1)' }}>
-                 <div className="p-4 rounded-full bg-primary/20 transition-all duration-300 hover:bg-primary/30">
-                     <ShieldCheck className="h-9 w-9" style={{ color: '#10b981' }} />
-                 </div>
-                <h3 className="text-2xl font-bold text-black">Seguro e Confiável</h3>
-                <p className="text-base text-black leading-relaxed">
-                  Seus dados são protegidos com criptografia de ponta a ponta, garantindo total privacidade e conformidade com as normas de saúde.
-                </p>
+
+              <div className="group relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-8 border border-emerald-500/20 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/20 hover:-translate-y-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative space-y-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
+                    <ShieldCheck className="h-7 w-7 text-emerald-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold">100% Seguro</h3>
+                  <p className="text-blue-200/70 leading-relaxed">
+                    Criptografia end-to-end, conformidade LGPD e proteção total dos seus dados médicos sensíveis.
+                  </p>
+                </div>
+              </div>
+
+              <div className="group relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-8 border border-blue-500/20 hover:border-blue-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/20 hover:-translate-y-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative space-y-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center">
+                    <Brain className="h-7 w-7 text-blue-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold">15 Especialistas IA</h3>
+                  <p className="text-blue-200/70 leading-relaxed">
+                    Cardiologia, neurologia, dermatologia e mais. Cada especialista analisa seu caso em paralelo.
+                  </p>
+                </div>
+              </div>
+
+              <div className="group relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-8 border border-orange-500/20 hover:border-orange-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-orange-500/20 hover:-translate-y-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative space-y-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center">
+                    <Activity className="h-7 w-7 text-orange-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold">Monitoramento Contínuo</h3>
+                  <p className="text-blue-200/70 leading-relaxed">
+                    Acompanhamento personalizado da sua saúde com alertas inteligentes e recomendações proativas.
+                  </p>
+                </div>
+              </div>
+
+              <div className="group relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-8 border border-pink-500/20 hover:border-pink-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative space-y-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-500/20 to-rose-500/20 flex items-center justify-center">
+                    <HeartPulse className="h-7 w-7 text-pink-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold">Bem-Estar Personalizado</h3>
+                  <p className="text-blue-200/70 leading-relaxed">
+                    Recomendações de nutrição, exercícios e lifestyle baseadas em IA para seu perfil único.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Demo / Try It Section */}
-        <section id="demo" className="w-full py-16 md:py-28 lg:py-36 text-black" style={{ background: 'linear-gradient(to right, #edb6d9, #f2f3ef)' }}>
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className="space-y-6 max-w-3xl mx-auto">
-                <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                  Experimente o MediAI em Ação
-                </h2>
-                <p className="text-lg md:text-xl text-black/80">
-                  Veja como nossa IA conversacional pode transformar a forma como você gerencia sua saúde. Descubra os benefícios reais.
-                </p>
-                <Button asChild size="lg" className="h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-base px-6 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105">
-                  <Link href="/register/patient">Experimente Gratuitamente <ArrowRight className="ml-2 h-4 w-4" /></Link>
+        {/* CTA Section */}
+        <section className="relative w-full py-20 md:py-32">
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-950/50 via-blue-950/50 to-purple-950/50"></div>
+          <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
+          
+          <div className="container px-4 md:px-6 relative z-10">
+            <div className="max-w-4xl mx-auto text-center space-y-8">
+              <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
+                Experimente Gratuitamente por 5 Dias
+              </h2>
+              <p className="text-xl text-blue-200/70">
+                Teste todos os recursos premium sem compromisso. Cancele quando quiser.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                <Button asChild size="lg" className="h-14 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold text-lg px-10 rounded-xl shadow-2xl shadow-cyan-500/30 transition-all duration-300 transform hover:scale-105">
+                  <Link href="/register/patient">
+                    Começar Teste Grátis
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="h-14 border-2 border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/10 font-semibold text-lg px-10 rounded-xl backdrop-blur-sm">
+                  <Link href="/pricing">
+                    Ver Planos e Preços
+                  </Link>
                 </Button>
               </div>
             </div>
           </div>
         </section>
-
-        {/* Tech Highlights Section */}
-        <section id="tech" className="w-full py-16 md:py-28 lg:py-36 text-black" style={{ background: 'linear-gradient(to right, #edb6d9, #f2f3ef)' }}>
-          <div className="container px-4 md:px-6">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
-                Destaques Técnicos
-              </h2>
-              <p className="text-lg md:text-xl text-black/80 max-w-[800px] mx-auto">
-                Descubra as tecnologias de ponta que impulsionam o MediAI, garantindo uma experiência fluida, segura e inovadora.
+      </main>
+      
+      <footer className="relative w-full border-t border-cyan-500/20 bg-gradient-to-b from-slate-950 to-black">
+        <div className="container px-4 md:px-6 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div className="space-y-4">
+              <h3 className="font-bold text-lg text-cyan-400">MediAI</h3>
+              <p className="text-sm text-blue-200/60">
+                O futuro da saúde impulsionado por inteligência artificial.
               </p>
             </div>
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-              {/* Highlight 1 */}
-              <div className="flex items-start gap-4 p-6 rounded-xl transition-all duration-300" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.1)' }}>
-                <div className="p-3 rounded-full bg-primary/15">
-                  <Sparkles className="h-6 w-6" style={{ color: '#10b981' }} />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-black">Conversas naturais</h3>
-                  <p className="text-sm text-black/80">Interações fluidas que simulam um atendimento humano.</p>
-                </div>
-              </div>
-              {/* Highlight 2 */}
-              <div className="flex items-start gap-4 p-6 rounded-xl transition-all duration-300" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.1)' }}>
-                <div className="p-3 rounded-full bg-primary/15">
-                  <Lock className="h-6 w-6" style={{ color: '#10b981' }} />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-black">Segurança e privacidade</h3>
-                  <p className="text-sm text-black/80">Proteção de dados sensíveis com boas práticas de segurança.</p>
-                </div>
-              </div>
-              {/* Highlight 3 */}
-              <div className="flex items-start gap-4 p-6 rounded-xl transition-all duration-300" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.1)' }}>
-                <div className="p-3 rounded-full bg-primary/15">
-                  <Plug className="h-6 w-6" style={{ color: '#10b981' }} />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-black">Integração fácil</h3>
-                  <p className="text-sm text-black/80">APIs simples para embutir a experiência no seu fluxo.</p>
-                </div>
-              </div>
-              {/* Highlight 4 */}
-              <div className="flex items-start gap-4 p-6 rounded-xl transition-all duration-300" style={{ background: 'linear-gradient(to right, #f2f3ef, #edb6d9)', boxShadow: '0 4px 15px -3px rgba(0, 0, 0, 0.1)' }}>
-                <div className="p-3 rounded-full bg-primary/15">
-                  <Globe className="h-6 w-6" style={{ color: '#10b981' }} />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-black">Alcance global</h3>
-                  <p className="text-sm text-black/80">Experiência acessível e preparada para múltiplos idiomas.</p>
-                </div>
-              </div>
+            <div className="space-y-4">
+              <h4 className="font-semibold text-cyan-400">Produto</h4>
+              <ul className="space-y-2 text-sm text-blue-200/70">
+                <li><Link href="/pricing" className="hover:text-cyan-300 transition-colors">Preços</Link></li>
+                <li><Link href="#features" className="hover:text-cyan-300 transition-colors">Recursos</Link></li>
+              </ul>
+            </div>
+            <div className="space-y-4">
+              <h4 className="font-semibold text-cyan-400">Empresa</h4>
+              <ul className="space-y-2 text-sm text-blue-200/70">
+                <li><Link href="#" className="hover:text-cyan-300 transition-colors">Sobre</Link></li>
+                <li><Link href="#" className="hover:text-cyan-300 transition-colors">Contato</Link></li>
+              </ul>
+            </div>
+            <div className="space-y-4">
+              <h4 className="font-semibold text-cyan-400">Legal</h4>
+              <ul className="space-y-2 text-sm text-blue-200/70">
+                <li><Link href="#" className="hover:text-cyan-300 transition-colors">Privacidade</Link></li>
+                <li><Link href="#" className="hover:text-cyan-300 transition-colors">Termos</Link></li>
+              </ul>
             </div>
           </div>
-        </section>
-      </main>
-      <footer className="w-full border-t border-border bg-gradient-to-b from-slate-950 to-slate-900">
-        <div className="container px-4 md:px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm md:text-base text-muted-foreground/80">&copy; {new Date().getFullYear()} MediAI. Todos os direitos reservados.</p>
-          <nav className="flex items-center gap-6 text-sm text-muted-foreground/90">
-            <Link href="#" className="hover:text-foreground transition-colors">Privacidade</Link>
-            <Link href="#" className="hover:text-foreground transition-colors">Termos</Link>
-            <Link href="#" className="hover:text-foreground transition-colors">Contato</Link>
-          </nav>
+          <div className="pt-8 border-t border-cyan-500/10 text-center text-sm text-blue-200/50">
+            <p>&copy; {new Date().getFullYear()} MediAI. Todos os direitos reservados.</p>
+          </div>
         </div>
       </footer>
     </div>
