@@ -1,9 +1,14 @@
+'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Calendar, History, Sparkles } from "lucide-react";
+import { Users, Calendar, History, Sparkles, Bot } from "lucide-react";
 import Link from "next/link";
+import { TalkingAvatar3D } from "@/components/avatar/TalkingAvatar3D";
+import { useState } from "react";
 
 const DoctorDashboard = () => {
+    const [avatarReady, setAvatarReady] = useState(false);
+
     const cards = [
     {
       title: "Meus Pacientes",
@@ -60,7 +65,8 @@ const DoctorDashboard = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
             {cards.map(card => (
                 <Card
                     key={card.title}
@@ -83,6 +89,38 @@ const DoctorDashboard = () => {
                     </Link>
                 </Card>
             ))}
+          </div>
+          
+          <div className="lg:col-span-1">
+            <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-cyan-500/30 hover:border-cyan-500/50 transition-all duration-300 h-full">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <CardTitle className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                  IA Central Brain
+                </CardTitle>
+                <Bot className="h-8 w-8 text-cyan-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="relative">
+                  <TalkingAvatar3D 
+                    className="w-full h-80"
+                    mood="neutral"
+                    onReady={() => setAvatarReady(true)}
+                  />
+                </div>
+                <div className="mt-4 space-y-2">
+                  <p className="text-sm text-cyan-300/80 text-center">
+                    {avatarReady ? 'IA MediAI pronta para auxiliar' : 'Carregando assistente de IA...'}
+                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${avatarReady ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`}></div>
+                    <span className="text-xs text-blue-200/60">
+                      {avatarReady ? 'Online' : 'Inicializando'}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
