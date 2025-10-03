@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { updateCallRoomStatus } from '@/lib/db-adapter';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,23 +12,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const db = getAdminDb();
-    const updateData: any = {
-      status,
-      updatedAt: new Date().toISOString(),
-    };
-
-    // Adicionar timestamps específicos
-    if (status === 'active') {
-      updateData.startedAt = new Date().toISOString();
-    } else if (status === 'ended') {
-      updateData.endedAt = new Date().toISOString();
-    }
-
-    await db
-      .collection('callRooms')
-      .doc(roomId)
-      .update(updateData);
+    await updateCallRoomStatus(roomId, status);
 
     return NextResponse.json({ success: true });
   } catch (error) {

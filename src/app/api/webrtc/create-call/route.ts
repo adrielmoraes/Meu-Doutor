@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { createCallRoom } from '@/lib/db-adapter';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,18 +12,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const db = getAdminDb();
-    
-    // Criar registro da chamada
-    await db.collection('callRooms').doc(roomId).set({
-      patientId,
-      doctorId,
-      type,
-      status: 'waiting',
-      createdAt: new Date().toISOString(),
-      startedAt: null,
-      endedAt: null,
-    });
+    await createCallRoom(roomId, patientId, doctorId, type);
 
     return NextResponse.json({ success: true, roomId });
   } catch (error) {

@@ -1,15 +1,13 @@
 
 'use server';
 
-import { getStorage } from 'firebase-admin/storage';
-import { getFirestore } from 'firebase-admin/firestore';
-import { admin } from '@/lib/firebase-admin'; // Garante que o app admin seja inicializado
+import { Storage } from '@google-cloud/storage';
 import { getSession } from '@/lib/session';
 import { revalidateTag } from 'next/cache';
+import { updatePatient, updateDoctor } from '@/lib/db-adapter';
 
-// Inicialize o Firestore e o Storage se ainda não foram
-const db = getFirestore();
-const storage = getStorage().bucket(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET);
+const storage = new Storage();
+const bucketName = process.env.GCS_BUCKET_NAME || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'mediai-uploads';
 
 export async function uploadAvatarAction(formData: FormData): Promise<{ success: boolean; message: string; url?: string }> {
     const session = await getSession();
@@ -30,29 +28,21 @@ export async function uploadAvatarAction(formData: FormData): Promise<{ success:
     }
 
     try {
-        // 1. Fazer o upload do buffer para o Firebase Storage
         const fileBuffer = Buffer.from(await file.arrayBuffer());
         const fileExtension = file.name.split('.').pop();
-        const fileName = `avatars/${userId}-${Date.now()}.${fileExtension}`;
-        const fileUpload = storage.file(fileName);
+        const fileName = `avatars/doctors/${userId}-${Date.now()}.${fileExtension}`;
+        
+        const bucket = storage.bucket(bucketName);
+        const fileUpload = bucket.file(fileName);
 
         await fileUpload.save(fileBuffer, {
-            metadata: {
-                contentType: file.type,
-            },
+            metadata: { contentType: file.type },
         });
 
-        // 2. Tornar o arquivo público
         await fileUpload.makePublic();
+        const publicUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
 
-        // 3. Obter a URL pública
-        const publicUrl = fileUpload.publicUrl();
-
-        // 4. Atualizar a URL no Firestore
-        const doctorRef = db.collection('doctors').doc(userId);
-        await doctorRef.update({ avatarUrl: publicUrl });
-
-        // 5. Revalidar o cache da página de perfil
+        await updateDoctor(userId, { avatar: publicUrl });
         revalidateTag(`doctor-profile-${userId}`);
 
         console.log(`[UploadAction] Avatar do médico ${userId} atualizado com sucesso. Nova URL: ${publicUrl}`);
@@ -61,12 +51,9 @@ export async function uploadAvatarAction(formData: FormData): Promise<{ success:
 
     } catch (error) {
         console.error("[UploadAction] Erro durante o upload do avatar:", error);
-        // Adicionar verificação de tipo para o erro
         if (error instanceof Error) {
-             // Se for um erro conhecido (ex: permissões), a mensagem pode ser útil
             return { success: false, message: `Falha no upload do arquivo: ${error.message}` };
         }
-        // Para erros desconhecidos
         return { success: false, message: "Ocorreu um erro desconhecido no servidor." };
     }
 }
@@ -79,9 +66,8 @@ export async function updateDoctorProfile(formData: FormData): Promise<{ success
   }
 
   const { userId } = session;
-  const updatedData: { [key: string]: any } = {};
+  const updatedData: any = {};
 
-  // Extraia apenas os campos que você quer que sejam atualizáveis
   const specialty = formData.get('specialty');
   const bio = formData.get('bio');
 
@@ -93,9 +79,7 @@ export async function updateDoctorProfile(formData: FormData): Promise<{ success
   }
 
   try {
-    const doctorRef = db.collection('doctors').doc(userId);
-    await doctorRef.update(updatedData);
-
+    await updateDoctor(userId, updatedData);
     revalidateTag(`doctor-profile-${userId}`);
 
     return { success: true, message: 'Perfil atualizado com sucesso!' };

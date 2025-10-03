@@ -61,6 +61,10 @@ export async function addDoctorWithAuth(doctorData: Omit<Doctor, 'id'>, hashedPa
   });
 }
 
+export async function updateDoctor(id: string, data: Partial<Doctor>): Promise<void> {
+  await db.update(doctors).set({ ...data, updatedAt: new Date() }).where(eq(doctors.id, id));
+}
+
 export async function updateDoctorStatus(doctorId: string, online: boolean): Promise<void> {
   await db.update(doctors).set({ online, updatedAt: new Date() }).where(eq(doctors.id, doctorId));
 }

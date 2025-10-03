@@ -5,7 +5,7 @@ import 'server-only';
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { updateDoctorStatus } from '@/lib/firestore-admin-adapter'; // Importar a função de atualização
+import { updateDoctorStatus } from '@/lib/db-adapter'; // Importar a função de atualização
 
 export type SessionPayload = {
     userId: string;

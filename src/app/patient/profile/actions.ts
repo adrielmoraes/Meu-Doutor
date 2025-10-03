@@ -1,15 +1,14 @@
 
 'use server';
 
-import { getStorage } from 'firebase-admin/storage';
-import { getFirestore } from 'firebase-admin/firestore';
-import { admin } from '@/lib/firebase-admin';
+import { Storage } from '@google-cloud/storage';
 import { getSession } from '@/lib/session';
 import { revalidateTag } from 'next/cache';
+import { updatePatient } from '@/lib/db-adapter';
 import type { Patient } from '@/types';
 
-const db = getFirestore();
-const storage = getStorage().bucket(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET);
+const storage = new Storage();
+const bucketName = process.env.GCS_BUCKET_NAME || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'mediai-uploads';
 
 // Ação para atualizar os campos de texto do perfil do paciente
 export async function updatePatientProfile(formData: FormData): Promise<{ success: boolean; message: string }> {
@@ -36,10 +35,7 @@ export async function updatePatientProfile(formData: FormData): Promise<{ succes
   }
 
   try {
-    const patientRef = db.collection('patients').doc(userId);
-    await patientRef.update(updatedData);
-
-    // Revalidar o cache para esta página e outras onde os dados podem aparecer
+    await updatePatient(userId, updatedData);
     revalidateTag(`patient-profile-${userId}`);
 
     return { success: true, message: 'Perfil atualizado com sucesso!' };
@@ -72,18 +68,18 @@ export async function uploadPatientAvatarAction(formData: FormData): Promise<{ s
         const fileBuffer = Buffer.from(await file.arrayBuffer());
         const fileExtension = file.name.split('.').pop();
         const fileName = `avatars/patients/${userId}-${Date.now()}.${fileExtension}`;
-        const fileUpload = storage.file(fileName);
+        
+        const bucket = storage.bucket(bucketName);
+        const fileUpload = bucket.file(fileName);
 
         await fileUpload.save(fileBuffer, {
             metadata: { contentType: file.type },
         });
 
         await fileUpload.makePublic();
-        const publicUrl = fileUpload.publicUrl();
+        const publicUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
 
-        const patientRef = db.collection('patients').doc(userId);
-        await patientRef.update({ avatarUrl: publicUrl });
-
+        await updatePatient(userId, { avatar: publicUrl });
         revalidateTag(`patient-profile-${userId}`);
 
         return { success: true, message: "Avatar atualizado com sucesso!", url: publicUrl };

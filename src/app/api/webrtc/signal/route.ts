@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { addSignal } from '@/lib/db-adapter';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,20 +12,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const db = getAdminDb();
-    
-    // Armazenar o sinal no Firebase
-    await db
-      .collection('callRooms')
-      .doc(roomId)
-      .collection('signals')
-      .add({
-        from,
-        to,
-        type: signal.type,
-        data: signal,
-        timestamp: new Date().toISOString(),
-      });
+    await addSignal(roomId, from, to, signal.type, signal);
 
     return NextResponse.json({ success: true });
   } catch (error) {
