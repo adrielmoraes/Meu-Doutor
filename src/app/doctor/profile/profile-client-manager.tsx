@@ -43,7 +43,7 @@ export default function ProfileClientManager({ doctor: initialDoctor, userId }: 
   };
 
   const handleUploadComplete = (newUrl: string) => {
-    setDoctor({ ...doctor, avatarUrl: newUrl });
+    setDoctor({ ...doctor, avatar: newUrl });
     router.refresh();
     toast({ 
       title: "Avatar Atualizado!", 
@@ -60,7 +60,7 @@ export default function ProfileClientManager({ doctor: initialDoctor, userId }: 
           <CardHeader className="p-6 pb-4">
             <AvatarUpload
               userId={userId}
-              currentAvatarUrl={doctor.avatarUrl || ''}
+              currentAvatarUrl={doctor.avatar || ''}
               fallbackText={doctor.name.substring(0, 1)}
               uploadAction={uploadAvatarAction}
               onUploadComplete={handleUploadComplete}
@@ -129,13 +129,13 @@ export default function ProfileClientManager({ doctor: initialDoctor, userId }: 
               <div className="space-y-2">
                 <Label htmlFor="bio" className="text-blue-100 flex items-center gap-2">
                   <FileText className="h-4 w-4 text-purple-400" />
-                  Biografia
+                  Biografia Profissional
                 </Label>
                 <Textarea
                   id="bio"
                   name="bio"
-                  defaultValue={doctor.bio}
-                  placeholder="Fale um pouco sobre sua experiência e abordagem profissional."
+                  defaultValue={(doctor as any).bio || ''}
+                  placeholder="Fale um pouco sobre sua experiência, formação e abordagem profissional."
                   rows={5}
                   className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-slate-500"
                 />

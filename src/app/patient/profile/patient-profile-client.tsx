@@ -42,7 +42,7 @@ export default function PatientProfileClient({ patient: initialPatient, userId }
   };
 
   const handleUploadComplete = (newUrl: string) => {
-    setPatient({ ...patient, avatarUrl: newUrl });
+    setPatient({ ...patient, avatar: newUrl });
     router.refresh();
     toast({ 
       title: "Avatar Atualizado!", 
@@ -59,7 +59,7 @@ export default function PatientProfileClient({ patient: initialPatient, userId }
           <CardHeader className="p-6 pb-4">
             <AvatarUpload
               userId={userId}
-              currentAvatarUrl={patient.avatarUrl || ''}
+              currentAvatarUrl={patient.avatar || ''}
               fallbackText={patient.name.substring(0, 1)}
               uploadAction={uploadPatientAvatarAction}
               onUploadComplete={handleUploadComplete}
