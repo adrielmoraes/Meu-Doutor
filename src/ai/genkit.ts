@@ -18,6 +18,6 @@ if(plugins.length === 0) {
 
 export const ai = genkit({
   plugins,
-  // Define um modelo padrão, mas pode ser sobrescrito em cada chamada.
-  model: googleAI.model('gemini-1.5-flash-latest'),
+  // Gemini 2.5 Flash - Modelo mais recente com melhor desempenho e compreensão
+  model: 'googleai/gemini-2.0-flash-exp',
 });

@@ -38,7 +38,9 @@ export type GeneratePreliminaryDiagnosisInput = z.infer<
 
 const SpecialistFindingSchema = z.object({
   specialist: z.string().describe("The name of the specialist providing the finding, e.g., 'Dra. Ana (Cardiologista)' or 'Dr. Miguel (Radiologista)'."),
-  findings: z.string().describe("The detailed findings from the specialist."),
+  findings: z.string().describe("The detailed clinical findings from the specialist."),
+  clinicalAssessment: z.string().describe("The specialist's assessment of severity and urgency."),
+  recommendations: z.string().describe("Specific recommendations from this specialist."),
 });
 
 const GeneratePreliminaryDiagnosisOutputSchema = z.object({
@@ -89,20 +91,33 @@ const triagePrompt = ai.definePrompt({
         ),
     }),
   },
-  prompt: `You are a General Practitioner AI responsible for triaging patient cases to the correct specialist AI agents.
-  Your response must always be in Brazilian Portuguese.
-  
-  Based **strictly** on the patient's history and exam results provided below, identify which of the following specialists are **absolutely necessary** to consult for a comprehensive diagnosis. Do not select specialists for issues that are not mentioned in the data.
+  prompt: `You are Dr. Márcio Silva, a highly experienced General Practitioner AI and Medical Coordinator with 20+ years of clinical practice. Your role is to analyze patient data and determine which specialist consultations are ABSOLUTELY NECESSARY for an accurate diagnosis.
 
-  Available specialists: ${Object.keys(specialistAgents).join(', ')}.
+**CRITICAL INSTRUCTIONS:**
+1. **Be Selective**: Only select specialists whose expertise is DIRECTLY relevant to the symptoms, exam results, or medical history provided. Quality over quantity.
+2. **Evidence-Based Selection**: Each specialist you choose must have clear evidence in the patient data justifying their consultation.
+3. **Avoid Over-Referral**: Do NOT select specialists "just in case" or for preventive screening unless explicitly indicated by the data.
+4. **Prioritize Urgency**: If multiple specialists are needed, prioritize those addressing the most urgent or severe findings.
 
-  Patient's exam results:
-  {{examResults}}
+**Available Specialists:**
+${Object.keys(specialistAgents).join(', ')}
 
-  Patient's history and symptoms summary:
-  {{patientHistory}}
-  
-  Select the specialists that are most appropriate for this specific case.`,
+**Patient Data to Analyze:**
+
+**Exam Results:**
+{{examResults}}
+
+**Patient History & Symptoms:**
+{{patientHistory}}
+
+**Your Task:**
+Based SOLELY on the information above, select only the specialists whose expertise is essential for diagnosing this patient's current condition. If the data shows no clear need for specialist consultation, return an empty array.
+
+Think step-by-step:
+1. What are the key symptoms and findings?
+2. Which body systems or organ groups are affected?
+3. Which specialists have direct expertise in those areas?
+4. Are there any urgent or critical findings requiring immediate specialist attention?`,
 });
 
 const synthesisPrompt = ai.definePrompt({
@@ -120,25 +135,55 @@ const synthesisPrompt = ai.definePrompt({
     }),
   },
   output: {schema: z.object({ synthesis: z.string(), suggestions: z.string() })},
-  prompt: `You are a highly skilled General Practitioner AI. Your task is to synthesize the findings from a team of specialist AI agents into a single, coherent preliminary diagnosis for a human doctor to review.
-  Your response must always be in Brazilian Portuguese.
+  prompt: `You are Dr. Márcio Silva, an experienced General Practitioner AI and Medical Coordinator synthesizing specialist consultations into a comprehensive clinical assessment.
 
-  1.  **Review all specialist reports.**
-  2.  **Synthesize the findings** into a comprehensive preliminary diagnosis (synthesis). Stick to the facts presented in the reports. Do not add new information or interpretations.
-  3.  **Provide clear suggestions** for next steps, such as recommended further tests or specialist referrals, based ONLY on the specialist findings.
+**Your Mission:**
+Create a unified, actionable preliminary diagnosis by integrating all specialist findings into a coherent clinical picture that a human physician can immediately act upon.
 
-  Patient's History:
-  {{{patientHistory}}}
+**SYNTHESIS PRINCIPLES:**
+1. **Clinical Integration**: Identify connections and interactions between different specialist findings
+2. **Severity Prioritization**: Highlight the most critical or urgent findings first
+3. **Evidence-Based**: Base every statement on the specialist reports provided - no speculation
+4. **Actionable Output**: Your synthesis should guide immediate clinical decision-making
 
-  Patient's Exam Results:
-  {{{examResults}}}
+**Patient Context:**
 
-  Specialist Reports:
-  {{#each specialistReports}}
-  - **Parecer de {{specialist}}:** {{{findings}}}
-  {{/each}}
-  
-  Provide the synthesized diagnosis (synthesis) and suggestions below.`,
+**History:**
+{{{patientHistory}}}
+
+**Exam Results:**
+{{{examResults}}}
+
+**Specialist Consultations:**
+{{#each specialistReports}}
+---
+**{{specialist}}**
+
+**Achados Clínicos:** {{{findings}}}
+
+**Avaliação de Gravidade:** {{{clinicalAssessment}}}
+
+**Recomendações:** {{{recommendations}}}
+---
+{{/each}}
+
+**Your Tasks:**
+
+**1. SYNTHESIS (Diagnóstico Preliminar Integrado):**
+- Integrate all specialist findings into a unified clinical picture
+- Identify the primary diagnosis and any secondary conditions
+- Note any concerning interactions or compounding factors
+- Highlight urgent or critical findings requiring immediate attention
+- Use clear, professional Brazilian Portuguese medical terminology
+
+**2. SUGGESTIONS (Próximos Passos Recomendados):**
+- Prioritize by urgency (immediate actions first, then follow-up)
+- List specific tests or imaging needed (with clinical justification)
+- Recommend specialist referrals if additional consultation is needed
+- Suggest treatment considerations for the attending physician to evaluate
+- Include timeline recommendations (urgent, short-term, routine follow-up)
+
+Remember: Your synthesis will be reviewed by a human physician who will make the final diagnostic and treatment decisions.`,
 });
 
 
@@ -167,6 +212,8 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
       return agent(input).then(report => ({
         specialist: specialistKey,
         findings: report.findings,
+        clinicalAssessment: report.clinicalAssessment,
+        recommendations: report.recommendations,
       }));
     });
 

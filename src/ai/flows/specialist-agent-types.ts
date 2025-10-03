@@ -17,6 +17,13 @@ export const SpecialistAgentInputSchema = z.object({
 export type SpecialistAgentInput = z.infer<typeof SpecialistAgentInputSchema>;
 
 export const SpecialistAgentOutputSchema = z.object({
-  findings: z.string().describe("The specialist's findings and opinions. If not relevant, this will state so clearly."),
+  findings: z.string().describe("The specialist's detailed clinical findings based on the provided data."),
+  clinicalAssessment: z.string().describe("Professional assessment of the severity and urgency of findings (normal, mild, moderate, severe, critical, or not applicable)."),
+  recommendations: z.string().describe("Specific recommendations for follow-up, additional tests, or immediate actions within this specialty."),
+  relevantMetrics: z.array(z.object({
+    metric: z.string().describe("Name of the clinical metric or finding (e.g., 'Blood Pressure', 'ECG QT Interval')"),
+    value: z.string().describe("The observed value or description"),
+    status: z.enum(['normal', 'borderline', 'abnormal', 'critical']).describe("Clinical significance of this metric")
+  })).optional().describe("Key clinical metrics and their status, if applicable to this specialty."),
 });
 export type SpecialistAgentOutput = z.infer<typeof SpecialistAgentOutputSchema>;
