@@ -32,6 +32,7 @@ export default function LiveConsultationClient() {
     const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [patientId, setPatientId] = useState<string | null>(null);
+    const [isLoadingSession, setIsLoadingSession] = useState(true);
     
     const audioChunks = useRef<Blob[]>([]);
     const audioPlayer = useRef<HTMLAudioElement | null>(null);
@@ -41,13 +42,30 @@ export default function LiveConsultationClient() {
     // Get patient session
     useEffect(() => {
         const fetchSession = async () => {
-            const session = await getSessionOnClient();
-            if (session?.userId) {
-                setPatientId(session.userId);
+            try {
+                const session = await getSessionOnClient();
+                if (session?.userId) {
+                    setPatientId(session.userId);
+                } else {
+                    toast({
+                        variant: 'destructive',
+                        title: 'Sessão não encontrada',
+                        description: 'Por favor, faça login novamente.'
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching session:', error);
+                toast({
+                    variant: 'destructive',
+                    title: 'Erro ao carregar sessão',
+                    description: 'Tente recarregar a página.'
+                });
+            } finally {
+                setIsLoadingSession(false);
             }
         };
         fetchSession();
-    }, []);
+    }, [toast]);
 
     useEffect(() => {
         if (typeof window !== 'undefined' && !audioPlayer.current) {
@@ -78,6 +96,16 @@ export default function LiveConsultationClient() {
     
     const startRecording = useCallback(async () => {
         if (isRecording) return;
+        
+        // Block if session not loaded yet
+        if (!patientId) {
+            toast({
+                variant: 'destructive',
+                title: 'Aguarde',
+                description: 'Carregando sua sessão...'
+            });
+            return;
+        }
         
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -113,40 +141,48 @@ export default function LiveConsultationClient() {
                 reader.readAsDataURL(audioBlob);
                 reader.onloadend = async () => {
                     const base64Audio = reader.result?.toString().split(',')[1];
-                    if (base64Audio && patientId) {
-                        try {
-                            const result = await liveConsultationFlow({ 
-                                audioData: base64Audio,
-                                patientId: patientId 
-                            });
-                            
-                            if (result.audioOutput && audioPlayer.current) {
-                                const audioBlob = new Blob([Buffer.from(result.audioOutput, 'base64')], { type: 'audio/webm' });
-                                const audioUrl = URL.createObjectURL(audioBlob);
-                                audioPlayer.current.src = audioUrl;
-                                audioPlayer.current.play();
-                            }
-
-                            if (result.transcript) {
-                                const aiMessage: Message = {
-                                    id: (Date.now() + 1).toString(),
-                                    source: 'ai',
-                                    text: result.transcript,
-                                    timestamp: new Date(),
-                                };
-                                setMessages(prev => [...prev, aiMessage]);
-                            }
-
-                        } catch (error) {
-                            console.error('Flow failed', error);
-                            toast({ 
-                                variant: 'destructive', 
-                                title: 'Erro na Consulta', 
-                                description: 'Não foi possível processar o áudio.' 
-                            });
-                        } finally {
-                            setIsProcessing(false);
+                    
+                    try {
+                        if (!base64Audio) {
+                            throw new Error('Áudio não capturado corretamente');
                         }
+                        
+                        if (!patientId) {
+                            throw new Error('Sessão de usuário não encontrada');
+                        }
+                        
+                        const result = await liveConsultationFlow({ 
+                            audioData: base64Audio,
+                            patientId: patientId 
+                        });
+                        
+                        if (result.audioOutput && audioPlayer.current) {
+                            const audioBlob = new Blob([Buffer.from(result.audioOutput, 'base64')], { type: 'audio/webm' });
+                            const audioUrl = URL.createObjectURL(audioBlob);
+                            audioPlayer.current.src = audioUrl;
+                            audioPlayer.current.play();
+                        }
+
+                        if (result.transcript) {
+                            const aiMessage: Message = {
+                                id: (Date.now() + 1).toString(),
+                                source: 'ai',
+                                text: result.transcript,
+                                timestamp: new Date(),
+                            };
+                            setMessages(prev => [...prev, aiMessage]);
+                        }
+
+                    } catch (error) {
+                        console.error('Flow failed', error);
+                        toast({ 
+                            variant: 'destructive', 
+                            title: 'Erro na Consulta', 
+                            description: error instanceof Error ? error.message : 'Não foi possível processar o áudio.' 
+                        });
+                    } finally {
+                        // Always reset processing state
+                        setIsProcessing(false);
                     }
                 };
             };
@@ -163,7 +199,7 @@ export default function LiveConsultationClient() {
             });
         }
 
-    }, [isRecording, toast]);
+    }, [isRecording, patientId, toast]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -275,9 +311,10 @@ export default function LiveConsultationClient() {
                     {!isRecording ? (
                         <Button
                             onClick={startRecording}
-                            disabled={isProcessing}
+                            disabled={isProcessing || isLoadingSession || !patientId}
                             size="lg"
-                            className="rounded-full bg-teal-600 hover:bg-teal-700 text-white w-14 h-14 p-0 shadow-lg transition-all transform hover:scale-105"
+                            className="rounded-full bg-teal-600 hover:bg-teal-700 text-white w-14 h-14 p-0 shadow-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title={isLoadingSession ? 'Carregando sessão...' : !patientId ? 'Sessão não disponível' : 'Gravar mensagem de voz'}
                         >
                             <Mic className="h-6 w-6" />
                         </Button>
