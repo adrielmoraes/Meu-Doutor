@@ -25,6 +25,8 @@ Preferred communication style: Simple, everyday language.
   - Header: Dark backdrop with cyan accents and gradient logo text
   - Patient Dashboard: Dark gradient background with themed cards
   - Doctor Dashboard: Dark gradient with animated orbs and themed cards
+  - Patient Profile: Cyan-themed with avatar upload and personal info management
+  - Doctor Profile: Purple-themed with avatar upload, specialty and bio fields
 - **Layouts**: Added dark gradient backgrounds to patient and doctor layouts for consistency
 - **Design Consistency**: All pages now match the landing page's futuristic aesthetic with cohesive visual language
 
