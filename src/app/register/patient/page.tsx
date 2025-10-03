@@ -91,16 +91,16 @@ export default function PatientRegisterPage() {
           <form action={dispatch}>
             <div className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="name" className="text-blue-100">Nome Completo</Label>
+                <Label htmlFor="fullName" className="text-blue-100">Nome Completo</Label>
                 <Input
-                  id="name"
-                  name="name"
+                  id="fullName"
+                  name="fullName"
                   type="text"
                   placeholder="Seu nome completo"
                   required
                   className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white placeholder:text-slate-500"
                 />
-                {state?.errors?.name && <p className="text-xs text-red-400">{state.errors.name[0]}</p>}
+                {state?.errors?.fullName && <p className="text-xs text-red-400">{state.errors.fullName[0]}</p>}
               </div>
 
               <div className="grid gap-2">
@@ -114,6 +114,89 @@ export default function PatientRegisterPage() {
                   className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white placeholder:text-slate-500"
                 />
                 {state?.errors?.email && <p className="text-xs text-red-400">{state.errors.email[0]}</p>}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="cpf" className="text-blue-100">CPF</Label>
+                <Input
+                  id="cpf"
+                  name="cpf"
+                  type="text"
+                  placeholder="000.000.000-00"
+                  required
+                  className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white placeholder:text-slate-500"
+                />
+                {state?.errors?.cpf && <p className="text-xs text-red-400">{state.errors.cpf[0]}</p>}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="birthDate" className="text-blue-100">Data de Nascimento</Label>
+                <Input
+                  id="birthDate"
+                  name="birthDate"
+                  type="date"
+                  required
+                  className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white"
+                />
+                {state?.errors?.birthDate && <p className="text-xs text-red-400">{state.errors.birthDate[0]}</p>}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="phone" className="text-blue-100">Telefone</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  placeholder="(00) 00000-0000"
+                  required
+                  className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white placeholder:text-slate-500"
+                />
+                {state?.errors?.phone && <p className="text-xs text-red-400">{state.errors.phone[0]}</p>}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="gender" className="text-blue-100">Gênero</Label>
+                <select
+                  id="gender"
+                  name="gender"
+                  required
+                  className="flex h-10 w-full rounded-md border border-cyan-500/30 bg-slate-900/50 px-3 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                >
+                  <option value="" className="bg-slate-900">Selecione...</option>
+                  <option value="Masculino" className="bg-slate-900">Masculino</option>
+                  <option value="Feminino" className="bg-slate-900">Feminino</option>
+                  <option value="Outro" className="bg-slate-900">Outro</option>
+                </select>
+                {state?.errors?.gender && <p className="text-xs text-red-400">{state.errors.gender[0]}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="city" className="text-blue-100">Cidade</Label>
+                  <Input
+                    id="city"
+                    name="city"
+                    type="text"
+                    placeholder="Sua cidade"
+                    required
+                    className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white placeholder:text-slate-500"
+                  />
+                  {state?.errors?.city && <p className="text-xs text-red-400">{state.errors.city[0]}</p>}
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="state" className="text-blue-100">Estado (UF)</Label>
+                  <Input
+                    id="state"
+                    name="state"
+                    type="text"
+                    placeholder="SP"
+                    maxLength={2}
+                    required
+                    className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white placeholder:text-slate-500"
+                  />
+                  {state?.errors?.state && <p className="text-xs text-red-400">{state.errors.state[0]}</p>}
+                </div>
               </div>
 
               <div className="grid gap-2">
