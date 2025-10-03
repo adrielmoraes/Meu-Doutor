@@ -12,6 +12,23 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 3, 2025 - Database Migration: Firebase to PostgreSQL (In Progress)
+- **Major Infrastructure Change**: Migrating from Firebase/Firestore to Neon PostgreSQL
+- **Completed Steps**:
+  - ✅ Installed Drizzle ORM + PostgreSQL drivers (@neondatabase/serverless, drizzle-orm, drizzle-kit, postgres)
+  - ✅ Created complete PostgreSQL schema with all tables (patients, doctors, exams, appointments, patientAuth, doctorAuth, callRooms, signals, consultations)
+  - ✅ Applied schema to Neon database successfully
+  - ✅ Created unified database adapter (src/lib/db-adapter.ts) with all CRUD operations
+  - ✅ Added Drizzle scripts to package.json (db:push, db:generate, db:migrate, db:studio)
+- **Remaining Steps**:
+  - ⏳ Update authentication system to use new adapter (remove Firebase Auth dependency)
+  - ⏳ Migrate file storage (Firebase Storage → Google Cloud Storage or Replit Object Storage)
+  - ⏳ Update WebRTC signaling to use PostgreSQL
+  - ⏳ Update all pages/components to use new db-adapter
+  - ⏳ Remove Firebase dependencies and cleanup
+  - ⏳ Full system testing
+- **Note**: This migration removes Firebase dependency entirely, using only Neon PostgreSQL for all data storage
+
 ### October 3, 2025 - Patient Registration Form Fixed
 - **Bug Fix**: Corrected patient registration form to include all required fields
   - Added missing fields: CPF, birth date, phone, gender, city, state
