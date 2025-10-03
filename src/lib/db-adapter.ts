@@ -1,0 +1,320 @@
+'use server';
+
+import { db } from '../../server/storage';
+import {
+  patients,
+  doctors,
+  exams,
+  appointments,
+  patientAuth,
+  doctorAuth,
+  callRooms,
+  signals,
+  consultations,
+} from '../../shared/schema';
+import { eq, and, desc } from 'drizzle-orm';
+import type { Doctor, DoctorWithPassword, Patient, PatientWithPassword, Exam, Appointment, Consultation } from '@/types';
+import { randomUUID } from 'crypto';
+
+export async function getDoctorByEmail(email: string): Promise<Doctor | null> {
+  const result = await db.select().from(doctors).where(eq(doctors.email, email)).limit(1);
+  if (!result[0]) return null;
+  return { ...result[0], avatarHint: result[0].avatarHint || '' } as Doctor;
+}
+
+export async function getDoctorById(id: string): Promise<Doctor | null> {
+  const result = await db.select().from(doctors).where(eq(doctors.id, id)).limit(1);
+  if (!result[0]) return null;
+  return { ...result[0], avatarHint: result[0].avatarHint || '' } as Doctor;
+}
+
+export async function getDoctorByEmailWithAuth(email: string): Promise<DoctorWithPassword | null> {
+  const result = await db
+    .select({
+      doctor: doctors,
+      password: doctorAuth.password,
+    })
+    .from(doctors)
+    .leftJoin(doctorAuth, eq(doctors.id, doctorAuth.id))
+    .where(eq(doctors.email, email))
+    .limit(1);
+
+  if (!result[0]) return null;
+
+  return {
+    ...result[0].doctor,
+    password: result[0].password || null,
+  } as DoctorWithPassword;
+}
+
+export async function getDoctors(): Promise<Doctor[]> {
+  const results = await db.select().from(doctors);
+  return results.map(d => ({ ...d, avatarHint: d.avatarHint || '' })) as Doctor[];
+}
+
+export async function addDoctorWithAuth(doctorData: Omit<Doctor, 'id'>, hashedPassword: string): Promise<void> {
+  const id = randomUUID();
+  
+  await db.transaction(async (tx) => {
+    await tx.insert(doctors).values({ ...doctorData, id });
+    await tx.insert(doctorAuth).values({ id, password: hashedPassword });
+  });
+}
+
+export async function updateDoctorStatus(doctorId: string, online: boolean): Promise<void> {
+  await db.update(doctors).set({ online, updatedAt: new Date() }).where(eq(doctors.id, doctorId));
+}
+
+export async function updateDoctorAvailability(
+  doctorId: string,
+  availability: { date: string; time: string; available: boolean }[]
+): Promise<void> {
+  await db.update(doctors).set({ availability, updatedAt: new Date() }).where(eq(doctors.id, doctorId));
+}
+
+export async function getPatients(): Promise<Patient[]> {
+  const results = await db.select().from(patients);
+  return results.map(p => ({ ...p, lastVisit: p.lastVisit || '', avatarHint: p.avatarHint || '' })) as Patient[];
+}
+
+export async function getPatientById(id: string): Promise<Patient | null> {
+  const result = await db.select().from(patients).where(eq(patients.id, id)).limit(1);
+  if (!result[0]) return null;
+  return { ...result[0], lastVisit: result[0].lastVisit || '', avatarHint: result[0].avatarHint || '' } as Patient;
+}
+
+export async function getPatientByEmail(email: string): Promise<Patient | null> {
+  const result = await db.select().from(patients).where(eq(patients.email, email)).limit(1);
+  if (!result[0]) return null;
+  return { ...result[0], lastVisit: result[0].lastVisit || '', avatarHint: result[0].avatarHint || '' } as Patient;
+}
+
+export async function getPatientByEmailWithAuth(email: string): Promise<PatientWithPassword | null> {
+  const result = await db
+    .select({
+      patient: patients,
+      password: patientAuth.password,
+    })
+    .from(patients)
+    .leftJoin(patientAuth, eq(patients.id, patientAuth.id))
+    .where(eq(patients.email, email))
+    .limit(1);
+
+  if (!result[0]) return null;
+
+  return {
+    ...result[0].patient,
+    password: result[0].password || null,
+  } as PatientWithPassword;
+}
+
+export async function updatePatient(id: string, data: Partial<Patient>): Promise<void> {
+  await db.update(patients).set({ ...data, updatedAt: new Date() }).where(eq(patients.id, id));
+}
+
+export async function addPatientWithAuth(patientData: Omit<Patient, 'id'>, hashedPassword: string): Promise<void> {
+  const id = randomUUID();
+  
+  await db.transaction(async (tx) => {
+    await tx.insert(patients).values({ ...patientData, id });
+    await tx.insert(patientAuth).values({ id, password: hashedPassword });
+  });
+}
+
+export async function getExamsByPatientId(patientId: string): Promise<Exam[]> {
+  const results = await db
+    .select()
+    .from(exams)
+    .where(eq(exams.patientId, patientId))
+    .orderBy(desc(exams.createdAt));
+  
+  return results.map(e => ({ ...e, results: e.results || undefined })) as Exam[];
+}
+
+export async function getExamById(patientId: string, examId: string): Promise<Exam | null> {
+  const result = await db
+    .select()
+    .from(exams)
+    .where(and(eq(exams.id, examId), eq(exams.patientId, patientId)))
+    .limit(1);
+
+  if (!result[0]) return null;
+  return { ...result[0], results: result[0].results || undefined } as Exam;
+}
+
+export async function addExamToPatient(
+  patientId: string,
+  examData: Omit<Exam, 'id' | 'date' | 'status' | 'patientId'>
+): Promise<string> {
+  const id = randomUUID();
+  const examRecord = {
+    ...examData,
+    id,
+    patientId,
+    date: new Date().toISOString(),
+    status: 'Requer Validação' as const,
+  };
+
+  await db.insert(exams).values(examRecord);
+  return id;
+}
+
+export async function updateExam(patientId: string, examId: string, data: Partial<Exam>): Promise<void> {
+  await db
+    .update(exams)
+    .set({ ...data, updatedAt: new Date() })
+    .where(and(eq(exams.id, examId), eq(exams.patientId, patientId)));
+}
+
+export async function deleteExam(patientId: string, examId: string): Promise<void> {
+  await db.delete(exams).where(and(eq(exams.id, examId), eq(exams.patientId, patientId)));
+}
+
+export async function getAppointmentsForPatient(patientId: string): Promise<Appointment[]> {
+  const results = await db
+    .select()
+    .from(appointments)
+    .where(eq(appointments.patientId, patientId))
+    .orderBy(desc(appointments.createdAt));
+  
+  return results.map(a => ({ ...a, patientAvatar: a.patientAvatar || undefined })) as Appointment[];
+}
+
+export async function getAppointmentsForDoctor(doctorId: string): Promise<Appointment[]> {
+  const results = await db
+    .select()
+    .from(appointments)
+    .where(eq(appointments.doctorId, doctorId))
+    .orderBy(desc(appointments.createdAt));
+  
+  return results.map(a => ({ ...a, patientAvatar: a.patientAvatar || undefined })) as Appointment[];
+}
+
+export async function getAllAppointmentsForDoctor(doctorId: string): Promise<Appointment[]> {
+  return await getAppointmentsForDoctor(doctorId);
+}
+
+export async function createAppointment(appointmentData: Omit<Appointment, 'id'>): Promise<string> {
+  const id = randomUUID();
+  await db.insert(appointments).values({ ...appointmentData, id });
+  return id;
+}
+
+export async function updateAppointmentStatus(
+  appointmentId: string,
+  status: 'Agendada' | 'Concluída' | 'Cancelada'
+): Promise<void> {
+  await db
+    .update(appointments)
+    .set({ status, updatedAt: new Date() })
+    .where(eq(appointments.id, appointmentId));
+}
+
+export async function createCallRoom(
+  roomId: string,
+  patientId: string,
+  doctorId: string,
+  type: string
+): Promise<void> {
+  await db.insert(callRooms).values({
+    id: roomId,
+    patientId,
+    doctorId,
+    type,
+    status: 'waiting',
+    createdAt: new Date(),
+  });
+}
+
+export async function updateCallRoomStatus(
+  roomId: string,
+  status: 'waiting' | 'active' | 'ended'
+): Promise<void> {
+  const updateData: any = {
+    status,
+    updatedAt: new Date(),
+  };
+
+  if (status === 'active') {
+    updateData.startedAt = new Date();
+  } else if (status === 'ended') {
+    updateData.endedAt = new Date();
+  }
+
+  await db.update(callRooms).set(updateData).where(eq(callRooms.id, roomId));
+}
+
+export async function getActiveCallsForDoctor(doctorId: string) {
+  return await db
+    .select()
+    .from(callRooms)
+    .where(and(eq(callRooms.doctorId, doctorId), eq(callRooms.status, 'waiting')))
+    .orderBy(desc(callRooms.createdAt));
+}
+
+export async function addSignal(
+  roomId: string,
+  from: string,
+  to: string,
+  signalType: string,
+  signalData: any
+): Promise<void> {
+  await db.insert(signals).values({
+    roomId,
+    from,
+    to,
+    type: signalType,
+    data: signalData,
+    timestamp: new Date(),
+  });
+}
+
+export async function getSignalsForRoom(roomId: string, userId: string) {
+  return await db
+    .select()
+    .from(signals)
+    .where(and(eq(signals.roomId, roomId), eq(signals.to, userId)))
+    .orderBy(desc(signals.timestamp));
+}
+
+export async function saveConsultation(
+  doctorId: string,
+  patientId: string,
+  roomId: string,
+  transcription: string,
+  summary: string,
+  type: string
+): Promise<string> {
+  const id = randomUUID();
+  await db.insert(consultations).values({
+    id,
+    doctorId,
+    patientId,
+    roomId,
+    transcription,
+    summary,
+    date: new Date().toISOString(),
+    type,
+  });
+  return id;
+}
+
+export async function getConsultationsByPatient(patientId: string): Promise<Consultation[]> {
+  const results = await db
+    .select()
+    .from(consultations)
+    .where(eq(consultations.patientId, patientId))
+    .orderBy(desc(consultations.createdAt));
+  
+  return results.map(c => ({ ...c, roomId: c.roomId || '' })) as Consultation[];
+}
+
+export async function getConsultationsByDoctor(doctorId: string): Promise<Consultation[]> {
+  const results = await db
+    .select()
+    .from(consultations)
+    .where(eq(consultations.doctorId, doctorId))
+    .orderBy(desc(consultations.createdAt));
+  
+  return results.map(c => ({ ...c, roomId: c.roomId || '' })) as Consultation[];
+}
