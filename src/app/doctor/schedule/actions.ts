@@ -1,15 +1,10 @@
 
 'use server';
 
-import { getFirestore } from 'firebase-admin/firestore';
+import { getDoctorById, updateDoctorAvailability } from '@/lib/db-adapter';
 import { getSession } from '@/lib/session';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import type { AvailabilitySlot } from '@/types';
-
-// Garante que o app admin seja inicializado
-import { admin } from '@/lib/firebase-admin'; 
-
-const db = getFirestore();
 
 // Tipagem para o estado da ação
 interface ActionResult {
@@ -36,35 +31,27 @@ export async function updateDoctorAvailabilityAction(prevState: ActionResult, fo
         const selectedTimes = JSON.parse(timesJson) as string[];
         const targetDate = new Date(dateStr);
 
-        // Busca o documento do médico
-        const doctorRef = db.collection('doctors').doc(userId);
-        const doctorDoc = await doctorRef.get();
-
-        if (!doctorDoc.exists) {
+        const doctor = await getDoctorById(userId);
+        if (!doctor) {
              return { success: false, message: 'Perfil do médico não encontrado.', errors: null };
         }
 
-        const doctorData = doctorDoc.data();
-        const currentAvailability = doctorData?.availability || [];
+        const currentAvailability = doctor.availability || [];
 
-        // Filtra a disponibilidade existente, mantendo apenas os horários de outros dias
         const otherDaysAvailability = currentAvailability.filter((slot: AvailabilitySlot) => {
             const slotDate = new Date(slot.date);
             return slotDate.toDateString() !== targetDate.toDateString();
         });
 
-        // Cria os novos slots de disponibilidade para a data selecionada
         const newAvailabilityForDay: AvailabilitySlot[] = selectedTimes.map(time => ({
             date: targetDate.toISOString(),
             time: time,
-            available: true, // Por padrão, um novo horário está disponível
+            available: true,
         }));
 
-        // Combina a disponibilidade de outros dias com a nova disponibilidade do dia
         const finalAvailability = [...otherDaysAvailability, ...newAvailabilityForDay];
 
-        // Atualiza o documento no Firestore
-        await doctorRef.update({ availability: finalAvailability });
+        await updateDoctorAvailability(userId, finalAvailability);
 
         // Revalida o cache para que a UI seja atualizada
         revalidateTag(`doctor-availability-${userId}`);

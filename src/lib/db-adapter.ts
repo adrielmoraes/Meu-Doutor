@@ -65,14 +65,9 @@ export async function updateDoctor(id: string, data: Partial<Doctor>): Promise<v
   await db.update(doctors).set({ ...data, updatedAt: new Date() }).where(eq(doctors.id, id));
 }
 
-export async function getDoctors(): Promise<Doctor[]> {
-  const result = await db.select().from(doctors);
-  return result.map(convertDatabaseToType<Doctor>);
-}
-
 export async function getDoctorsBySpecialty(specialty: string, limit: number = 10): Promise<Doctor[]> {
   const result = await db.select().from(doctors).where(eq(doctors.specialty, specialty)).limit(limit);
-  return result.map(convertDatabaseToType<Doctor>);
+  return result.map(d => ({ ...d, avatarHint: d.avatarHint || '' })) as Doctor[];
 }
 
 export async function updateDoctorStatus(doctorId: string, online: boolean): Promise<void> {
@@ -190,6 +185,15 @@ export async function getAppointmentsForPatient(patientId: string): Promise<Appo
     .from(appointments)
     .where(eq(appointments.patientId, patientId))
     .orderBy(desc(appointments.createdAt));
+  
+  return results.map(a => ({ ...a, patientAvatar: a.patientAvatar || undefined })) as Appointment[];
+}
+
+export async function getAppointmentsByDate(doctorId: string, date: string): Promise<Appointment[]> {
+  const results = await db
+    .select()
+    .from(appointments)
+    .where(and(eq(appointments.doctorId, doctorId), eq(appointments.date, date)));
   
   return results.map(a => ({ ...a, patientAvatar: a.patientAvatar || undefined })) as Appointment[];
 }

@@ -3,7 +3,7 @@
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, ChevronRight, Droplets, Bone, Trash2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { getExamsByPatientId } from "@/lib/firestore-admin-adapter"; // Importar do admin-adapter
+import { getExamsByPatientId } from "@/lib/db-adapter";
 import type { Exam } from "@/types";
 import DeleteExamButton from "@/components/patient/delete-exam-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -34,12 +34,10 @@ async function getHistoryPageData(patientId: string): Promise<{ exams: Exam[], e
         const errorMessage = e.message?.toLowerCase() || '';
         const errorCode = e.code?.toLowerCase() || '';
         
-        if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
-            const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
+        if (errorMessage.includes('connection') || errorCode.includes('not-found')) {
             return { 
                 exams: [],
-                error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada ou o cliente está offline.",
-                fixUrl: firestoreApiUrl 
+                error: "Não foi possível conectar ao banco de dados. Verifique se o banco de dados está configurado corretamente."
             };
         }
         console.error("Unexpected error fetching exam history:", e);

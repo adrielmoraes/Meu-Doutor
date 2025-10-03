@@ -6,7 +6,7 @@ import { VideoCall } from '@/components/video-call/VideoCall';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Phone } from 'lucide-react';
-import { getDoctorById } from '@/lib/firestore-client-adapter';
+import { getDoctorByIdAction } from './actions';
 import { Doctor } from '@/lib/types';
 import { getCurrentPatientId } from '../actions';
 
@@ -27,7 +27,7 @@ export default function PatientCallPage() {
   const loadData = async () => {
     try {
       const [doctorData, currentPatientId] = await Promise.all([
-        getDoctorById(doctorId),
+        getDoctorByIdAction(doctorId),
         getCurrentPatientId()
       ]);
       setDoctor(doctorData);

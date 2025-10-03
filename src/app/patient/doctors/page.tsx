@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { getDoctors, getPatientById, getAppointmentsForPatient } from "@/lib/firestore-admin-adapter"; // Adicionar getAppointmentsForPatient
+import { getDoctors, getPatientById, getAppointmentsForPatient } from "@/lib/db-adapter";
 import ScheduleAppointment from "@/components/patient/schedule-appointment";
 import StartConsultation from "@/components/patient/start-consultation";
 import type { Doctor, Patient, Appointment } from "@/types"; // Adicionar Appointment type

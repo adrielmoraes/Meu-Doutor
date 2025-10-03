@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Video, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getAllAppointmentsForDoctor, getDoctorById } from '@/lib/firestore-admin-adapter'; // Importar getDoctorById
+import { getAllAppointmentsForDoctor, getDoctorById } from '@/lib/db-adapter';
 import type { Appointment, Doctor } from "@/types"; // Importar Doctor type
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
@@ -55,12 +55,10 @@ async function getScheduleData(doctorId: string): Promise<{ appointments: Appoin
         console.error('[SchedulePage Debug] Erro inesperado em getScheduleData:', e);
         console.error('[SchedulePage Debug] Tipo do erro:', typeof e, 'Erro completo:', e);
 
-        if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
-            const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
+        if (errorMessage.includes('connection') || errorCode.includes('not-found')) {
             return { 
                 appointments: [], doctor: null,
-                error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada ou o cliente está offline.",
-                fixUrl: firestoreApiUrl 
+                error: "Não foi possível conectar ao banco de dados. Verifique se o banco de dados está configurado corretamente."
             };
         }
         // Para outros erros, retornar uma mensagem mais genérica

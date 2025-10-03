@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getAppointmentsByDate, getPatientById, getDoctorById, addAppointment, updateDoctorAvailability } from "@/lib/firestore-admin-adapter";
+import { getAppointmentsByDate, getPatientById, getDoctorById, addAppointment, updateDoctorAvailability } from "@/lib/db-adapter";
 import { format } from "date-fns";
 import { z } from 'zod';
 

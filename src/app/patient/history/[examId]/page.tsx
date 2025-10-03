@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FileText, Printer, CheckCircle, BotMessageSquare, AlertTriangle, Lightbulb } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import AudioPlayback from "@/components/patient/audio-playback";
-import { getExamById, getPatientById } from "@/lib/firestore-client-adapter";
+import { getExamById, getPatientById } from "@/lib/db-adapter";
 import { notFound, redirect } from "next/navigation";
 import PrintButton from "@/components/patient/print-button";
 import Link from "next/link";
@@ -45,12 +45,10 @@ async function getExamPageData(patientId: string, examId: string): Promise<{ pat
         const errorMessage = e.message?.toLowerCase() || '';
         const errorCode = e.code?.toLowerCase() || '';
         
-        if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
-            const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
+        if (errorMessage.includes('connection') || errorCode.includes('not-found')) {
             return { 
                 patient: null, examData: null,
-                error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada ou o cliente está offline.",
-                fixUrl: firestoreApiUrl 
+                error: "Não foi possível conectar ao banco de dados. Verifique se o banco de dados está configurado corretamente."
             };
         }
         console.error(`Unexpected error fetching exam ${examId}:`, e);
