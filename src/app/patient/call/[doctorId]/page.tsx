@@ -9,6 +9,7 @@ import { Loader2, Phone } from 'lucide-react';
 import { getDoctorByIdAction } from './actions';
 import { Doctor } from '@/lib/types';
 import { getCurrentPatientId } from '../actions';
+import { TalkingAvatar3D } from '@/components/avatar/TalkingAvatar3D';
 
 export default function PatientCallPage() {
   const params = useParams();
@@ -97,14 +98,35 @@ export default function PatientCallPage() {
 
   if (callStarted && roomId && patientId) {
     return (
-      <div className="container mx-auto py-8">
-        <VideoCall
-          roomId={roomId}
-          userId={patientId}
-          targetId={doctorId}
-          isInitiator={true}
-          onCallEnd={handleCallEnd}
-        />
+      <div className="container mx-auto py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <VideoCall
+            roomId={roomId}
+            userId={patientId}
+            targetId={doctorId}
+            isInitiator={true}
+            onCallEnd={handleCallEnd}
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-cyan-500/20">
+            <CardHeader>
+              <CardTitle className="text-cyan-400 text-center">IA MediAI</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="relative">
+                <TalkingAvatar3D 
+                  className="w-full h-96"
+                  mood="neutral"
+                  onReady={() => console.log('Avatar 3D pronto')}
+                />
+              </div>
+              <p className="text-sm text-cyan-300/80 text-center mt-4">
+                Assistente de IA acompanhando a consulta
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
