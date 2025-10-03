@@ -1,6 +1,6 @@
 
 import PatientDashboard from "@/components/patient/patient-dashboard";
-import { getPatientById } from "@/lib/firestore-admin-adapter"; // Importar getPatientById do admin-adapter
+import { getPatientById } from "@/lib/firestore-admin-adapter";
 import type { GenerateHealthInsightsOutput } from "@/ai/flows/generate-health-insights";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
@@ -18,14 +18,11 @@ interface DashboardData {
 
 async function getDashboardData(patientId: string): Promise<DashboardData> {
     try {
-        const patient = await getPatientById(patientId); // Usar a função getPatientById diretamente
+        const patient = await getPatientById(patientId);
         if (!patient) {
              return { patient: null, healthInsights: null, error: `Paciente com ID "${patientId}" não encontrado. Verifique se os dados iniciais foram carregados ou se o ID está correto.` };
         }
 
-        // The health insights are now read directly from the patient object,
-        // as they are generated and saved upon diagnosis validation by the doctor.
-        // This check handles new patients who don't have these fields yet.
         const healthInsights = (patient.healthGoals && patient.healthGoals.length > 0 && patient.preventiveAlerts && patient.preventiveAlerts.length > 0) ? {
             healthGoals: patient.healthGoals,
             preventiveAlerts: patient.preventiveAlerts,
@@ -36,7 +33,6 @@ async function getDashboardData(patientId: string): Promise<DashboardData> {
         const errorMessage = e.message?.toLowerCase() || '';
         const errorCode = e.code?.toLowerCase() || '';
         
-        // Catches errors for both disabled API and general offline state.
         if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
             const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
             return { 
@@ -61,10 +57,10 @@ export default async function PatientDashboardPage() {
   const { patient, healthInsights, error, fixUrl } = await getDashboardData(session.userId);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
+    <div className="p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 min-h-screen">
         {error || !patient ? (
            <div className="container mx-auto">
-               <Alert variant="destructive">
+               <Alert variant="destructive" className="bg-red-900/20 border-red-500/30 text-red-200">
                    <AlertTriangle className="h-4 w-4" />
                    <AlertTitle>Erro de Configuração ou Conexão</AlertTitle>
                    <AlertDescription>
@@ -73,13 +69,14 @@ export default async function PatientDashboardPage() {
                            <p className="mt-2">
                                Por favor, habilite a API manualmente visitando o seguinte link e clicando em "Habilitar":
                                <br />
-                               <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
+                               <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline text-cyan-400 hover:text-cyan-300">
                                    Habilitar API do Firestore
                                </Link>
                                <br />
                                <span className="text-xs">Após habilitar, aguarde alguns minutos e atualize esta página.</span>
                            </p>
-                       )}\n                   </AlertDescription>
+                       )}
+                   </AlertDescription>
                </Alert>
            </div>
         ) : (
