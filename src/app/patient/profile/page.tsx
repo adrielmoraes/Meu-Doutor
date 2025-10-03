@@ -1,6 +1,6 @@
 
 import { getSession } from '@/lib/session';
-import { getPatientById } from '@/lib/firestore-admin-adapter';
+import { getPatientById } from '@/lib/db-adapter';
 import { redirect } from 'next/navigation';
 import type { Patient } from '@/types';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

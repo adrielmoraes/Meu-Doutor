@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { updateCallRecording, saveConsultation } from '@/lib/db-adapter';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
@@ -59,34 +59,8 @@ Formate o resumo de forma profissional e clara, adequado para registro médico.`
     const summaryResult = await model.generateContent(summaryPrompt);
     const summary = summaryResult.response.text();
 
-    const db = getAdminDb();
-    
-    await db.collection('callRooms').doc(roomId).update({
-      recording: {
-        transcription,
-        summary,
-        processedAt: new Date().toISOString(),
-        audioStoredAt: null,
-      }
-    });
-
-    await db.collection('patients').doc(patientId).collection('consultations').add({
-      doctorId,
-      roomId,
-      transcription,
-      summary,
-      date: new Date().toISOString(),
-      type: 'video-call',
-    });
-
-    await db.collection('doctors').doc(doctorId).collection('consultationsSummaries').add({
-      patientId,
-      roomId,
-      summary,
-      transcription,
-      date: new Date().toISOString(),
-      type: 'video-call',
-    });
+    await updateCallRecording(roomId, transcription, summary);
+    await saveConsultation(doctorId, patientId, roomId, transcription, summary, 'video-call');
 
     return NextResponse.json({
       success: true,

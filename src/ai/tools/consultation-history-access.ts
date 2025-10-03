@@ -2,7 +2,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { getConsultationsByPatient } from '@/lib/db-adapter';
 
 export const consultationHistoryAccessTool = ai.defineTool(
   {
@@ -22,26 +22,17 @@ export const consultationHistoryAccessTool = ai.defineTool(
     console.log(`[Consultation History Tool] Buscando histórico para paciente: ${input.patientId}`);
 
     try {
-      const db = getAdminDb();
       const limit = input.limit || 5;
+      const allConsultations = await getConsultationsByPatient(input.patientId);
+      const consultationsList = allConsultations.slice(0, limit);
 
-      const consultationsSnapshot = await db
-        .collection('patients')
-        .doc(input.patientId)
-        .collection('consultations')
-        .orderBy('date', 'desc')
-        .limit(limit)
-        .get();
-
-      if (consultationsSnapshot.empty) {
+      if (consultationsList.length === 0) {
         return `Nenhuma consulta gravada encontrada para o paciente com ID: ${input.patientId}`;
       }
 
-      let response = `Histórico de Consultas do Paciente (${consultationsSnapshot.size} consulta(s) recente(s)):\n\n`;
+      let response = `Histórico de Consultas do Paciente (${consultationsList.length} consulta(s) recente(s)):\n\n`;
 
-      let index = 0;
-      consultationsSnapshot.forEach((doc) => {
-        const consultation = doc.data();
+      consultationsList.forEach((consultation, index) => {
         const consultDate = new Date(consultation.date).toLocaleDateString('pt-BR', {
           day: '2-digit',
           month: '2-digit',

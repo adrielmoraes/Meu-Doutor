@@ -1,11 +1,11 @@
 
 'use server';
 /**
- * @fileOverview A tool for accessing a patient's medical data from Firestore.
+ * @fileOverview A tool for accessing a patient's medical data from the database.
  */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { getPatientById, getExamsByPatientId } from '@/lib/firestore-client-adapter';
+import { getPatientById, getExamsByPatientId } from '@/lib/db-adapter';
 
 export const patientDataAccessTool = ai.defineTool(
     {

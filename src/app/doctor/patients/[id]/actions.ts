@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getPatientById, updatePatient, updateExam, getExamsByPatientId } from '@/lib/firestore-adapter';
+import { getPatientById, updatePatient, updateExam, getExamsByPatientId } from '@/lib/db-adapter';
 import { revalidatePath } from 'next/cache';
 import { generateHealthInsights } from '@/ai/flows/generate-health-insights';
 import { summarizePatientHistory } from '@/ai/flows/summarize-patient-history';

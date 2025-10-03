@@ -1,6 +1,6 @@
 
 import PatientDashboard from "@/components/patient/patient-dashboard";
-import { getPatientById } from "@/lib/firestore-admin-adapter";
+import { getPatientById } from "@/lib/db-adapter";
 import type { GenerateHealthInsightsOutput } from "@/ai/flows/generate-health-insights";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
@@ -33,13 +33,11 @@ async function getDashboardData(patientId: string): Promise<DashboardData> {
         const errorMessage = e.message?.toLowerCase() || '';
         const errorCode = e.code?.toLowerCase() || '';
         
-        if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
-            const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
+        if (errorMessage.includes('connection') || errorCode.includes('not-found')) {
             return { 
                 patient: null,
                 healthInsights: null,
-                error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada ou o cliente está offline.",
-                fixUrl: firestoreApiUrl 
+                error: "Não foi possível conectar ao banco de dados. Verifique se o banco de dados está configurado corretamente."
             };
         }
         console.error("Unexpected dashboard error:", e);

@@ -1,8 +1,7 @@
 
 'use server';
 
-import { getAdminDb } from '@/lib/firebase-admin';
-import { getDoctorById, updateDoctorAvailability } from '@/lib/firestore-admin-adapter';
+import { getDoctorById, updateDoctorAvailability, deleteAppointment } from '@/lib/db-adapter';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
@@ -26,17 +25,14 @@ export async function cancelAppointmentAction(prevState: any, formData: FormData
     const { appointmentId, doctorId, date, time } = validatedFields.data;
 
     try {
-        const adminDb = getAdminDb();
         const doctor = await getDoctorById(doctorId);
 
         if (!doctor) {
             throw new Error('Médico não encontrado.');
         }
 
-        // 1. Deletar o agendamento
-        await adminDb.collection('appointments').doc(appointmentId).delete();
+        await deleteAppointment(appointmentId);
 
-        // 2. Atualizar a disponibilidade do médico para tornar o slot disponível novamente
         const updatedAvailability = (doctor.availability || []).map(slot => 
             (slot.date === date && slot.time === time) ? { ...slot, available: true } : slot
         );

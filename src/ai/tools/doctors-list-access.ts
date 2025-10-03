@@ -2,7 +2,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { getDoctors, getDoctorsBySpecialty } from '@/lib/db-adapter';
 
 export const doctorsListAccessTool = ai.defineTool(
   {
@@ -16,42 +16,41 @@ export const doctorsListAccessTool = ai.defineTool(
   },
   async (input) => {
     try {
-      const adminDb = getAdminDb();
-      let query = adminDb.collection('doctors');
+      const limit = input.limit || 10;
+      let doctorsList;
 
       if (input.specialty) {
-        query = query.where('specialty', '==', input.specialty);
+        doctorsList = await getDoctorsBySpecialty(input.specialty, limit);
+      } else {
+        const allDoctors = await getDoctors();
+        doctorsList = allDoctors.slice(0, limit);
       }
 
-      const limit = input.limit || 10;
-      const snapshot = await query.limit(limit).get();
-
-      if (snapshot.empty) {
+      if (doctorsList.length === 0) {
         if (input.specialty) {
           return `Não encontramos médicos cadastrados com a especialidade "${input.specialty}" no momento. Temos médicos de outras especialidades disponíveis. Posso buscar para você?`;
         }
         return 'No momento não há médicos cadastrados no sistema.';
       }
 
-      let response = `Médicos Disponíveis no Sistema MediAI (${snapshot.size} encontrado(s)):\n\n`;
+      let response = `Médicos Disponíveis no Sistema MediAI (${doctorsList.length} encontrado(s)):\n\n`;
 
-      snapshot.forEach((doc, index) => {
-        const doctor = doc.data();
+      doctorsList.forEach((doctor, index) => {
         
         response += `👨‍⚕️ Dr(a). ${doctor.name || 'Nome não informado'}\n`;
         response += `📋 Especialidade: ${doctor.specialty || 'Não especificada'}\n`;
         
-        if (doctor.crm) {
-          response += `🆔 CRM: ${doctor.crm}\n`;
+        if ((doctor as any).crm) {
+          response += `🆔 CRM: ${(doctor as any).crm}\n`;
         }
         
-        if (doctor.bio) {
-          const shortBio = doctor.bio.substring(0, 150);
-          response += `📝 Sobre: ${shortBio}${doctor.bio.length > 150 ? '...' : ''}\n`;
+        if ((doctor as any).bio) {
+          const shortBio = (doctor as any).bio.substring(0, 150);
+          response += `📝 Sobre: ${shortBio}${(doctor as any).bio.length > 150 ? '...' : ''}\n`;
         }
         
-        if (doctor.experience) {
-          response += `⭐ Experiência: ${doctor.experience} anos\n`;
+        if ((doctor as any).experience) {
+          response += `⭐ Experiência: ${(doctor as any).experience} anos\n`;
         }
 
         if (doctor.level !== undefined) {

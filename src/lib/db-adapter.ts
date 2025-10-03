@@ -65,6 +65,16 @@ export async function updateDoctor(id: string, data: Partial<Doctor>): Promise<v
   await db.update(doctors).set({ ...data, updatedAt: new Date() }).where(eq(doctors.id, id));
 }
 
+export async function getDoctors(): Promise<Doctor[]> {
+  const result = await db.select().from(doctors);
+  return result.map(convertDatabaseToType<Doctor>);
+}
+
+export async function getDoctorsBySpecialty(specialty: string, limit: number = 10): Promise<Doctor[]> {
+  const result = await db.select().from(doctors).where(eq(doctors.specialty, specialty)).limit(limit);
+  return result.map(convertDatabaseToType<Doctor>);
+}
+
 export async function updateDoctorStatus(doctorId: string, online: boolean): Promise<void> {
   await db.update(doctors).set({ online, updatedAt: new Date() }).where(eq(doctors.id, doctorId));
 }
@@ -204,6 +214,14 @@ export async function createAppointment(appointmentData: Omit<Appointment, 'id'>
   return id;
 }
 
+export async function addAppointment(appointmentData: Omit<Appointment, 'id'>): Promise<string> {
+  return createAppointment(appointmentData);
+}
+
+export async function deleteAppointment(appointmentId: string): Promise<void> {
+  await db.delete(appointments).where(eq(appointments.id, appointmentId));
+}
+
 export async function updateAppointmentStatus(
   appointmentId: string,
   status: 'Agendada' | 'Concluída' | 'Cancelada'
@@ -246,6 +264,13 @@ export async function updateCallRoomStatus(
   }
 
   await db.update(callRooms).set(updateData).where(eq(callRooms.id, roomId));
+}
+
+export async function updateCallRecording(roomId: string, transcription: string, summary: string): Promise<void> {
+  await db.update(callRooms).set({
+    recording: JSON.stringify({ transcription, summary, processedAt: new Date().toISOString() }),
+    updatedAt: new Date()
+  }).where(eq(callRooms.id, roomId));
 }
 
 export async function getActiveCallsForDoctor(doctorId: string) {
