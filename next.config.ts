@@ -24,11 +24,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Adicione a configuração allowedDevOrigins para ambientes de desenvolvimento
-  // Adapte a URL para o seu ambiente de desenvolvimento específico
-  experimental: {
-    allowedDevOrigins: ['https://9000-firebase-studio-1755954095287.cluster-57i2ylwve5fskth4xb2kui2ow2.cloudworkstations.dev'],
-  },
   async headers() {
     return [
       {
