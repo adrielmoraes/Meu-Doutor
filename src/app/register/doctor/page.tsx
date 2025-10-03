@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createDoctorAction } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Stethoscope } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function DoctorRegisterPage() {
@@ -47,48 +47,64 @@ export default function DoctorRegisterPage() {
   }, [state, toast, router]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ background: 'linear-gradient(to right, #edb6d9, #f2f3ef)' }}>
-      <Card className="mx-auto max-w-md w-full shadow-xl" style={{ background: 'linear-gradient(to bottom right, #fff8fc, #f9e6f3)' }}>
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-[#ea339e]">Cadastro de Médico</CardTitle>
-          <CardDescription className="text-black font-medium">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden py-12">
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
+      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
+      <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
+      
+      <Card className="mx-auto max-w-md w-full shadow-2xl bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-purple-500/20 relative z-10">
+        <CardHeader className="space-y-4">
+          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
+            <Stethoscope className="h-7 w-7 text-purple-400" />
+          </div>
+          
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
+            Cadastro de Médico
+          </CardTitle>
+          <CardDescription className="text-blue-200/70">
             Preencha os dados abaixo para criar sua conta profissional
           </CardDescription>
         </CardHeader>
+        
         <CardContent>
           <form action={formAction}>
             <div className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="fullName" className="text-black font-semibold">Nome Completo</Label>
+                <Label htmlFor="fullName" className="text-blue-100">Nome Completo</Label>
                 <Input
                   id="fullName"
                   name="fullName"
                   placeholder="Seu nome completo"
                   required
-                  className="border-[#ea339e]/30 focus:border-[#ea339e] bg-white/80"
+                  className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-slate-500"
                 />
-                {state?.errors?.fullName && <p className="text-xs text-destructive">{state.errors.fullName[0]}</p>}
+                {state?.errors?.fullName && <p className="text-xs text-red-400">{state.errors.fullName[0]}</p>}
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="crm" className="text-black font-semibold">CRM</Label>
+                <Label htmlFor="crm" className="text-blue-100">CRM</Label>
                 <Input
                   id="crm"
                   name="crm"
                   placeholder="Seu registro no CRM"
                   required
-                  className="border-[#ea339e]/30 focus:border-[#ea339e] bg-white/80"
+                  className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-slate-500"
                 />
-                {state?.errors?.crm && <p className="text-xs text-destructive">{state.errors.crm[0]}</p>}
+                {state?.errors?.crm && <p className="text-xs text-red-400">{state.errors.crm[0]}</p>}
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="specialty" className="text-black font-semibold">Especialidade</Label>
+                <Label htmlFor="specialty" className="text-blue-100">Especialidade</Label>
                 <Select name="specialty" required>
-                  <SelectTrigger id="specialty" className="border-[#ea339e]/30 focus:border-[#ea339e] bg-white/80">
+                  <SelectTrigger 
+                    id="specialty" 
+                    className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white"
+                  >
                     <SelectValue placeholder="Selecione sua especialidade" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-slate-900 border-purple-500/30 text-white">
                     <SelectItem value="Cardiologia">Cardiologia</SelectItem>
                     <SelectItem value="Neurologia">Neurologia</SelectItem>
                     <SelectItem value="Clínica Geral">Clínica Geral</SelectItem>
@@ -96,58 +112,58 @@ export default function DoctorRegisterPage() {
                     <SelectItem value="Ortopedia">Ortopedia</SelectItem>
                   </SelectContent>
                 </Select>
-                {state?.errors?.specialty && <p className="text-xs text-destructive">{state.errors.specialty[0]}</p>}
+                {state?.errors?.specialty && <p className="text-xs text-red-400">{state.errors.specialty[0]}</p>}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="city" className="text-black font-semibold">Cidade de Atuação</Label>
+                  <Label htmlFor="city" className="text-blue-100">Cidade de Atuação</Label>
                   <Input 
                     id="city" 
                     name="city" 
                     placeholder="Sua cidade" 
                     required 
-                    className="border-[#ea339e]/30 focus:border-[#ea339e] bg-white/80"
+                    className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-slate-500"
                   />
-                  {state?.errors?.city && <p className="text-xs text-destructive">{state.errors.city[0]}</p>}
+                  {state?.errors?.city && <p className="text-xs text-red-400">{state.errors.city[0]}</p>}
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="state" className="text-black font-semibold">Estado</Label>
+                  <Label htmlFor="state" className="text-blue-100">Estado</Label>
                   <Input 
                     id="state" 
                     name="state" 
                     placeholder="UF" 
                     required 
                     maxLength={2} 
-                    className="border-[#ea339e]/30 focus:border-[#ea339e] bg-white/80"
+                    className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-slate-500"
                   />
-                  {state?.errors?.state && <p className="text-xs text-destructive">{state.errors.state[0]}</p>}
+                  {state?.errors?.state && <p className="text-xs text-red-400">{state.errors.state[0]}</p>}
                 </div>
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="email" className="text-black font-semibold">E-mail</Label>
+                <Label htmlFor="email" className="text-blue-100">E-mail</Label>
                 <Input
                   id="email"
                   name="email"
                   type="email"
                   placeholder="seu@email.com"
                   required
-                  className="border-[#ea339e]/30 focus:border-[#ea339e] bg-white/80"
+                  className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-slate-500"
                 />
-                {state?.errors?.email && <p className="text-xs text-destructive">{state.errors.email[0]}</p>}
+                {state?.errors?.email && <p className="text-xs text-red-400">{state.errors.email[0]}</p>}
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="password" className="text-black font-semibold">Senha (mínimo 6 caracteres)</Label>
+                <Label htmlFor="password" className="text-blue-100">Senha (mínimo 6 caracteres)</Label>
                 <Input 
                   id="password" 
                   name="password" 
                   type="password" 
                   required 
-                  className="border-[#ea339e]/30 focus:border-[#ea339e] bg-white/80"
+                  className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white"
                 />
-                {state?.errors?.password && <p className="text-xs text-destructive">{state.errors.password[0]}</p>}
+                {state?.errors?.password && <p className="text-xs text-red-400">{state.errors.password[0]}</p>}
               </div>
 
               {state.success && state.message && (
@@ -163,9 +179,9 @@ export default function DoctorRegisterPage() {
             </div>
           </form>
 
-          <div className="mt-4 text-center text-sm text-black">
+          <div className="mt-6 text-center text-sm text-blue-200/70">
             Já possui uma conta?{" "}
-            <Link href="/login" className="underline text-[#ea339e] hover:text-[#d12b8d] font-medium">
+            <Link href="/login" className="underline text-purple-400 hover:text-purple-300 font-medium">
               Faça login
             </Link>
           </div>
@@ -178,7 +194,11 @@ export default function DoctorRegisterPage() {
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" className="w-full bg-[#ea339e] hover:bg-[#d12b8d]" disabled={pending}>
+    <Button 
+        type="submit" 
+        className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold shadow-lg shadow-purple-500/20 transition-all" 
+        disabled={pending}
+    >
       {pending ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
