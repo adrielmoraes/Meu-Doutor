@@ -6,8 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Phone, PhoneOff } from 'lucide-react';
-import { getAppointments } from '@/lib/firestore-client-adapter';
-import { Appointment } from '@/lib/types';
+import { getCurrentDoctorId } from './actions';
 
 interface CallRequest {
   id: string;
@@ -21,25 +20,41 @@ interface CallRequest {
 export default function DoctorCallsPage() {
   const [callRequests, setCallRequests] = useState<CallRequest[]>([]);
   const [activeCall, setActiveCall] = useState<CallRequest | null>(null);
+  const [doctorId, setDoctorId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadCallRequests();
-    // Configurar listener para chamadas em tempo real
-    const interval = setInterval(loadCallRequests, 5000);
-    return () => clearInterval(interval);
+    initializePage();
   }, []);
 
-  const loadCallRequests = async () => {
+  useEffect(() => {
+    if (doctorId) {
+      loadCallRequests();
+      const interval = setInterval(loadCallRequests, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [doctorId]);
+
+  const initializePage = async () => {
     try {
-      // Carregar chamadas ativas do Firebase
-      const response = await fetch('/api/webrtc/doctor-calls/doctor-id'); // Substituir com ID real
+      const currentDoctorId = await getCurrentDoctorId();
+      setDoctorId(currentDoctorId);
+    } catch (error) {
+      console.error('Erro ao obter ID do médico:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadCallRequests = async () => {
+    if (!doctorId) return;
+    
+    try {
+      const response = await fetch(`/api/webrtc/doctor-calls/${doctorId}`);
       const calls = await response.json();
       setCallRequests(calls);
     } catch (error) {
       console.error('Erro ao carregar chamadas:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -84,12 +99,12 @@ export default function DoctorCallsPage() {
     );
   }
 
-  if (activeCall) {
+  if (activeCall && doctorId) {
     return (
       <div className="container mx-auto py-8">
         <VideoCall
           roomId={activeCall.roomId}
-          userId="doctor-id" // Substituir com ID real
+          userId={doctorId}
           targetId={activeCall.patientId}
           isInitiator={false}
           onCallEnd={endCall}

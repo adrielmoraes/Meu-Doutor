@@ -27,10 +27,14 @@ export const VideoCall: React.FC<VideoCallProps> = ({
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isConnecting, setIsConnecting] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
+  const remoteStreamRef = useRef<MediaStream | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     initializeCall();
@@ -73,9 +77,11 @@ export const VideoCall: React.FC<VideoCallProps> = ({
       });
 
       newPeer.on('stream', (stream) => {
+        remoteStreamRef.current = stream;
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = stream;
         }
+        startRecording();
       });
 
       newPeer.on('error', (err) => {
@@ -186,7 +192,79 @@ export const VideoCall: React.FC<VideoCallProps> = ({
     onCallEnd();
   };
 
+  const startRecording = async () => {
+    if (!localStreamRef.current || !remoteStreamRef.current) return;
+    
+    try {
+      const audioContext = new AudioContext();
+      const localAudioSource = audioContext.createMediaStreamSource(localStreamRef.current);
+      const remoteAudioSource = audioContext.createMediaStreamSource(remoteStreamRef.current);
+      const destination = audioContext.createMediaStreamDestination();
+      
+      localAudioSource.connect(destination);
+      remoteAudioSource.connect(destination);
+      
+      const mixedStream = destination.stream;
+      const mediaRecorder = new MediaRecorder(mixedStream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await sendRecordingToServer(audioBlob);
+        audioChunksRef.current = [];
+      };
+      
+      mediaRecorder.start(1000);
+      mediaRecorderRef.current = mediaRecorder;
+      setIsRecording(true);
+      
+      console.log('Gravação de áudio iniciada');
+    } catch (error) {
+      console.error('Erro ao iniciar gravação:', error);
+    }
+  };
+  
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      console.log('Gravação de áudio finalizada');
+    }
+  };
+  
+  const sendRecordingToServer = async (audioBlob: Blob) => {
+    try {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'call-recording.webm');
+      formData.append('roomId', roomId);
+      formData.append('patientId', isInitiator ? userId : targetId);
+      formData.append('doctorId', isInitiator ? targetId : userId);
+      
+      const response = await fetch('/api/webrtc/process-recording', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Gravação processada com sucesso:', result);
+      } else {
+        console.error('Erro ao processar gravação');
+      }
+    } catch (error) {
+      console.error('Erro ao enviar gravação:', error);
+    }
+  };
+
   const cleanup = () => {
+    stopRecording();
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => track.stop());
     }
@@ -213,8 +291,14 @@ export const VideoCall: React.FC<VideoCallProps> = ({
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-center">
+        <CardTitle className="text-center flex items-center justify-center gap-2">
           {isConnecting ? 'Conectando...' : isConnected ? 'Chamada Ativa' : 'Aguardando Conexão'}
+          {isRecording && (
+            <span className="flex items-center gap-1 text-sm text-red-500">
+              <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              Gravando
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>

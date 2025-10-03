@@ -9,6 +9,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { textToSpeech } from './text-to-speech';
 import { patientDataAccessTool } from '../tools/patient-data-access';
+import { consultationHistoryAccessTool } from '../tools/consultation-history-access';
 import { gemini15Pro } from '@genkit-ai/googleai';
 
 // Schemas for the live consultation flow
@@ -36,7 +37,10 @@ IMPORTANT: You are not a doctor. You must not provide a diagnosis or prescribe m
 This is a real-time voice and potentially video conversation. Keep your responses concise and natural.
 You can also perceive visual information from the patient if it's provided.
 
-When necessary, use the 'patientDataAccessTool' to access the patient's medical records for questions about their history, past diagnoses, or exam results.
+When necessary, use these tools:
+- 'patientDataAccessTool': To access the patient's medical records, exam results, and current health status.
+- 'consultationHistoryAccessTool': To access previous consultation summaries and transcriptions. This is especially useful to understand the patient's medical journey, previous diagnoses, and ongoing treatments.
+
 Your response must always be in Brazilian Portuguese.`;
 
 /**
@@ -74,7 +78,7 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
   const initialResponse = await ai.generate({
     model: gemini15Pro, // Using the specified multimodal model
     messages: messages,
-    tools: [patientDataAccessTool],
+    tools: [patientDataAccessTool, consultationHistoryAccessTool],
     toolRequest: 'auto'
   });
 
@@ -85,7 +89,9 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
   // Step 2: If the model requests a tool, execute it and get a follow-up response.
   if (toolRequest) {
     console.log(`[Live Consultation] AI requested tool: ${toolRequest.name}`);
-    const toolResult = await patientDataAccessTool(toolRequest.input);
+    const toolResult = toolRequest.name === 'consultationHistoryAccessTool' 
+      ? await consultationHistoryAccessTool(toolRequest.input)
+      : await patientDataAccessTool(toolRequest.input);
 
     const toolFollowUpResponse = await ai.generate({
       model: gemini15Pro,
@@ -94,7 +100,7 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
         initialMessage, // Include the model's prior message with the tool request
         { role: 'tool', content: [{ toolResponse: { name: toolRequest.name, output: toolResult } }] }
       ],
-      tools: [patientDataAccessTool],
+      tools: [patientDataAccessTool, consultationHistoryAccessTool],
     });
 
     const followUpText = toolFollowUpResponse.text || '';

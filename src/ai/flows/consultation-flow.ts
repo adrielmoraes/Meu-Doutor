@@ -12,6 +12,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { patientDataAccessTool } from '../tools/patient-data-access';
+import { consultationHistoryAccessTool } from '../tools/consultation-history-access';
 import { textToSpeech } from './text-to-speech';
 
 
@@ -38,7 +39,11 @@ export type ConsultationOutput = z.infer<typeof ConsultationOutputSchema>;
 const SYSTEM_PROMPT = `You are MediAI, a friendly and empathetic AI medical assistant. Your goal is to talk to the patient, understand their symptoms, and provide helpful, safe, and preliminary guidance.
 IMPORTANT: You are not a doctor. You must not provide a diagnosis or prescribe medication. Always advise the patient to consult with a human doctor for a definitive diagnosis and treatment.
 
-This is the most important instruction: You MUST use the 'patientDataAccessTool' to access the patient's medical records when they ask questions about their history, past diagnoses, or exam results. You must use the tool to get the most up-to-date information. Do not invent information.
+This is the most important instruction: You MUST use these tools to access the patient's information:
+- 'patientDataAccessTool': To access the patient's medical records, current health status, and exam results.
+- 'consultationHistoryAccessTool': To access previous medical consultations, including summaries and transcriptions from video calls. This helps you understand the patient's medical history and ongoing treatments.
+
+Do not invent information. Always use the tools to get the most up-to-date information.
 
 Keep your responses concise, direct, and easy to understand to facilitate a real-time conversation. Start the conversation by introducing yourself and asking how you can help, unless a conversation is already in progress.
 Your response must always be in Brazilian Portuguese.`;
@@ -56,7 +61,7 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
     // Step 1: Make the initial call to the model to see if it wants to use a tool or respond directly.
     const initialResponse = await ai.generate({
         messages,
-        tools: [patientDataAccessTool],
+        tools: [patientDataAccessTool, consultationHistoryAccessTool],
         toolRequest: 'auto'
     });
     
@@ -70,7 +75,9 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
     // Step 2: If the model wants to use a tool, execute it and get a follow-up response.
     if (toolRequest) {
         console.log(`[Consultation Flow] AI requested tool: ${toolRequest.name} with input:`, JSON.stringify(toolRequest.input, null, 2));
-        const toolResult = await patientDataAccessTool(toolRequest.input);
+        const toolResult = toolRequest.name === 'consultationHistoryAccessTool'
+            ? await consultationHistoryAccessTool(toolRequest.input)
+            : await patientDataAccessTool(toolRequest.input);
         console.log(`[Consultation Flow] Tool ${toolRequest.name} result:`, JSON.stringify(toolResult, null, 2));
 
         // Send the tool's result back to the model.
@@ -80,7 +87,7 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
                 initialMessage, // Corrected: Use the full initialMessage here
                 { role: 'tool', content: [{ toolResponse: { name: toolRequest.name, output: toolResult } }] }
             ],
-            tools: [patientDataAccessTool], // Still provide tools in case it needs another one.
+            tools: [patientDataAccessTool, consultationHistoryAccessTool], // Still provide tools in case it needs another one.
             toolRequest: 'auto'
         });
         

@@ -89,3 +89,21 @@ export type Appointment = {
     type: string;
     status: 'Agendada' | 'Concluída' | 'Cancelada';
 };
+
+export type CallRecording = {
+    transcription: string;
+    summary: string;
+    processedAt: string;
+    audioStoredAt: string | null;
+};
+
+export type Consultation = {
+    id: string;
+    doctorId: string;
+    patientId: string;
+    roomId: string;
+    transcription: string;
+    summary: string;
+    date: string;
+    type: 'video-call' | 'chat';
+};

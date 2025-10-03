@@ -8,45 +8,54 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Phone } from 'lucide-react';
 import { getDoctorById } from '@/lib/firestore-client-adapter';
 import { Doctor } from '@/lib/types';
+import { getCurrentPatientId } from '../actions';
 
 export default function PatientCallPage() {
   const params = useParams();
   const doctorId = params.doctorId as string;
   
   const [doctor, setDoctor] = useState<Doctor | null>(null);
+  const [patientId, setPatientId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [callStarted, setCallStarted] = useState(false);
   const [roomId, setRoomId] = useState<string>('');
 
   useEffect(() => {
-    loadDoctorData();
+    loadData();
   }, [doctorId]);
 
-  const loadDoctorData = async () => {
+  const loadData = async () => {
     try {
-      const doctorData = await getDoctorById(doctorId);
+      const [doctorData, currentPatientId] = await Promise.all([
+        getDoctorById(doctorId),
+        getCurrentPatientId()
+      ]);
       setDoctor(doctorData);
+      setPatientId(currentPatientId);
     } catch (error) {
-      console.error('Erro ao carregar dados do médico:', error);
+      console.error('Erro ao carregar dados:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const startCall = async () => {
-    // Gerar ID único da sala
+    if (!patientId) {
+      console.error('ID do paciente não encontrado');
+      return;
+    }
+
     const newRoomId = `call_${doctorId}_${Date.now()}`;
     setRoomId(newRoomId);
     setCallStarted(true);
 
-    // Criar registro da chamada no Firebase
     try {
       const response = await fetch('/api/webrtc/create-call', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           roomId: newRoomId,
-          patientId: 'current-patient-id', // Substituir com ID real do paciente
+          patientId,
           doctorId,
           type: 'patient-initiated',
         }),
@@ -86,12 +95,12 @@ export default function PatientCallPage() {
     );
   }
 
-  if (callStarted && roomId) {
+  if (callStarted && roomId && patientId) {
     return (
       <div className="container mx-auto py-8">
         <VideoCall
           roomId={roomId}
-          userId="current-patient-id" // Substituir com ID real
+          userId={patientId}
           targetId={doctorId}
           isInitiator={true}
           onCallEnd={handleCallEnd}
