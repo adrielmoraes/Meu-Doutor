@@ -28,6 +28,10 @@ export async function updateDoctorAvailabilityAction(prevState: ActionResult, fo
     }
 
     try {
+        if (!timesJson || timesJson.trim() === '') {
+            return { success: false, message: 'Nenhum horário selecionado.', errors: null };
+        }
+        
         const selectedTimes = JSON.parse(timesJson) as string[];
         const targetDate = new Date(dateStr);
 

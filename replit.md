@@ -33,11 +33,27 @@ Preferred communication style: Simple, everyday language.
 - File storage migrated from Firebase Storage to Google Cloud Storage.
 - WebRTC signaling migrated from Firestore to PostgreSQL.
 - Enhanced AI system with Gemini 2.5 Flash and improved specialist agent schemas for detailed clinical findings, assessments, and recommendations.
-- AI "Central Brain" system with avatar support (in progress for 3D avatars and D-ID integration).
+- **AI "Central Brain" system with 3D TalkingHead avatar** - Implemented using TalkingHead.js + Gemini 2.5 Flash TTS for realistic lip-sync and natural voice in Portuguese.
 - Call recording and transcription via Gemini AI with storage in PostgreSQL.
 - Server-side AI processing to secure sensitive medical data.
 - Per-exam validation workflow.
 - Gamification for doctors (XP, levels, badges) to encourage platform engagement.
+
+## Recent Changes (Oct 2025)
+
+### Avatar 3D TalkingHead Implementation
+**Components Created:**
+- `TalkingAvatar3D` - Main 3D avatar component with CDN loading, WebGL rendering, lip-sync via Ready Player Me
+- `AvatarTestPanel` - Testing interface with speech controls
+- `/api/gemini-tts` - TTS endpoint using Gemini 2.5 Flash (Portuguese, Puck voice)
+- `useAvatarSpeech` hook - Control avatar speech with mood/subtitle support
+
+**Integration Points:**
+- Patient call page (`/patient/call/[doctorId]`) - Avatar during video consultations
+- Doctor dashboard (`/doctor`) - "IA Central Brain" card with online status
+- Uses Three.js 0.161.0 + TalkingHead.js from CDN
+- Ready Player Me avatar with ARKit/Oculus Visemes morphTargets for lip-sync
+- Audio: PCM 16-bit, 24kHz, mono via Gemini 2.5 Flash TTS
 
 ## External Dependencies
 

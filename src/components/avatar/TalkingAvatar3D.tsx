@@ -95,10 +95,15 @@ export function TalkingAvatar3D({
           setIsLoading(false);
           onReady?.();
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Erro ao carregar avatar 3D:', err);
         if (mounted) {
-          setError('Falha ao carregar avatar 3D');
+          // Detectar erro de WebGL (comum em ambientes sem GPU)
+          if (err?.message?.includes('WebGL')) {
+            setError('Avatar 3D requer suporte WebGL (GPU)');
+          } else {
+            setError('Falha ao carregar avatar 3D');
+          }
           setIsLoading(false);
         }
       }
@@ -118,10 +123,10 @@ export function TalkingAvatar3D({
     };
   }, [avatarUrl, mood, onReady]);
 
-  // Expor método de fala via ref
+  // Expor instância do avatar para controle externo
   useEffect(() => {
-    if (headRef.current) {
-      (avatarRef.current as any)?.setAvatarInstance?.(headRef.current);
+    if (headRef.current && avatarRef.current) {
+      (avatarRef.current as any).avatarInstance = headRef.current;
     }
   }, [headRef.current]);
 
@@ -141,7 +146,8 @@ export function TalkingAvatar3D({
         </div>
       )}
       <div 
-        ref={avatarRef} 
+        ref={avatarRef}
+        data-avatar-instance
         className="w-full h-full rounded-lg overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
         style={{ minHeight: '400px' }}
       />
@@ -149,13 +155,16 @@ export function TalkingAvatar3D({
   );
 }
 
-export function useAvatarSpeech(avatarRef: React.RefObject<HTMLDivElement>) {
+export function useAvatarSpeech(containerRef: React.RefObject<HTMLDivElement>) {
   const speak = async (text: string, options?: {
     mood?: 'neutral' | 'happy' | 'sad' | 'surprised' | 'angry';
     voice?: string;
     onSubtitles?: (text: string) => void;
   }) => {
-    const avatarInstance = (avatarRef.current as any)?.avatarInstance;
+    // Buscar a div do avatar dentro do container
+    const avatarDiv = containerRef.current?.querySelector('[data-avatar-instance]') as any;
+    const avatarInstance = avatarDiv?.avatarInstance;
+    
     if (!avatarInstance) {
       console.error('Avatar não inicializado');
       return;
@@ -164,7 +173,7 @@ export function useAvatarSpeech(avatarRef: React.RefObject<HTMLDivElement>) {
     try {
       await avatarInstance.speakText(text, {
         avatarMood: options?.mood || 'neutral',
-        ttsVoice: options?.voice || 'pt-BR-Standard-A'
+        ttsVoice: options?.voice || 'Puck'
       }, options?.onSubtitles);
     } catch (err) {
       console.error('Erro ao falar:', err);
@@ -172,7 +181,9 @@ export function useAvatarSpeech(avatarRef: React.RefObject<HTMLDivElement>) {
   };
 
   const stopSpeaking = () => {
-    const avatarInstance = (avatarRef.current as any)?.avatarInstance;
+    const avatarDiv = containerRef.current?.querySelector('[data-avatar-instance]') as any;
+    const avatarInstance = avatarDiv?.avatarInstance;
+    
     if (avatarInstance) {
       try {
         avatarInstance.stopSpeaking();
