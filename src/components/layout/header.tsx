@@ -60,8 +60,8 @@ const Header = () => {
               <Link href="/#features" className="text-base font-medium text-foreground/80 hover:text-foreground">
                 Recursos
               </Link>
-              <Link href="/#tech" className="text-base font-medium text-foreground/80 hover:text-foreground">
-                Tecnologia
+              <Link href="/pricing" className="text-base font-medium text-foreground/80 hover:text-foreground">
+                Preços
               </Link>
               <Link href="/#demo" className="text-base font-medium text-foreground/80 hover:text-foreground">
                 Demo
@@ -109,8 +109,8 @@ const Header = () => {
                   <Link href="/#features" className="text-base font-medium text-foreground/80 hover:text-foreground">
                     Recursos
                   </Link>
-                  <Link href="/#tech" className="text-base font-medium text-foreground/80 hover:text-foreground">
-                    Tecnologia
+                  <Link href="/pricing" className="text-base font-medium text-foreground/80 hover:text-foreground">
+                    Preços
                   </Link>
                   <Link href="/#demo" className="text-base font-medium text-foreground/80 hover:text-foreground">
                     Demo
