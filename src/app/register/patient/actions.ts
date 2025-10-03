@@ -1,7 +1,7 @@
 
 'use server';
 
-import { addPatientWithAuth, getPatientByEmail } from '@/lib/firestore-admin-adapter';
+import { addPatientWithAuth, getPatientByEmail } from '@/lib/db-adapter';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { differenceInYears } from 'date-fns';
