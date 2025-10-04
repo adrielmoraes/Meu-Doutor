@@ -18,6 +18,14 @@ const GenerateWellnessPlanFromExamsOutputSchema = z.object({
     title: z.string(),
     description: z.string(),
   })).describe("3-4 actionable daily reminders"),
+  weeklyRecipes: z.array(z.object({
+    id: z.string().describe("Unique ID for the recipe (use format: recipe-1, recipe-2, etc)"),
+    title: z.string().describe("Nome atrativo da receita"),
+    mealType: z.enum(['cafe-da-manha', 'almoco', 'jantar', 'lanche']),
+    ingredients: z.array(z.string()).describe("Lista de ingredientes com quantidades"),
+    instructions: z.string().describe("Modo de preparo passo a passo"),
+    dayOfWeek: z.string().describe("Dia da semana sugerido (Segunda-feira, Terça-feira, etc)"),
+  })).describe("7 receitas saudáveis, uma para cada dia da semana"),
   weeklyTasks: z.array(z.object({
     id: z.string().describe("Unique ID for the task (use format: task-1, task-2, etc)"),
     category: z.enum(['nutrition', 'exercise', 'mental', 'general']),
@@ -42,7 +50,7 @@ const wellnessPlanSynthesisPrompt = ai.definePrompt({
 
 You received a detailed nutritionist's analysis of the patient's exam results.
 
-**Your task:** Create 5 sections:
+**Your task:** Create 6 sections:
 
 1. **Plano Alimentar (dietaryPlan):**
    - Specific meal suggestions and timing
@@ -75,7 +83,26 @@ You received a detailed nutritionist's analysis of the patient's exam results.
      * Use 'Dumbbell' for exercise/movement reminders
    - Make them specific and encouraging
 
-5. **Tarefas Semanais (weeklyTasks):**
+5. **Receitas Semanais (weeklyRecipes):**
+   - Create EXACTLY 7 healthy recipes, one for each day of the week
+   - Each recipe must be tailored to the patient's medical conditions and exam results
+   - Each recipe must have:
+     * **id**: Use format "recipe-1", "recipe-2", etc (sequential numbering)
+     * **title**: Nome atrativo e apetitoso da receita em português
+     * **mealType**: Choose from 'cafe-da-manha', 'almoco', 'jantar', 'lanche'
+     * **ingredients**: Array with 5-8 ingredients with quantities (e.g., ["2 xícaras de aveia", "1 banana madura", "200ml de leite desnatado"])
+     * **instructions**: Detailed step-by-step preparation in a single string, using line breaks for each step
+     * **dayOfWeek**: Must be one of "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"
+   - Ensure recipes are:
+     * Nutritionally balanced and therapeutic for their conditions
+     * Easy to prepare (20-40 minutes maximum)
+     * Use accessible, affordable ingredients
+     * Include variety (different proteins, grains, vegetables)
+     * Follow dietary restrictions from exam results
+   - Example:
+     * {id: "recipe-1", title: "Mingau de Aveia com Frutas", mealType: "cafe-da-manha", ingredients: ["1 xícara de aveia em flocos", "2 xícaras de leite desnatado", "1 banana", "1 colher de mel", "Canela a gosto"], instructions: "1. Aqueça o leite em fogo médio\n2. Adicione a aveia e mexa constantemente\n3. Cozinhe por 5-7 minutos até engrossar\n4. Desligue o fogo e adicione mel e canela\n5. Sirva com rodelas de banana por cima", dayOfWeek: "Segunda-feira"}
+
+6. **Tarefas Semanais (weeklyTasks):**
    - Create 7-10 specific, achievable tasks for the week
    - Distribute tasks across categories: 'nutrition', 'exercise', 'mental', 'general'
    - Each task must have:
@@ -181,15 +208,6 @@ ${nutritionistAnalysis.recommendations}
 
     // 6. Validate and save to database
     try {
-      const wellnessPlanData = {
-        dietaryPlan: output.dietaryPlan,
-        exercisePlan: output.exercisePlan,
-        mentalWellnessPlan: output.mentalWellnessPlan,
-        dailyReminders: output.dailyReminders,
-        weeklyTasks: output.weeklyTasks,
-        lastUpdated: new Date().toISOString(),
-      };
-
       // Validate reminders before saving
       for (const reminder of output.dailyReminders) {
         const validIcons = ['Droplet', 'Clock', 'Coffee', 'Bed', 'Dumbbell'];
@@ -197,6 +215,15 @@ ${nutritionistAnalysis.recommendations}
           console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid icon "${reminder.icon}" in reminder "${reminder.title}". Must be one of: ${validIcons.join(', ')}`);
           console.error(`[Wellness Plan Update] Full reminder data:`, JSON.stringify(reminder, null, 2));
           throw new Error(`Invalid reminder icon: ${reminder.icon}. Must be one of: ${validIcons.join(', ')}`);
+        }
+      }
+
+      // Validate weekly recipes before saving
+      for (const recipe of output.weeklyRecipes) {
+        const validMealTypes = ['cafe-da-manha', 'almoco', 'jantar', 'lanche'];
+        if (!validMealTypes.includes(recipe.mealType)) {
+          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid mealType "${recipe.mealType}" in recipe "${recipe.title}". Must be one of: ${validMealTypes.join(', ')}`);
+          throw new Error(`Invalid recipe mealType: ${recipe.mealType}. Must be one of: ${validMealTypes.join(', ')}`);
         }
       }
 
@@ -209,9 +236,33 @@ ${nutritionistAnalysis.recommendations}
         }
       }
 
+      // Convert recipes to tasks automatically
+      const recipeTasks = output.weeklyRecipes.map((recipe, index) => ({
+        id: `recipe-task-${index + 1}`,
+        category: 'nutrition' as const,
+        title: `Preparar: ${recipe.title}`,
+        description: `Receita de ${recipe.mealType.replace('-', ' ')} para ${recipe.dayOfWeek}`,
+        dayOfWeek: recipe.dayOfWeek,
+        completed: false,
+        completedAt: undefined,
+      }));
+
+      // Combine AI-generated tasks with recipe tasks
+      const allTasks = [...output.weeklyTasks, ...recipeTasks];
+
+      const wellnessPlanData = {
+        dietaryPlan: output.dietaryPlan,
+        exercisePlan: output.exercisePlan,
+        mentalWellnessPlan: output.mentalWellnessPlan,
+        dailyReminders: output.dailyReminders,
+        weeklyRecipes: output.weeklyRecipes,
+        weeklyTasks: allTasks,
+        lastUpdated: new Date().toISOString(),
+      };
+
       await updatePatientWellnessPlan(patientId, wellnessPlanData);
       console.log(`[Wellness Plan Update] ✅ Successfully updated wellness plan for patient ${patientId}`);
-      console.log(`[Wellness Plan Update] Plan includes ${output.dailyReminders.length} daily reminders and ${output.weeklyTasks.length} weekly tasks`);
+      console.log(`[Wellness Plan Update] Plan includes ${output.dailyReminders.length} daily reminders, ${output.weeklyRecipes.length} recipes, and ${allTasks.length} weekly tasks`);
     } catch (validationError: any) {
       console.error(`[Wellness Plan Update] ❌ VALIDATION FAILED for patient ${patientId}:`, validationError.message);
       console.error(`[Wellness Plan Update] AI Output that failed validation:`, JSON.stringify(output, null, 2));

@@ -40,6 +40,14 @@ export type Patient = {
       title: string;
       description: string;
     }>;
+    weeklyRecipes: Array<{
+      id: string;
+      title: string;
+      mealType: 'cafe-da-manha' | 'almoco' | 'jantar' | 'lanche';
+      ingredients: string[];
+      instructions: string;
+      dayOfWeek: string;
+    }>;
     weeklyTasks: Array<{
       id: string;
       category: 'nutrition' | 'exercise' | 'mental' | 'general';
