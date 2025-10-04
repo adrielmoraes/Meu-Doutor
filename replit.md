@@ -41,6 +41,24 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Oct 2025)
 
+### Patient Dashboard with AI Consultation (Oct 2025)
+**Main Feature:**
+- AI Consultation Card integrated directly into patient dashboard main screen
+- Real-time video consultation with 3D avatar visible on first page
+- Featured section with futuristic design (purple/pink gradients)
+- Information sidebar explaining AI capabilities
+
+**Components Updated:**
+- `patient-dashboard-improved.tsx` - Added featured AI Consultation section with dynamic import
+- `ai-consultation-card.tsx` - Updated design to match futuristic theme with gradient cards
+- Removed old link-only approach, now full interactive component on dashboard
+
+**UX Improvements:**
+- Immediate access to AI consultation without navigation
+- Avatar 3D preview visible on dashboard
+- "Novo" badge highlighting the feature
+- Quick access alongside other patient actions
+
 ### Avatar 3D TalkingHead Implementation
 **Components Created:**
 - `TalkingAvatar3D` - Main 3D avatar component with CDN loading, WebGL rendering, lip-sync via Ready Player Me

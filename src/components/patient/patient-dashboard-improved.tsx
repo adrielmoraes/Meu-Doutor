@@ -5,6 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import Link from "next/link";
 import type { Patient } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import dynamic from 'next/dynamic';
+
+const AIConsultationCard = dynamic(() => import('./ai-consultation-card'), { 
+  ssr: false,
+  loading: () => (
+    <Card className="flex flex-col justify-between bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-xl border border-purple-500/30">
+      <CardContent className="pt-6 flex items-center justify-center h-64">
+        <div className="text-purple-300 animate-pulse">Carregando consulta IA...</div>
+      </CardContent>
+    </Card>
+  )
+});
 
 interface PatientDashboardProps {
     patient: Patient;
@@ -23,16 +35,6 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
       borderColor: "border-cyan-500/30",
       hoverBorder: "hover:border-cyan-500/60",
       hoverShadow: "hover:shadow-cyan-500/20",
-    },
-    {
-      title: "Consultar IA",
-      icon: <Brain className="h-6 w-6 text-purple-400" />,
-      href: "/patient/live-consultation",
-      description: "Converse em tempo real com nossa IA médica",
-      gradient: "from-purple-500/20 to-pink-500/20",
-      borderColor: "border-purple-500/30",
-      hoverBorder: "hover:border-purple-500/60",
-      hoverShadow: "hover:shadow-purple-500/20",
     },
     {
       title: "Médicos Disponíveis",
@@ -151,12 +153,59 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
           ))}
         </div>
 
+        {/* AI Consultation - Featured Section */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <Brain className="h-7 w-7 text-purple-400" />
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent">
+              Consulta com IA em Tempo Real
+            </h2>
+            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 border-0">
+              <Sparkles className="h-3 w-3 mr-1" />
+              Novo
+            </Badge>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <AIConsultationCard />
+            </div>
+            <div className="space-y-4">
+              <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-purple-500/20">
+                <CardHeader>
+                  <CardTitle className="text-lg text-purple-300 flex items-center gap-2">
+                    <Brain className="h-5 w-5" />
+                    Sobre a Consulta IA
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-blue-200/70">
+                  <div className="flex items-start gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-cyan-400 mt-1.5 flex-shrink-0"></div>
+                    <p>Avatar 3D realista com sincronização labial em português</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-purple-400 mt-1.5 flex-shrink-0"></div>
+                    <p>Reconhecimento de voz em tempo real</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-pink-400 mt-1.5 flex-shrink-0"></div>
+                    <p>Análise médica com 15+ especialistas IA</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"></div>
+                    <p>Respostas contextualizadas com seus exames</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+
         {/* Quick Actions */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
             Ações Rápidas
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {quickActions.map((action) => (
               <Card
                 key={action.title}

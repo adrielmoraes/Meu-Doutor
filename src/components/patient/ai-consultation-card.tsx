@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Mic, MicOff, Video, VideoOff, Phone, Loader2 } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, Phone, Loader2, Brain } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +19,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "../ui/scroll-area";
 import { RealisticAvatar } from "./realistic-avatar";
@@ -53,9 +52,6 @@ const AIConsultationCard = () => {
   const userMediaStreamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
-  const femaleAvatarUrl = "https://picsum.photos/128/128";
-  const maleAvatarUrl = "https://picsum.photos/128/128";
 
    useEffect(() => {
     // Fetch session data on the client
@@ -258,26 +254,31 @@ const AIConsultationCard = () => {
 
   return (
     <>
-      <Card className="flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl bg-primary text-primary-foreground">
+      <Card className="flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-2xl bg-gradient-to-br from-purple-900/40 to-pink-900/40 backdrop-blur-xl border border-purple-500/30 hover:border-purple-500/50">
         <CardHeader>
           <div className="flex items-center gap-4">
-            <Avatar className="h-12 w-12">
-              <AvatarImage src={femaleAvatarUrl} data-ai-hint="woman portrait" />
-              <AvatarFallback>AI</AvatarFallback>
-            </Avatar>
+            <div className="p-3 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-400/30">
+              <Brain className="h-8 w-8 text-purple-300" />
+            </div>
             <div>
-              <CardTitle className="text-2xl font-bold">
-                Consulta com a IA
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
+                Consulta com IA
               </CardTitle>
-              <CardDescription className="text-primary-foreground/80">
-                Converse com seu assistente por vídeo e voz.
+              <CardDescription className="text-blue-200/70">
+                Converse com seu assistente por vídeo e voz
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="bg-black/20 rounded-md aspect-video overflow-hidden flex items-center justify-center text-primary-foreground/50">
-             <Image src="/hologram-placeholder.png" alt="Hologram Placeholder" layout="fill" objectFit="cover" />
+          <div className="bg-gradient-to-br from-slate-900/80 to-purple-900/40 rounded-xl aspect-video overflow-hidden flex items-center justify-center border border-purple-500/20 relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5"></div>
+            <div className="relative flex flex-col items-center gap-3 z-10">
+              <div className="p-4 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 group-hover:scale-110 transition-transform duration-300">
+                <Video className="h-12 w-12 text-purple-300" />
+              </div>
+              <p className="text-sm text-purple-300/80 font-medium">Avatar 3D com IA pronto para atender</p>
+            </div>
           </div>
           <Button
             onClick={async () => {
@@ -299,12 +300,12 @@ const AIConsultationCard = () => {
                   });
               }
             }}
-            className="w-full bg-accent hover:bg-accent/90 text-white"
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 transition-all duration-300"
             size="lg"
             disabled={!session}
           >
             <Video className="mr-2 h-5 w-5" />
-            Iniciar Chamada
+            Iniciar Chamada com IA
           </Button>
         </CardContent>
       </Card>
