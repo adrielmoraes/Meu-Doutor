@@ -55,10 +55,8 @@ export async function getDoctors(): Promise<Doctor[]> {
 export async function addDoctorWithAuth(doctorData: Omit<Doctor, 'id'>, hashedPassword: string): Promise<void> {
   const id = randomUUID();
   
-  await db.transaction(async (tx) => {
-    await tx.insert(doctors).values({ ...doctorData, id });
-    await tx.insert(doctorAuth).values({ id, password: hashedPassword });
-  });
+  await db.insert(doctors).values({ ...doctorData, id });
+  await db.insert(doctorAuth).values({ id, password: hashedPassword });
 }
 
 export async function updateDoctor(id: string, data: Partial<Doctor>): Promise<void> {
@@ -124,10 +122,8 @@ export async function updatePatient(id: string, data: Partial<Patient>): Promise
 export async function addPatientWithAuth(patientData: Omit<Patient, 'id'>, hashedPassword: string): Promise<void> {
   const id = randomUUID();
   
-  await db.transaction(async (tx) => {
-    await tx.insert(patients).values({ ...patientData, id });
-    await tx.insert(patientAuth).values({ id, password: hashedPassword });
-  });
+  await db.insert(patients).values({ ...patientData, id });
+  await db.insert(patientAuth).values({ id, password: hashedPassword });
 }
 
 export async function getExamsByPatientId(patientId: string): Promise<Exam[]> {
