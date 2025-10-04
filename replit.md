@@ -43,15 +43,22 @@ Preferred communication style: Simple, everyday language.
 
 ### Patient Dashboard with AI Consultation (Oct 2025)
 **Main Feature:**
-- AI Consultation Card integrated directly into patient dashboard main screen
+- AI Consultation Card integrated directly into patient dashboard main screen (first card after patient name)
 - Real-time video consultation with 3D avatar visible on first page
 - Featured section with futuristic design (purple/pink gradients)
 - Information sidebar explaining AI capabilities
 
 **Components Updated:**
-- `patient-dashboard-improved.tsx` - Added featured AI Consultation section with dynamic import
+- `patient-dashboard-improved.tsx` - Added featured AI Consultation section as first card with dynamic import
 - `ai-consultation-card.tsx` - Updated design to match futuristic theme with gradient cards
+- `realistic-avatar.tsx` - **Fully refactored to use React rendering instead of DOM manipulation** (eliminates removeChild errors)
 - Removed old link-only approach, now full interactive component on dashboard
+
+**Technical Fixes:**
+- Eliminated all `innerHTML` and `appendChild` DOM manipulation in RealisticAvatar
+- Replaced with pure React conditional rendering for all avatar types
+- Proper cleanup of audio resources in useEffect
+- Fixed removeChild runtime errors during component unmount
 
 **UX Improvements:**
 - Immediate access to AI consultation without navigation
