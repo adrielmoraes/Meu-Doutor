@@ -5,6 +5,7 @@ import { Loader2, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
 
 interface RealisticAvatarProps {
   isListening: boolean;
@@ -26,9 +27,8 @@ export function RealisticAvatar({
   const [isLoading, setIsLoading] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const avatarContainerRef = useRef<HTMLDivElement>(null);
+  const [avatarImage, setAvatarImage] = useState<string>('');
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
-  const talkingHeadRef = useRef<any>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -37,18 +37,27 @@ export function RealisticAvatar({
         onAudioEnd?.();
       };
     }
+    
+    return () => {
+      if (audioPlayerRef.current) {
+        audioPlayerRef.current.pause();
+        audioPlayerRef.current.src = '';
+      }
+    };
   }, [onAudioEnd]);
 
   useEffect(() => {
-    if (avatarType === '3d') {
-      initialize3DAvatar();
-    } else if (avatarType === 'd-id') {
-      initializeDIDAvatar();
+    if (avatarType === 'd-id') {
+      const image = gender === 'female'
+        ? 'https://create-images-results.d-id.com/DefaultPresenters/Noelle_f/image.jpeg'
+        : 'https://create-images-results.d-id.com/DefaultPresenters/Dylan_m/image.jpeg';
+      setAvatarImage(image);
+      setIsLoading(false);
+      setError(null);
+    } else if (avatarType === '3d') {
+      setIsLoading(false);
+      setError(null);
     }
-
-    return () => {
-      cleanup();
-    };
   }, [avatarType, gender]);
 
   useEffect(() => {
@@ -56,80 +65,6 @@ export function RealisticAvatar({
       playAudioWithLipSync(audioBase64);
     }
   }, [audioBase64, isSpeaking]);
-
-  const initialize3DAvatar = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const avatarUrl = gender === 'female'
-        ? 'https://models.readyplayer.me/64bfa15f0e72c63d7c3934a6.glb'
-        : 'https://models.readyplayer.me/64bfa15f0e72c63d7c3934a7.glb';
-
-      const avatarDiv = document.createElement('div');
-      avatarDiv.id = 'avatar-3d-container';
-      avatarDiv.style.width = '100%';
-      avatarDiv.style.height = '100%';
-      avatarDiv.style.position = 'relative';
-      
-      if (avatarContainerRef.current && avatarContainerRef.current.parentNode) {
-        try {
-          avatarContainerRef.current.innerHTML = '';
-          avatarContainerRef.current.appendChild(avatarDiv);
-        } catch (e) {
-          console.error('[Avatar] Error appending avatar:', e);
-        }
-      }
-
-      console.log('[Avatar] Inicializando avatar 3D...');
-      setIsLoading(false);
-
-    } catch (err) {
-      console.error('[Avatar] Erro ao inicializar avatar 3D:', err);
-      setError('Falha ao carregar avatar 3D. Usando modo fallback.');
-      setIsLoading(false);
-    }
-  };
-
-  const initializeDIDAvatar = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const avatarImage = gender === 'female'
-        ? 'https://create-images-results.d-id.com/DefaultPresenters/Noelle_f/image.jpeg'
-        : 'https://create-images-results.d-id.com/DefaultPresenters/Dylan_m/image.jpeg';
-
-      if (avatarContainerRef.current && avatarContainerRef.current.parentNode) {
-        try {
-          avatarContainerRef.current.innerHTML = `
-            <div class="relative w-full h-full">
-              <img 
-                src="${avatarImage}" 
-                alt="AI Medical Assistant" 
-                class="w-full h-full object-cover rounded-lg"
-                style="filter: ${isSpeaking ? 'brightness(1.1)' : 'brightness(1)'}"
-              />
-              <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                <p class="text-white text-sm font-medium">MediAI Assistant</p>
-                <p class="text-white/80 text-xs">Assistente médica virtual</p>
-              </div>
-            </div>
-          `;
-        } catch (e) {
-          console.error('[Avatar] Error setting D-ID avatar:', e);
-        }
-      }
-
-      console.log('[Avatar] D-ID Avatar pronto (imagem estática)');
-      setIsLoading(false);
-
-    } catch (err) {
-      console.error('[Avatar] Erro ao inicializar D-ID:', err);
-      setError('Falha ao carregar avatar D-ID.');
-      setIsLoading(false);
-    }
-  };
 
   const playAudioWithLipSync = async (base64Audio: string) => {
     try {
@@ -159,23 +94,6 @@ export function RealisticAvatar({
     return new Blob([byteArray], { type: mimeType });
   };
 
-  const cleanup = () => {
-    if (audioPlayerRef.current) {
-      audioPlayerRef.current.pause();
-      audioPlayerRef.current.src = '';
-    }
-    if (talkingHeadRef.current) {
-      talkingHeadRef.current = null;
-    }
-    if (avatarContainerRef.current) {
-      try {
-        avatarContainerRef.current.innerHTML = '';
-      } catch (e) {
-        console.log('[Avatar] Container already cleaned up');
-      }
-    }
-  };
-
   const toggleMute = () => {
     setIsMuted(!isMuted);
     if (audioPlayerRef.current) {
@@ -185,10 +103,7 @@ export function RealisticAvatar({
 
   return (
     <Card className="relative w-full h-full overflow-hidden bg-gradient-to-br from-blue-50 to-teal-50 dark:from-blue-950 dark:to-teal-950">
-      <div 
-        ref={avatarContainerRef} 
-        className="w-full h-full min-h-[400px] flex items-center justify-center"
-      >
+      <div className="w-full h-full min-h-[400px] flex items-center justify-center">
         {isLoading && (
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
@@ -197,12 +112,41 @@ export function RealisticAvatar({
             </p>
           </div>
         )}
+        
         {error && (
           <div className="flex flex-col items-center gap-4 p-6">
             <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-teal-400 flex items-center justify-center">
               <span className="text-5xl">🤖</span>
             </div>
             <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          </div>
+        )}
+
+        {!isLoading && !error && avatarType === 'd-id' && avatarImage && (
+          <div className="relative w-full h-full">
+            <img
+              src={avatarImage}
+              alt="AI Medical Assistant"
+              className="w-full h-full object-cover rounded-lg"
+              style={{ filter: isSpeaking ? 'brightness(1.1)' : 'brightness(1)' }}
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+              <p className="text-white text-sm font-medium">MediAI Assistant</p>
+              <p className="text-white/80 text-xs">Assistente médica virtual</p>
+            </div>
+          </div>
+        )}
+
+        {!isLoading && !error && avatarType === '3d' && (
+          <div className="relative w-full h-full flex items-center justify-center">
+            <div className="w-48 h-48 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center animate-pulse">
+              <span className="text-7xl">🤖</span>
+            </div>
+            <div className="absolute bottom-8 left-0 right-0 text-center">
+              <p className="text-white text-sm font-medium bg-black/50 py-2 px-4 rounded-full inline-block">
+                Avatar 3D MediAI
+              </p>
+            </div>
           </div>
         )}
       </div>
