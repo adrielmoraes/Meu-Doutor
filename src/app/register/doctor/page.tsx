@@ -28,16 +28,18 @@ export default function DoctorRegisterPage() {
   const [state, formAction] = useActionState(createDoctorAction, initialState);
 
   useEffect(() => {
+    if (!state) return;
+    
     if (state.success && state.message) {
         toast({
-            title: 'Sucesso!',
+            title: 'Cadastro Realizado!',
             description: state.message,
             className: "bg-green-100 text-green-800 border-green-200",
         });
         setTimeout(() => {
             router.push('/login');
         }, 2000);
-    } else if (state.message && state.errors) {
+    } else if (state.message && !state.success) {
          toast({
             variant: "destructive",
             title: 'Erro no Cadastro',
