@@ -206,6 +206,13 @@ ${nutritionistAnalysis.recommendations}
       return;
     }
 
+    console.log(`[Wellness Plan Update] AI Output received:`, JSON.stringify({
+      hasRecipes: !!output.weeklyRecipes,
+      recipeCount: output.weeklyRecipes?.length || 0,
+      taskCount: output.weeklyTasks?.length || 0,
+      reminderCount: output.dailyReminders?.length || 0
+    }));
+
     // 6. Validate and save to database
     try {
       // Validate reminders before saving

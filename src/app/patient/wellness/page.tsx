@@ -2,7 +2,7 @@
 import { getPatientById } from "@/lib/db-adapter";
 import { notFound, redirect } from "next/navigation";
 import WellnessReminders from "@/components/patient/wellness-reminders";
-import { FileText, Dumbbell, BrainCircuit, HeartPulse, AlertTriangle, Sparkles, Calendar } from "lucide-react";
+import { FileText, Dumbbell, BrainCircuit, HeartPulse, AlertTriangle, Sparkles, Calendar, ChefHat } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import AudioPlayback from "@/components/patient/audio-playback";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -10,6 +10,7 @@ import type { Patient } from "@/types";
 import { getSession } from "@/lib/session";
 import RegenerateWellnessPlanButton from "@/components/patient/regenerate-wellness-plan-button";
 import WeeklyTasksSection from "@/components/patient/weekly-tasks-section";
+import WeeklyRecipesSection from "@/components/patient/weekly-recipes-section";
 
 
 async function getWellnessPageData(patientId: string): Promise<{ patient: Patient | null, error?: string }> {
@@ -191,6 +192,16 @@ export default async function WellnessPlanPage() {
                    <WellnessReminders reminders={wellnessPlan.dailyReminders} />
                 </div>
             </div>
+
+            {wellnessPlan.weeklyRecipes && wellnessPlan.weeklyRecipes.length > 0 && (
+                <div className="mt-8">
+                    <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-amber-300 via-orange-300 to-pink-300 bg-clip-text text-transparent flex items-center gap-2">
+                        <ChefHat className="h-7 w-7 text-amber-400" />
+                        Receitas da Semana
+                    </h2>
+                    <WeeklyRecipesSection recipes={wellnessPlan.weeklyRecipes} />
+                </div>
+            )}
 
             <div className="mt-8">
                 <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
