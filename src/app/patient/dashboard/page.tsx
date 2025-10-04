@@ -1,34 +1,43 @@
 
-import PatientDashboard from "@/components/patient/patient-dashboard";
-import { getPatientById } from "@/lib/db-adapter";
-import type { GenerateHealthInsightsOutput } from "@/ai/flows/generate-health-insights";
+import PatientDashboardImproved from "@/components/patient/patient-dashboard-improved";
+import { getPatientById, getAllExamsForWellnessPlan } from "@/lib/db-adapter";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
-import Link from "next/link";
 import type { Patient } from "@/types";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
+import { db } from '../../../server/storage';
+import { appointments } from '../../../shared/schema';
+import { eq, and } from 'drizzle-orm';
 
 interface DashboardData {
     patient: Patient | null;
-    healthInsights: GenerateHealthInsightsOutput | null;
+    examCount: number;
+    upcomingAppointments: number;
     error?: string;
-    fixUrl?: string;
 }
 
 async function getDashboardData(patientId: string): Promise<DashboardData> {
     try {
         const patient = await getPatientById(patientId);
         if (!patient) {
-             return { patient: null, healthInsights: null, error: `Paciente com ID "${patientId}" não encontrado. Verifique se os dados iniciais foram carregados ou se o ID está correto.` };
+             return { patient: null, examCount: 0, upcomingAppointments: 0, error: `Paciente com ID "${patientId}" não encontrado. Verifique se os dados iniciais foram carregados ou se o ID está correto.` };
         }
 
-        const healthInsights = (patient.healthGoals && patient.healthGoals.length > 0 && patient.preventiveAlerts && patient.preventiveAlerts.length > 0) ? {
-            healthGoals: patient.healthGoals,
-            preventiveAlerts: patient.preventiveAlerts,
-        } : null;
+        const exams = await getAllExamsForWellnessPlan(patientId);
+        const examCount = exams.length;
 
-        return { patient, healthInsights };
+        const upcomingAppointmentsData = await db
+          .select()
+          .from(appointments)
+          .where(
+            and(
+              eq(appointments.patientId, patientId),
+              eq(appointments.status, 'Agendada')
+            )
+          );
+
+        return { patient, examCount, upcomingAppointments: upcomingAppointmentsData.length };
     } catch (e: any) {
         const errorMessage = e.message?.toLowerCase() || '';
         const errorCode = e.code?.toLowerCase() || '';
@@ -36,12 +45,13 @@ async function getDashboardData(patientId: string): Promise<DashboardData> {
         if (errorMessage.includes('connection') || errorCode.includes('not-found')) {
             return { 
                 patient: null,
-                healthInsights: null,
+                examCount: 0,
+                upcomingAppointments: 0,
                 error: "Não foi possível conectar ao banco de dados. Verifique se o banco de dados está configurado corretamente."
             };
         }
         console.error("Unexpected dashboard error:", e);
-        return { patient: null, healthInsights: null, error: "Ocorreu um erro inesperado ao carregar os dados do painel." };
+        return { patient: null, examCount: 0, upcomingAppointments: 0, error: "Ocorreu um erro inesperado ao carregar os dados do painel." };
     }
 }
 
@@ -52,34 +62,27 @@ export default async function PatientDashboardPage() {
       redirect('/login');
   }
 
-  const { patient, healthInsights, error, fixUrl } = await getDashboardData(session.userId);
+  const { patient, examCount, upcomingAppointments, error } = await getDashboardData(session.userId);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 min-h-screen">
+    <>
         {error || !patient ? (
-           <div className="container mx-auto">
+           <div className="container mx-auto p-8">
                <Alert variant="destructive" className="bg-red-900/20 border-red-500/30 text-red-200">
                    <AlertTriangle className="h-4 w-4" />
                    <AlertTitle>Erro de Configuração ou Conexão</AlertTitle>
                    <AlertDescription>
                        {error}
-                       {fixUrl && (
-                           <p className="mt-2">
-                               Por favor, habilite a API manualmente visitando o seguinte link e clicando em "Habilitar":
-                               <br />
-                               <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline text-cyan-400 hover:text-cyan-300">
-                                   Habilitar API do Firestore
-                               </Link>
-                               <br />
-                               <span className="text-xs">Após habilitar, aguarde alguns minutos e atualize esta página.</span>
-                           </p>
-                       )}
                    </AlertDescription>
                </Alert>
            </div>
         ) : (
-            <PatientDashboard patient={patient} healthInsights={healthInsights} />
+            <PatientDashboardImproved 
+              patient={patient} 
+              examCount={examCount}
+              upcomingAppointments={upcomingAppointments}
+            />
         )}
-      </div>
+    </>
   );
 }
