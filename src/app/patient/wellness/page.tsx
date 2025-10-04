@@ -101,7 +101,7 @@ export default async function WellnessPlanPage() {
                             </li>
                         </ul>
                         <div className="mt-6 pt-6 border-t border-cyan-500/20">
-                            <RegenerateWellnessPlanButton patientId={patient.id} />
+                            <RegenerateWellnessPlanButton patientId={patient.id} lastUpdated={undefined} />
                         </div>
                     </CardContent>
                 </Card>
@@ -163,7 +163,7 @@ export default async function WellnessPlanPage() {
                             <span>Última atualização: {lastUpdated}</span>
                         </div>
                     </div>
-                    <RegenerateWellnessPlanButton patientId={patient.id} />
+                    <RegenerateWellnessPlanButton patientId={patient.id} lastUpdated={wellnessPlan.lastUpdated} />
                 </div>
             </div>
 
