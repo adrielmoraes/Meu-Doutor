@@ -18,6 +18,15 @@ const GenerateWellnessPlanFromExamsOutputSchema = z.object({
     title: z.string(),
     description: z.string(),
   })).describe("3-4 actionable daily reminders"),
+  weeklyTasks: z.array(z.object({
+    id: z.string().describe("Unique ID for the task (use format: task-1, task-2, etc)"),
+    category: z.enum(['nutrition', 'exercise', 'mental', 'general']),
+    title: z.string().describe("Clear, actionable task title"),
+    description: z.string().describe("Brief description of what to do"),
+    dayOfWeek: z.string().optional().describe("Suggested day (Segunda, Terça, Quarta, etc) or leave empty for any day"),
+    completed: z.boolean().default(false),
+    completedAt: z.string().optional(),
+  })).describe("7-10 specific weekly tasks organized by category"),
 });
 
 const wellnessPlanSynthesisPrompt = ai.definePrompt({
@@ -33,7 +42,7 @@ const wellnessPlanSynthesisPrompt = ai.definePrompt({
 
 You received a detailed nutritionist's analysis of the patient's exam results.
 
-**Your task:** Create 4 sections:
+**Your task:** Create 5 sections:
 
 1. **Plano Alimentar (dietaryPlan):**
    - Specific meal suggestions and timing
@@ -65,6 +74,24 @@ You received a detailed nutritionist's analysis of the patient's exam results.
      * Use 'Bed' for sleep/rest reminders
      * Use 'Dumbbell' for exercise/movement reminders
    - Make them specific and encouraging
+
+5. **Tarefas Semanais (weeklyTasks):**
+   - Create 7-10 specific, achievable tasks for the week
+   - Distribute tasks across categories: 'nutrition', 'exercise', 'mental', 'general'
+   - Each task must have:
+     * **id**: Use format "task-1", "task-2", etc (sequential numbering)
+     * **category**: Choose from 'nutrition', 'exercise', 'mental', 'general'
+     * **title**: Clear, action-oriented title (e.g., "Caminhar 30 minutos", "Preparar refeições saudáveis")
+     * **description**: Brief explanation of the task
+     * **dayOfWeek**: (Optional) Suggest a day like "Segunda", "Quarta", "Sexta" or leave empty
+     * **completed**: Always set to false (patient will mark as done)
+     * **completedAt**: Leave empty
+   - Make tasks specific, measurable, and achievable
+   - Balance tasks across the week
+   - Examples:
+     * {id: "task-1", category: "nutrition", title: "Planejar cardápio da semana", description: "Reserve 20 minutos para planejar refeições balanceadas", dayOfWeek: "Domingo", completed: false}
+     * {id: "task-2", category: "exercise", title: "Caminhar 30 minutos", description: "Caminhada leve ao ar livre ou esteira", dayOfWeek: "Segunda", completed: false}
+     * {id: "task-3", category: "mental", title: "Meditação guiada", description: "10 minutos de meditação ou respiração profunda", dayOfWeek: "Quarta", completed: false}
 
 **Guidelines:**
 - Be encouraging and positive
@@ -159,6 +186,7 @@ ${nutritionistAnalysis.recommendations}
         exercisePlan: output.exercisePlan,
         mentalWellnessPlan: output.mentalWellnessPlan,
         dailyReminders: output.dailyReminders,
+        weeklyTasks: output.weeklyTasks,
         lastUpdated: new Date().toISOString(),
       };
 
@@ -172,9 +200,18 @@ ${nutritionistAnalysis.recommendations}
         }
       }
 
+      // Validate weekly tasks before saving
+      for (const task of output.weeklyTasks) {
+        const validCategories = ['nutrition', 'exercise', 'mental', 'general'];
+        if (!validCategories.includes(task.category)) {
+          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid category "${task.category}" in task "${task.title}". Must be one of: ${validCategories.join(', ')}`);
+          throw new Error(`Invalid task category: ${task.category}. Must be one of: ${validCategories.join(', ')}`);
+        }
+      }
+
       await updatePatientWellnessPlan(patientId, wellnessPlanData);
       console.log(`[Wellness Plan Update] ✅ Successfully updated wellness plan for patient ${patientId}`);
-      console.log(`[Wellness Plan Update] Plan includes ${output.dailyReminders.length} daily reminders`);
+      console.log(`[Wellness Plan Update] Plan includes ${output.dailyReminders.length} daily reminders and ${output.weeklyTasks.length} weekly tasks`);
     } catch (validationError: any) {
       console.error(`[Wellness Plan Update] ❌ VALIDATION FAILED for patient ${patientId}:`, validationError.message);
       console.error(`[Wellness Plan Update] AI Output that failed validation:`, JSON.stringify(output, null, 2));
