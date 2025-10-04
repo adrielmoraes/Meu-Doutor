@@ -240,6 +240,15 @@ const AIConsultationCard = () => {
           userMediaStreamRef.current.getTracks().forEach(track => track.stop());
           userMediaStreamRef.current = null;
         }
+        
+        // Cleanup video refs
+        if (videoRef.current) {
+          videoRef.current.srcObject = null;
+        }
+        if (previewVideoRef.current) {
+          previewVideoRef.current.srcObject = null;
+        }
+        
         setHasCameraPermission(null);
         return;
     }

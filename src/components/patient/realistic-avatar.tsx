@@ -72,9 +72,13 @@ export function RealisticAvatar({
       avatarDiv.style.height = '100%';
       avatarDiv.style.position = 'relative';
       
-      if (avatarContainerRef.current) {
-        avatarContainerRef.current.innerHTML = '';
-        avatarContainerRef.current.appendChild(avatarDiv);
+      if (avatarContainerRef.current && avatarContainerRef.current.parentNode) {
+        try {
+          avatarContainerRef.current.innerHTML = '';
+          avatarContainerRef.current.appendChild(avatarDiv);
+        } catch (e) {
+          console.error('[Avatar] Error appending avatar:', e);
+        }
       }
 
       console.log('[Avatar] Inicializando avatar 3D...');
@@ -96,21 +100,25 @@ export function RealisticAvatar({
         ? 'https://create-images-results.d-id.com/DefaultPresenters/Noelle_f/image.jpeg'
         : 'https://create-images-results.d-id.com/DefaultPresenters/Dylan_m/image.jpeg';
 
-      if (avatarContainerRef.current) {
-        avatarContainerRef.current.innerHTML = `
-          <div class="relative w-full h-full">
-            <img 
-              src="${avatarImage}" 
-              alt="AI Medical Assistant" 
-              class="w-full h-full object-cover rounded-lg"
-              style="filter: ${isSpeaking ? 'brightness(1.1)' : 'brightness(1)'}"
-            />
-            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-              <p class="text-white text-sm font-medium">MediAI Assistant</p>
-              <p class="text-white/80 text-xs">Assistente médica virtual</p>
+      if (avatarContainerRef.current && avatarContainerRef.current.parentNode) {
+        try {
+          avatarContainerRef.current.innerHTML = `
+            <div class="relative w-full h-full">
+              <img 
+                src="${avatarImage}" 
+                alt="AI Medical Assistant" 
+                class="w-full h-full object-cover rounded-lg"
+                style="filter: ${isSpeaking ? 'brightness(1.1)' : 'brightness(1)'}"
+              />
+              <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                <p class="text-white text-sm font-medium">MediAI Assistant</p>
+                <p class="text-white/80 text-xs">Assistente médica virtual</p>
+              </div>
             </div>
-          </div>
-        `;
+          `;
+        } catch (e) {
+          console.error('[Avatar] Error setting D-ID avatar:', e);
+        }
       }
 
       console.log('[Avatar] D-ID Avatar pronto (imagem estática)');
@@ -158,6 +166,13 @@ export function RealisticAvatar({
     }
     if (talkingHeadRef.current) {
       talkingHeadRef.current = null;
+    }
+    if (avatarContainerRef.current) {
+      try {
+        avatarContainerRef.current.innerHTML = '';
+      } catch (e) {
+        console.log('[Avatar] Container already cleaned up');
+      }
     }
   };
 
