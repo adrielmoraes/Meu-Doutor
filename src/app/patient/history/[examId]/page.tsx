@@ -17,16 +17,23 @@ const RenderSuggestions = ({ suggestions }: { suggestions: string }) => {
   const lines = suggestions.split('\n').filter(line => line.trim() !== '');
 
   return (
-    <div className="space-y-4 text-base text-foreground">
+    <div className="space-y-3">
       {lines.map((line, index) => {
         // Check if the line is a main heading (e.g., "- **Medicação:**")
         if (line.trim().startsWith('- **') && line.trim().endsWith('**')) {
           const title = line.replace(/- \*\*/g, '').replace(/\*\*:/g, '').replace(/\*\*/g, '');
-          return <h4 key={index} className="font-semibold text-lg mt-4">{title}</h4>;
+          return (
+            <h4 key={index} className="font-semibold text-base text-amber-200 mt-4 first:mt-0 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+              {title}
+            </h4>
+          );
         }
         // Render other lines as list items
         return (
-          <p key={index} className="pl-4 text-slate-600">{line.replace(/^-/, '').trim()}</p>
+          <p key={index} className="pl-6 text-slate-300 leading-relaxed text-sm border-l-2 border-amber-500/30">
+            {line.replace(/^-/, '').trim()}
+          </p>
         );
       })}
     </div>
@@ -143,23 +150,47 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                 </div>
               ) : (
                 // Show AI's preliminary analysis
-                 <div className="space-y-6">
+                 <div className="space-y-4">
                     <AudioPlayback textToSpeak={textForMainAudio} />
-                    <div>
-                      <h3 className="font-semibold text-lg">Diagnóstico Preliminar da IA</h3>
-                      <p className="text-xl text-primary font-bold">{examData.preliminaryDiagnosis}</p>
+                    
+                    {/* Diagnóstico Preliminar Card */}
+                    <div className="rounded-lg border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 p-6 backdrop-blur-sm">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 rounded-lg bg-cyan-500/20">
+                          <BotMessageSquare className="h-5 w-5 text-cyan-400" />
+                        </div>
+                        <h3 className="font-semibold text-lg text-cyan-100">Diagnóstico Preliminar da IA</h3>
+                      </div>
+                      <p className="text-xl text-cyan-300 font-bold leading-relaxed">{examData.preliminaryDiagnosis}</p>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-lg">Explicação Detalhada</h3>
-                      <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{examData.explanation}</p>
+
+                    {/* Explicação Detalhada Card */}
+                    <div className="rounded-lg border border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-6 backdrop-blur-sm">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 rounded-lg bg-blue-500/20">
+                          <FileText className="h-5 w-5 text-blue-400" />
+                        </div>
+                        <h3 className="font-semibold text-lg text-blue-100">Explicação Detalhada</h3>
+                      </div>
+                      <p className="text-slate-200 whitespace-pre-wrap leading-relaxed">{examData.explanation}</p>
                     </div>
-                    <Separator />
-                    <div>
-                       <h3 className="font-semibold text-lg flex items-center gap-2"><Lightbulb className="h-5 w-5 text-amber-500" /> Sugestões e Próximos Passos</h3>
-                       <AudioPlayback textToSpeak={examData.suggestions || ""}/>
-                       <RenderSuggestions suggestions={examData.suggestions || ""} />
+
+                    {/* Sugestões e Próximos Passos Card */}
+                    <div className="rounded-lg border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/10 p-6 backdrop-blur-sm">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 rounded-lg bg-amber-500/20">
+                          <Lightbulb className="h-5 w-5 text-amber-400" />
+                        </div>
+                        <h3 className="font-semibold text-lg text-amber-100">Sugestões e Próximos Passos</h3>
+                      </div>
+                      <AudioPlayback textToSpeak={examData.suggestions || ""}/>
+                      <div className="mt-3">
+                        <RenderSuggestions suggestions={examData.suggestions || ""} />
+                      </div>
                     </div>
-                     <Alert variant="destructive">
+
+                    {/* Alert de Aviso */}
+                    <Alert variant="destructive" className="border-red-500/50 bg-red-950/50">
                       <AlertTriangle className="h-4 w-4" />
                       <AlertTitle>Atenção: Este é um Diagnóstico da IA</AlertTitle>
                       <AlertDescription>
