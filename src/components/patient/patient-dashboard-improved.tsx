@@ -131,28 +131,6 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          {stats.map((stat) => (
-            <Card
-              key={stat.title}
-              className={`bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl border ${stat.borderColor} hover:scale-105 transition-transform duration-300`}
-            >
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-slate-400 mb-1">{stat.title}</p>
-                    <p className="text-2xl font-bold text-slate-100">{stat.value}</p>
-                  </div>
-                  <div className={`p-3 rounded-lg bg-gradient-to-br ${stat.gradient}`}>
-                    {stat.icon}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
         {/* AI Consultation - Featured Section */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
@@ -198,6 +176,28 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
               </Card>
             </div>
           </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          {stats.map((stat) => (
+            <Card
+              key={stat.title}
+              className={`bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl border ${stat.borderColor} hover:scale-105 transition-transform duration-300`}
+            >
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-400 mb-1">{stat.title}</p>
+                    <p className="text-2xl font-bold text-slate-100">{stat.value}</p>
+                  </div>
+                  <div className={`p-3 rounded-lg bg-gradient-to-br ${stat.gradient}`}>
+                    {stat.icon}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Quick Actions */}
