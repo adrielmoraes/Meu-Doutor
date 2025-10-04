@@ -40,6 +40,8 @@ export default function LoginPage() {
     const [state, dispatch] = useActionState(loginAction, initialState);
 
     useEffect(() => {
+        if (!state) return;
+        
         if (state.success && state.redirectPath) {
             toast({
                 title: 'Login Sucesso!',
