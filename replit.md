@@ -41,6 +41,38 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Oct 2025)
 
+### Exam History Visualization with Time-Series Graphs (Oct 2025)
+**Main Feature:**
+- Comprehensive exam history visualization with interactive time-series graphs
+- Each exam type (blood tests, feces, urine, X-ray, CT scan) has its own dedicated graph
+- Graphs display progression over time with diagnosis information (AI preliminary or doctor-validated)
+- Automatic grouping of exams by category for better organization
+
+**Components Created:**
+- `exam-timeline-chart.tsx` - Reusable time-series graph component using Recharts
+- Custom tooltips showing exam date, status, result, and diagnosis
+- Color-coded graphs per exam type with gradient effects
+
+**Page Updates:**
+- `/patient/history` - Enhanced with tabbed interface (Graphs / List view)
+- Automatic exam categorization: Blood tests, Feces tests, Urine tests, X-rays, CT scans, Others
+- Each category displays evolution over time with interactive data points
+- Badges showing individual exam dates for quick reference
+
+**Technical Implementation:**
+- Uses Recharts library for responsive, interactive graphs
+- Data sorted chronologically to show proper timeline
+- Distinguishes between AI preliminary diagnosis and doctor-validated results
+- Futuristic design with cyan/blue/purple gradients matching platform theme
+- Responsive tooltips with detailed exam information
+
+**UX Improvements:**
+- Two visualization modes: Time-series graphs and traditional list
+- Easy comparison of exam results over time
+- Visual indicators for validated vs pending exams
+- Clear categorization helps patients understand their health trends
+- Interactive data points reveal detailed information on hover
+
 ### Patient Dashboard with AI Consultation (Oct 2025)
 **Main Feature:**
 - AI Consultation Card integrated directly into patient dashboard main screen (first card after patient name)
