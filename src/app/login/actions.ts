@@ -46,14 +46,20 @@ export async function loginAction(prevState: any, formData: FormData) {
     if (!redirectPath) {
         console.log('Verificando paciente...');
         const patient = await getPatientByEmailWithAuth(email);
+        console.log('Paciente encontrado:', !!patient);
+        console.log('Paciente tem senha:', !!patient?.password);
+        
         if (patient && patient.password) {
             const passwordIsValid = await bcrypt.compare(password, patient.password);
+            console.log('Senha válida:', passwordIsValid);
 
             if (passwordIsValid) {
                  console.log('Login bem-sucedido para paciente:', patient.id);
                  await createSession({ userId: patient.id, role: 'patient' });
                  console.log('Sessão criada para paciente, redirecionando...');
                  redirectPath = '/patient/dashboard';
+            } else {
+                console.log('Senha inválida para paciente');
             }
         } else {
             console.log('Paciente não encontrado ou sem senha');

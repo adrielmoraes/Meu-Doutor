@@ -11,12 +11,16 @@ const PatientSchema = z.object({
   fullName: z.string().min(3, { message: "O nome completo é obrigatório." }),
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
   password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres." }),
+  confirmPassword: z.string().min(6, { message: "A confirmação de senha é obrigatória." }),
   birthDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Data de nascimento inválida." }),
   cpf: z.string().min(11, { message: "CPF inválido." }),
   phone: z.string().min(10, { message: "Telefone inválido." }),
   gender: z.string().min(1, { message: "Por favor, selecione um gênero." }),
   city: z.string().min(2, { message: "A cidade é obrigatória." }),
   state: z.string().length(2, { message: "O estado (UF) é obrigatório." }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "As senhas não coincidem.",
+  path: ["confirmPassword"],
 });
 
 export async function createPatientAction(prevState: any, formData: FormData) {
