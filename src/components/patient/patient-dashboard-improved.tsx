@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { Patient } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import dynamic from 'next/dynamic';
+import { PatientHeader } from './patient-header';
 
 const AIConsultationCard = dynamic(() => import('./ai-consultation-card'), { 
   ssr: false,
@@ -109,6 +110,9 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
 
   return (
     <div className="bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 min-h-screen relative overflow-hidden">
+      {/* Header with Menu */}
+      <PatientHeader patient={patient} />
+      
       {/* Background Effects */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
