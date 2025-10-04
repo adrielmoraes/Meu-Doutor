@@ -40,6 +40,15 @@ export type Patient = {
       title: string;
       description: string;
     }>;
+    weeklyTasks: Array<{
+      id: string;
+      category: 'nutrition' | 'exercise' | 'mental' | 'general';
+      title: string;
+      description: string;
+      dayOfWeek?: string;
+      completed: boolean;
+      completedAt?: string;
+    }>;
     lastUpdated: string;
   };
 };
