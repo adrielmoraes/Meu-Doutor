@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Patient } from "@/types";
 import { getSession } from "@/lib/session";
 import RegenerateWellnessPlanButton from "@/components/patient/regenerate-wellness-plan-button";
+import WeeklyTasksSection from "@/components/patient/weekly-tasks-section";
 
 
 async function getWellnessPageData(patientId: string): Promise<{ patient: Patient | null, error?: string }> {
@@ -189,6 +190,16 @@ export default async function WellnessPlanPage() {
                 <div className="space-y-6">
                    <WellnessReminders reminders={wellnessPlan.dailyReminders} />
                 </div>
+            </div>
+
+            <div className="mt-8">
+                <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
+                    Tarefas da Semana
+                </h2>
+                <WeeklyTasksSection 
+                    patientId={patient.id} 
+                    tasks={wellnessPlan.weeklyTasks || []} 
+                />
             </div>
         </div>
     );
