@@ -30,6 +30,17 @@ export const patients = pgTable('patients', {
   healthGoals: json('health_goals').$type<{ title: string; description: string; progress: number }[]>(),
   finalExplanation: text('final_explanation'),
   finalExplanationAudioUri: text('final_explanation_audio_uri'),
+  wellnessPlan: json('wellness_plan').$type<{
+    dietaryPlan: string;
+    exercisePlan: string;
+    mentalWellnessPlan: string;
+    dailyReminders: Array<{
+      icon: 'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell';
+      title: string;
+      description: string;
+    }>;
+    lastUpdated: string;
+  }>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

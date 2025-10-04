@@ -4,6 +4,7 @@
 import { addExamToPatient, updatePatient, addAppointment, deleteExam } from "@/lib/db-adapter";
 import { revalidatePath } from "next/cache";
 import type { Appointment, Exam } from "@/types";
+import { regeneratePatientWellnessPlan } from "@/ai/flows/update-wellness-plan";
 
 interface ExamAnalysisData {
     preliminaryDiagnosis: string;
@@ -24,8 +25,16 @@ export async function saveExamAnalysisAction(patientId: string, analysisData: Ex
             suggestions: analysisData.suggestions,
             results: analysisData.structuredResults || [],
         });
-        // Revalidate the history page to show the new exam
+        
+        // Trigger wellness plan update in the background (fire-and-forget)
+        regeneratePatientWellnessPlan(patientId).catch(error => {
+            console.error('[saveExamAnalysisAction] Failed to update wellness plan:', error);
+        });
+        
+        // Revalidate pages to show the new exam and potentially updated wellness plan
         revalidatePath('/patient/history');
+        revalidatePath('/patient/wellness');
+        
         return { success: true, message: 'Análise salva com sucesso!', examId: newExamId };
     } catch (error) {
         console.error('Failed to save exam analysis:', error);

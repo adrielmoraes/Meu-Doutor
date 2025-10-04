@@ -175,6 +175,36 @@ export async function deleteExam(patientId: string, examId: string): Promise<voi
   await db.delete(exams).where(and(eq(exams.id, examId), eq(exams.patientId, patientId)));
 }
 
+export async function getAllExamsForWellnessPlan(patientId: string): Promise<Exam[]> {
+  const results = await db
+    .select()
+    .from(exams)
+    .where(eq(exams.patientId, patientId))
+    .orderBy(desc(exams.createdAt));
+  
+  return results.map(e => ({ ...e, results: e.results || undefined })) as Exam[];
+}
+
+export async function updatePatientWellnessPlan(
+  patientId: string,
+  wellnessPlan: {
+    dietaryPlan: string;
+    exercisePlan: string;
+    mentalWellnessPlan: string;
+    dailyReminders: Array<{
+      icon: 'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell';
+      title: string;
+      description: string;
+    }>;
+    lastUpdated: string;
+  }
+): Promise<void> {
+  await db.update(patients).set({ 
+    wellnessPlan, 
+    updatedAt: new Date() 
+  }).where(eq(patients.id, patientId));
+}
+
 export async function getAppointmentsForPatient(patientId: string): Promise<Appointment[]> {
   const results = await db
     .select()
@@ -266,12 +296,13 @@ export async function updateCallRoomStatus(
   await db.update(callRooms).set(updateData).where(eq(callRooms.id, roomId));
 }
 
-export async function updateCallRecording(roomId: string, transcription: string, summary: string): Promise<void> {
-  await db.update(callRooms).set({
-    recording: JSON.stringify({ transcription, summary, processedAt: new Date().toISOString() }),
-    updatedAt: new Date()
-  }).where(eq(callRooms.id, roomId));
-}
+// Note: Call recordings are now saved in the consultations table instead
+// export async function updateCallRecording(roomId: string, transcription: string, summary: string): Promise<void> {
+//   await db.update(callRooms).set({
+//     recording: JSON.stringify({ transcription, summary, processedAt: new Date().toISOString() }),
+//     updatedAt: new Date()
+//   }).where(eq(callRooms.id, roomId));
+// }
 
 export async function getActiveCallsForDoctor(doctorId: string) {
   return await db
