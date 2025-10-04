@@ -57,34 +57,47 @@ Preferred communication style: Simple, everyday language.
 
 ### AI Nutritionist Wellness Plan System (Oct 2025)
 **Database Schema:**
-- Added `wellnessPlan` JSONB field to `patients` table with dietary, exercise, mental wellness plans, daily reminders, and weekly tasks
+- Added `wellnessPlan` JSONB field to `patients` table with dietary, exercise, mental wellness plans, daily reminders, weekly recipes, and weekly tasks
 
 **AI Integration:**
 - `regeneratePatientWellnessPlan` - Consolidates all patient exams and generates personalized wellness plan via AI Nutritionist agent
 - Icon validation with explicit constraints: `'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell'`
 - Category validation for weekly tasks: `'nutrition' | 'exercise' | 'mental' | 'general'`
+- Meal type validation for recipes: `'cafe-da-manha' | 'almoco' | 'jantar' | 'lanche'`
 - Comprehensive error logging for validation failures
 - Automatic regeneration after exam analysis (fire-and-forget pattern)
+- Generates 7 healthy recipes (one per day) tailored to patient's medical conditions
 - Generates 7-10 categorized weekly tasks with suggested days
+- **Automatic recipe-to-task conversion:** Each recipe becomes a "Preparar: [recipe name]" task in nutrition category
+- **Weekly regeneration limit:** Wellness plan can only be regenerated once every 7 days to ensure stability
 
 **UI Components:**
 - `/patient/wellness` page refactored to display persistent wellness plan from database
 - Futuristic cards with cyan/blue/purple gradients for each wellness section
-- Manual regeneration button with loading states
+- Regeneration button with 7-day cooldown period and visual feedback
 - Last updated timestamp display
+- **Weekly Recipes Section** with:
+  - Grid layout with color-coded meal type cards (breakfast, lunch, dinner, snack)
+  - Click-to-view recipe details in modal dialog
+  - Full ingredients list with quantities
+  - Step-by-step preparation instructions
+  - Day-of-week suggestions
 - **Weekly Tasks Section** with:
   - Interactive checkboxes to mark tasks as complete
   - Visual progress bar showing completion percentage
   - Tasks organized by category (nutrition, exercise, mental health, general)
   - Category-specific icons and color gradients
   - Optimistic UI updates for instant feedback
+  - Includes auto-generated tasks for preparing weekly recipes
 
 **Technical Details:**
 - Plans persist in PostgreSQL as JSONB for efficient querying
 - Zod schema validation ensures data integrity
-- Pre-validation of reminder icons and task categories before database save
+- Pre-validation of reminder icons, task categories, and recipe meal types before database save
 - Graceful error handling with detailed logging
 - `toggleWeeklyTaskAction` server action for updating task completion status
+- `RegenerateWellnessPlanButton` component with built-in 7-day cooldown logic
+- Recipes include: id, title, mealType, ingredients array, instructions, dayOfWeek
 - Tasks include: id, category, title, description, dayOfWeek (optional), completed status, completedAt timestamp
 
 ## External Dependencies
