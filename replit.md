@@ -55,6 +55,28 @@ Preferred communication style: Simple, everyday language.
 - Ready Player Me avatar with ARKit/Oculus Visemes morphTargets for lip-sync
 - Audio: PCM 16-bit, 24kHz, mono via Gemini 2.5 Flash TTS
 
+### AI Nutritionist Wellness Plan System (Oct 2025)
+**Database Schema:**
+- Added `wellnessPlan` JSONB field to `patients` table with dietary, exercise, mental wellness plans and daily reminders
+
+**AI Integration:**
+- `regeneratePatientWellnessPlan` - Consolidates all patient exams and generates personalized wellness plan via AI Nutritionist agent
+- Icon validation with explicit constraints: `'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell'`
+- Comprehensive error logging for validation failures
+- Automatic regeneration after exam analysis (fire-and-forget pattern)
+
+**UI Components:**
+- `/patient/wellness` page refactored to display persistent wellness plan from database
+- Futuristic cards with cyan/blue/purple gradients for each wellness section
+- Manual regeneration button with loading states
+- Last updated timestamp display
+
+**Technical Details:**
+- Plans persist in PostgreSQL as JSONB for efficient querying
+- Zod schema validation ensures data integrity
+- Pre-validation of reminder icons before database save
+- Graceful error handling with detailed logging
+
 ## External Dependencies
 
 **AI/ML Services**:
