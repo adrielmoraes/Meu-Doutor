@@ -6,8 +6,8 @@ import { AlertTriangle } from "lucide-react";
 import type { Patient } from "@/types";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { db } from '../../../server/storage';
-import { appointments } from '../../../shared/schema';
+import { db } from '../../../../server/storage';
+import { appointments } from '../../../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 
 interface DashboardData {
