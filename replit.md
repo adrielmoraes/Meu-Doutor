@@ -57,25 +57,35 @@ Preferred communication style: Simple, everyday language.
 
 ### AI Nutritionist Wellness Plan System (Oct 2025)
 **Database Schema:**
-- Added `wellnessPlan` JSONB field to `patients` table with dietary, exercise, mental wellness plans and daily reminders
+- Added `wellnessPlan` JSONB field to `patients` table with dietary, exercise, mental wellness plans, daily reminders, and weekly tasks
 
 **AI Integration:**
 - `regeneratePatientWellnessPlan` - Consolidates all patient exams and generates personalized wellness plan via AI Nutritionist agent
 - Icon validation with explicit constraints: `'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell'`
+- Category validation for weekly tasks: `'nutrition' | 'exercise' | 'mental' | 'general'`
 - Comprehensive error logging for validation failures
 - Automatic regeneration after exam analysis (fire-and-forget pattern)
+- Generates 7-10 categorized weekly tasks with suggested days
 
 **UI Components:**
 - `/patient/wellness` page refactored to display persistent wellness plan from database
 - Futuristic cards with cyan/blue/purple gradients for each wellness section
 - Manual regeneration button with loading states
 - Last updated timestamp display
+- **Weekly Tasks Section** with:
+  - Interactive checkboxes to mark tasks as complete
+  - Visual progress bar showing completion percentage
+  - Tasks organized by category (nutrition, exercise, mental health, general)
+  - Category-specific icons and color gradients
+  - Optimistic UI updates for instant feedback
 
 **Technical Details:**
 - Plans persist in PostgreSQL as JSONB for efficient querying
 - Zod schema validation ensures data integrity
-- Pre-validation of reminder icons before database save
+- Pre-validation of reminder icons and task categories before database save
 - Graceful error handling with detailed logging
+- `toggleWeeklyTaskAction` server action for updating task completion status
+- Tasks include: id, category, title, description, dayOfWeek (optional), completed status, completedAt timestamp
 
 ## External Dependencies
 
