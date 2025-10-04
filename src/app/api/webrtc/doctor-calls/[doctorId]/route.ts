@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { getActiveCallsForDoctor, getPatientById } from '@/lib/db-adapter';
 
 export async function GET(
   request: NextRequest,
@@ -7,31 +7,21 @@ export async function GET(
 ) {
   try {
     const { doctorId } = params;
-    const db = getAdminDb();
 
-    // Buscar chamadas ativas para este médico
-    const callsSnapshot = await db
-      .collection('callRooms')
-      .where('doctorId', '==', doctorId)
-      .where('status', 'in', ['waiting', 'active'])
-      .orderBy('createdAt', 'desc')
-      .get();
+    const callRooms = await getActiveCallsForDoctor(doctorId);
 
     const calls = await Promise.all(
-      callsSnapshot.docs.map(async (doc) => {
-        const data = doc.data();
-        
-        // Buscar nome do paciente
-        const patientDoc = await db.collection('patients').doc(data.patientId).get();
-        const patientName = patientDoc.exists ? patientDoc.data()?.name : 'Paciente';
+      callRooms.map(async (callRoom) => {
+        const patient = await getPatientById(callRoom.patientId);
+        const patientName = patient?.name || 'Paciente';
 
         return {
-          id: doc.id,
+          id: callRoom.id,
           patientName,
-          patientId: data.patientId,
-          roomId: doc.id,
-          createdAt: data.createdAt,
-          status: data.status,
+          patientId: callRoom.patientId,
+          roomId: callRoom.id,
+          createdAt: callRoom.createdAt?.toISOString(),
+          status: callRoom.status,
         };
       })
     );

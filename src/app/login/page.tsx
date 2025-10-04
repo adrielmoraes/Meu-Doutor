@@ -12,8 +12,6 @@ import { loginAction } from './actions';
 import { Loader2, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { auth } from '@/lib/firebase';
-import { signInWithCustomToken } from 'firebase/auth';
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -38,28 +36,17 @@ function SubmitButton() {
 export default function LoginPage() {
     const { toast } = useToast();
     const router = useRouter();
-    const initialState = { message: null, errors: {}, success: false, customToken: null, redirectPath: null };
+    const initialState = { message: null, errors: {}, success: false, redirectPath: null };
     const [state, dispatch] = useActionState(loginAction, initialState);
 
     useEffect(() => {
-        if (state.success && state.customToken && state.redirectPath) {
-            signInWithCustomToken(auth, state.customToken)
-                .then(() => {
-                    toast({
-                        title: 'Login Sucesso!',
-                        description: state.message || 'Você foi logado com sucesso.',
-                        className: "bg-green-100 text-green-800 border-green-200",
-                    });
-                    router.push(state.redirectPath);
-                })
-                .catch((error) => {
-                    console.error("Erro ao fazer login com custom token:", error);
-                    toast({
-                        variant: "destructive",
-                        title: 'Erro de Autenticação',
-                        description: 'Falha ao autenticar no cliente. Por favor, tente novamente.',
-                    });
-                });
+        if (state.success && state.redirectPath) {
+            toast({
+                title: 'Login Sucesso!',
+                description: state.message || 'Você foi logado com sucesso.',
+                className: "bg-green-100 text-green-800 border-green-200",
+            });
+            router.push(state.redirectPath);
         } else if (state.message && !state.success) {
             toast({
                 variant: "destructive",

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { NextRequest } from 'next/server';
+import { getSignalsForRoom } from '@/lib/db-adapter';
 
 export async function GET(
   request: NextRequest,
@@ -8,37 +8,36 @@ export async function GET(
   const { roomId, userId } = params;
 
   const stream = new ReadableStream({
-    start(controller) {
-      const db = getAdminDb();
-      const signalsRef = db
-        .collection('callRooms')
-        .doc(roomId)
-        .collection('signals');
-
-      // Configurar listener para novos sinais
-      const unsubscribe = signalsRef
-        .where('to', '==', userId)
-        .orderBy('timestamp', 'desc')
-        .limit(10)
-        .onSnapshot((snapshot) => {
-          snapshot.docChanges().forEach((change) => {
-            if (change.type === 'added') {
-              const data = change.doc.data();
+    async start(controller) {
+      const seenSignalIds = new Set<number>();
+      
+      const pollForSignals = async () => {
+        try {
+          const signals = await getSignalsForRoom(roomId, userId);
+          
+          for (const signal of signals) {
+            if (!seenSignalIds.has(signal.id)) {
+              seenSignalIds.add(signal.id);
+              
               const signalData = {
-                from: data.from,
-                data: data.data,
+                from: signal.from,
+                data: signal.data,
               };
               
               controller.enqueue(
                 `data: ${JSON.stringify(signalData)}\n\n`
               );
             }
-          });
-        });
+          }
+        } catch (error) {
+          console.error('Erro ao buscar sinais:', error);
+        }
+      };
 
-      // Limpar listener quando a conexão é fechada
+      const intervalId = setInterval(pollForSignals, 1000);
+
       request.signal.addEventListener('abort', () => {
-        unsubscribe();
+        clearInterval(intervalId);
         controller.close();
       });
     },

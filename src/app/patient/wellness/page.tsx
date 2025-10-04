@@ -1,5 +1,5 @@
 
-import { getPatientById } from "@/lib/firestore-admin-adapter"; // Importar getPatientById do admin-adapter
+import { getPatientById } from "@/lib/db-adapter";
 import { notFound, redirect } from "next/navigation";
 import { generateWellnessPlan } from "@/ai/flows/generate-wellness-plan";
 import WellnessReminders from "@/components/patient/wellness-reminders";
@@ -12,25 +12,14 @@ import type { Patient } from "@/types";
 import { getSession } from "@/lib/session";
 
 
-async function getWellnessPageData(patientId: string): Promise<{ patient: Patient | null, error?: string, fixUrl?: string }> {
+async function getWellnessPageData(patientId: string): Promise<{ patient: Patient | null, error?: string }> {
     try {
-        const patient = await getPatientById(patientId); // Usar a função getPatientById do admin
+        const patient = await getPatientById(patientId);
         if (!patient) {
             notFound();
         }
         return { patient };
     } catch (e: any) {
-        const errorMessage = e.message?.toLowerCase() || '';
-        const errorCode = e.code?.toLowerCase() || '';
-        
-        if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
-            const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
-            return { 
-                patient: null,
-                error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada ou o cliente está offline.",
-                fixUrl: firestoreApiUrl 
-            };
-        }
         console.error("Unexpected error fetching patient for wellness page:", e);
         return { patient: null, error: "Ocorreu um erro inesperado ao carregar os dados para o plano de bem-estar." };
     }
@@ -43,7 +32,7 @@ export default async function WellnessPlanPage() {
         redirect('/login');
     }
 
-    const { patient, error, fixUrl } = await getWellnessPageData(session.userId);
+    const { patient, error } = await getWellnessPageData(session.userId);
 
      if (error || !patient) {
         return (
@@ -53,17 +42,6 @@ export default async function WellnessPlanPage() {
                     <AlertTitle>Erro ao Carregar Página</AlertTitle>
                     <AlertDescription>
                         {error || "Não foi possível carregar os dados do paciente."}
-                        {fixUrl && (
-                            <p className="mt-2">
-                                Por favor, habilite a API manualmente visitando o seguinte link e clicando em "Habilitar":
-                                <br />
-                                <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
-                                    Habilitar API do Firestore
-                                </Link>
-                                <br />
-                                <span className="text-xs">Após habilitar, aguarde alguns minutos e atualize esta página.</span>
-                            </p>
-                        )}
                     </AlertDescription>
                 </Alert>
             </div>
