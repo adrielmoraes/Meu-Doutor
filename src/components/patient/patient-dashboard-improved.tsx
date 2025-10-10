@@ -1,6 +1,6 @@
 'use client';
 
-import { FileClock, UserPlus, HeartPulse, Video, Activity, User, Upload, Brain, Calendar, TrendingUp, Award, Sparkles } from "lucide-react";
+import { FileClock, UserPlus, HeartPulse, Video, Activity, User, Upload, Brain, Calendar, TrendingUp, Award, Sparkles, MessageCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import type { Patient } from "@/types";
@@ -27,6 +27,16 @@ interface PatientDashboardProps {
 
 export default function PatientDashboardImproved({ patient, examCount = 0, upcomingAppointments = 0 }: PatientDashboardProps) {
   const quickActions = [
+    {
+      title: "Fale com o Terapeuta",
+      icon: <MessageCircle className="h-6 w-6 text-green-400" />,
+      href: "/patient/therapist-chat",
+      description: "Chat com IA terapeuta e assistente pessoal 24/7",
+      gradient: "from-green-500/20 to-emerald-500/20",
+      borderColor: "border-green-500/30",
+      hoverBorder: "hover:border-green-500/60",
+      hoverShadow: "hover:shadow-green-500/20",
+    },
     {
       title: "Upload de Exames",
       icon: <Upload className="h-6 w-6 text-cyan-400" />,
