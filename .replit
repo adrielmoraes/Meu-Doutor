@@ -7,8 +7,8 @@ channel = "stable-25_05"
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["next", "start"]
-build = ["next", "build"]
+run = ["npm", "run", "start"]
+build = ["npm", "run", "build"]
 
 [workflows]
 runButton = "Project"
@@ -20,19 +20,16 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Next.js Dev Server"
+args = "Start Game"
 
 [[workflows.workflow]]
-name = "Next.js Dev Server"
+name = "Start Game"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
 
 [[ports]]
 localPort = 5000
@@ -45,3 +42,7 @@ externalPort = 3000
 [[ports]]
 localPort = 40887
 externalPort = 3001
+
+[[ports]]
+localPort = 43533
+externalPort = 3002
