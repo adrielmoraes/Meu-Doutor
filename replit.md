@@ -41,6 +41,52 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Oct 2025)
 
+### AI Therapist Chat with Voice Support (Oct 10, 2025)
+**Main Feature:**
+- WhatsApp-style chat interface for patients to interact with AI therapist
+- Dual functionality: therapeutic support and personal health assistant
+- Full voice and text support with intelligent response matching (text→text, voice→voice)
+- Complete access to patient medical history, exam results, diagnoses, and wellness plans
+
+**Components Created:**
+- `therapist-chat.tsx` - WhatsApp-style chat component with text and voice message support
+- `/patient/therapist-chat` - Dedicated chat page with authentication protection
+- `/api/therapist-chat` - Chat API endpoint with conversation persistence
+- `/api/speech-to-text` - Backend STT service using Gemini 2.0 Flash for audio transcription
+- `therapist-chat-flow.ts` - AI flow with comprehensive patient context access
+
+**Technical Implementation:**
+- Uses Google Gemini 2.0 Flash for audio transcription (speech-to-text)
+- Integrates existing text-to-speech system for voice responses
+- Records audio via MediaRecorder API, uploads to backend for transcription
+- Conversation history persisted in patient's `conversationHistory` field
+- AI has full access to: medical history, exam results, validated diagnoses, wellness plans
+
+**AI Capabilities:**
+- Acts as empathetic therapist providing emotional support
+- Helps patients understand diagnoses and treatment plans
+- Motivates adherence to wellness recommendations
+- Answers questions about exams, medications, and health conditions
+- Offers stress management and mental wellness techniques
+- Provides personalized responses based on complete medical context
+
+**UX Features:**
+- New "Fale com o Terapeuta" card prominently featured in patient dashboard
+- Real-time message delivery with loading states
+- Voice recording with visual feedback (recording indicator)
+- Audio playback for voice responses from AI
+- Automatic scroll to newest messages
+- Timestamp display for all messages
+- Clean, modern interface matching platform's futuristic theme (green accents)
+
+**Security & Privacy:**
+- Protected route requiring patient authentication
+- Backend transcription ensures audio data privacy
+- Conversation persistence for continuity across sessions
+- No client-side storage of sensitive medical data
+
+## Recent Changes (Oct 2025)
+
 ### Exam History Visualization with Time-Series Graphs (Oct 2025)
 **Main Feature:**
 - Comprehensive exam history visualization with interactive time-series graphs
