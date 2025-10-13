@@ -1,6 +1,8 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
-import { decrypt } from '@/lib/session';
+import { db } from './server/storage';
+import { replitUsers } from './shared/schema';
+import { eq } from 'drizzle-orm';
 
 const protectedPatientRoutes = ['/patient'];
 const protectedDoctorRoutes = ['/doctor'];
@@ -8,21 +10,34 @@ const publicRoutes = ['/login', '/register', '/'];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const sessionCookie = request.cookies.get('session')?.value;
-  const session = await decrypt(sessionCookie);
+  
+  const replitUserId = request.headers.get('x-replit-user-id');
+  const replitUserName = request.headers.get('x-replit-user-name');
 
   const isPatientRoute = protectedPatientRoutes.some(prefix => pathname.startsWith(prefix));
   const isDoctorRoute = protectedDoctorRoutes.some(prefix => pathname.startsWith(prefix));
   
-  if (!session && (isPatientRoute || isDoctorRoute)) {
+  if (!replitUserId && (isPatientRoute || isDoctorRoute)) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  if (session) {
-    if (isPatientRoute && session.role !== 'patient') {
+  if (replitUserId) {
+    const userMapping = await db
+      .select()
+      .from(replitUsers)
+      .where(eq(replitUsers.replitUserId, replitUserId))
+      .limit(1);
+
+    if (userMapping.length === 0 && (isPatientRoute || isDoctorRoute)) {
+      return NextResponse.redirect(new URL('/role-selection', request.url));
+    }
+
+    const role = userMapping[0]?.role;
+
+    if (isPatientRoute && role !== 'patient') {
       return NextResponse.redirect(new URL('/login', request.url));
     }
-    if (isDoctorRoute && session.role !== 'doctor') {
+    if (isDoctorRoute && role !== 'doctor') {
       return NextResponse.redirect(new URL('/login', request.url));
     }
   }

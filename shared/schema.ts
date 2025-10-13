@@ -5,6 +5,7 @@ export const patientStatusEnum = pgEnum('patient_status', ['Requer Validação',
 export const examStatusEnum = pgEnum('exam_status', ['Requer Validação', 'Validado']);
 export const appointmentStatusEnum = pgEnum('appointment_status', ['Agendada', 'Concluída', 'Cancelada']);
 export const callStatusEnum = pgEnum('call_status', ['waiting', 'active', 'ended']);
+export const userRoleEnum = pgEnum('user_role', ['doctor', 'patient']);
 
 export const patients = pgTable('patients', {
   id: text('id').primaryKey(),
@@ -84,6 +85,16 @@ export const doctorAuth = pgTable('doctor_auth', {
   id: text('id').primaryKey().references(() => doctors.id, { onDelete: 'cascade' }),
   password: text('password').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Replit Auth user mapping
+export const replitUsers = pgTable('replit_users', {
+  replitUserId: text('replit_user_id').primaryKey(), // X-Replit-User-Id
+  replitUserName: text('replit_user_name').notNull(), // X-Replit-User-Name
+  role: userRoleEnum('role').notNull(),
+  profileId: text('profile_id').notNull(), // references doctors.id or patients.id
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 export const exams = pgTable('exams', {
