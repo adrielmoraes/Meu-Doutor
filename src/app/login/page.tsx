@@ -9,30 +9,7 @@ export default function LoginPage() {
   const authContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch('/__replauthuser');
-        if (response.ok) {
-          const userData = await response.json();
-          if (userData && userData.id) {
-            window.location.href = '/role-selection';
-          }
-        }
-      } catch (error) {
-        console.log('Não autenticado, mostrando botão de login');
-      }
-    };
-
-    checkAuth();
-
-    // Carregar o script do Replit Auth
-    if (authContainerRef.current && !authContainerRef.current.querySelector('script')) {
-      const script = document.createElement('script');
-      script.src = 'https://auth.util.repl.co/script.js';
-      script.setAttribute('authed', 'window.location.href="/role-selection"');
-      script.async = true;
-      authContainerRef.current.appendChild(script);
-    }
+    // Verificação de autenticação removida
   }, []);
 
   return (
@@ -54,26 +31,47 @@ export default function LoginPage() {
             Login Seguro
           </CardTitle>
           <CardDescription className="text-blue-200/70">
-            Faça login com sua conta Replit para continuar
+            Entre com suas credenciais para acessar o sistema
           </CardDescription>
         </CardHeader>
         
         <CardContent>
-          <div className="flex flex-col items-center justify-center py-8">
-            <div 
-              ref={authContainerRef}
-              id="replit-auth-container"
-              className="min-h-[60px] flex items-center justify-center"
-            >
-              <div className="text-blue-200/50 text-sm">
-                Carregando autenticação...
-              </div>
+          <form action="/api/login" method="POST" className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium text-blue-200">
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                className="w-full px-4 py-3 rounded-lg bg-slate-800/50 border border-cyan-500/30 text-white placeholder-blue-200/40 focus:outline-none focus:border-cyan-500 transition-colors"
+                placeholder="seu@email.com"
+              />
             </div>
             
-            <p className="mt-6 text-sm text-blue-200/50 text-center">
-              Autenticação segura via Replit
-            </p>
-          </div>
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium text-blue-200">
+                Senha
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                className="w-full px-4 py-3 rounded-lg bg-slate-800/50 border border-cyan-500/30 text-white placeholder-blue-200/40 focus:outline-none focus:border-cyan-500 transition-colors"
+                placeholder="••••••••"
+              />
+            </div>
+            
+            <button
+              type="submit"
+              className="w-full py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold transition-all duration-300 transform hover:scale-105"
+            >
+              Entrar
+            </button>
+          </form>
         </CardContent>
       </Card>
     </div>

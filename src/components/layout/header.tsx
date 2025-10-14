@@ -38,7 +38,14 @@ const Header = () => {
                 MediAI
               </span>
             </Link>
-            <div className="h-8 w-32 animate-pulse bg-slate-700/50 rounded"></div> 
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" asChild className="text-base font-medium text-cyan-300">
+                <Link href="/login">Entrar</Link>
+              </Button>
+              <Button asChild className="text-base font-medium bg-gradient-to-r from-cyan-500 to-blue-600 text-white">
+                <Link href="/register">Registrar-se</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
