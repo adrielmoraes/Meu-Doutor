@@ -23,6 +23,11 @@ export default function LandingPage() {
           <div className="container px-4 md:px-6 relative z-10">
             <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
               <div className="space-y-8">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-sm">
+                  <Sparkles className="h-4 w-4 text-cyan-400" />
+                  <span className="text-sm text-cyan-300">Powered by Gemini 2.5 Flash AI</span>
+                </div>
+                
                 <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl xl:text-7xl/tight leading-tight bg-gradient-to-r from-white via-cyan-200 to-blue-200 bg-clip-text text-transparent">
                   O Futuro da Saúde Está Aqui
                 </h1>
