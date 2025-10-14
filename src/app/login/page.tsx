@@ -1,11 +1,13 @@
+
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles } from 'lucide-react';
-import Script from 'next/script';
 
 export default function LoginPage() {
+  const authContainerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -22,6 +24,15 @@ export default function LoginPage() {
     };
 
     checkAuth();
+
+    // Carregar o script do Replit Auth
+    if (authContainerRef.current && !authContainerRef.current.querySelector('script')) {
+      const script = document.createElement('script');
+      script.src = 'https://auth.util.repl.co/script.js';
+      script.setAttribute('authed', 'window.location.href="/role-selection"');
+      script.async = true;
+      authContainerRef.current.appendChild(script);
+    }
   }, []);
 
   return (
@@ -49,17 +60,14 @@ export default function LoginPage() {
         
         <CardContent>
           <div className="flex flex-col items-center justify-center py-8">
-            <div id="replit-auth-container">
-              <Script
-                src="https://auth.util.repl.co/script.js"
-                strategy="afterInteractive"
-                onLoad={() => {
-                  const script = document.createElement('script');
-                  script.setAttribute('authed', 'window.location.href="/role-selection"');
-                  script.src = 'https://auth.util.repl.co/script.js';
-                  document.getElementById('replit-auth-container')?.appendChild(script);
-                }}
-              />
+            <div 
+              ref={authContainerRef}
+              id="replit-auth-container"
+              className="min-h-[60px] flex items-center justify-center"
+            >
+              <div className="text-blue-200/50 text-sm">
+                Carregando autenticação...
+              </div>
             </div>
             
             <p className="mt-6 text-sm text-blue-200/50 text-center">
