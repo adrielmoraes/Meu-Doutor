@@ -1,16 +1,39 @@
 
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles } from 'lucide-react';
+import { loginAction } from './actions';
+import { useRouter } from 'next/navigation';
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {pending ? 'Entrando...' : 'Entrar'}
+    </button>
+  );
+}
 
 export default function LoginPage() {
-  const authContainerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const [state, formAction] = useFormState(loginAction, { message: '' });
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    // Verificação de autenticação removida
-  }, []);
+    if (state?.success && state?.redirectPath) {
+      router.push(state.redirectPath);
+    } else if (state?.message) {
+      setErrorMessage(state.message);
+    }
+  }, [state, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden">
@@ -36,7 +59,13 @@ export default function LoginPage() {
         </CardHeader>
         
         <CardContent>
-          <form action="/api/login" method="POST" className="space-y-4">
+          <form action={formAction} className="space-y-4">
+            {errorMessage && (
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                {errorMessage}
+              </div>
+            )}
+            
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium text-blue-200">
                 Email
@@ -65,12 +94,7 @@ export default function LoginPage() {
               />
             </div>
             
-            <button
-              type="submit"
-              className="w-full py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold transition-all duration-300 transform hover:scale-105"
-            >
-              Entrar
-            </button>
+            <SubmitButton />
           </form>
         </CardContent>
       </Card>
