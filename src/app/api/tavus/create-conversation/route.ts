@@ -11,6 +11,11 @@ export async function POST(request: NextRequest) {
 
     const tavusApiKey = process.env.TAVUS_API_KEY;
     const personaId = process.env.TAVUS_PERSONA_ID;
+    
+    // Configurações de timeout (com valores padrão)
+    const maxCallDuration = parseInt(process.env.TAVUS_MAX_CALL_DURATION || '1800'); // 30 min padrão
+    const participantLeftTimeout = parseInt(process.env.TAVUS_PARTICIPANT_LEFT_TIMEOUT || '60');
+    const participantAbsentTimeout = parseInt(process.env.TAVUS_PARTICIPANT_ABSENT_TIMEOUT || '120');
 
     if (!tavusApiKey || !personaId) {
       throw new Error('TAVUS_API_KEY ou TAVUS_PERSONA_ID não configuradas');
@@ -36,8 +41,9 @@ Seu papel é:
 
 IMPORTANTE: Você NÃO é médico. Sempre oriente consulta com profissional para diagnósticos definitivos.`,
         properties: {
-          max_call_duration: 1800,
-          participant_left_timeout: 60,
+          max_call_duration: maxCallDuration,
+          participant_left_timeout: participantLeftTimeout,
+          participant_absent_timeout: participantAbsentTimeout,
           enable_recording: true,
           enable_transcription: true
         },
