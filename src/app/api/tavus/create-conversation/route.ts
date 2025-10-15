@@ -10,11 +10,13 @@ export async function POST(request: NextRequest) {
     }
 
     const tavusApiKey = process.env.TAVUS_API_KEY;
-    if (!tavusApiKey) {
-      throw new Error('TAVUS_API_KEY não configurada');
+    const personaId = process.env.TAVUS_PERSONA_ID;
+
+    if (!tavusApiKey || !personaId) {
+      throw new Error('TAVUS_API_KEY ou TAVUS_PERSONA_ID não configuradas');
     }
 
-    // Criar conversa na Tavus API
+    // Criar conversa usando o endpoint correto da Tavus CVI
     const response = await fetch('https://tavusapi.com/v2/conversations', {
       method: 'POST',
       headers: {
@@ -22,26 +24,24 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        replica_id: process.env.TAVUS_REPLICA_ID || 'default',
+        persona_id: personaId,
         conversation_name: conversationName,
-        conversational_context: `Você é a MediAI, assistente médica virtual em português brasileiro. 
-        
+        conversational_context: `Você é a MediAI, assistente médica virtual em português brasileiro.
+
 Seu papel é:
 - Fornecer orientações preliminares de saúde
 - Analisar sintomas do paciente (ID: ${patientId})
 - Recomendar especialistas quando necessário
-- Acessar histórico médico e exames do paciente
 - Manter tom empático e profissional
 
-IMPORTANTE: Você NÃO é médico. Sempre oriente consulta com profissional humano para diagnósticos definitivos.`,
-        custom_greeting: 'Olá! Sou a MediAI, sua assistente de saúde. Como posso ajudar você hoje?',
+IMPORTANTE: Você NÃO é médico. Sempre oriente consulta com profissional para diagnósticos definitivos.`,
         properties: {
-          max_call_duration: 1800, // 30 minutos
+          max_call_duration: 1800,
           participant_left_timeout: 60,
           enable_recording: true,
-          enable_transcription: true,
-          language: 'pt-BR'
-        }
+          enable_transcription: true
+        },
+        callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/tavus/webhook`
       })
     });
 

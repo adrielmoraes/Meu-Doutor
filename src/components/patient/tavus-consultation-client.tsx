@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -9,7 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '../ui/scroll-area';
 import { getSessionOnClient } from '@/lib/session';
 import { Badge } from '@/components/ui/badge';
-import { consultationFlow } from '@/ai/flows/consultation-flow';
 
 type Message = {
     id: string;
@@ -30,19 +28,14 @@ export default function TavusConsultationClient() {
     const [isConnected, setIsConnected] = useState(false);
     const [isConnecting, setIsConnecting] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
-    const [isRecording, setIsRecording] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
     const [conversationId, setConversationId] = useState<string | null>(null);
     const [patientId, setPatientId] = useState<string | null>(null);
     const [isLoadingSession, setIsLoadingSession] = useState(true);
-    
-    const videoRef = useRef<HTMLVideoElement>(null);
+
+    const videoRef = useRef<HTMLDivElement>(null);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
-    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-    const audioChunksRef = useRef<Blob[]>([]);
-    const tavusInstanceRef = useRef<any>(null);
-    const conversationHistoryRef = useRef<any[]>([]);
-    
+    const dailyCallRef = useRef<any>(null);
+
     const { toast } = useToast();
 
     // Get patient session
@@ -78,6 +71,18 @@ export default function TavusConsultationClient() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
+    // Load Daily.co script
+    useEffect(() => {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/@daily-co/daily-js';
+        script.async = true;
+        document.body.appendChild(script);
+
+        return () => {
+            document.body.removeChild(script);
+        };
+    }, []);
+
     const startConversation = async () => {
         if (!patientId) {
             toast({
@@ -90,6 +95,7 @@ export default function TavusConsultationClient() {
 
         setIsConnecting(true);
         try {
+            // 1. Criar conversa na Tavus
             const response = await fetch('/api/tavus/create-conversation', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -103,14 +109,14 @@ export default function TavusConsultationClient() {
 
             const data = await response.json();
             setConversationId(data.conversationId);
-            
-            // Inicializar apenas o avatar visual da Tavus
-            await initializeTavusAvatar(data.conversationId);
-            
+
+            // 2. Conectar ao Daily.co room
+            await connectToDaily(data.conversationUrl);
+
             setIsConnected(true);
             toast({
                 title: 'Conectado!',
-                description: 'Você está conectado com a MediAI. Clique no microfone para falar.'
+                description: 'Você está conectado com a MediAI. Fale naturalmente!'
             });
         } catch (error) {
             console.error('Error starting conversation:', error);
@@ -124,192 +130,102 @@ export default function TavusConsultationClient() {
         }
     };
 
-    const initializeTavusAvatar = async (convId: string) => {
+    const connectToDaily = async (conversationUrl: string) => {
         if (!videoRef.current) return;
 
-        // Carregar Tavus SDK
-        const script = document.createElement('script');
-        script.src = 'https://sdk.tavus.io/tavus-sdk.js';
-        script.async = true;
-        document.body.appendChild(script);
+        // Verificar se Daily está disponível
+        if (typeof (window as any).DailyIframe === 'undefined') {
+            throw new Error('Daily.co SDK não carregado');
+        }
 
-        await new Promise((resolve) => {
-            script.onload = resolve;
-        });
+        const DailyIframe = (window as any).DailyIframe;
 
-        // Inicializar SDK apenas para renderização de avatar (sem áudio próprio)
-        const tavus = new (window as any).TavusSDK({
-            conversationId: convId,
-            videoElement: videoRef.current,
-            enableAudio: false, // Desabilitar áudio da Tavus, usar Gemini
-            onConversationStart: () => {
-                console.log('[Tavus] Avatar inicializado');
+        // Criar call frame do Daily
+        const callFrame = DailyIframe.createFrame(videoRef.current, {
+            iframeStyle: {
+                width: '100%',
+                height: '100%',
+                border: '0',
+                borderRadius: '12px'
             },
-            onError: (error: Error) => {
-                console.error('[Tavus] Error:', error);
+            showLeaveButton: false,
+            showFullscreenButton: false
+        });
+
+        // Event listeners
+        callFrame.on('joined-meeting', () => {
+            console.log('[Tavus] Conectado ao Daily room');
+        });
+
+        callFrame.on('participant-joined', (event: any) => {
+            console.log('[Tavus] Participante entrou:', event.participant);
+            if (event.participant.user_name === 'MediAI') {
+                toast({
+                    title: 'MediAI entrou na chamada',
+                    description: 'O avatar está pronto para conversar!'
+                });
             }
         });
 
-        tavusInstanceRef.current = tavus;
-        await tavus.start();
-    };
+        callFrame.on('app-message', (event: any) => {
+            // Mensagens de transcrição da Tavus
+            if (event.data.type === 'transcript') {
+                const { speaker, text } = event.data;
 
-    const startRecording = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-            
-            mediaRecorderRef.current = mediaRecorder;
-            audioChunksRef.current = [];
-
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    audioChunksRef.current.push(event.data);
-                }
-            };
-
-            mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-                await processAudioWithGemini(audioBlob);
-                stream.getTracks().forEach(track => track.stop());
-            };
-
-            mediaRecorder.start();
-            setIsRecording(true);
-            setIsMuted(false);
-        } catch (error) {
-            console.error('Error starting recording:', error);
-            toast({
-                variant: 'destructive',
-                title: 'Erro no microfone',
-                description: 'Não foi possível acessar o microfone.'
-            });
-        }
-    };
-
-    const stopRecording = () => {
-        if (mediaRecorderRef.current && isRecording) {
-            mediaRecorderRef.current.stop();
-            setIsRecording(false);
-        }
-    };
-
-    const processAudioWithGemini = async (audioBlob: Blob) => {
-        setIsProcessing(true);
-        
-        try {
-            // 1. STT com Gemini
-            const formData = new FormData();
-            formData.append('audio', audioBlob);
-
-            const sttResponse = await fetch('/api/speech-to-text', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!sttResponse.ok) throw new Error('Falha na transcrição');
-
-            const { transcript } = await sttResponse.json();
-            
-            // Adicionar mensagem do usuário
-            const userMessage: Message = {
-                id: Date.now().toString(),
-                source: 'user',
-                text: transcript,
-                timestamp: new Date()
-            };
-            setMessages(prev => [...prev, userMessage]);
-
-            // 2. LLM com Gemini (via consultation flow)
-            conversationHistoryRef.current.push({
-                role: 'user',
-                content: [{ text: transcript }]
-            });
-
-            const aiResponse = await consultationFlow({
-                patientId: patientId!,
-                history: conversationHistoryRef.current
-            });
-
-            // Adicionar resposta da IA
-            const aiMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                source: 'ai',
-                text: aiResponse.response,
-                timestamp: new Date()
-            };
-            setMessages(prev => [...prev, aiMessage]);
-
-            conversationHistoryRef.current.push({
-                role: 'model',
-                content: [{ text: aiResponse.response }]
-            });
-
-            // 3. TTS com Gemini e sincronizar com avatar Tavus
-            if (aiResponse.audioDataUri && tavusInstanceRef.current) {
-                // Converter data URI para blob
-                const audioData = aiResponse.audioDataUri.split(',')[1];
-                const audioBlob = await fetch(`data:audio/wav;base64,${audioData}`).then(r => r.blob());
-                
-                // Tocar áudio e animar avatar
-                const audioUrl = URL.createObjectURL(audioBlob);
-                const audio = new Audio(audioUrl);
-                
-                // Sincronizar animação do avatar com áudio
-                tavusInstanceRef.current.playAnimation('speaking');
-                
-                audio.onended = () => {
-                    tavusInstanceRef.current.playAnimation('idle');
-                    URL.revokeObjectURL(audioUrl);
+                const newMessage: Message = {
+                    id: Date.now().toString(),
+                    source: speaker === 'user' ? 'user' : 'ai',
+                    text: text,
+                    timestamp: new Date()
                 };
-                
-                await audio.play();
-            }
 
-        } catch (error) {
-            console.error('Error processing audio:', error);
-            toast({
-                variant: 'destructive',
-                title: 'Erro ao processar',
-                description: 'Não foi possível processar sua mensagem. Tente novamente.'
-            });
-        } finally {
-            setIsProcessing(false);
-        }
+                setMessages(prev => [...prev, newMessage]);
+            }
+        });
+
+        callFrame.on('error', (error: any) => {
+            console.error('[Tavus] Daily error:', error);
+        });
+
+        // Entrar na sala
+        await callFrame.join({ url: conversationUrl });
+
+        dailyCallRef.current = callFrame;
+    };
+
+    const toggleMicrophone = async () => {
+        if (!dailyCallRef.current) return;
+
+        const newMutedState = !isMuted;
+        await dailyCallRef.current.setLocalAudio(!newMutedState);
+        setIsMuted(newMutedState);
     };
 
     const endConversation = async () => {
-        if (!conversationId) return;
+        if (!conversationId || !dailyCallRef.current) return;
 
         try {
+            // Deixar a chamada do Daily
+            await dailyCallRef.current.leave();
+            await dailyCallRef.current.destroy();
+
+            // Encerrar conversa na Tavus
             await fetch('/api/tavus/end-conversation', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conversationId })
             });
 
-            if (tavusInstanceRef.current) {
-                tavusInstanceRef.current.stop();
-            }
-
             setIsConnected(false);
             setConversationId(null);
-            conversationHistoryRef.current = [];
-            
+            dailyCallRef.current = null;
+
             toast({
                 title: 'Conversa encerrada',
                 description: 'A consulta foi finalizada com sucesso.'
             });
         } catch (error) {
             console.error('Error ending conversation:', error);
-        }
-    };
-
-    const toggleMicrophone = () => {
-        if (isRecording) {
-            stopRecording();
-        } else {
-            startRecording();
         }
     };
 
@@ -325,11 +241,6 @@ export default function TavusConsultationClient() {
                     {isConnected && (
                         <Badge className="bg-green-500 animate-pulse">
                             ● Ao Vivo
-                        </Badge>
-                    )}
-                    {isProcessing && (
-                        <Badge className="bg-blue-500">
-                            🤔 Processando...
                         </Badge>
                     )}
                 </div>
@@ -369,12 +280,9 @@ export default function TavusConsultationClient() {
                         </div>
                     )}
 
-                    <video
+                    <div
                         ref={videoRef}
-                        className={`w-full h-full object-cover rounded-lg ${isConnected ? 'block' : 'hidden'}`}
-                        autoPlay
-                        playsInline
-                        muted
+                        className={`w-full h-full rounded-lg ${isConnected ? 'block' : 'hidden'}`}
                     />
                 </div>
 
@@ -383,13 +291,10 @@ export default function TavusConsultationClient() {
                         <Button
                             onClick={toggleMicrophone}
                             size="lg"
-                            disabled={isProcessing}
-                            variant={isRecording ? "default" : "secondary"}
-                            className={`rounded-full w-14 h-14 p-0 shadow-lg ${
-                                isRecording ? 'bg-red-500 hover:bg-red-600 animate-pulse' : ''
-                            }`}
+                            variant={isMuted ? "destructive" : "secondary"}
+                            className="rounded-full w-14 h-14 p-0 shadow-lg"
                         >
-                            {isRecording ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}
+                            {isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
                         </Button>
                         <Button
                             onClick={endConversation}
