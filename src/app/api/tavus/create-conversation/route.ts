@@ -10,15 +10,17 @@ export async function POST(request: NextRequest) {
     }
 
     const tavusApiKey = process.env.TAVUS_API_KEY;
-    const personaId = process.env.TAVUS_PERSONA_ID;
+    const personaId = process.env.PERSONA_ID;
+    const replicaId = process.env.REPLICA_ID;
     
     // Configurações de timeout (com valores padrão)
     const maxCallDuration = parseInt(process.env.TAVUS_MAX_CALL_DURATION || '1800'); // 30 min padrão
     const participantLeftTimeout = parseInt(process.env.TAVUS_PARTICIPANT_LEFT_TIMEOUT || '60');
     const participantAbsentTimeout = parseInt(process.env.TAVUS_PARTICIPANT_ABSENT_TIMEOUT || '120');
 
-    if (!tavusApiKey || !personaId) {
-      throw new Error('TAVUS_API_KEY ou TAVUS_PERSONA_ID não configuradas');
+    if (!tavusApiKey || !personaId || !replicaId) {
+      console.error('Missing Tavus environment variables:', { hasApiKey: !!tavusApiKey, hasPersonaId: !!personaId, hasReplicaId: !!replicaId });
+      throw new Error('TAVUS_API_KEY, PERSONA_ID ou REPLICA_ID não configuradas');
     }
 
     // Criar conversa usando o endpoint correto da Tavus CVI
@@ -29,6 +31,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
+        replica_id: replicaId,
         persona_id: personaId,
         conversation_name: conversationName,
         conversational_context: `Você é a MediAI, assistente médica virtual em português brasileiro.

@@ -53,8 +53,8 @@ export function Conversation({ conversationUrl, onLeave }: ConversationProps) {
         joinCall();
 
         return () => {
-            if (daily && meetingState === 'joined-meeting') {
-                daily.leave();
+            if (daily) {
+                daily.leave().catch(console.error);
             }
         };
     }, [daily, conversationUrl, meetingState, onLeave]);
