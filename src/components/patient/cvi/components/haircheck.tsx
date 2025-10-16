@@ -1,12 +1,10 @@
 
 "use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { useDaily, DailyVideo, useDevices, useLocalSessionId } from '@daily-co/daily-react';
+import { useEffect, useState } from 'react';
+import { useDaily, DailyVideo, useLocalSessionId } from '@daily-co/daily-react';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Mic, Video as VideoIcon, Check } from 'lucide-react';
+import { Check, Loader2, Mic, Video as VideoIcon } from 'lucide-react';
 
 interface HaircheckProps {
     onJoinCall: () => void;
@@ -17,43 +15,36 @@ export { Haircheck };
 function Haircheck({ onJoinCall }: HaircheckProps) {
     const daily = useDaily();
     const localSessionId = useLocalSessionId();
-    const { microphones, cameras, setMicrophone, setCamera } = useDevices();
-    
-    const [selectedMic, setSelectedMic] = useState<string>('');
-    const [selectedCamera, setSelectedCamera] = useState<string>('');
     const [isReady, setIsReady] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    // Inicializar dispositivos padrão
+    // Iniciar câmera automaticamente detectando dispositivos padrão
     useEffect(() => {
-        if (microphones.length > 0 && !selectedMic) {
-            const defaultMic = microphones.find(m => m.selected) || microphones[0];
-            setSelectedMic(defaultMic.device.deviceId);
-        }
-        if (cameras.length > 0 && !selectedCamera) {
-            const defaultCam = cameras.find(c => c.selected) || cameras[0];
-            setSelectedCamera(defaultCam.device.deviceId);
-        }
-    }, [microphones, cameras, selectedMic, selectedCamera]);
+        if (!daily || isReady) return;
 
-    // Iniciar preview quando dispositivos estiverem prontos
-    useEffect(() => {
-        if (daily && selectedMic && selectedCamera && !isReady) {
-            daily.startCamera({
-                audioSource: selectedMic,
-                videoSource: selectedCamera
-            }).then(() => setIsReady(true));
-        }
-    }, [daily, selectedMic, selectedCamera, isReady]);
+        const startPreview = async () => {
+            try {
+                console.log('[Haircheck] Iniciando câmera...');
+                
+                // Iniciar câmera com dispositivos padrão (true = usar padrão do sistema)
+                await daily.startCamera({
+                    audioSource: true,
+                    videoSource: true
+                });
+                
+                console.log('[Haircheck] Câmera iniciada com sucesso');
+                setIsReady(true);
+                setError(null);
+            } catch (err: any) {
+                console.error('[Haircheck] Erro ao iniciar câmera:', err);
+                setError('Não foi possível acessar câmera/microfone. Verifique as permissões.');
+            }
+        };
 
-    const handleMicChange = useCallback((deviceId: string) => {
-        setSelectedMic(deviceId);
-        setMicrophone(deviceId);
-    }, [setMicrophone]);
-
-    const handleCameraChange = useCallback((deviceId: string) => {
-        setSelectedCamera(deviceId);
-        setCamera(deviceId);
-    }, [setCamera]);
+        // Pequeno delay para garantir que o Daily esteja totalmente carregado
+        const timer = setTimeout(startPreview, 500);
+        return () => clearTimeout(timer);
+    }, [daily, isReady]);
 
     return (
         <div className="flex flex-col items-center justify-center h-full p-6 bg-gradient-to-br from-blue-50 to-teal-50 dark:from-blue-950 dark:to-teal-950">
@@ -70,64 +61,72 @@ function Haircheck({ onJoinCall }: HaircheckProps) {
                             type="video"
                             className="w-full h-full object-cover mirror"
                         />
+                    ) : error ? (
+                        <div className="flex flex-col items-center justify-center h-full text-white p-6 text-center">
+                            <p className="mb-4">{error}</p>
+                            <p className="text-sm text-gray-400">
+                                Permita o acesso à câmera e microfone nas configurações do navegador
+                            </p>
+                        </div>
                     ) : (
                         <div className="flex items-center justify-center h-full">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                            <div className="text-center text-white">
+                                <Loader2 className="animate-spin h-12 w-12 mx-auto mb-4" />
+                                <p className="text-sm">Preparando câmera e microfone...</p>
+                            </div>
                         </div>
                     )}
                 </div>
 
-                {/* Seleção de dispositivos */}
-                <div className="space-y-4 mb-6">
-                    <div>
-                        <Label htmlFor="microphone" className="flex items-center gap-2 mb-2">
-                            <Mic className="h-4 w-4" />
-                            Microfone
-                        </Label>
-                        <Select value={selectedMic} onValueChange={handleMicChange}>
-                            <SelectTrigger id="microphone">
-                                <SelectValue placeholder="Selecione um microfone" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {microphones.map((mic) => (
-                                    <SelectItem key={mic.device.deviceId} value={mic.device.deviceId}>
-                                        {mic.device.label || `Microfone ${mic.device.deviceId.slice(0, 5)}`}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                {/* Informações dos dispositivos */}
+                {isReady && (
+                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
+                        <div className="flex items-center gap-2 text-green-800 dark:text-green-300 mb-2">
+                            <Check className="h-5 w-5" />
+                            <span className="font-semibold">Tudo pronto!</span>
+                        </div>
+                        <div className="text-sm text-green-700 dark:text-green-400 space-y-1">
+                            <div className="flex items-center gap-2">
+                                <Mic className="h-4 w-4" />
+                                <span>Microfone detectado automaticamente</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <VideoIcon className="h-4 w-4" />
+                                <span>Câmera detectada automaticamente</span>
+                            </div>
+                        </div>
                     </div>
-
-                    <div>
-                        <Label htmlFor="camera" className="flex items-center gap-2 mb-2">
-                            <VideoIcon className="h-4 w-4" />
-                            Câmera
-                        </Label>
-                        <Select value={selectedCamera} onValueChange={handleCameraChange}>
-                            <SelectTrigger id="camera">
-                                <SelectValue placeholder="Selecione uma câmera" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {cameras.map((cam) => (
-                                    <SelectItem key={cam.device.deviceId} value={cam.device.deviceId}>
-                                        {cam.device.label || `Câmera ${cam.device.deviceId.slice(0, 5)}`}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
+                )}
 
                 {/* Botão de entrar */}
                 <Button
                     onClick={onJoinCall}
                     disabled={!isReady}
-                    className="w-full bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
+                    className="w-full bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 disabled:opacity-50"
                     size="lg"
                 >
-                    <Check className="mr-2 h-5 w-5" />
-                    Entrar na Consulta
+                    {isReady ? (
+                        <>
+                            <Check className="mr-2 h-5 w-5" />
+                            Entrar na Consulta
+                        </>
+                    ) : (
+                        <>
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Aguarde...
+                        </>
+                    )}
                 </Button>
+
+                {error && (
+                    <Button
+                        onClick={() => window.location.reload()}
+                        variant="outline"
+                        className="w-full mt-3"
+                    >
+                        Tentar Novamente
+                    </Button>
+                )}
             </div>
         </div>
     );
