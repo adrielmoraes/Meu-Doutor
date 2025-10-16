@@ -40,12 +40,21 @@ export function Conversation({ conversationUrl, onLeave }: ConversationProps) {
 
         const joinCall = async () => {
             try {
+                console.log('[Conversation] Aguardando sala estar pronta...');
+                
+                // Aguardar 2 segundos para garantir que a sala Tavus está completamente pronta
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                console.log('[Conversation] Conectando ao Daily.co com URL:', conversationUrl);
+                
                 await daily.join({ 
                     url: conversationUrl,
                     userName: 'Paciente'
                 });
+                
+                console.log('[Conversation] Conectado com sucesso!');
             } catch (error) {
-                console.error('Erro ao conectar ao Daily:', error);
+                console.error('[Conversation] Erro ao conectar ao Daily:', error);
                 onLeave();
             }
         };
