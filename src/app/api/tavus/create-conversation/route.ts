@@ -55,9 +55,25 @@ IMPORTANTE: Você NÃO é médico. Sempre oriente consulta com profissional para
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error('Tavus API Error:', error);
-      throw new Error(`Falha ao criar conversa: ${error}`);
+      const errorText = await response.text();
+      console.error('Tavus API Error:', errorText);
+      
+      // Parse error to provide specific messages
+      let errorMessage = 'Falha ao criar conversa';
+      try {
+        const errorData = JSON.parse(errorText);
+        
+        // Check for specific error types
+        if (errorData.message?.includes('out of conversational credits')) {
+          errorMessage = 'Créditos Tavus esgotados. Por favor, adicione créditos na sua conta Tavus (tavusapi.com) para continuar usando a Consulta ao Vivo.';
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      } catch {
+        errorMessage = errorText;
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();

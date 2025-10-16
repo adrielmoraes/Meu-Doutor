@@ -97,7 +97,10 @@ export default function TavusConsultationClient() {
             if (!response.ok) {
                 const error = await response.json();
                 console.error('[Tavus] Erro na API:', error);
-                throw new Error(error.details || 'Falha ao criar conversa');
+                
+                // Usar a mensagem de erro específica do backend
+                const errorMessage = error.details || error.error || 'Falha ao criar conversa';
+                throw new Error(errorMessage);
             }
 
             const data = await response.json();
