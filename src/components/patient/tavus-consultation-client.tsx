@@ -10,6 +10,7 @@ import { getSessionOnClient } from '@/lib/session';
 import { Badge } from '@/components/ui/badge';
 import { CVIProvider } from './cvi/components/cvi-provider';
 import { Conversation } from './cvi/components/conversation';
+import { useRequestPermissions } from './cvi/hooks/use-request-permissions';
 
 type Message = {
     id: string;
@@ -33,6 +34,7 @@ export default function TavusConsultationClient() {
     const [isLoadingSession, setIsLoadingSession] = useState(true);
 
     const { toast } = useToast();
+    const requestPermissions = useRequestPermissions();
 
     // Get patient session
     useEffect(() => {
@@ -75,6 +77,12 @@ export default function TavusConsultationClient() {
         setIsConnecting(true);
         
         try {
+            // 1️⃣ PRIMEIRO: Pedir permissões de câmera e microfone
+            console.log('[Tavus] Solicitando permissões de câmera e microfone...');
+            await requestPermissions();
+            console.log('[Tavus] Permissões concedidas!');
+
+            // 2️⃣ DEPOIS: Criar conversa na API
             console.log('[Tavus] Criando conversa para paciente:', patientId);
             
             const response = await fetch('/api/tavus/create-conversation', {
@@ -99,6 +107,7 @@ export default function TavusConsultationClient() {
                 throw new Error('URL da conversa não foi retornada pela API');
             }
 
+            // 3️⃣ POR FIM: Definir URL da conversa (sem delay!)
             setConversationUrl(data.conversationUrl);
 
             toast({
