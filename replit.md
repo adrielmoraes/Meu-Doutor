@@ -35,6 +35,40 @@ Preferred communication style: Simple, everyday language.
 - Exam history visualization with interactive time-series graphs using Recharts, allowing patients to track their health metrics over time.
 - Gamification features for doctors (XP, levels, badges).
 
+### Tavus CVI Optimizations (October 2025)
+**Implementation Pattern**: Full control using Daily JS SDK (not @tavus/cvi-ui) for custom UI.
+
+**Core Optimizations**:
+1. **Singleton Pattern** (`cvi-provider.tsx`):
+   - Global Daily call object via `window._dailyCallObject`
+   - Prevents multiple WebRTC connections
+   - Automatic device detection (audioSource, videoSource)
+
+2. **Lifecycle Stability** (`conversation.tsx`):
+   - `useRef` pattern for `hasJoinedRef` to prevent re-join loops
+   - Stable useEffect dependencies (only `daily`, `conversationUrl`)
+   - Guards prevent multiple joins, cleanup only on unmount
+
+3. **Noise Cancellation**:
+   - Automatic activation via `updateInputSettings()` post-join
+   - Processor type: 'noise-cancellation'
+   - Graceful fallback for incompatible browsers
+
+4. **Robust Event Listeners**:
+   - participant-joined, participant-updated, participant-left
+   - Named callback functions for proper cleanup
+   - Detailed logging for debugging
+
+5. **Enhanced Error Handling**:
+   - Tavus credit detection ("out of conversational credits")
+   - Permission-specific error messages (NotAllowedError, NotFoundError, etc.)
+   - User-friendly Portuguese messages
+
+**Technical Decisions**:
+- Avoided @daily-co/daily-react hooks for participant state to prevent re-render loops
+- Removed unstable props (`meetingState`, `onLeave`) from critical effect dependencies
+- Used ref-based join tracking instead of state to maintain stability across renders
+
 ## External Dependencies
 
 **AI/ML Services**:
