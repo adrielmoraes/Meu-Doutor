@@ -12,7 +12,9 @@ interface HaircheckProps {
     onJoinCall: () => void;
 }
 
-export function Haircheck({ onJoinCall }: HaircheckProps) {
+export { Haircheck };
+
+function Haircheck({ onJoinCall }: HaircheckProps) {
     const daily = useDaily();
     const localSessionId = useLocalSessionId();
     const { microphones, cameras, setMicrophone, setCamera } = useDevices();

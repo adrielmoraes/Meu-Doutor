@@ -10,7 +10,11 @@ import { getSessionOnClient } from '@/lib/session';
 import { Badge } from '@/components/ui/badge';
 import { CVIProvider } from './cvi/components/cvi-provider';
 import { Conversation } from './cvi/components/conversation';
-import { Haircheck } from './cvi/components/haircheck';
+import dynamic from 'next/dynamic';
+
+const Haircheck = dynamic(() => import('./cvi/components/haircheck').then(mod => ({ default: mod.Haircheck })), {
+  ssr: false
+});
 
 type Message = {
     id: string;
