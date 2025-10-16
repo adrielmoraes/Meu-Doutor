@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import {
     useDaily,
     useLocalSessionId,
@@ -30,13 +30,63 @@ export function Conversation({ conversationUrl, onLeave }: ConversationProps) {
     
     const [isMicEnabled, setIsMicEnabled] = useState(true);
     const [isCameraEnabled, setIsCameraEnabled] = useState(true);
+    
+    // Usar useRef para evitar re-execução do effect
+    const hasJoinedRef = useRef(false);
 
     const localVideo = useVideoTrack(localSessionId);
     const localAudio = useAudioTrack(localSessionId);
+    
+    const [remoteParticipants, setRemoteParticipants] = useState<Record<string, any>>({});
+
+    // Event listeners robustos conforme documentação Tavus
+    useEffect(() => {
+        if (!daily) return;
+
+        const updateRemoteParticipants = () => {
+            const participants = daily.participants();
+            const remotes: Record<string, any> = {};
+            Object.entries(participants).forEach(([id, p]) => {
+                if (id !== 'local') {
+                    remotes[id] = p;
+                }
+            });
+            setRemoteParticipants(remotes);
+            console.log('[Conversation] Participantes remotos atualizados:', Object.keys(remotes));
+        };
+
+        // Callbacks para event listeners (necessário para cleanup)
+        const handleParticipantJoined = (event: any) => {
+            console.log('[Conversation] Participante entrou:', event?.participant?.user_name);
+            updateRemoteParticipants();
+        };
+
+        const handleParticipantUpdated = (event: any) => {
+            console.log('[Conversation] Participante atualizado:', event?.participant?.user_name);
+            updateRemoteParticipants();
+        };
+
+        const handleParticipantLeft = (event: any) => {
+            console.log('[Conversation] Participante saiu:', event?.participant?.user_name);
+            updateRemoteParticipants();
+        };
+
+        // Adicionar event listeners conforme documentação
+        daily.on('participant-joined', handleParticipantJoined);
+        daily.on('participant-updated', handleParticipantUpdated);
+        daily.on('participant-left', handleParticipantLeft);
+
+        // Cleanup com callbacks corretos
+        return () => {
+            daily.off('participant-joined', handleParticipantJoined);
+            daily.off('participant-updated', handleParticipantUpdated);
+            daily.off('participant-left', handleParticipantLeft);
+        };
+    }, [daily]);
 
     // Conectar ao Daily.co quando o componente montar
     useEffect(() => {
-        if (!daily || meetingState === 'joined-meeting') return;
+        if (!daily || !conversationUrl || hasJoinedRef.current) return;
 
         const joinCall = async () => {
             try {
@@ -47,21 +97,40 @@ export function Conversation({ conversationUrl, onLeave }: ConversationProps) {
                     userName: 'Paciente'
                 });
                 
-                console.log('[Conversation] Conectado com sucesso!');
+                hasJoinedRef.current = true;
+                console.log('[Conversation] Conectado com sucesso! hasJoined:', hasJoinedRef.current);
+                
+                // Ativar noise cancellation conforme documentação Tavus
+                try {
+                    await daily.updateInputSettings({
+                        audio: {
+                            processor: {
+                                type: 'noise-cancellation',
+                            },
+                        },
+                    });
+                    console.log('[Conversation] Noise cancellation ativado');
+                } catch (error) {
+                    console.warn('[Conversation] Noise cancellation não disponível:', error);
+                }
             } catch (error) {
                 console.error('[Conversation] Erro ao conectar ao Daily:', error);
+                hasJoinedRef.current = false;
                 onLeave();
             }
         };
 
         joinCall();
 
+        // Cleanup apenas em teardown real (unmount)
         return () => {
-            if (daily) {
+            if (daily && hasJoinedRef.current) {
+                console.log('[Conversation] Cleanup: deixando a sala Daily');
                 daily.leave().catch(console.error);
+                hasJoinedRef.current = false;
             }
         };
-    }, [daily, conversationUrl, meetingState, onLeave]);
+    }, [daily, conversationUrl]);
 
     const toggleMic = useCallback(() => {
         if (!daily) return;
