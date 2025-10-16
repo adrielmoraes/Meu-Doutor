@@ -3,18 +3,13 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Phone, Loader2, PhoneOff } from 'lucide-react';
+import { Phone, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '../ui/scroll-area';
 import { getSessionOnClient } from '@/lib/session';
 import { Badge } from '@/components/ui/badge';
 import { CVIProvider } from './cvi/components/cvi-provider';
 import { Conversation } from './cvi/components/conversation';
-import dynamic from 'next/dynamic';
-
-const Haircheck = dynamic(() => import('./cvi/components/haircheck').then(mod => ({ default: mod.Haircheck })), {
-  ssr: false
-});
 
 type Message = {
     id: string;
@@ -36,7 +31,6 @@ export default function TavusConsultationClient() {
     const [conversationUrl, setConversationUrl] = useState<string | null>(null);
     const [patientId, setPatientId] = useState<string | null>(null);
     const [isLoadingSession, setIsLoadingSession] = useState(true);
-    const [showHaircheck, setShowHaircheck] = useState(false);
 
     const { toast } = useToast();
 
@@ -78,15 +72,11 @@ export default function TavusConsultationClient() {
             return;
         }
 
-        // Mostrar haircheck primeiro
-        setShowHaircheck(true);
-    };
-
-    const handleJoinFromHaircheck = async () => {
-        setShowHaircheck(false);
         setIsConnecting(true);
         
         try {
+            console.log('[Tavus] Criando conversa para paciente:', patientId);
+            
             const response = await fetch('/api/tavus/create-conversation', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -98,10 +88,17 @@ export default function TavusConsultationClient() {
 
             if (!response.ok) {
                 const error = await response.json();
+                console.error('[Tavus] Erro na API:', error);
                 throw new Error(error.details || 'Falha ao criar conversa');
             }
 
             const data = await response.json();
+            console.log('[Tavus] Conversa criada:', data);
+            
+            if (!data.conversationUrl) {
+                throw new Error('URL da conversa não foi retornada pela API');
+            }
+
             setConversationUrl(data.conversationUrl);
 
             toast({
@@ -109,7 +106,7 @@ export default function TavusConsultationClient() {
                 description: 'Você está conectado com a MediAI. Fale naturalmente!'
             });
         } catch (error: any) {
-            console.error('Error starting conversation:', error);
+            console.error('[Tavus] Error starting conversation:', error);
             toast({
                 variant: 'destructive',
                 title: 'Erro ao conectar',
@@ -147,7 +144,7 @@ export default function TavusConsultationClient() {
                     </div>
 
                     <div className="w-full h-full min-h-[500px] flex items-center justify-center rounded-lg overflow-hidden bg-black/5">
-                        {!conversationUrl && !isConnecting && !showHaircheck && (
+                        {!conversationUrl && !isConnecting && (
                             <div className="flex flex-col items-center gap-6">
                                 <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-teal-400 flex items-center justify-center">
                                     <span className="text-6xl">🤖</span>
@@ -166,15 +163,9 @@ export default function TavusConsultationClient() {
                                         className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
                                     >
                                         <Phone className="mr-2 h-5 w-5" />
-                                        Iniciar Consulta
+                                        Iniciar Consulta ao Vivo
                                     </Button>
                                 </div>
-                            </div>
-                        )}
-
-                        {showHaircheck && (
-                            <div className="w-full h-full">
-                                <Haircheck onJoinCall={handleJoinFromHaircheck} />
                             </div>
                         )}
 
@@ -183,6 +174,9 @@ export default function TavusConsultationClient() {
                                 <Loader2 className="w-16 h-16 animate-spin text-blue-600" />
                                 <p className="text-sm text-gray-600 dark:text-gray-400">
                                     Conectando com a MediAI...
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-500">
+                                    Isso pode levar alguns segundos
                                 </p>
                             </div>
                         )}
