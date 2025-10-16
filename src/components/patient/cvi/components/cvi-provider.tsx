@@ -1,8 +1,12 @@
 
 "use client";
 
-import React from 'react';
+import { DailyProvider } from "@daily-co/daily-react";
 
 export function CVIProvider({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
+  return (
+    <DailyProvider>
+      {children}
+    </DailyProvider>
+  );
 }

@@ -10,6 +10,7 @@ import { getSessionOnClient } from '@/lib/session';
 import { Badge } from '@/components/ui/badge';
 import { CVIProvider } from './cvi/components/cvi-provider';
 import { Conversation } from './cvi/components/conversation';
+import { Haircheck } from './cvi/components/haircheck';
 
 type Message = {
     id: string;
@@ -31,6 +32,7 @@ export default function TavusConsultationClient() {
     const [conversationUrl, setConversationUrl] = useState<string | null>(null);
     const [patientId, setPatientId] = useState<string | null>(null);
     const [isLoadingSession, setIsLoadingSession] = useState(true);
+    const [showHaircheck, setShowHaircheck] = useState(false);
 
     const { toast } = useToast();
 
@@ -72,7 +74,14 @@ export default function TavusConsultationClient() {
             return;
         }
 
+        // Mostrar haircheck primeiro
+        setShowHaircheck(true);
+    };
+
+    const handleJoinFromHaircheck = async () => {
+        setShowHaircheck(false);
         setIsConnecting(true);
+        
         try {
             const response = await fetch('/api/tavus/create-conversation', {
                 method: 'POST',
@@ -134,7 +143,7 @@ export default function TavusConsultationClient() {
                     </div>
 
                     <div className="w-full h-full min-h-[500px] flex items-center justify-center rounded-lg overflow-hidden bg-black/5">
-                        {!conversationUrl && !isConnecting && (
+                        {!conversationUrl && !isConnecting && !showHaircheck && (
                             <div className="flex flex-col items-center gap-6">
                                 <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-teal-400 flex items-center justify-center">
                                     <span className="text-6xl">🤖</span>
@@ -156,6 +165,12 @@ export default function TavusConsultationClient() {
                                         Iniciar Consulta
                                     </Button>
                                 </div>
+                            </div>
+                        )}
+
+                        {showHaircheck && (
+                            <div className="w-full h-full">
+                                <Haircheck onJoinCall={handleJoinFromHaircheck} />
                             </div>
                         )}
 
