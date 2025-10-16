@@ -184,9 +184,12 @@ export default function TavusConsultationClient() {
                                 <p className="text-sm text-gray-600 dark:text-gray-400">
                                     Conectando com a MediAI...
                                 </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-500">
-                                    Isso pode levar alguns segundos
-                                </p>
+                                <div className="text-xs text-gray-500 dark:text-gray-500 text-center max-w-md">
+                                    <p className="mb-2">Aguardando permissões de câmera e microfone</p>
+                                    <p className="text-amber-600 dark:text-amber-400 font-medium">
+                                        ⚠️ Por favor, clique em "Permitir" quando seu navegador solicitar acesso
+                                    </p>
+                                </div>
                             </div>
                         )}
 
