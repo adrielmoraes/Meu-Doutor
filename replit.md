@@ -104,7 +104,7 @@ Preferred communication style: Simple, everyday language.
 - Provides personalized health guidance in Portuguese
 
 ### UI Design Updates (October 2025)
-**Live Consultation Banner**:
+**Live Consultation Banner** (Dashboard Overview):
 - Video background using looping MP4 (`/ai-assistant-video.mp4`) with autoplay
 - Purple/pink gradient overlay (40% opacity) for enhanced video visibility
 - Removed icon-based indicators in favor of cinematic video presentation
@@ -112,6 +112,13 @@ Preferred communication style: Simple, everyday language.
 - Badge-styled feature indicators with backdrop blur and semi-transparent backgrounds
 - Vertical layout (flex-col) with content aligned to start
 - Responsive design maintaining video aspect ratio across devices
+
+**Live Consultation Interface** (Tavus CVI Screen):
+- Same video background with 30% overlay for maximum video visibility
+- White semi-transparent cards (80% opacity) with backdrop blur for content legibility
+- Glassmorphism design pattern for modern aesthetic
+- All states (waiting, connecting, active) use consistent visual treatment
+- Enhanced shadows and rounded corners for depth perception
 
 ## External Dependencies
 
