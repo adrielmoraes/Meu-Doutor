@@ -191,7 +191,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
             <div className="text-center mb-6">
               <h2 className="text-3xl font-bold tracking-tight flex items-center justify-center gap-2">
                 <Video className="h-8 w-8 text-primary" />
-                Consulta Médica ao Vivo
+                Consulta ao Vivo com a IA
               </h2>
               <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
                 Tire suas dúvidas de saúde em tempo real com nosso assistente inteligente que conhece todo o seu histórico médico e pode orientá-lo sobre seus exames e tratamentos.
@@ -214,7 +214,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-2xl font-bold">Consulta Médica ao Vivo</h3>
+                        <h3 className="text-2xl font-bold">Consulta ao Vivo com a IA</h3>
                         <Badge className="bg-white/20 text-white border-white/30 text-xs">NOVO</Badge>
                       </div>
                       <p className="text-white/90">
