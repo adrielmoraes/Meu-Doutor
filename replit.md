@@ -69,6 +69,40 @@ Preferred communication style: Simple, everyday language.
 - Removed unstable props (`meetingState`, `onLeave`) from critical effect dependencies
 - Used ref-based join tracking instead of state to maintain stability across renders
 
+### Tavus Medical Context Integration (October 2025)
+**Implementation**: AI avatar with complete patient medical history access for personalized consultations.
+
+**Data Integration**:
+1. **Patient Profile** - Name, age, gender, location, status, reported symptoms
+2. **Medical Exams** - Complete exam history with:
+   - Type, date, results, status (validated/pending)
+   - Preliminary diagnosis and AI explanations
+   - Laboratory values with reference ranges
+   - Doctor notes and final explanations
+3. **Consultation History** - Past consultations with:
+   - Transcriptions and summaries
+   - Date, type (video-call/chat)
+   - Doctor involved
+4. **Wellness Plan** - Current personalized plan:
+   - Dietary recommendations
+   - Exercise program
+   - Mental wellness guidance
+   - Daily reminders and weekly tasks
+
+**Context Formatting** (`create-conversation/route.ts`):
+- Structured markdown format for AI comprehension
+- Hierarchical organization (Patient Info → Exams → Consultations → Wellness)
+- Specific laboratory values and references included
+- Complete history to enable contextual recommendations
+
+**AI Avatar Capabilities**:
+- Explains exam results in detail using actual patient data
+- References specific laboratory values and diagnoses
+- Correlates current symptoms with medical history
+- Suggests follow-up exams based on trends
+- Reinforces wellness plan recommendations
+- Provides personalized health guidance in Portuguese
+
 ## External Dependencies
 
 **AI/ML Services**:
