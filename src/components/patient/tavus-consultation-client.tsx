@@ -146,7 +146,21 @@ export default function TavusConsultationClient() {
         <CVIProvider>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-12rem)]">
                 {/* Video Avatar Area */}
-                <Card className="lg:col-span-2 bg-gradient-to-br from-blue-50 to-teal-50 dark:from-blue-950 dark:to-teal-950 p-6 relative overflow-hidden">
+                <Card className="lg:col-span-2 p-6 relative overflow-hidden">
+                    {/* Video Background */}
+                    <video 
+                        autoPlay 
+                        loop 
+                        muted 
+                        playsInline
+                        className="absolute inset-0 w-full h-full object-cover"
+                    >
+                        <source src="/ai-assistant-video.mp4" type="video/mp4" />
+                    </video>
+                    
+                    {/* Overlay with 30% opacity */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-pink-900/30 to-purple-900/30" />
+                    
                     <div className="absolute top-4 right-4 flex gap-2 z-10">
                         {conversationUrl && (
                             <Badge className="bg-green-500 animate-pulse">
@@ -155,24 +169,24 @@ export default function TavusConsultationClient() {
                         )}
                     </div>
 
-                    <div className="w-full h-full min-h-[500px] flex items-center justify-center rounded-lg overflow-hidden bg-black/5">
+                    <div className="w-full h-full min-h-[500px] flex items-center justify-center rounded-lg overflow-hidden relative z-10">
                         {!conversationUrl && !isConnecting && (
-                            <div className="flex flex-col items-center gap-6">
-                                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-teal-400 flex items-center justify-center">
+                            <div className="flex flex-col items-center gap-6 bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-2xl">
+                                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-teal-400 flex items-center justify-center shadow-lg">
                                     <span className="text-6xl">🩺</span>
                                 </div>
                                 <div className="text-center">
-                                    <h3 className="text-xl font-semibold mb-2">Assistente Médico MediAI</h3>
-                                    <p className="text-sm text-muted-foreground mb-4">
+                                    <h3 className="text-xl font-semibold mb-2 text-gray-900">Assistente Médico MediAI</h3>
+                                    <p className="text-sm text-gray-700 mb-4">
                                         Tire suas dúvidas de saúde com um assistente que conhece todo o seu histórico médico
                                         <br />
-                                        <span className="text-xs text-blue-600">Disponível 24/7 para orientá-lo sobre exames e tratamentos</span>
+                                        <span className="text-xs text-blue-600 font-medium">Disponível 24/7 para orientá-lo sobre exames e tratamentos</span>
                                     </p>
                                     <Button 
                                         onClick={startConversation}
                                         disabled={isLoadingSession || !patientId}
                                         size="lg"
-                                        className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
+                                        className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 shadow-xl"
                                     >
                                         <Phone className="mr-2 h-5 w-5" />
                                         Iniciar Consulta ao Vivo
@@ -182,14 +196,14 @@ export default function TavusConsultationClient() {
                         )}
 
                         {isConnecting && (
-                            <div className="flex flex-col items-center gap-4">
+                            <div className="flex flex-col items-center gap-4 bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-2xl">
                                 <Loader2 className="w-16 h-16 animate-spin text-blue-600" />
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                <p className="text-sm text-gray-900 font-medium">
                                     Conectando com a MediAI...
                                 </p>
-                                <div className="text-xs text-gray-500 dark:text-gray-500 text-center max-w-md">
+                                <div className="text-xs text-gray-700 text-center max-w-md">
                                     <p className="mb-2">Aguardando permissões de câmera e microfone</p>
-                                    <p className="text-amber-600 dark:text-amber-400 font-medium">
+                                    <p className="text-amber-600 font-medium bg-amber-50 px-3 py-2 rounded-lg">
                                         ⚠️ Por favor, clique em "Permitir" quando seu navegador solicitar acesso
                                     </p>
                                 </div>
