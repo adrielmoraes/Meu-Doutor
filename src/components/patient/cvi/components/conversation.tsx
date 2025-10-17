@@ -101,18 +101,21 @@ export function Conversation({ conversationUrl, onLeave }: ConversationProps) {
                 console.log('[Conversation] Conectado com sucesso! hasJoined:', hasJoinedRef.current);
                 
                 // Ativar noise cancellation conforme documentação Tavus
-                try {
-                    await daily.updateInputSettings({
-                        audio: {
-                            processor: {
-                                type: 'noise-cancellation',
-                            },
+                // Não usar await para evitar erros de console em navegadores incompatíveis
+                daily.updateInputSettings({
+                    audio: {
+                        processor: {
+                            type: 'noise-cancellation',
                         },
-                    });
-                    console.log('[Conversation] Noise cancellation ativado');
-                } catch (error) {
-                    console.warn('[Conversation] Noise cancellation não disponível:', error);
-                }
+                    },
+                })
+                .then(() => {
+                    console.log('[Conversation] ✅ Noise cancellation ativado com sucesso');
+                })
+                .catch((error) => {
+                    // Erro esperado em navegadores que não suportam noise cancellation
+                    console.log('[Conversation] ℹ️ Noise cancellation não disponível neste navegador (comportamento esperado)');
+                });
             } catch (error) {
                 console.error('[Conversation] Erro ao conectar ao Daily:', error);
                 hasJoinedRef.current = false;
