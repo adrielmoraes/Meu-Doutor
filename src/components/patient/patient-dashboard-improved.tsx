@@ -189,10 +189,10 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
             <div className="text-center mb-6">
               <h2 className="text-3xl font-bold tracking-tight flex items-center justify-center gap-2">
                 <Video className="h-8 w-8 text-primary" />
-                Consulta ao Vivo com Avatar IA
+                Consulta Médica ao Vivo
               </h2>
               <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
-                Converse em tempo real com o assistente MediAI usando avatar realista com sincronização labial natural.
+                Tire suas dúvidas de saúde em tempo real com nosso assistente inteligente que conhece todo o seu histórico médico e pode orientá-lo sobre seus exames e tratamentos.
               </p>
             </div>
 
@@ -201,7 +201,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6 mt-6">
-            {/* Tavus Live Consultation Banner - NOVO */}
+            {/* Live Consultation Banner - NOVO */}
             <Card className="bg-gradient-to-br from-purple-600 via-pink-600 to-purple-700 text-white border-0 shadow-2xl overflow-hidden relative">
               <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 35px, rgba(255,255,255,.1) 35px, rgba(255,255,255,.1) 36px), repeating-linear-gradient(90deg, transparent, transparent 35px, rgba(255,255,255,.1) 35px, rgba(255,255,255,.1) 36px)' }} />
               <CardContent className="p-6 relative z-10">
@@ -212,16 +212,16 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-2xl font-bold">Consulta ao Vivo com Avatar IA</h3>
+                        <h3 className="text-2xl font-bold">Consulta Médica ao Vivo</h3>
                         <Badge className="bg-white/20 text-white border-white/30 text-xs">NOVO</Badge>
                       </div>
                       <p className="text-white/90">
-                        Converse em tempo real com avatar realista usando Tavus CVI
+                        Atendimento médico personalizado 24/7 com acesso completo ao seu histórico
                       </p>
                       <div className="flex flex-wrap gap-3 mt-3 text-sm">
-                        <span className="flex items-center gap-1"><Video className="h-4 w-4" /> Vídeo em tempo real</span>
-                        <span className="flex items-center gap-1"><Zap className="h-4 w-4" /> Sincronização labial</span>
-                        <span className="flex items-center gap-1"><Activity className="h-4 w-4" /> IA conversacional</span>
+                        <span className="flex items-center gap-1"><Brain className="h-4 w-4" /> Conhece seus exames</span>
+                        <span className="flex items-center gap-1"><HeartPulse className="h-4 w-4" /> Orientação personalizada</span>
+                        <span className="flex items-center gap-1"><Activity className="h-4 w-4" /> Disponível sempre</span>
                       </div>
                     </div>
                   </div>

@@ -159,14 +159,14 @@ export default function TavusConsultationClient() {
                         {!conversationUrl && !isConnecting && (
                             <div className="flex flex-col items-center gap-6">
                                 <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-teal-400 flex items-center justify-center">
-                                    <span className="text-6xl">🤖</span>
+                                    <span className="text-6xl">🩺</span>
                                 </div>
                                 <div className="text-center">
-                                    <h3 className="text-xl font-semibold mb-2">Avatar MediAI Realista</h3>
+                                    <h3 className="text-xl font-semibold mb-2">Assistente Médico MediAI</h3>
                                     <p className="text-sm text-muted-foreground mb-4">
-                                        Conversação em tempo real com sincronização labial natural
+                                        Tire suas dúvidas de saúde com um assistente que conhece todo o seu histórico médico
                                         <br />
-                                        <span className="text-xs text-blue-600">Powered by Tavus CVI + Gemini AI</span>
+                                        <span className="text-xs text-blue-600">Disponível 24/7 para orientá-lo sobre exames e tratamentos</span>
                                     </p>
                                     <Button 
                                         onClick={startConversation}
