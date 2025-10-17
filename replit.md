@@ -115,10 +115,10 @@ Preferred communication style: Simple, everyday language.
 
 **Live Consultation Interface** (Tavus CVI Screen):
 - Same video background with 30% overlay for maximum video visibility
-- White semi-transparent cards (80% opacity) with backdrop blur for content legibility
-- Glassmorphism design pattern for modern aesthetic
-- All states (waiting, connecting, active) use consistent visual treatment
-- Enhanced shadows and rounded corners for depth perception
+- Minimalist design: only "Iniciar Consulta ao Vivo" button over video (waiting state)
+- Clean interface without background cards to showcase video content
+- White text with drop-shadows for readability against video
+- Enhanced button with gradient, large size, and prominent shadow
 
 ## External Dependencies
 
