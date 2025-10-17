@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import dynamic from 'next/dynamic';
 import { PatientHeader } from './patient-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 const AIConsultationCard = dynamic(() => import('./ai-consultation-card'), {
@@ -35,6 +35,8 @@ interface PatientDashboardProps {
 }
 
 export default function PatientDashboardImproved({ patient, examCount = 0, upcomingAppointments = 0 }: PatientDashboardProps) {
+  const [activeTab, setActiveTab] = useState("overview");
+
   const quickActions = [
     {
       title: "Fale com o Terapeuta",
@@ -155,7 +157,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
         </div>
 
         {/* Tabs for Navigation */}
-        <Tabs defaultValue="overview" className="w-full space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
           <TabsList className="grid w-full grid-cols-6 lg:grid-cols-6">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4" />
@@ -226,10 +228,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                     </div>
                   </div>
                   <Button
-                    onClick={() => {
-                      const tabsTrigger = document.querySelector('[value="live-consultation"]') as HTMLElement;
-                      tabsTrigger?.click();
-                    }}
+                    onClick={() => setActiveTab("live-consultation")}
                     size="lg"
                     className="bg-white text-purple-600 hover:bg-white/90 font-semibold shadow-xl"
                   >
