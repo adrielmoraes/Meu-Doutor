@@ -106,10 +106,11 @@ Preferred communication style: Simple, everyday language.
 ### UI Design Updates (October 2025)
 **Live Consultation Banner**:
 - Video background using looping MP4 (`/ai-assistant-video.mp4`) with autoplay
-- Purple/pink gradient overlay (70% opacity) for text legibility
+- Purple/pink gradient overlay (40% opacity) for enhanced video visibility
 - Removed icon-based indicators in favor of cinematic video presentation
-- Enhanced visual hierarchy with larger text (3xl) and drop shadows
-- Badge-styled feature indicators with backdrop blur for modern aesthetic
+- Enhanced visual hierarchy: large title (4xl/5xl), smaller supporting text (base)
+- Badge-styled feature indicators with backdrop blur and semi-transparent backgrounds
+- Vertical layout (flex-col) with content aligned to start
 - Responsive design maintaining video aspect ratio across devices
 
 ## External Dependencies
