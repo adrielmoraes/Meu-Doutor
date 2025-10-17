@@ -66,6 +66,8 @@ IMPORTANTE: Você NÃO é médico. Sempre oriente consulta com profissional para
         // Check for specific error types
         if (errorData.message?.includes('out of conversational credits')) {
           errorMessage = 'Créditos Tavus esgotados. Por favor, adicione créditos na sua conta Tavus (tavusapi.com) para continuar usando a Consulta ao Vivo.';
+        } else if (errorData.message?.includes('maximum concurrent conversations')) {
+          errorMessage = 'Você já possui uma consulta ao vivo ativa. Por favor, encerre a consulta anterior antes de iniciar uma nova, ou aguarde alguns minutos e tente novamente.';
         } else if (errorData.message) {
           errorMessage = errorData.message;
         }
