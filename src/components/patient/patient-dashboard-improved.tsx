@@ -215,29 +215,27 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                 <source src="/ai-assistant-video.mp4" type="video/mp4" />
               </video>
               
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-900/70 via-pink-900/60 to-purple-900/70 backdrop-blur-sm" />
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-900/40 via-pink-900/40 to-purple-900/40" />
               
-              <CardContent className="p-6 relative z-10">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-3xl font-bold drop-shadow-lg">Consulta ao Vivo com a IA</h3>
-                      <Badge className="bg-white/30 text-white border-white/40 text-xs backdrop-blur-sm">NOVO</Badge>
-                    </div>
-                    <p className="text-white/95 text-lg mb-4 drop-shadow-md">
-                      Atendimento médico personalizado 24/7 com acesso completo ao seu histórico
-                    </p>
-                    <div className="flex flex-wrap gap-3 text-sm">
-                      <span className="flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
-                        <Brain className="h-4 w-4" /> Conhece seus exames
-                      </span>
-                      <span className="flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
-                        <HeartPulse className="h-4 w-4" /> Orientação personalizada
-                      </span>
-                      <span className="flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
-                        <Activity className="h-4 w-4" /> Disponível sempre
-                      </span>
-                    </div>
+              <CardContent className="p-8 relative z-10">
+                <div className="flex flex-col items-start gap-4">
+                  <div className="flex items-center gap-3 mb-1">
+                    <h3 className="text-4xl md:text-5xl font-bold drop-shadow-2xl">Consulta ao Vivo com a IA</h3>
+                    <Badge className="bg-white/30 text-white border-white/40 text-xs backdrop-blur-sm">NOVO</Badge>
+                  </div>
+                  <p className="text-white/90 text-base drop-shadow-lg mb-2">
+                    Atendimento médico personalizado 24/7 com acesso completo ao seu histórico
+                  </p>
+                  <div className="flex flex-wrap gap-2 text-sm mb-4">
+                    <span className="flex items-center gap-1 bg-white/25 px-3 py-1.5 rounded-full backdrop-blur-sm">
+                      <Brain className="h-4 w-4" /> Conhece seus exames
+                    </span>
+                    <span className="flex items-center gap-1 bg-white/25 px-3 py-1.5 rounded-full backdrop-blur-sm">
+                      <HeartPulse className="h-4 w-4" /> Orientação personalizada
+                    </span>
+                    <span className="flex items-center gap-1 bg-white/25 px-3 py-1.5 rounded-full backdrop-blur-sm">
+                      <Activity className="h-4 w-4" /> Disponível sempre
+                    </span>
                   </div>
                   <Button
                     onClick={() => setActiveTab("live-consultation")}
