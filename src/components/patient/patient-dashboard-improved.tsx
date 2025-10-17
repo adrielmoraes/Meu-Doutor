@@ -204,33 +204,45 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6 mt-6">
             {/* Live Consultation Banner - NOVO */}
-            <Card className="bg-gradient-to-br from-purple-600 via-pink-600 to-purple-700 text-white border-0 shadow-2xl overflow-hidden relative">
-              <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 35px, rgba(255,255,255,.1) 35px, rgba(255,255,255,.1) 36px), repeating-linear-gradient(90deg, transparent, transparent 35px, rgba(255,255,255,.1) 35px, rgba(255,255,255,.1) 36px)' }} />
+            <Card className="text-white border-0 shadow-2xl overflow-hidden relative min-h-[280px]">
+              <video 
+                autoPlay 
+                loop 
+                muted 
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover"
+              >
+                <source src="/ai-assistant-video.mp4" type="video/mp4" />
+              </video>
+              
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-900/70 via-pink-900/60 to-purple-900/70 backdrop-blur-sm" />
+              
               <CardContent className="p-6 relative z-10">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white/30">
-                      <Video className="h-8 w-8" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-3xl font-bold drop-shadow-lg">Consulta ao Vivo com a IA</h3>
+                      <Badge className="bg-white/30 text-white border-white/40 text-xs backdrop-blur-sm">NOVO</Badge>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-2xl font-bold">Consulta ao Vivo com a IA</h3>
-                        <Badge className="bg-white/20 text-white border-white/30 text-xs">NOVO</Badge>
-                      </div>
-                      <p className="text-white/90">
-                        Atendimento médico personalizado 24/7 com acesso completo ao seu histórico
-                      </p>
-                      <div className="flex flex-wrap gap-3 mt-3 text-sm">
-                        <span className="flex items-center gap-1"><Brain className="h-4 w-4" /> Conhece seus exames</span>
-                        <span className="flex items-center gap-1"><HeartPulse className="h-4 w-4" /> Orientação personalizada</span>
-                        <span className="flex items-center gap-1"><Activity className="h-4 w-4" /> Disponível sempre</span>
-                      </div>
+                    <p className="text-white/95 text-lg mb-4 drop-shadow-md">
+                      Atendimento médico personalizado 24/7 com acesso completo ao seu histórico
+                    </p>
+                    <div className="flex flex-wrap gap-3 text-sm">
+                      <span className="flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
+                        <Brain className="h-4 w-4" /> Conhece seus exames
+                      </span>
+                      <span className="flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
+                        <HeartPulse className="h-4 w-4" /> Orientação personalizada
+                      </span>
+                      <span className="flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
+                        <Activity className="h-4 w-4" /> Disponível sempre
+                      </span>
                     </div>
                   </div>
                   <Button
                     onClick={() => setActiveTab("live-consultation")}
                     size="lg"
-                    className="bg-white text-purple-600 hover:bg-white/90 font-semibold shadow-xl"
+                    className="bg-white text-purple-600 hover:bg-white/90 font-semibold shadow-2xl hover:scale-105 transition-transform"
                   >
                     <Video className="mr-2 h-5 w-5" />
                     Iniciar Consulta ao Vivo
