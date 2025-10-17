@@ -1,5 +1,108 @@
 
 import { NextRequest, NextResponse } from 'next/server';
+import { db } from '../../../../../server/storage';
+import { patients, exams, consultations } from '../../../../../shared/schema';
+import { eq } from 'drizzle-orm';
+
+async function getPatientMedicalContext(patientId: string) {
+  try {
+    // Buscar dados do paciente
+    const patient = await db.query.patients.findFirst({
+      where: eq(patients.id, patientId)
+    });
+
+    if (!patient) {
+      return null;
+    }
+
+    // Buscar exames do paciente
+    const patientExams = await db.query.exams.findMany({
+      where: eq(exams.patientId, patientId),
+      orderBy: (exams, { desc }) => [desc(exams.createdAt)]
+    });
+
+    // Buscar consultas anteriores
+    const patientConsultations = await db.query.consultations.findMany({
+      where: eq(consultations.patientId, patientId),
+      orderBy: (consultations, { desc }) => [desc(consultations.createdAt)],
+      limit: 5 // Últimas 5 consultas
+    });
+
+    return {
+      patient,
+      exams: patientExams,
+      consultations: patientConsultations
+    };
+  } catch (error) {
+    console.error('Erro ao buscar contexto médico:', error);
+    return null;
+  }
+}
+
+function formatMedicalContext(data: any) {
+  if (!data || !data.patient) {
+    return 'Dados do paciente não disponíveis.';
+  }
+
+  const { patient, exams, consultations } = data;
+
+  let context = `# CONTEXTO MÉDICO COMPLETO DO PACIENTE
+
+## Informações do Paciente
+- Nome: ${patient.name}
+- Idade: ${patient.age} anos
+- Gênero: ${patient.gender}
+- Cidade: ${patient.city}, ${patient.state}
+- Status Atual: ${patient.status}
+${patient.reportedSymptoms ? `\n### Sintomas Reportados Anteriormente:\n${patient.reportedSymptoms}\n` : ''}
+${patient.examResults ? `\n### Resultados de Exames Prévios:\n${patient.examResults}\n` : ''}
+${patient.doctorNotes ? `\n### Observações Médicas:\n${patient.doctorNotes}\n` : ''}
+`;
+
+  // Adicionar exames
+  if (exams && exams.length > 0) {
+    context += `\n## EXAMES REALIZADOS (${exams.length} exame(s))\n`;
+    exams.forEach((exam: any, index: number) => {
+      context += `
+### Exame ${index + 1}: ${exam.type}
+- Data: ${exam.date}
+- Status: ${exam.status}
+- Resultado: ${exam.result}
+- Diagnóstico Preliminar: ${exam.preliminaryDiagnosis}
+- Explicação: ${exam.explanation}
+- Sugestões: ${exam.suggestions}
+${exam.results ? `- Valores Laboratoriais:\n${exam.results.map((r: any) => `  • ${r.name}: ${r.value} (Ref: ${r.reference})`).join('\n')}` : ''}
+${exam.doctorNotes ? `- Observações do Médico: ${exam.doctorNotes}` : ''}
+${exam.finalExplanation ? `- Explicação Final: ${exam.finalExplanation}` : ''}
+`;
+    });
+  }
+
+  // Adicionar consultas anteriores
+  if (consultations && consultations.length > 0) {
+    context += `\n## HISTÓRICO DE CONSULTAS (${consultations.length} consulta(s) recente(s))\n`;
+    consultations.forEach((consult: any, index: number) => {
+      context += `
+### Consulta ${index + 1}
+- Data: ${consult.date}
+- Tipo: ${consult.type}
+- Resumo: ${consult.summary}
+${consult.transcription ? `- Transcrição: ${consult.transcription.substring(0, 300)}...` : ''}
+`;
+    });
+  }
+
+  // Adicionar plano de bem-estar se disponível
+  if (patient.wellnessPlan) {
+    const wp = patient.wellnessPlan;
+    context += `\n## PLANO DE BEM-ESTAR ATUAL\n`;
+    if (wp.dietaryPlan) context += `\n### Plano Alimentar:\n${wp.dietaryPlan}\n`;
+    if (wp.exercisePlan) context += `\n### Plano de Exercícios:\n${wp.exercisePlan}\n`;
+    if (wp.mentalWellnessPlan) context += `\n### Plano de Bem-Estar Mental:\n${wp.mentalWellnessPlan}\n`;
+  }
+
+  return context;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,6 +126,14 @@ export async function POST(request: NextRequest) {
       throw new Error('TAVUS_API_KEY, PERSONA_ID ou REPLICA_ID não configuradas');
     }
 
+    // 🔥 BUSCAR CONTEXTO MÉDICO COMPLETO DO PACIENTE
+    console.log('[Tavus] Buscando contexto médico do paciente:', patientId);
+    const medicalData = await getPatientMedicalContext(patientId);
+    const medicalContext = formatMedicalContext(medicalData);
+    console.log('[Tavus] Contexto médico carregado com sucesso');
+    console.log('[Tavus] Total de exames:', medicalData?.exams?.length || 0);
+    console.log('[Tavus] Total de consultas:', medicalData?.consultations?.length || 0);
+
     // Criar conversa usando o endpoint correto da Tavus CVI
     const response = await fetch('https://tavusapi.com/v2/conversations', {
       method: 'POST',
@@ -36,13 +147,29 @@ export async function POST(request: NextRequest) {
         conversation_name: conversationName,
         conversational_context: `Você é a MediAI, assistente médica virtual em português brasileiro.
 
-Seu papel é:
-- Fornecer orientações preliminares de saúde
-- Analisar sintomas do paciente (ID: ${patientId})
-- Recomendar especialistas quando necessário
-- Manter tom empático e profissional
+## SEU PAPEL E INSTRUÇÕES
+1. **Análise Médica Personalizada**: Você tem acesso completo aos dados médicos deste paciente (exames, consultas anteriores, plano de bem-estar)
+2. **Explicação de Exames**: Explique DETALHADAMENTE os resultados dos exames, diagnósticos preliminares e achados laboratoriais
+3. **Contextualização**: Use o histórico de consultas e sintomas anteriores para fornecer orientações contextualizadas
+4. **Acompanhamento**: Mencione o plano de bem-estar atual e sugira ajustes baseados em novos sintomas ou preocupações
+5. **Empatia e Clareza**: Mantenha tom empático, use linguagem simples, mas seja preciso tecnicamente
 
-IMPORTANTE: Você NÃO é médico. Sempre oriente consulta com profissional para diagnósticos definitivos.`,
+## IMPORTANTE - LIMITAÇÕES
+⚠️ Você NÃO é médico. Use os dados para ORIENTAR, mas sempre recomende consulta presencial para diagnósticos definitivos.
+⚠️ Para sintomas graves ou emergências, oriente buscar atendimento médico imediato.
+
+---
+
+${medicalContext}
+
+---
+
+## INSTRUÇÕES FINAIS
+- Sempre cite ESPECIFICAMENTE os exames e valores ao explicar
+- Correlacione sintomas atuais com histórico médico
+- Seja proativo: sugira exames de acompanhamento se necessário
+- Explique termos médicos em linguagem acessível
+- Reforce as recomendações do plano de bem-estar quando relevante`,
         properties: {
           max_call_duration: maxCallDuration,
           participant_left_timeout: participantLeftTimeout,
