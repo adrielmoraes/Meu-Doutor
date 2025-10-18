@@ -11,6 +11,7 @@ import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import type { Exam, Patient } from "@/types";
 import { getSession } from "@/lib/session";
+import SpecialistFindingsDisplay from "@/components/patient/specialist-findings-display";
 
 // Component to parse and render suggestions with proper formatting
 const RenderSuggestions = ({ suggestions }: { suggestions: string }) => {
@@ -188,6 +189,11 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                         <RenderSuggestions suggestions={examData.suggestions || ""} />
                       </div>
                     </div>
+
+                    {/* Specialist Findings Section */}
+                    {examData.specialistFindings && examData.specialistFindings.length > 0 && (
+                      <SpecialistFindingsDisplay findings={examData.specialistFindings} />
+                    )}
 
                     {/* Alert de Aviso */}
                     <Alert variant="destructive" className="border-red-500/50 bg-red-950/50">

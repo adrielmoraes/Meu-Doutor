@@ -131,6 +131,17 @@ Preferred communication style: Simple, everyday language.
 - White text with drop-shadows for readability against video
 - Enhanced button with gradient, large size, and prominent shadow
 
+**Specialist Findings Display** (October 18, 2025):
+- Visual display of multi-specialist consultations on exam detail pages
+- Header section showing total specialists consulted with specialist badges
+- Individual expandable cards for each specialist with:
+  - Color-coded icons and backgrounds by specialty (cardiologist=red, neurologist=pink, etc.)
+  - Severity indicators (normal, mild, moderate, severe, critical) with color-coded icons
+  - Collapsible content showing clinical findings and recommendations
+  - Border styling matching specialist's color theme
+- 15 unique specialist configurations with custom icons and color schemes
+- Integrated into exam analysis workflow (`SpecialistFindingsDisplay` component)
+
 ## External Dependencies
 
 **AI/ML Services**:

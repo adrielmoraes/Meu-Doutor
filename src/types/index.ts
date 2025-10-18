@@ -101,6 +101,12 @@ export type Exam = {
   explanation: string;
   suggestions: string;
   results?: { name: string; value: string; reference: string }[];
+  specialistFindings?: Array<{
+    specialist: string;
+    findings: string;
+    clinicalAssessment: string;
+    recommendations: string;
+  }>;
   status: 'Requer Validação' | 'Validado';
   doctorNotes?: string;
   finalExplanation?: string;

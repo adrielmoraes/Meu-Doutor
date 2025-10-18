@@ -108,6 +108,12 @@ export const exams = pgTable('exams', {
   explanation: text('explanation').notNull(),
   suggestions: text('suggestions').notNull(),
   results: json('results').$type<{ name: string; value: string; reference: string }[]>(),
+  specialistFindings: json('specialist_findings').$type<Array<{
+    specialist: string;
+    findings: string;
+    clinicalAssessment: string;
+    recommendations: string;
+  }>>(),
   status: examStatusEnum('status').notNull().default('Requer Validação'),
   doctorNotes: text('doctor_notes'),
   finalExplanation: text('final_explanation'),

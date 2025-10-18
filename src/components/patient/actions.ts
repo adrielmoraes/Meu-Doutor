@@ -12,6 +12,12 @@ interface ExamAnalysisData {
     suggestions: string;
     fileName: string;
     structuredResults?: { name: string; value: string; reference: string }[];
+    specialistFindings?: Array<{
+        specialist: string;
+        findings: string;
+        clinicalAssessment: string;
+        recommendations: string;
+    }>;
 }
 
 export async function saveExamAnalysisAction(patientId: string, analysisData: ExamAnalysisData): Promise<{ success: boolean; message: string; examId?: string; }> {
@@ -24,6 +30,7 @@ export async function saveExamAnalysisAction(patientId: string, analysisData: Ex
             explanation: analysisData.explanation,
             suggestions: analysisData.suggestions,
             results: analysisData.structuredResults || [],
+            specialistFindings: analysisData.specialistFindings || [],
         });
         
         // Trigger wellness plan update in the background (fire-and-forget)
