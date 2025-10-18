@@ -14,7 +14,17 @@ Preferred communication style: Simple, everyday language.
 **Routing Structure**: Public, protected patient, and protected doctor routes with middleware-based authentication and role-based access control.
 
 ### Backend Architecture
-**AI/ML Layer**: Google Genkit framework orchestrates specialized AI agents using Gemini models (Gemini 2.5 Flash) for domain-specific analysis, including text-to-speech integration and real-time consultation flows. The system employs 15+ specialist agents (e.g., Cardiologist, Pulmonologist), an Orchestrator AI (General Practitioner), and a "Central Brain" concept for intelligent coordination. Tool integration includes `medicalKnowledgeBaseTool`, `patientDataAccessTool`, `consultationHistoryAccessTool`, `doctorsListAccessTool`, and `internetSearchTool`.
+**AI/ML Layer**: Google Genkit framework orchestrates specialized AI agents using Gemini models (Gemini 2.5 Flash) for domain-specific analysis, including text-to-speech integration and real-time consultation flows. The system employs 15+ specialist agents (e.g., Cardiologist, Pulmonologist), an Orchestrator AI (General Practitioner - Dr. Márcio Silva), and a "Central Brain" concept for intelligent coordination. 
+
+**Multi-Specialist Diagnostic System** (October 18, 2025 - ACTIVATED):
+- **Architecture**: 3-stage analysis pipeline (Triage → Parallel Specialist Analysis → Synthesis)
+- **Stage 1 - Triage**: Dr. Márcio Silva (Orchestrator AI) analyzes patient data and selects relevant specialists based on evidence
+- **Stage 2 - Parallel Consultation**: Selected specialists analyze exam results simultaneously using `Promise.all()` for efficiency
+- **Stage 3 - Synthesis**: Orchestrator integrates all specialist findings into comprehensive preliminary diagnosis
+- **15 Active Specialists**: Cardiologist, Pulmonologist, Radiologist, Neurologist, Gastroenterologist, Endocrinologist, Dermatologist, Orthopedist, Ophthalmologist, Otolaryngologist, Nutritionist, Pediatrician, Gynecologist, Urologist, Psychiatrist
+- **Tool Integration**: Each specialist has access to `medicalKnowledgeBaseTool`, `patientDataAccessTool`, `consultationHistoryAccessTool`, `doctorsListAccessTool`, and `internetSearchTool`
+- **Output**: Integrated diagnosis with detailed specialist findings, clinical assessments, and recommendations traceable to each specialist
+
 **API Layer**: Next.js API routes (App Router) with server actions for mutations, RESTful endpoints for WebRTC signaling, and Server-Sent Events for real-time communication.
 **Authentication & Session Management**: JWT-based sessions with `jose` library, bcrypt password hashing, and role-based middleware.
 
@@ -34,6 +44,7 @@ Preferred communication style: Simple, everyday language.
 - AI Therapist Chat with voice support, allowing patients to interact with an AI therapist in a WhatsApp-style interface, providing therapeutic support and acting as a personal health assistant with access to patient medical history.
 - Exam history visualization with interactive time-series graphs using Recharts, allowing patients to track their health metrics over time.
 - Gamification features for doctors (XP, levels, badges).
+- **Multi-Specialist Medical Analysis** (October 18, 2025): Activated comprehensive diagnostic system where exam uploads trigger parallel consultation with up to 15 specialist AI agents, coordinated by an orchestrator AI (Dr. Márcio Silva), providing deep domain-specific analysis with complete traceability of specialist findings.
 
 ### Tavus CVI Optimizations (October 2025)
 **Implementation Pattern**: Full control using Daily JS SDK (not @tavus/cvi-ui) for custom UI.
