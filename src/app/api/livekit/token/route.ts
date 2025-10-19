@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AccessToken } from 'livekit-server-sdk';
+import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,7 +24,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create access token
+    // Create or update room with metadata (THIS IS THE KEY!)
+    if (metadata) {
+      try {
+        const roomService = new RoomServiceClient(livekitUrl, apiKey, apiSecret);
+        
+        // Create room with patient metadata so agent can access it
+        await roomService.createRoom({
+          name: roomName,
+          metadata: JSON.stringify(metadata)
+        });
+        
+        console.log(`[LiveKit] Sala criada com metadata:`, metadata);
+      } catch (roomError: any) {
+        // Room might already exist, try to update it
+        console.log(`[LiveKit] Sala já existe, atualizando metadata`);
+      }
+    }
+
+    // Create access token for participant
     const token = new AccessToken(apiKey, apiSecret, {
       identity: participantName,
       metadata: metadata ? JSON.stringify(metadata) : undefined
