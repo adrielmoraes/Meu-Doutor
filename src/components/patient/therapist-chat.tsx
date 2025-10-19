@@ -26,15 +26,7 @@ interface TherapistChatProps {
 }
 
 export default function TherapistChat({ patientId, patientName }: TherapistChatProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: `Olá, ${patientName.split(' ')[0]}! Sou sua terapeuta IA e assistente pessoal. Estou aqui para apoiar você em sua jornada de saúde e bem-estar. Como posso ajudar hoje?`,
-      isAudio: false,
-      timestamp: new Date(),
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -44,6 +36,16 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
   const audioChunks = useRef<Blob[]>([]);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setMessages([{
+      id: '1',
+      role: 'assistant',
+      content: `Olá, ${patientName.split(' ')[0]}! Sou sua terapeuta IA e assistente pessoal. Estou aqui para apoiar você em sua jornada de saúde e bem-estar. Como posso ajudar hoje?`,
+      isAudio: false,
+      timestamp: new Date(),
+    }]);
+  }, [patientName]);
 
   useEffect(() => {
     return () => {
