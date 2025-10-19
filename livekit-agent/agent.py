@@ -10,7 +10,7 @@ import os
 from typing import Optional
 from pathlib import Path
 from dotenv import load_dotenv
-from livekit.agents import JobContext, WorkerOptions, cli, RoomOutputOptions, Agent
+from livekit.agents import JobContext, WorkerOptions, cli, Agent
 from livekit.agents.voice import AgentSession
 from livekit.plugins import tavus, google
 
@@ -98,6 +98,20 @@ EXAMES RECENTES ({len(exams)}):
         return f"Erro ao carregar contexto: {str(e)}"
 
 
+class MediAIAgent(Agent):
+    """MediAI Voice Agent"""
+    
+    def __init__(self, instructions: str):
+        super().__init__(instructions=instructions)
+    
+    async def on_enter(self):
+        """Called when agent enters the session - generates initial greeting"""
+        logger.info("[MediAI] 🎤 Generating initial greeting...")
+        await self.session.generate_reply(
+            instructions="Cumprimente o paciente calorosamente pelo nome e pergunte como pode ajudá-lo hoje com sua saúde."
+        )
+
+
 async def entrypoint(ctx: JobContext):
     """Main entrypoint for the LiveKit agent with Tavus avatar."""
     
@@ -162,11 +176,23 @@ CONTEXTO DO PACIENTE:
         )
     )
     
+    # Create agent instance with instructions
+    agent = MediAIAgent(instructions=system_prompt)
+    
+    logger.info("[MediAI] 🏥 Starting medical consultation session...")
+    
+    # Start session with agent
+    await session.start(
+        agent=agent,
+        room=ctx.room,
+    )
+    
+    logger.info("[MediAI] ✅ Session started successfully!")
+    
+    # Now initialize Tavus avatar AFTER session is started
     tavus_api_key = os.getenv('TAVUS_API_KEY')
     replica_id = os.getenv('TAVUS_REPLICA_ID')
     persona_id = os.getenv('TAVUS_PERSONA_ID')
-    
-    room_output_options = None
     
     if tavus_api_key and replica_id and persona_id:
         logger.info("[MediAI] 🎭 Initializing Tavus avatar...")
@@ -175,31 +201,19 @@ CONTEXTO DO PACIENTE:
             avatar = tavus.AvatarSession(
                 replica_id=replica_id,
                 persona_id=persona_id,
-                avatar_participant_name="MediAI Assistant"
+                avatar_participant_name="MediAI"
             )
             
-            logger.info("[MediAI] 🎥 Starting Tavus avatar session...")
+            logger.info("[MediAI] 🎥 Starting Tavus avatar...")
             await avatar.start(session, room=ctx.room)
-            
-            room_output_options = RoomOutputOptions(audio_enabled=False)
             
             logger.info("[MediAI] ✅ Tavus avatar started successfully!")
             
         except Exception as e:
-            logger.error(f"Failed to initialize Tavus avatar: {e}")
-            logger.info("[MediAI] Continuing without avatar (audio only)")
+            logger.error(f"[MediAI] ⚠️ Tavus avatar error: {e}")
+            logger.info("[MediAI] Continuing with audio only")
     else:
-        logger.warning("[WARN] Tavus credentials incomplete")
-        logger.info("[MediAI] Running without avatar (audio only)")
-    
-    logger.info("[MediAI] 🏥 Starting medical consultation session...")
-    
-    await session.start(
-        room=ctx.room,
-        room_output_options=room_output_options
-    )
-    
-    logger.info("[MediAI] ✅ Session started successfully!")
+        logger.warning("[MediAI] Tavus credentials not found - running audio only")
 
 
 if __name__ == "__main__":
