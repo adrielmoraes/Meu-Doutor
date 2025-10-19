@@ -1,16 +1,111 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LiveKitRoom, VideoConference, RoomAudioRenderer } from '@livekit/components-react';
+import { 
+  LiveKitRoom, 
+  RoomAudioRenderer, 
+  VideoTrack,
+  useRemoteParticipants,
+  useTracks,
+  ControlBar,
+  useLocalParticipant
+} from '@livekit/components-react';
+import { Track } from 'livekit-client';
 import '@livekit/components-styles';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Video } from 'lucide-react';
+import { Loader2, Video, Mic, MicOff, PhoneOff } from 'lucide-react';
 
 interface LiveKitConsultationProps {
   patientId: string;
   patientName: string;
+}
+
+function AvatarVideoDisplay() {
+  const remoteParticipants = useRemoteParticipants();
+  const tracks = useTracks([Track.Source.Camera], {
+    onlySubscribed: true,
+  });
+
+  // Find the avatar's video track
+  const avatarTrack = tracks.find(track => 
+    track.participant.identity.includes('agent') || 
+    track.participant.name?.includes('MediAI')
+  );
+
+  if (avatarTrack && avatarTrack.publication) {
+    return (
+      <div className="w-full h-full bg-slate-900 flex items-center justify-center">
+        <VideoTrack 
+          trackRef={avatarTrack}
+          className="w-full h-full object-cover"
+        />
+      </div>
+    );
+  }
+
+  // Show loading state while waiting for avatar
+  return (
+    <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex flex-col items-center justify-center gap-6">
+      <div className="relative">
+        <div className="absolute inset-0 animate-ping opacity-20">
+          <div className="w-24 h-24 bg-blue-500 rounded-full"></div>
+        </div>
+        <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+          <Loader2 className="w-12 h-12 text-white animate-spin" />
+        </div>
+      </div>
+      <div className="text-center space-y-2">
+        <p className="text-xl font-semibold text-white">Conectando com a MediAI...</p>
+        <p className="text-sm text-slate-400">Aguarde enquanto carregamos sua assistente médica virtual</p>
+      </div>
+    </div>
+  );
+}
+
+function CustomControls({ onEndConsultation }: { onEndConsultation: () => void }) {
+  const { localParticipant } = useLocalParticipant();
+  const [isMuted, setIsMuted] = useState(false);
+
+  const toggleMicrophone = async () => {
+    if (localParticipant) {
+      const enabled = localParticipant.isMicrophoneEnabled;
+      await localParticipant.setMicrophoneEnabled(!enabled);
+      setIsMuted(!enabled);
+    }
+  };
+
+  return (
+    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50">
+      <div className="bg-slate-800/90 backdrop-blur-lg rounded-full shadow-2xl border border-slate-700 px-6 py-4 flex items-center gap-4">
+        <Button
+          onClick={toggleMicrophone}
+          variant={isMuted ? "destructive" : "secondary"}
+          size="lg"
+          className="rounded-full w-14 h-14 p-0"
+        >
+          {isMuted ? (
+            <MicOff className="w-6 h-6" />
+          ) : (
+            <Mic className="w-6 h-6" />
+          )}
+        </Button>
+
+        <div className="w-px h-8 bg-slate-600" />
+
+        <Button
+          onClick={onEndConsultation}
+          variant="destructive"
+          size="lg"
+          className="rounded-full px-6"
+        >
+          <PhoneOff className="w-5 h-5 mr-2" />
+          Encerrar
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 export default function LiveKitConsultation({ patientId, patientName }: LiveKitConsultationProps) {
@@ -95,7 +190,7 @@ export default function LiveKitConsultation({ patientId, patientName }: LiveKitC
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-400 font-bold">2.</span>
-                  <span>Permita acesso ao microfone e câmera quando solicitado</span>
+                  <span>Permita acesso ao microfone quando solicitado</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-400 font-bold">3.</span>
@@ -144,43 +239,41 @@ export default function LiveKitConsultation({ patientId, patientName }: LiveKitC
   }
 
   return (
-    <div className="h-screen bg-slate-900">
+    <div className="fixed inset-0 bg-slate-900 z-50">
       <LiveKitRoom
         token={token}
         serverUrl={serverUrl}
         connect={true}
         audio={true}
-        video={true}
+        video={false}
         onDisconnected={endConsultation}
-        className="h-full"
+        className="h-full w-full"
       >
-        <div className="h-full flex flex-col">
-          {/* Custom Header */}
-          <div className="bg-slate-800 border-b border-slate-700 p-4">
+        <div className="relative h-full w-full">
+          {/* Avatar Video - Full Screen */}
+          <AvatarVideoDisplay />
+
+          {/* Header Overlay */}
+          <div className="absolute top-0 left-0 right-0 z-40 bg-gradient-to-b from-slate-900/90 to-transparent p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-white">Consulta ao Vivo - MediAI</h2>
-                <p className="text-sm text-slate-400">Assistente médica virtual com IA</p>
+                <h2 className="text-2xl font-bold text-white">MediAI</h2>
+                <p className="text-sm text-slate-300">Assistente Médica Virtual</p>
               </div>
-              <Button 
-                onClick={endConsultation}
-                variant="destructive"
-              >
-                Encerrar Consulta
-              </Button>
+              <div className="flex items-center gap-2 bg-green-500/20 border border-green-500/50 rounded-full px-4 py-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-sm text-green-200 font-medium">Conectado</span>
+              </div>
             </div>
           </div>
 
-          {/* Video Conference */}
-          <div className="flex-1">
-            <VideoConference />
-          </div>
+          {/* Custom Controls */}
+          <CustomControls onEndConsultation={endConsultation} />
 
-          {/* Audio Renderer (handles audio playback) */}
+          {/* Audio Renderer */}
           <RoomAudioRenderer />
         </div>
       </LiveKitRoom>
     </div>
   );
 }
-
