@@ -31,8 +31,10 @@ export default function ScheduleCalendarManager({ appointments, doctor }: Schedu
 
     // Destaque os dias com disponibilidade no calendário (para o médico ver)
     const availableDays = doctor.availability
-        .filter(slot => slot.available) // Apenas slots disponíveis
-        .map(slot => parseISO(slot.date));
+        ? doctor.availability
+            .filter(slot => slot.available) // Apenas slots disponíveis
+            .map(slot => parseISO(slot.date))
+        : [];
 
     // Destaque os dias com agendamentos no calendário
     const bookedDays = appointments
