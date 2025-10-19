@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { updateTavusConversation } from '@/lib/db-adapter';
+import { updateTavusConversation } from '@/lib/firestore-admin-adapter';
 import { analyzeTavusConversation } from '@/ai/flows/analyze-tavus-conversation';
 
 export async function POST(request: NextRequest) {
@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
       throw new Error('TAVUS_API_KEY não configurada');
     }
 
+    // Encerrar conversa na Tavus API
     const response = await fetch(`https://tavusapi.com/v2/conversations/${conversationId}/end`, {
       method: 'POST',
       headers: {
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest) {
       throw new Error(`Falha ao encerrar conversa: ${error}`);
     }
 
+    // Buscar transcrição completa
     const transcriptResponse = await fetch(`https://tavusapi.com/v2/conversations/${conversationId}`, {
       headers: {
         'x-api-key': tavusApiKey
@@ -43,6 +45,7 @@ export async function POST(request: NextRequest) {
       const data = await transcriptResponse.json();
       transcript = data.transcript || '';
 
+      // Realizar análise pós-consulta com IA
       if (transcript && patientId) {
         try {
           analysis = await analyzeTavusConversation({
@@ -52,14 +55,10 @@ export async function POST(request: NextRequest) {
 
           console.log('[End Conversation] Análise concluída:', analysis);
 
+          // Atualizar conversa no banco com transcrição e análise
           await updateTavusConversation(conversationId, {
             transcript,
             summary: analysis.summary,
-            mainConcerns: analysis.mainConcerns,
-            aiRecommendations: analysis.aiRecommendations,
-            suggestedFollowUp: analysis.suggestedFollowUp,
-            sentiment: analysis.sentiment,
-            qualityScore: analysis.qualityScore,
           });
         } catch (analysisError) {
           console.error('[End Conversation] Erro na análise:', analysisError);

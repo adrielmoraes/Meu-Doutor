@@ -195,4 +195,48 @@ export async function addPatientWithAuth(patientData: Omit<Patient, 'id'>, hashe
 
 
 
+export async function saveTavusConversation(data: {
+    patientId: string;
+    conversationId: string;
+    transcript: string;
+    summary?: string;
+    startTime: string;
+    endTime?: string;
+    duration?: number;
+}): Promise<void> {
+    const adminDb = getAdminDb();
+    await adminDb.collection('tavusConversations').add({
+        ...data,
+        createdAt: new Date().toISOString(),
+    });
+}
 
+export async function getTavusConversationsByPatient(patientId: string): Promise<any[]> {
+    const adminDb = getAdminDb();
+    const conversationsSnapshot = await adminDb.collection('tavusConversations')
+        .where('patientId', '==', patientId)
+        .orderBy('createdAt', 'desc')
+        .get();
+    const conversations: any[] = [];
+    conversationsSnapshot.forEach(doc => {
+        conversations.push({ id: doc.id, ...doc.data() });
+    });
+    return conversations;
+}
+
+export async function updateTavusConversation(conversationId: string, data: Partial<{
+    transcript: string;
+    summary: string;
+    endTime: string;
+    duration: number;
+}>): Promise<void> {
+    const adminDb = getAdminDb();
+    const conversationsSnapshot = await adminDb.collection('tavusConversations')
+        .where('conversationId', '==', conversationId)
+        .get();
+    
+    if (!conversationsSnapshot.empty) {
+        const docRef = conversationsSnapshot.docs[0].ref;
+        await docRef.update(data);
+    }
+}
