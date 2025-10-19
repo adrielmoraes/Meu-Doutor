@@ -198,7 +198,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
               </p>
             </div>
 
-            <TavusConsultationClient />
+            <TavusConsultationClient patientId={patient.id} patientName={patient.name} />
           </TabsContent>
 
           {/* Overview Tab */}

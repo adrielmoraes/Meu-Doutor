@@ -12,7 +12,7 @@ interface TavusConsultationClientProps {
   patientName: string;
 }
 
-export function TavusConsultationClient({ patientId, patientName }: TavusConsultationClientProps) {
+export default function TavusConsultationClient({ patientId, patientName }: TavusConsultationClientProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [conversationUrl, setConversationUrl] = useState<string | null>(null);
