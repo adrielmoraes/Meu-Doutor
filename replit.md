@@ -80,6 +80,50 @@ Preferred communication style: Simple, everyday language.
 - Removed unstable props (`meetingState`, `onLeave`) from critical effect dependencies
 - Used ref-based join tracking instead of state to maintain stability across renders
 
+### Tavus CVI API Configuration (October 19, 2025)
+**Integration Status**: Configured and operational with Gemini LLM support.
+
+**Required Environment Variables**:
+- `TAVUS_API_KEY` - API authentication key from Tavus dashboard
+- `TAVUS_REPLICA_ID` - Visual avatar identifier (Phoenix-3 or PRO replica recommended)
+- `TAVUS_PERSONA_ID` - **Required** - Defines AI behavior, personality, and LLM backend
+
+**API Endpoint**: `https://tavusapi.com/v2/conversations`
+
+**Payload Structure** (`create-conversation/route.ts`):
+```typescript
+{
+  persona_id: string,           // REQUIRED - Controls LLM and behavior
+  replica_id: string,            // Visual avatar
+  conversation_name: string,     // Optional display name
+  conversational_context: string,// Additional context per conversation
+  custom_greeting: string,       // Custom welcome message
+  properties: {
+    max_call_duration: number,   // Seconds (default: 1800)
+    participant_left_timeout: number, // Seconds (default: 60)
+    enable_recording: boolean,   // true for transcription
+    language: string             // 'Portuguese' or 'multilingual'
+  }
+}
+```
+
+**Invalid Fields Removed** (caused Bad Request errors):
+- ❌ `metadata` - Not supported by Tavus API v2
+- ❌ `apply_filter` - Not a valid property field
+- ❌ `language: 'pt-BR'` - Changed to `'Portuguese'` (full language name required)
+
+**Gemini LLM Integration**:
+- Configured through Tavus Persona settings in dashboard
+- Persona ID determines which LLM backend is used (OpenAI, Gemini, etc.)
+- Medical context injected via `conversational_context` field
+- Supports real-time medical triage and patient interaction in Portuguese
+
+**Response Fields**:
+- `conversation_id` - Unique identifier for tracking
+- `conversation_url` - Direct link to join (Daily.co room)
+- `status` - 'active' or 'ended'
+- `created_at` - Timestamp
+
 ### Tavus Medical Context Integration (October 2025)
 **Implementation**: AI avatar with complete patient medical history access for personalized consultations.
 
