@@ -1,19 +1,19 @@
 """
 MediAI LiveKit Voice Agent with Tavus Avatar
-Based on official LiveKit + Tavus example: https://github.com/livekit-examples/python-agents-examples/tree/main/avatars/tavus
-Powered by 100% Gemini API (STT, LLM, TTS)
+Powered by 100% Gemini Live API (STT + LLM + TTS integrated)
+Based on official LiveKit + Gemini Live example
 """
 
 import logging
 import json
 import os
 from typing import Optional
-from dataclasses import dataclass
 from pathlib import Path
 from dotenv import load_dotenv
 from livekit.agents import JobContext, WorkerOptions, cli, RoomOutputOptions
-from livekit.agents.voice import Agent, AgentSession
-from livekit.plugins import silero, tavus, google
+from livekit.agents.voice import AgentSession
+from livekit.plugins import tavus
+from livekit.plugins.google import realtime
 
 load_dotenv(dotenv_path=Path(__file__).parent / '.env')
 
@@ -22,14 +22,6 @@ if 'GEMINI_API_KEY' in os.environ and 'GOOGLE_API_KEY' not in os.environ:
 
 logger = logging.getLogger("mediai-avatar")
 logger.setLevel(logging.INFO)
-
-
-@dataclass
-class UserData:
-    """Class to store user data during a session."""
-    ctx: Optional[JobContext] = None
-    patient_id: Optional[str] = None
-    patient_context: str = ""
 
 
 async def get_patient_context(patient_id: str) -> str:
@@ -107,12 +99,35 @@ EXAMES RECENTES ({len(exams)}):
         return f"Erro ao carregar contexto: {str(e)}"
 
 
-class MediAIAgent(Agent):
-    """Custom Agent with medical context."""
+async def entrypoint(ctx: JobContext):
+    """Main entrypoint for the LiveKit agent with Tavus avatar."""
     
-    def __init__(self, patient_context: str):
-        super().__init__(
-            instructions=f"""Você é MediAI, uma assistente médica virtual especializada em triagem de pacientes e orientação de saúde.
+    await ctx.connect()
+    
+    room_metadata = ctx.room.metadata
+    try:
+        metadata = json.loads(room_metadata) if room_metadata else {}
+        patient_id = metadata.get('patient_id')
+    except:
+        patient_id = None
+    
+    if not patient_id:
+        logger.error("No patient_id in room metadata")
+        return
+    
+    logger.info(f"[MediAI] 🎯 Starting agent for patient: {patient_id}")
+    
+    logger.info(f"[MediAI] 📋 Loading patient context...")
+    patient_context = await get_patient_context(patient_id)
+    logger.info(f"[MediAI] ✅ Patient context loaded ({len(patient_context)} chars)")
+    
+    logger.info(f"[MediAI] 🤖 Creating Gemini Live API model...")
+    
+    # Create Gemini Live API model with integrated STT + LLM + TTS
+    model = realtime.RealtimeModel(
+        model="gemini-2.0-flash-exp",
+        voice="Aoede",  # Female voice (supports pt-BR)
+        instructions=f"""Você é MediAI, uma assistente médica virtual especializada em triagem de pacientes e orientação de saúde.
 
 PERSONALIDADE:
 - Empática, calorosa e profissional
@@ -139,40 +154,14 @@ IMPORTANTE: Mantenha suas respostas curtas e objetivas. Faça perguntas uma de c
 CONTEXTO DO PACIENTE:
 {patient_context}
 """
-        )
-
-
-async def entrypoint(ctx: JobContext):
-    """Main entrypoint for the LiveKit agent with Tavus avatar."""
+    )
     
-    await ctx.connect()
+    logger.info(f"[MediAI] 🎙️ Creating agent session with Gemini Live API...")
     
-    room_metadata = ctx.room.metadata
-    try:
-        metadata = json.loads(room_metadata) if room_metadata else {}
-        patient_id = metadata.get('patient_id')
-    except:
-        patient_id = None
-    
-    if not patient_id:
-        logger.error("No patient_id in room metadata")
-        return
-    
-    logger.info(f"[MediAI] 🎯 Starting agent for patient: {patient_id}")
-    
-    logger.info(f"[MediAI] 📋 Loading patient context...")
-    patient_context = await get_patient_context(patient_id)
-    logger.info(f"[MediAI] ✅ Patient context loaded ({len(patient_context)} chars)")
-    
-    logger.info(f"[MediAI] 🤖 Creating MediAI agent...")
-    agent = MediAIAgent(patient_context=patient_context)
-    
-    logger.info(f"[MediAI] 🎙️ Creating agent session with Gemini components...")
+    # Create AgentSession with integrated Gemini Live model
     session = AgentSession(
-        stt=google.STT(languages=["pt-BR"]),
-        llm=google.LLM(model="gemini-2.0-flash-exp"),
-        tts=google.TTS(language="pt-BR", gender="female"),
-        vad=silero.VAD.load(),
+        model=model,
+        # No separate STT/LLM/TTS needed - all integrated in RealtimeModel!
     )
     
     tavus_api_key = os.getenv('TAVUS_API_KEY')
@@ -207,9 +196,7 @@ async def entrypoint(ctx: JobContext):
     
     logger.info("[MediAI] 🏥 Starting medical consultation session...")
     
-    # FIXED: Removed 'userdata' parameter - not supported by AgentSession.start()
     await session.start(
-        agent=agent,
         room=ctx.room,
         room_output_options=room_output_options
     )
