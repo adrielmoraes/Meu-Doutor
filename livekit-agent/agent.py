@@ -48,9 +48,9 @@ async def get_patient_context(patient_id: str) -> str:
             FROM patients WHERE id = $1
         """, patient_id)
         
-        # Get recent exams
+        # Get recent exams (using correct column names from schema)
         exams = await conn.fetch("""
-            SELECT type, status, diagnosis, created_at::text as date
+            SELECT type, status, result, preliminary_diagnosis, created_at::text as date
             FROM exams 
             WHERE patient_id = $1
             ORDER BY created_at DESC
@@ -82,8 +82,9 @@ EXAMES RECENTES ({len(exams)}):
         for i, exam in enumerate(exams, 1):
             context += f"\n{i}. {exam['type']} - {exam['date']}"
             context += f"\n   Status: {exam['status']}"
-            if exam['diagnosis']:
-                context += f"\n   Diagnóstico: {exam['diagnosis']}"
+            context += f"\n   Resultado: {exam['result']}"
+            if exam['preliminary_diagnosis']:
+                context += f"\n   Diagnóstico Preliminar: {exam['preliminary_diagnosis']}"
             context += "\n"
         
         if wellness and wellness['wellness_plan']:
@@ -163,12 +164,15 @@ CONTEXTO DO PACIENTE:
     
     logger.info(f"[MediAI] 🤖 Creating Gemini-powered agent...")
     
-    # Create the agent with Gemini components
+    # Create the agent with Gemini components (CORRECTED TTS SYNTAX)
     agent = Agent(
         instructions=instructions,
         stt=google.STT(languages=["pt-BR"]),  # Gemini STT
         llm=google.LLM(model="gemini-2.0-flash-exp"),  # Gemini LLM
-        tts=google.TTS(voice="pt-BR-Standard-A", language_code="pt-BR"),  # Gemini TTS
+        tts=google.TTS(
+            language="pt-BR",           # Language code
+            gender="female"             # Voice gender
+        ),
         vad=silero.VAD.load(),
     )
     
