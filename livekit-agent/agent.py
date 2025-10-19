@@ -15,6 +15,10 @@ from livekit.plugins import silero, tavus, google
 
 load_dotenv()
 
+# Fix: Google plugin needs GOOGLE_API_KEY, not GEMINI_API_KEY
+if 'GEMINI_API_KEY' in os.environ and 'GOOGLE_API_KEY' not in os.environ:
+    os.environ['GOOGLE_API_KEY'] = os.environ['GEMINI_API_KEY']
+
 logger = logging.getLogger("mediai-avatar")
 logger.setLevel(logging.INFO)
 
@@ -38,9 +42,9 @@ async def get_patient_context(patient_id: str) -> str:
     try:
         conn = await asyncpg.connect(database_url)
         
-        # Get patient info
+        # Get patient info (using correct column names from schema)
         patient = await conn.fetchrow("""
-            SELECT name, email, age, reported_symptoms, medical_history
+            SELECT name, email, age, reported_symptoms, doctor_notes, exam_results
             FROM patients WHERE id = $1
         """, patient_id)
         
@@ -69,7 +73,8 @@ INFORMAÇÕES DO PACIENTE:
 - Nome: {patient['name']}
 - Idade: {patient['age'] if patient['age'] else 'Não informada'} anos
 - Sintomas Relatados: {patient['reported_symptoms'] if patient['reported_symptoms'] else 'Nenhum sintoma relatado'}
-- Histórico Médico: {patient['medical_history'] if patient['medical_history'] else 'Não informado'}
+- Notas Médicas: {patient['doctor_notes'] if patient['doctor_notes'] else 'Não informado'}
+- Resultados de Exames: {patient['exam_results'] if patient['exam_results'] else 'Não informado'}
 
 EXAMES RECENTES ({len(exams)}):
 """
