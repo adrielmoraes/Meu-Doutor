@@ -1,6 +1,7 @@
 """
 MediAI LiveKit Voice Agent with Tavus Avatar
-Based on official LiveKit example but powered by 100% Gemini API
+Based on official LiveKit + Tavus example: https://github.com/livekit-examples/python-agents-examples/tree/main/avatars/tavus
+Powered by 100% Gemini API (STT, LLM, TTS)
 """
 
 import logging
@@ -8,14 +9,14 @@ import json
 import os
 from typing import Optional
 from dataclasses import dataclass
+from pathlib import Path
 from dotenv import load_dotenv
 from livekit.agents import JobContext, WorkerOptions, cli, RoomOutputOptions
 from livekit.agents.voice import Agent, AgentSession
 from livekit.plugins import silero, tavus, google
 
-load_dotenv()
+load_dotenv(dotenv_path=Path(__file__).parent / '.env')
 
-# Fix: Google plugin needs GOOGLE_API_KEY, not GEMINI_API_KEY
 if 'GEMINI_API_KEY' in os.environ and 'GOOGLE_API_KEY' not in os.environ:
     os.environ['GOOGLE_API_KEY'] = os.environ['GEMINI_API_KEY']
 
@@ -42,13 +43,11 @@ async def get_patient_context(patient_id: str) -> str:
     try:
         conn = await asyncpg.connect(database_url)
         
-        # Get patient info (using correct column names from schema)
         patient = await conn.fetchrow("""
             SELECT name, email, age, reported_symptoms, doctor_notes, exam_results
             FROM patients WHERE id = $1
         """, patient_id)
         
-        # Get recent exams (using correct column names from schema)
         exams = await conn.fetch("""
             SELECT type, status, result, preliminary_diagnosis, created_at::text as date
             FROM exams 
@@ -57,7 +56,6 @@ async def get_patient_context(patient_id: str) -> str:
             LIMIT 3
         """, patient_id)
         
-        # Get wellness plan
         wellness = await conn.fetchrow("""
             SELECT wellness_plan FROM patients WHERE id = $1
         """, patient_id)
@@ -67,7 +65,6 @@ async def get_patient_context(patient_id: str) -> str:
         if not patient:
             return "Erro: Paciente não encontrado"
         
-        # Build context
         context = f"""
 INFORMAÇÕES DO PACIENTE:
 - Nome: {patient['name']}
@@ -88,12 +85,20 @@ EXAMES RECENTES ({len(exams)}):
             context += "\n"
         
         if wellness and wellness['wellness_plan']:
-            wp = wellness['wellness_plan']
-            context += f"\n\nPLANO DE BEM-ESTAR:"
-            if wp.get('dietaryPlan'):
-                context += f"\nDieta: {wp['dietaryPlan'][:200]}..."
-            if wp.get('exercisePlan'):
-                context += f"\nExercícios: {wp['exercisePlan'][:200]}..."
+            try:
+                if isinstance(wellness['wellness_plan'], str):
+                    import json
+                    wp = json.loads(wellness['wellness_plan'])
+                else:
+                    wp = wellness['wellness_plan']
+                    
+                context += f"\n\nPLANO DE BEM-ESTAR:"
+                if wp.get('dietaryPlan'):
+                    context += f"\nDieta: {wp['dietaryPlan'][:200]}..."
+                if wp.get('exercisePlan'):
+                    context += f"\nExercícios: {wp['exercisePlan'][:200]}..."
+            except:
+                pass
         
         return context
         
@@ -102,39 +107,12 @@ EXAMES RECENTES ({len(exams)}):
         return f"Erro ao carregar contexto: {str(e)}"
 
 
-async def entrypoint(ctx: JobContext):
-    """Main entrypoint for the LiveKit agent with Tavus avatar."""
+class MediAIAgent(Agent):
+    """Custom Agent with medical context."""
     
-    await ctx.connect()
-    
-    # Get patient ID from room metadata
-    room_metadata = ctx.room.metadata
-    try:
-        metadata = json.loads(room_metadata) if room_metadata else {}
-        patient_id = metadata.get('patient_id')
-    except:
-        patient_id = None
-    
-    if not patient_id:
-        logger.error("No patient_id in room metadata")
-        return
-    
-    logger.info(f"[MediAI] 🎯 Starting agent for patient: {patient_id}")
-    
-    # Load patient context
-    logger.info(f"[MediAI] 📋 Loading patient context...")
-    patient_context = await get_patient_context(patient_id)
-    logger.info(f"[MediAI] ✅ Patient context loaded ({len(patient_context)} chars)")
-    
-    # Create user data
-    userdata = UserData(
-        ctx=ctx,
-        patient_id=patient_id,
-        patient_context=patient_context
-    )
-    
-    # Define medical assistant instructions
-    instructions = f"""Você é MediAI, uma assistente médica virtual especializada em triagem de pacientes e orientação de saúde.
+    def __init__(self, patient_context: str):
+        super().__init__(
+            instructions=f"""Você é MediAI, uma assistente médica virtual especializada em triagem de pacientes e orientação de saúde.
 
 PERSONALIDADE:
 - Empática, calorosa e profissional
@@ -161,31 +139,52 @@ IMPORTANTE: Mantenha suas respostas curtas e objetivas. Faça perguntas uma de c
 CONTEXTO DO PACIENTE:
 {patient_context}
 """
+        )
+
+
+async def entrypoint(ctx: JobContext):
+    """Main entrypoint for the LiveKit agent with Tavus avatar."""
     
-    logger.info(f"[MediAI] 🤖 Creating Gemini-powered agent...")
+    await ctx.connect()
     
-    # Create the agent with Gemini components (CORRECTED TTS SYNTAX)
-    agent = Agent(
-        instructions=instructions,
-        stt=google.STT(languages=["pt-BR"]),  # Gemini STT
-        llm=google.LLM(model="gemini-2.0-flash-exp"),  # Gemini LLM
-        tts=google.TTS(
-            language="pt-BR",           # Language code
-            gender="female"             # Voice gender
-        ),
+    room_metadata = ctx.room.metadata
+    try:
+        metadata = json.loads(room_metadata) if room_metadata else {}
+        patient_id = metadata.get('patient_id')
+    except:
+        patient_id = None
+    
+    if not patient_id:
+        logger.error("No patient_id in room metadata")
+        return
+    
+    logger.info(f"[MediAI] 🎯 Starting agent for patient: {patient_id}")
+    
+    logger.info(f"[MediAI] 📋 Loading patient context...")
+    patient_context = await get_patient_context(patient_id)
+    logger.info(f"[MediAI] ✅ Patient context loaded ({len(patient_context)} chars)")
+    
+    userdata = UserData(
+        ctx=ctx,
+        patient_id=patient_id,
+        patient_context=patient_context
+    )
+    
+    logger.info(f"[MediAI] 🤖 Creating MediAI agent...")
+    agent = MediAIAgent(patient_context=patient_context)
+    
+    logger.info(f"[MediAI] 🎙️ Creating agent session with Gemini components...")
+    session = AgentSession(
+        stt=google.STT(languages=["pt-BR"]),
+        llm=google.LLM(model="gemini-2.0-flash-exp"),
+        tts=google.TTS(language="pt-BR", gender="female"),
         vad=silero.VAD.load(),
     )
     
-    # Create agent session
-    logger.info(f"[MediAI] 🎙️ Creating agent session...")
-    session = AgentSession(agent=agent, userdata=userdata)
-    
-    # Initialize Tavus Avatar
     tavus_api_key = os.getenv('TAVUS_API_KEY')
     replica_id = os.getenv('TAVUS_REPLICA_ID')
     persona_id = os.getenv('TAVUS_PERSONA_ID')
     
-    avatar_active = False
     room_output_options = None
     
     if tavus_api_key and replica_id and persona_id:
@@ -198,41 +197,33 @@ CONTEXTO DO PACIENTE:
                 avatar_participant_name="MediAI Assistant"
             )
             
-            # Start avatar session (THIS IS THE KEY!)
+            logger.info("[MediAI] 🎥 Starting Tavus avatar session...")
             await avatar.start(session, room=ctx.room)
-            avatar_active = True
             
-            # Disable agent audio output since avatar handles it
             room_output_options = RoomOutputOptions(audio_enabled=False)
             
-            logger.info("[MediAI] ✅ Tavus avatar initialized successfully!")
+            logger.info("[MediAI] ✅ Tavus avatar started successfully!")
             
         except Exception as e:
             logger.error(f"Failed to initialize Tavus avatar: {e}")
             logger.info("[MediAI] Continuing without avatar (audio only)")
     else:
-        logger.warning("[WARN] Tavus credentials incomplete:")
-        logger.warning(f"  TAVUS_API_KEY: {'✓' if tavus_api_key else '✗'}")
-        logger.warning(f"  TAVUS_REPLICA_ID: {'✓' if replica_id else '✗'}")
-        logger.warning(f"  TAVUS_PERSONA_ID: {'✓' if persona_id else '✗'}")
+        logger.warning("[WARN] Tavus credentials incomplete")
         logger.info("[MediAI] Running without avatar (audio only)")
     
-    # Start the session
     logger.info("[MediAI] 🏥 Starting medical consultation session...")
     
     await session.start(
+        agent=agent,
         room=ctx.room,
-        room_output_options=room_output_options
+        room_output_options=room_output_options,
+        userdata=userdata
     )
     
     logger.info("[MediAI] ✅ Session started successfully!")
-    logger.info(f"[MediAI] Avatar: {'🎭 ACTIVE' if avatar_active else '🔊 AUDIO ONLY'}")
-    logger.info(f"[MediAI] 🧠 Powered by: Google Gemini 2.0 Flash (100%)")
-    logger.info(f"[MediAI] 🏥 Ready for patient consultation!")
 
 
 if __name__ == "__main__":
-    # Run the agent
     cli.run_app(
         WorkerOptions(
             entrypoint_fnc=entrypoint,
