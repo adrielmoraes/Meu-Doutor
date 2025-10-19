@@ -1,9 +1,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
+import { updateTavusConversation } from '@/lib/firestore-admin-adapter';
+import { analyzeTavusConversation } from '@/ai/flows/analyze-tavus-conversation';
 
 export async function POST(request: NextRequest) {
   try {
-    const { conversationId } = await request.json();
+    const { conversationId, patientId } = await request.json();
 
     if (!conversationId) {
       return NextResponse.json({ error: 'Conversation ID obrigatório' }, { status: 400 });
@@ -29,7 +31,7 @@ export async function POST(request: NextRequest) {
       throw new Error(`Falha ao encerrar conversa: ${error}`);
     }
 
-    // Buscar transcrição e resumo
+    // Buscar transcrição completa
     const transcriptResponse = await fetch(`https://tavusapi.com/v2/conversations/${conversationId}`, {
       headers: {
         'x-api-key': tavusApiKey
@@ -37,14 +39,37 @@ export async function POST(request: NextRequest) {
     });
 
     let transcript = '';
+    let analysis = null;
+
     if (transcriptResponse.ok) {
       const data = await transcriptResponse.json();
       transcript = data.transcript || '';
+
+      // Realizar análise pós-consulta com IA
+      if (transcript && patientId) {
+        try {
+          analysis = await analyzeTavusConversation({
+            transcript,
+            patientId
+          });
+
+          console.log('[End Conversation] Análise concluída:', analysis);
+
+          // Atualizar conversa no banco com transcrição e análise
+          await updateTavusConversation(conversationId, {
+            transcript,
+            summary: analysis.summary,
+          });
+        } catch (analysisError) {
+          console.error('[End Conversation] Erro na análise:', analysisError);
+        }
+      }
     }
 
     return NextResponse.json({
       success: true,
-      transcript
+      transcript,
+      analysis
     });
 
   } catch (error: any) {

@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '../../../../../server/storage';
 import { patients, exams, consultations } from '../../../../../shared/schema';
@@ -115,7 +114,7 @@ export async function POST(request: NextRequest) {
     const tavusApiKey = process.env.TAVUS_API_KEY;
     const personaId = process.env.PERSONA_ID;
     const replicaId = process.env.REPLICA_ID;
-    
+
     // Configurações de timeout (com valores padrão)
     const maxCallDuration = parseInt(process.env.TAVUS_MAX_CALL_DURATION || '1800'); // 30 min padrão
     const participantLeftTimeout = parseInt(process.env.TAVUS_PARTICIPANT_LEFT_TIMEOUT || '60');
@@ -136,60 +135,38 @@ export async function POST(request: NextRequest) {
 
     // Criar conversa usando o endpoint correto da Tavus CVI
     const response = await fetch('https://tavusapi.com/v2/conversations', {
-      method: 'POST',
-      headers: {
-        'x-api-key': tavusApiKey,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        replica_id: replicaId,
-        persona_id: personaId,
-        conversation_name: conversationName,
-        conversational_context: `Você é a MediAI, assistente médica virtual em português brasileiro.
-
-## SEU PAPEL E INSTRUÇÕES
-1. **Análise Médica Personalizada**: Você tem acesso completo aos dados médicos deste paciente (exames, consultas anteriores, plano de bem-estar)
-2. **Explicação de Exames**: Explique DETALHADAMENTE os resultados dos exames, diagnósticos preliminares e achados laboratoriais
-3. **Contextualização**: Use o histórico de consultas e sintomas anteriores para fornecer orientações contextualizadas
-4. **Acompanhamento**: Mencione o plano de bem-estar atual e sugira ajustes baseados em novos sintomas ou preocupações
-5. **Empatia e Clareza**: Mantenha tom empático, use linguagem simples, mas seja preciso tecnicamente
-
-## IMPORTANTE - LIMITAÇÕES
-⚠️ Você NÃO é médico. Use os dados para ORIENTAR, mas sempre recomende consulta presencial para diagnósticos definitivos.
-⚠️ Para sintomas graves ou emergências, oriente buscar atendimento médico imediato.
-
----
-
-${medicalContext}
-
----
-
-## INSTRUÇÕES FINAIS
-- Sempre cite ESPECIFICAMENTE os exames e valores ao explicar
-- Correlacione sintomas atuais com histórico médico
-- Seja proativo: sugira exames de acompanhamento se necessário
-- Explique termos médicos em linguagem acessível
-- Reforce as recomendações do plano de bem-estar quando relevante`,
-        properties: {
-          max_call_duration: maxCallDuration,
-          participant_left_timeout: participantLeftTimeout,
-          participant_absent_timeout: participantAbsentTimeout,
-          enable_recording: true,
-          enable_transcription: true
+        method: 'POST',
+        headers: {
+          'x-api-key': tavusApiKey,
+          'Content-Type': 'application/json'
         },
-        callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/tavus/webhook`
-      })
-    });
+        body: JSON.stringify({
+          replica_id: replicaId,
+          persona_id: personaId,
+          conversational_context: medicalContext,
+          metadata: {
+            patientId: patientId,
+          },
+          properties: {
+            max_call_duration: maxCallDuration,
+            participant_left_timeout: participantLeftTimeout,
+            participant_absent_timeout: participantAbsentTimeout,
+            enable_recording: true,
+            enable_transcription: true
+          },
+          callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/tavus/webhook`
+        })
+      });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Tavus API Error:', errorText);
-      
+
       // Parse error to provide specific messages
       let errorMessage = 'Falha ao criar conversa';
       try {
         const errorData = JSON.parse(errorText);
-        
+
         // Check for specific error types
         if (errorData.message?.includes('out of conversational credits')) {
           errorMessage = 'Créditos Tavus esgotados. Por favor, adicione créditos na sua conta Tavus (tavusapi.com) para continuar usando a Consulta ao Vivo.';
@@ -201,7 +178,7 @@ ${medicalContext}
       } catch {
         errorMessage = errorText;
       }
-      
+
       throw new Error(errorMessage);
     }
 

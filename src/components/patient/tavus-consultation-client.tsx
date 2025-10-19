@@ -32,6 +32,7 @@ export default function TavusConsultationClient() {
     const [conversationUrl, setConversationUrl] = useState<string | null>(null);
     const [patientId, setPatientId] = useState<string | null>(null);
     const [isLoadingSession, setIsLoadingSession] = useState(true);
+    const [transcript, setTranscript] = useState<Array<{speaker: string; text: string; timestamp: string}>>([]);
 
     const { toast } = useToast();
     const requestPermissions = useRequestPermissions();
@@ -75,7 +76,7 @@ export default function TavusConsultationClient() {
         }
 
         setIsConnecting(true);
-        
+
         try {
             // 1️⃣ PRIMEIRO: Pedir permissões de câmera e microfone
             console.log('[Tavus] Solicitando permissões de câmera e microfone...');
@@ -84,7 +85,7 @@ export default function TavusConsultationClient() {
 
             // 2️⃣ DEPOIS: Criar conversa na API
             console.log('[Tavus] Criando conversa para paciente:', patientId);
-            
+
             const response = await fetch('/api/tavus/create-conversation', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -97,7 +98,7 @@ export default function TavusConsultationClient() {
             if (!response.ok) {
                 const error = await response.json();
                 console.error('[Tavus] Erro na API:', error);
-                
+
                 // Usar a mensagem de erro específica do backend
                 const errorMessage = error.details || error.error || 'Falha ao criar conversa';
                 throw new Error(errorMessage);
@@ -105,7 +106,7 @@ export default function TavusConsultationClient() {
 
             const data = await response.json();
             console.log('[Tavus] Conversa criada:', data);
-            
+
             if (!data.conversationUrl) {
                 throw new Error('URL da conversa não foi retornada pela API');
             }
@@ -148,19 +149,19 @@ export default function TavusConsultationClient() {
                 {/* Video Avatar Area */}
                 <Card className="lg:col-span-2 p-6 relative overflow-hidden">
                     {/* Video Background */}
-                    <video 
-                        autoPlay 
-                        loop 
-                        muted 
+                    <video
+                        autoPlay
+                        loop
+                        muted
                         playsInline
                         className="absolute inset-0 w-full h-full object-cover"
                     >
                         <source src="/ai-assistant-video.mp4" type="video/mp4" />
                     </video>
-                    
+
                     {/* Overlay with 30% opacity */}
                     <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-pink-900/30 to-purple-900/30" />
-                    
+
                     <div className="absolute top-4 right-4 flex gap-2 z-10">
                         {conversationUrl && (
                             <Badge className="bg-green-500 animate-pulse">
@@ -172,7 +173,7 @@ export default function TavusConsultationClient() {
                     <div className="w-full h-full min-h-[500px] flex items-center justify-center rounded-lg overflow-hidden relative z-10">
                         {!conversationUrl && !isConnecting && (
                             <div className="flex flex-col items-center justify-center">
-                                <Button 
+                                <Button
                                     onClick={startConversation}
                                     disabled={isLoadingSession || !patientId}
                                     size="lg"
@@ -217,36 +218,38 @@ export default function TavusConsultationClient() {
                         <p className="text-xs text-teal-100">
                             Acompanhe o que está sendo dito em tempo real
                         </p>
-                    </div>
-
+         </div>
                     <ScrollArea className="flex-1 p-4">
-                        <div className="space-y-3">
-                            {messages.map((message) => (
-                                <div
-                                    key={message.id}
-                                    className={`flex ${message.source === 'user' ? 'justify-end' : 'justify-start'}`}
-                                >
+                        {transcript.length === 0 ? (
+                            <div className="text-center text-gray-500 py-8">
+                                <p>A transcrição aparecerá aqui durante a conversa...</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {transcript.map((entry, index) => (
                                     <div
-                                        className={`max-w-[85%] rounded-lg px-4 py-2 shadow-md ${
-                                            message.source === 'user'
-                                                ? 'bg-blue-500 text-white'
-                                                : 'bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white'
+                                        key={index}
+                                        className={`p-3 rounded-lg ${
+                                            entry.speaker === 'AI'
+                                                ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
+                                                : 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500'
                                         }`}
                                     >
-                                        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                                            {message.text}
-                                        </p>
-                                        <div className={`flex items-center gap-1 mt-1 ${
-                                            message.source === 'user' ? 'justify-end' : 'justify-start'
-                                        }`}>
-                                            <span className="text-xs opacity-70">
-                                                {formatTime(message.timestamp)}
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Badge variant={entry.speaker === 'AI' ? 'default' : 'secondary'}>
+                                                {entry.speaker}
+                                            </Badge>
+                                            <span className="text-xs text-gray-500">
+                                                {new Date(entry.timestamp).toLocaleTimeString('pt-BR')}
                                             </span>
                                         </div>
+                                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                                            {entry.text}
+                                        </p>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </ScrollArea>
                 </Card>
             </div>
