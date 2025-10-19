@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useState, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles } from 'lucide-react';
 import { loginAction } from './actions';
@@ -24,7 +24,7 @@ function SubmitButton() {
 
 export default function LoginPage() {
   const router = useRouter();
-  const [state, formAction] = useFormState(loginAction, { message: '' });
+  const [state, formAction] = useActionState(loginAction, { message: '' });
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
