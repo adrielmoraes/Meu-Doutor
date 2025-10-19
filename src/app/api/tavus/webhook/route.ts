@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { saveTavusConversation, updateTavusConversation } from '@/lib/firestore-admin-adapter';
+import { saveTavusConversation, updateTavusConversation } from '@/lib/db-adapter';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,18 +8,16 @@ export async function POST(request: NextRequest) {
     
     console.log('[Tavus Webhook] Evento recebido:', event);
 
-    // Processar diferentes tipos de eventos
     switch (event.event_type) {
       case 'conversation.started':
         console.log('[Tavus] Conversa iniciada:', event.conversation_id);
         
-        // Salvar início da conversa
         if (event.metadata?.patientId) {
           await saveTavusConversation({
             patientId: event.metadata.patientId,
             conversationId: event.conversation_id,
             transcript: '',
-            startTime: new Date().toISOString(),
+            startTime: new Date(),
           });
         }
         break;
@@ -27,9 +25,8 @@ export async function POST(request: NextRequest) {
       case 'conversation.ended':
         console.log('[Tavus] Conversa encerrada:', event.conversation_id);
         
-        // Atualizar conversa com tempo final e duração
         await updateTavusConversation(event.conversation_id, {
-          endTime: new Date().toISOString(),
+          endTime: new Date(),
           duration: event.duration || 0,
         });
         break;
@@ -37,7 +34,6 @@ export async function POST(request: NextRequest) {
       case 'transcript.update':
         console.log('[Tavus] Transcrição atualizada:', event.transcript);
         
-        // Atualizar transcrição em tempo real
         if (event.transcript) {
           await updateTavusConversation(event.conversation_id, {
             transcript: event.transcript,

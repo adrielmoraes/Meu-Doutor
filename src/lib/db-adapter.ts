@@ -378,3 +378,60 @@ export async function getConsultationsByDoctor(doctorId: string): Promise<Consul
   
   return results.map(c => ({ ...c, roomId: c.roomId || '' })) as Consultation[];
 }
+
+export async function saveTavusConversation(data: {
+  patientId: string;
+  conversationId: string;
+  transcript?: string;
+  summary?: string;
+  startTime: Date;
+  endTime?: Date;
+  duration?: number;
+}): Promise<string> {
+  const { tavusConversations } = await import('../../shared/schema');
+  const id = randomUUID();
+  
+  await db.insert(tavusConversations).values({
+    id,
+    patientId: data.patientId,
+    conversationId: data.conversationId,
+    transcript: data.transcript || '',
+    summary: data.summary,
+    startTime: data.startTime,
+    endTime: data.endTime,
+    duration: data.duration,
+  });
+  
+  return id;
+}
+
+export async function getTavusConversationsByPatient(patientId: string): Promise<any[]> {
+  const { tavusConversations } = await import('../../shared/schema');
+  
+  const results = await db
+    .select()
+    .from(tavusConversations)
+    .where(eq(tavusConversations.patientId, patientId))
+    .orderBy(desc(tavusConversations.createdAt));
+  
+  return results;
+}
+
+export async function updateTavusConversation(conversationId: string, data: Partial<{
+  transcript: string;
+  summary: string;
+  mainConcerns: string[];
+  aiRecommendations: string[];
+  suggestedFollowUp: string[];
+  sentiment: string;
+  qualityScore: number;
+  endTime: Date;
+  duration: number;
+}>): Promise<void> {
+  const { tavusConversations } = await import('../../shared/schema');
+  
+  await db
+    .update(tavusConversations)
+    .set({ ...data, updatedAt: new Date() })
+    .where(eq(tavusConversations.conversationId, conversationId));
+}
