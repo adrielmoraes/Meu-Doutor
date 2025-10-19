@@ -1,7 +1,7 @@
 # MediAI - AI-Powered Healthcare Platform
 
 ## Overview
-MediAI is an AI-powered healthcare platform designed to connect patients with medical professionals for AI-assisted diagnosis and real-time communication. It offers patient and doctor portals, leveraging Google's Gemini AI models for intelligent medical analysis, preliminary diagnoses, and personalized wellness recommendations, all presented in Brazilian Portuguese. The platform's goal is to innovate healthcare delivery through advanced AI integration within a robust and user-friendly interface, aiming to improve accessibility and quality of medical consultations.
+MediAI is an AI-powered healthcare platform that connects patients with medical professionals for AI-assisted diagnosis and real-time communication. It offers patient and doctor portals, leveraging Google's Gemini AI models for intelligent medical analysis, preliminary diagnoses, and personalized wellness recommendations, all presented in Brazilian Portuguese. The platform aims to innovate healthcare delivery by integrating advanced AI within a robust, user-friendly interface to improve accessibility and quality of medical consultations.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -14,18 +14,8 @@ Preferred communication style: Simple, everyday language.
 **Routing Structure**: Public, protected patient, and protected doctor routes with middleware-based authentication and role-based access control.
 
 ### Backend Architecture
-**AI/ML Layer**: Google Genkit framework orchestrates specialized AI agents using Gemini models (Gemini 2.5 Flash) for domain-specific analysis, including text-to-speech integration and real-time consultation flows. The system employs 15+ specialist agents (e.g., Cardiologist, Pulmonologist), an Orchestrator AI (General Practitioner - Dr. Márcio Silva), and a "Central Brain" concept for intelligent coordination. 
-
-**Multi-Specialist Diagnostic System** (October 18, 2025 - ACTIVATED):
-- **Architecture**: 3-stage analysis pipeline (Triage → Parallel Specialist Analysis → Synthesis)
-- **Stage 1 - Triage**: Dr. Márcio Silva (Orchestrator AI) analyzes patient data and selects relevant specialists based on evidence
-- **Stage 2 - Parallel Consultation**: Selected specialists analyze exam results simultaneously using `Promise.all()` for efficiency
-- **Stage 3 - Synthesis**: Orchestrator integrates all specialist findings into comprehensive preliminary diagnosis
-- **15 Active Specialists**: Cardiologist, Pulmonologist, Radiologist, Neurologist, Gastroenterologist, Endocrinologist, Dermatologist, Orthopedist, Ophthalmologist, Otolaryngologist, Nutritionist, Pediatrician, Gynecologist, Urologist, Psychiatrist
-- **Tool Integration**: Each specialist has access to `medicalKnowledgeBaseTool`, `patientDataAccessTool`, `consultationHistoryAccessTool`, `doctorsListAccessTool`, and `internetSearchTool`
-- **Output**: Integrated diagnosis with detailed specialist findings, clinical assessments, and recommendations traceable to each specialist
-
-**API Layer**: Next.js API routes (App Router) with server actions for mutations, RESTful endpoints for WebRTC signaling, and Server-Sent Events for real-time communication.
+**AI/ML Layer**: Google Genkit orchestrates specialized AI agents using Gemini models (Gemini 2.5 Flash) for domain-specific analysis, including text-to-speech and real-time consultation flows. The system employs 15+ specialist agents, an Orchestrator AI (General Practitioner - Dr. Márcio Silva), and a "Central Brain" for intelligent coordination. This includes a 3-stage analysis pipeline (Triage → Parallel Specialist Analysis → Synthesis) for multi-specialist diagnostic capabilities, where specialists have access to various medical tools.
+**API Layer**: Next.js API routes with server actions for mutations, RESTful endpoints for WebRTC signaling, and Server-Sent Events for real-time communication.
 **Authentication & Session Management**: JWT-based sessions with `jose` library, bcrypt password hashing, and role-based middleware.
 
 ### Data Storage
@@ -33,158 +23,21 @@ Preferred communication style: Simple, everyday language.
 **Data Model**: Includes tables for `patients`, `doctors`, `patientAuth`, `doctorAuth`, `exams`, `appointments`, `callRooms`, `signals`, and `consultations`. A `wellnessPlan` JSONB field stores personalized wellness programs.
 
 ### System Design Choices
-- Migration to Neon PostgreSQL with Drizzle ORM for data management.
+- Migration to Neon PostgreSQL with Drizzle ORM.
 - JWT-based authentication with bcrypt hashing.
 - Google Cloud Storage for file storage.
 - Enhanced AI system with Gemini 2.5 Flash, including a "Central Brain" system with a 3D TalkingHead avatar using TalkingHead.js and Gemini 2.5 Flash TTS for realistic interactions.
 - Call recording and transcription via Gemini AI.
 - Server-side AI processing for medical data security.
-- Implementation of an AI Nutritionist for personalized wellness plans, including dietary, exercise, and mental wellness components, with weekly recipes and tasks stored in a JSONB field.
-- Integration of Tavus Conversational Video Interface (CVI) for live AI avatar consultations using Daily.co SDK, including automatic device detection and noise cancellation.
-- AI Therapist Chat with voice support, allowing patients to interact with an AI therapist in a WhatsApp-style interface, providing therapeutic support and acting as a personal health assistant with access to patient medical history.
-- Exam history visualization with interactive time-series graphs using Recharts, allowing patients to track their health metrics over time.
+- Implementation of an AI Nutritionist for personalized wellness plans, including dietary, exercise, and mental wellness components.
+- Integration of Tavus Conversational Video Interface (CVI) for live AI avatar consultations using Daily.co SDK, with automatic device detection and noise cancellation.
+- AI Therapist Chat with voice support, providing therapeutic support and acting as a personal health assistant.
+- Exam history visualization with interactive time-series graphs using Recharts.
 - Gamification features for doctors (XP, levels, badges).
-- **Multi-Specialist Medical Analysis** (October 18, 2025): Activated comprehensive diagnostic system where exam uploads trigger parallel consultation with up to 15 specialist AI agents, coordinated by an orchestrator AI (Dr. Márcio Silva), providing deep domain-specific analysis with complete traceability of specialist findings.
-
-### Tavus CVI Optimizations (October 2025)
-**Implementation Pattern**: Full control using Daily JS SDK (not @tavus/cvi-ui) for custom UI.
-
-**Core Optimizations**:
-1. **Singleton Pattern** (`cvi-provider.tsx`):
-   - Global Daily call object via `window._dailyCallObject`
-   - Prevents multiple WebRTC connections
-   - Automatic device detection (audioSource, videoSource)
-
-2. **Lifecycle Stability** (`conversation.tsx`):
-   - `useRef` pattern for `hasJoinedRef` to prevent re-join loops
-   - Stable useEffect dependencies (only `daily`, `conversationUrl`)
-   - Guards prevent multiple joins, cleanup only on unmount
-
-3. **Noise Cancellation**:
-   - Automatic activation via `updateInputSettings()` post-join
-   - Processor type: 'noise-cancellation'
-   - Graceful fallback for incompatible browsers
-
-4. **Robust Event Listeners**:
-   - participant-joined, participant-updated, participant-left
-   - Named callback functions for proper cleanup
-   - Detailed logging for debugging
-
-5. **Enhanced Error Handling**:
-   - Tavus credit detection ("out of conversational credits")
-   - Permission-specific error messages (NotAllowedError, NotFoundError, etc.)
-   - User-friendly Portuguese messages
-
-**Technical Decisions**:
-- Avoided @daily-co/daily-react hooks for participant state to prevent re-render loops
-- Removed unstable props (`meetingState`, `onLeave`) from critical effect dependencies
-- Used ref-based join tracking instead of state to maintain stability across renders
-
-### Tavus CVI API Configuration (October 19, 2025)
-**Integration Status**: Configured and operational with Gemini LLM support.
-
-**Required Environment Variables**:
-- `TAVUS_API_KEY` - API authentication key from Tavus dashboard
-- `TAVUS_REPLICA_ID` - Visual avatar identifier (Phoenix-3 or PRO replica recommended)
-- `TAVUS_PERSONA_ID` - **Required** - Defines AI behavior, personality, and LLM backend
-
-**API Endpoint**: `https://tavusapi.com/v2/conversations`
-
-**Payload Structure** (`create-conversation/route.ts`):
-```typescript
-{
-  persona_id: string,           // REQUIRED - Controls LLM and behavior
-  replica_id: string,            // Visual avatar
-  conversation_name: string,     // Optional display name
-  conversational_context: string,// Additional context per conversation
-  custom_greeting: string,       // Custom welcome message
-  properties: {
-    max_call_duration: number,   // Seconds (default: 1800)
-    participant_left_timeout: number, // Seconds (default: 60)
-    enable_recording: boolean,   // true for transcription
-    language: string             // 'Portuguese' or 'multilingual'
-  }
-}
-```
-
-**Invalid Fields Removed** (caused Bad Request errors):
-- ❌ `metadata` - Not supported by Tavus API v2
-- ❌ `apply_filter` - Not a valid property field
-- ❌ `language: 'pt-BR'` - Changed to `'Portuguese'` (full language name required)
-
-**Gemini LLM Integration**:
-- Configured through Tavus Persona settings in dashboard
-- Persona ID determines which LLM backend is used (OpenAI, Gemini, etc.)
-- Medical context injected via `conversational_context` field
-- Supports real-time medical triage and patient interaction in Portuguese
-
-**Response Fields**:
-- `conversation_id` - Unique identifier for tracking
-- `conversation_url` - Direct link to join (Daily.co room)
-- `status` - 'active' or 'ended'
-- `created_at` - Timestamp
-
-### Tavus Medical Context Integration (October 2025)
-**Implementation**: AI avatar with complete patient medical history access for personalized consultations.
-
-**Data Integration**:
-1. **Patient Profile** - Name, age, gender, location, status, reported symptoms
-2. **Medical Exams** - Complete exam history with:
-   - Type, date, results, status (validated/pending)
-   - Preliminary diagnosis and AI explanations
-   - Laboratory values with reference ranges
-   - Doctor notes and final explanations
-3. **Consultation History** - Past consultations with:
-   - Transcriptions and summaries
-   - Date, type (video-call/chat)
-   - Doctor involved
-4. **Wellness Plan** - Current personalized plan:
-   - Dietary recommendations
-   - Exercise program
-   - Mental wellness guidance
-   - Daily reminders and weekly tasks
-
-**Context Formatting** (`create-conversation/route.ts`):
-- Structured markdown format for AI comprehension
-- Hierarchical organization (Patient Info → Exams → Consultations → Wellness)
-- Specific laboratory values and references included
-- Complete history to enable contextual recommendations
-
-**AI Avatar Capabilities**:
-- Explains exam results in detail using actual patient data
-- References specific laboratory values and diagnoses
-- Correlates current symptoms with medical history
-- Suggests follow-up exams based on trends
-- Reinforces wellness plan recommendations
-- Provides personalized health guidance in Portuguese
-
-### UI Design Updates (October 2025)
-**Live Consultation Banner** (Dashboard Overview):
-- Video background using looping MP4 (`/ai-assistant-video.mp4`) with autoplay
-- Purple/pink gradient overlay (40% opacity) for enhanced video visibility
-- Removed icon-based indicators in favor of cinematic video presentation
-- Enhanced visual hierarchy: large title (4xl/5xl), smaller supporting text (base)
-- Badge-styled feature indicators with backdrop blur and semi-transparent backgrounds
-- Vertical layout (flex-col) with content aligned to start
-- Responsive design maintaining video aspect ratio across devices
-
-**Live Consultation Interface** (Tavus CVI Screen):
-- Same video background with 30% overlay for maximum video visibility
-- Minimalist design: only "Iniciar Consulta ao Vivo" button over video (waiting state)
-- Clean interface without background cards to showcase video content
-- White text with drop-shadows for readability against video
-- Enhanced button with gradient, large size, and prominent shadow
-
-**Specialist Findings Display** (October 18, 2025):
-- Visual display of multi-specialist consultations on exam detail pages
-- Header section showing total specialists consulted with specialist badges
-- Individual expandable cards for each specialist with:
-  - Color-coded icons and backgrounds by specialty (cardiologist=red, neurologist=pink, etc.)
-  - Severity indicators (normal, mild, moderate, severe, critical) with color-coded icons
-  - Collapsible content showing clinical findings and recommendations
-  - Border styling matching specialist's color theme
-- 15 unique specialist configurations with custom icons and color schemes
-- Integrated into exam analysis workflow (`SpecialistFindingsDisplay` component)
+- A multi-specialist medical analysis system where exam uploads trigger parallel consultation with up to 15 specialist AI agents, coordinated by an orchestrator AI (Dr. Márcio Silva), providing deep domain-specific analysis with complete traceability.
+- **LiveKit + Tavus + Gemini Architecture**: A production-grade architecture leveraging LiveKit for WebRTC, a Python agent orchestrating Gemini for STT, LLM, and TTS, and Tavus for avatar integration, providing robust and scalable real-time medical consultations. This architecture ensures lower latency, built-in recording/transcription, and modularity.
+- **Tavus Medical Context Integration**: The AI avatar has complete access to patient medical history (profile, exams, consultations, wellness plan) for personalized and context-aware consultations in Portuguese.
+- **UI Design Updates**: Includes a live consultation banner with video backgrounds and gradient overlays, minimalist live consultation interfaces, and a visual display for specialist findings with color-coded icons, severity indicators, and expandable content.
 
 ## External Dependencies
 
@@ -195,18 +48,18 @@ Preferred communication style: Simple, everyday language.
 
 **Cloud Services**:
 - Google Cloud Storage
+- LiveKit Cloud
 
 **Database**:
 - Neon PostgreSQL
 
 **Real-Time Communication**:
 - WebRTC
-- Simple-peer library
 - Daily.co (for live video consultations)
+- LiveKit
 
 **Development & Build Tools**:
 - TypeScript
 - Tailwind CSS
 - Drizzle ORM
 - `jose` library
-- `@neondatabase/serverless`, `drizzle-orm`, `drizzle-kit`, `postgres`
