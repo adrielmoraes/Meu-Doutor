@@ -14,6 +14,7 @@ from livekit.plugins import tavus, google, silero
 load_dotenv()
 
 
+# Simplified Medical Context Functions
 async def get_patient_context(patient_id: str) -> str:
     """Get complete patient context for the AI."""
     import asyncpg
@@ -134,9 +135,9 @@ CONTEXTO DO PACIENTE:
 {patient_context}
 """
     
-    print(f"[MediAI] 🤖 Creating Gemini AI voice agent...")
+    print(f"[MediAI] 🤖 Creating Gemini AI agent...")
     
-    # Create voice assistant with 100% Google Gemini
+    # Create voice assistant with Google Gemini
     from livekit.agents import voice
     
     assistant = voice.Agent(
@@ -144,7 +145,7 @@ CONTEXTO DO PACIENTE:
         vad=silero.VAD.load(),
         stt=google.STT(languages=["pt-BR"]),  # Gemini STT em português
         llm=google.LLM(model="gemini-2.0-flash-exp"),  # Gemini LLM
-        tts=google.TTS(voice="pt-BR-Standard-A", language_code="pt-BR")  # Gemini TTS
+        tts=google.TTS(voice="pt-BR-Standard-A")  # Gemini TTS em português
     )
     
     # Initialize Tavus Avatar
@@ -187,7 +188,7 @@ CONTEXTO DO PACIENTE:
     print("[MediAI] ✅ Gemini agent session started successfully!")
     print(f"[MediAI] Avatar: {'🎭 ACTIVE' if avatar_active else '🔊 AUDIO ONLY'}")
     print(f"[MediAI] 🏥 Ready for patient consultation!")
-    print(f"[MediAI] 🧠 Powered by: Google Gemini 2.0 Flash (100%)")
+    print(f"[MediAI] 🧠 Powered by: Google Gemini 2.0 Flash")
     print()
 
 
