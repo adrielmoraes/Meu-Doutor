@@ -9,6 +9,7 @@ import { Mic, MicOff, Send, Volume2, Loader2, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
+import { AudioMessage } from './audio-message';
 
 type Message = {
   id: string;
@@ -170,6 +171,13 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
     setIsProcessing(true);
 
     try {
+      // Convert blob to data URI for playback
+      const reader = new FileReader();
+      const userAudioDataUri = await new Promise<string>((resolve) => {
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(audioBlob);
+      });
+
       const formData = new FormData();
       formData.append('audio', audioBlob);
 
@@ -195,6 +203,7 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
         role: 'user',
         content: transcript,
         isAudio: true,
+        audioDataUri: userAudioDataUri, // Save user audio for playback
         timestamp: new Date(),
       };
 
@@ -294,33 +303,30 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[75%] rounded-2xl p-3 ${
+                className={`rounded-2xl p-3 ${
                   message.role === 'user'
                     ? 'bg-green-600 text-white'
                     : 'bg-slate-800/80 text-slate-100'
-                }`}
+                } ${message.isAudio ? 'min-w-[300px] max-w-[80%]' : 'max-w-[75%]'}`}
               >
-                <div className="flex items-start gap-2">
-                  {message.isAudio && message.role === 'assistant' && message.audioDataUri && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 text-green-300 hover:text-green-200"
-                      onClick={() => playAudio(message.audioDataUri!)}
-                    >
-                      <Volume2 className="h-4 w-4" />
-                    </Button>
-                  )}
+                {message.isAudio && message.audioDataUri ? (
+                  // Audio message with WhatsApp-style player
+                  <AudioMessage 
+                    audioDataUri={message.audioDataUri}
+                    isUser={message.role === 'user'}
+                    timestamp={formatTime(message.timestamp)}
+                  />
+                ) : (
+                  // Text message
                   <div className="flex-1">
                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     <p className={`text-xs mt-1 ${
                       message.role === 'user' ? 'text-green-100/70' : 'text-slate-400'
                     }`}>
                       {formatTime(message.timestamp)}
-                      {message.isAudio && ' 🎤'}
                     </p>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           ))}
