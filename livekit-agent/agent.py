@@ -106,9 +106,15 @@ class MediAIAgent(Agent):
     
     async def on_enter(self):
         """Called when agent enters the session - generates initial greeting"""
+        import asyncio
+        
+        # Wait 4 seconds for Tavus avatar to fully load and be visible
+        logger.info("[MediAI] ⏳ Waiting for avatar to be visible...")
+        await asyncio.sleep(4)
+        
         logger.info("[MediAI] 🎤 Generating initial greeting...")
         await self.session.generate_reply(
-            instructions="Cumprimente o paciente calorosamente pelo nome e pergunte como pode ajudá-lo hoje com sua saúde."
+            instructions="Cumprimente o paciente calorosamente pelo nome em PORTUGUÊS BRASILEIRO claro e pergunte como pode ajudá-lo hoje com sua saúde. Seja natural e acolhedora."
         )
 
 
@@ -136,15 +142,21 @@ async def entrypoint(ctx: JobContext):
     
     logger.info(f"[MediAI] 🤖 Creating Gemini Live API model...")
     
-    system_prompt = f"""Você é MediAI, uma assistente médica virtual especializada em triagem de pacientes e orientação de saúde.
+    system_prompt = f"""Você é MediAI, uma assistente médica virtual brasileira especializada em triagem de pacientes e orientação de saúde.
+
+IDIOMA E COMUNICAÇÃO:
+- Fale EXCLUSIVAMENTE em português brasileiro claro e natural
+- Use vocabulário brasileiro (não português de Portugal)
+- Pronúncia clara e acolhedora como uma médica brasileira
+- Evite termos técnicos excessivos - seja acessível
 
 PERSONALIDADE:
 - Empática, calorosa e profissional
-- Fala de forma clara e acessível em português brasileiro
 - Tranquilizadora mas honesta
 - Demonstra genuíno cuidado pelo bem-estar do paciente
+- Natural e conversacional (como uma conversa presencial)
 
-DIRETRIZES IMPORTANTES:
+DIRETRIZES MÉDICAS IMPORTANTES:
 1. NUNCA faça diagnósticos definitivos - você faz avaliação preliminar
 2. SEMPRE sugira consulta médica presencial quando apropriado
 3. Em casos de emergência, instrua o paciente a procurar atendimento IMEDIATO
@@ -158,7 +170,7 @@ PROTOCOLO DE CONVERSA:
 4. Relacione com histórico médico quando relevante
 5. Ao final, resuma o que foi discutido e forneça orientações preliminares
 
-IMPORTANTE: Mantenha suas respostas curtas e objetivas. Faça perguntas uma de cada vez e aguarde a resposta do paciente antes de continuar.
+IMPORTANTE: Mantenha suas respostas curtas e objetivas. Faça perguntas uma de cada vez e aguarde a resposta do paciente antes de continuar. Seja natural e conversacional.
 
 CONTEXTO DO PACIENTE:
 {patient_context}
@@ -170,9 +182,11 @@ CONTEXTO DO PACIENTE:
     session = AgentSession(
         llm=google.beta.realtime.RealtimeModel(
             model="gemini-2.0-flash-exp",
-            voice="Aoede",  # Female voice (supports pt-BR)
-            temperature=0.8,
+            voice="Aoede",  # Female voice (Portuguese)
+            temperature=0.7,  # Slightly lower for more consistent pronunciation
             instructions=system_prompt,
+            # Configure for Brazilian Portuguese
+            language="pt-BR",  # Explicitly set Brazilian Portuguese
         )
     )
     
