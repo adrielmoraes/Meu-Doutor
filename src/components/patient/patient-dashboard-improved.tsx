@@ -8,19 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import dynamic from 'next/dynamic';
 import { PatientHeader } from './patient-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Suspense, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-const AIConsultationCard = dynamic(() => import('./ai-consultation-card'), {
-  ssr: false,
-  loading: () => (
-    <Card className="flex flex-col justify-between bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-xl border border-purple-500/30">
-      <CardContent className="pt-6 flex items-center justify-center h-64">
-        <div className="text-purple-300 animate-pulse">Carregando consulta IA...</div>
-      </CardContent>
-    </Card>
-  )
-});
 
 
 
@@ -43,6 +33,16 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
       borderColor: "border-green-500/30",
       hoverBorder: "hover:border-green-500/60",
       hoverShadow: "hover:shadow-green-500/20",
+    },
+    {
+      title: "Consulta ao Vivo com IA",
+      icon: <Video className="h-6 w-6 text-purple-400" />,
+      href: "/patient/live-consultation",
+      description: "Consulta por vídeo com assistente inteligente em tempo real",
+      gradient: "from-purple-500/20 to-pink-500/20",
+      borderColor: "border-purple-500/30",
+      hoverBorder: "hover:border-purple-500/60",
+      hoverShadow: "hover:shadow-purple-500/20",
     },
     {
       title: "Upload de Exames",
@@ -213,58 +213,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
           </TabsContent>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6 mt-6">
-            {/* Live Consultation Banner - NOVO */}
-            <Card className="text-white border-0 shadow-2xl overflow-hidden relative min-h-[280px]">
-              <video 
-                autoPlay 
-                loop 
-                muted 
-                playsInline
-                className="absolute inset-0 w-full h-full object-cover"
-              >
-                <source src="/ai-assistant-video.mp4" type="video/mp4" />
-              </video>
-              
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-900/40 via-pink-900/40 to-purple-900/40" />
-              
-              <CardContent className="p-8 relative z-10">
-                <div className="flex flex-col items-start gap-4">
-                  <div className="flex items-center gap-3 mb-1">
-                    <h3 className="text-4xl md:text-5xl font-bold drop-shadow-2xl">Consulta ao Vivo com a IA</h3>
-                    <Badge className="bg-white/30 text-white border-white/40 text-xs backdrop-blur-sm">NOVO</Badge>
-                  </div>
-                  <p className="text-white/90 text-base drop-shadow-lg mb-2">
-                    Atendimento médico personalizado 24/7 com acesso completo ao seu histórico
-                  </p>
-                  <div className="flex flex-wrap gap-2 text-sm mb-4">
-                    <span className="flex items-center gap-1 bg-white/25 px-3 py-1.5 rounded-full backdrop-blur-sm">
-                      <Brain className="h-4 w-4" /> Conhece seus exames
-                    </span>
-                    <span className="flex items-center gap-1 bg-white/25 px-3 py-1.5 rounded-full backdrop-blur-sm">
-                      <HeartPulse className="h-4 w-4" /> Orientação personalizada
-                    </span>
-                    <span className="flex items-center gap-1 bg-white/25 px-3 py-1.5 rounded-full backdrop-blur-sm">
-                      <Activity className="h-4 w-4" /> Disponível sempre
-                    </span>
-                  </div>
-                  <Button
-                    onClick={() => setActiveTab("live-consultation")}
-                    size="lg"
-                    className="bg-white text-purple-600 hover:bg-white/90 font-semibold shadow-2xl hover:scale-105 transition-transform"
-                  >
-                    <Video className="mr-2 h-5 w-5" />
-                    Iniciar Consulta ao Vivo
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* AI Consultation Card - Primeira seção em destaque */}
-            <Suspense fallback={<Card className="p-6"><p>Carregando consulta IA...</p></Card>}>
-              <AIConsultationCard />
-            </Suspense>
-          </TabsContent>
+          <TabsContent value="overview" className="space-y-6 mt-6"></TabsContent>
 
           <TabsContent value="exams" className="space-y-6 mt-6">
             <div className="text-center mb-6">
@@ -358,7 +307,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
           <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
             Ações Rápidas
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
             {quickActions.map((action) => (
               <Card
                 key={action.title}

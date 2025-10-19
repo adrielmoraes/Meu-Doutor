@@ -42,7 +42,6 @@ const AIConsultationCard = () => {
   const [isMicOn, setIsMicOn] = useState(false);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [avatarGender, setAvatarGender] = useState<"male" | "female">("female");
-  const [avatarType, setAvatarType] = useState<'3d' | 'd-id'>('3d');
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [history, setHistory] = useState<Message[]>([]);
   const [isThinking, setIsThinking] = useState(false);
@@ -291,7 +290,7 @@ const AIConsultationCard = () => {
               <div className="p-4 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 group-hover:scale-110 transition-transform duration-300">
                 <Video className="h-12 w-12 text-purple-300" />
               </div>
-              <p className="text-sm text-purple-300/80 font-medium">Avatar 3D com IA pronto para atender</p>
+              <p className="text-sm text-purple-300/80 font-medium">Assistente IA pronto para atender</p>
             </div>
           </div>
           <Button
@@ -336,7 +335,7 @@ const AIConsultationCard = () => {
                 isSpeaking={isSpeaking}
                 audioBase64={currentAudioBase64}
                 onAudioEnd={() => setIsSpeaking(false)}
-                avatarType={avatarType}
+                avatarType={'3d'}
                 gender={avatarGender}
               />
             </div>
@@ -383,10 +382,6 @@ const AIConsultationCard = () => {
               <ToggleGroup type="single" value={avatarGender} onValueChange={(value: "male" | "female") => value && setAvatarGender(value)}>
                   <ToggleGroupItem value="female" aria-label="Toggle female avatar">Feminino</ToggleGroupItem>
                   <ToggleGroupItem value="male" aria-label="Toggle male avatar">Masculino</ToggleGroupItem>
-              </ToggleGroup>
-              <ToggleGroup type="single" value={avatarType} onValueChange={(value: '3d' | 'd-id') => value && setAvatarType(value)}>
-                  <ToggleGroupItem value="3d" aria-label="Toggle 3D avatar">3D</ToggleGroupItem>
-                  <ToggleGroupItem value="d-id" aria-label="Toggle D-ID avatar">D-ID</ToggleGroupItem>
               </ToggleGroup>
             </div>
             <Button variant={isMicOn ? "secondary" : "destructive"} size="icon" onClick={toggleMic}>
