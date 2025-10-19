@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
@@ -11,6 +12,22 @@ import { useToast } from '@/hooks/use-toast';
 import { updateDoctorAvailabilityAction } from '@/app/doctor/schedule/actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+
+// Componente de botão de submit que usa useFormStatus
+function SubmitButton() {
+    const { pending } = useFormStatus();
+    
+    return (
+        <Button type="submit" disabled={pending} className="w-full mt-4">
+            {pending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+            )}
+            Salvar Disponibilidade
+        </Button>
+    );
+}
 
 type AvailabilitySlot = { date: string; time: string; available: boolean };
 
@@ -95,14 +112,7 @@ export default function ManageAvailability({ initialAvailability, selectedDate }
                                 ))}
                             </ToggleGroup>
 
-                            <Button type="submit" disabled={state.pending} className="w-full mt-4">
-                                {state.pending ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                                )}
-                                Salvar Disponibilidade
-                            </Button>
+                            <SubmitButton />
                         </div>
                     </form>
                 ) : (

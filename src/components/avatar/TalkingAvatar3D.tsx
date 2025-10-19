@@ -19,7 +19,7 @@ declare global {
 export function TalkingAvatar3D({ 
   onReady, 
   className = '',
-  avatarUrl = 'https://models.readyplayer.me/6185a4acfb622cf1cdc49348.glb?morphTargets=ARKit,Oculus+Visemes,mouthOpen,mouthSmile,eyesClosed,eyesLookUp,eyesLookDown&textureSizeLimit=1024&textureFormat=webp&lod=1',
+  avatarUrl = 'https://models.readyplayer.me/65f2a5c9fc56c5b8f0de89dc.glb?morphTargets=ARKit,Oculus+Visemes,mouthOpen,mouthSmile,eyesClosed,eyesLookUp,eyesLookDown&textureSizeLimit=1024&textureFormat=webp&lod=1',
   mood = 'neutral'
 }: TalkingAvatar3DProps) {
   const avatarRef = useRef<HTMLDivElement>(null);

@@ -99,7 +99,7 @@ export default function ScheduleCalendarManager({ appointments, doctor }: Schedu
             <div>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Consultas para {formattedSelectedCalendarDate ? format(selectedCalendarDate, 'dd/MM/yyyy') : 'Data Selecionada'}</CardTitle>
+                        <CardTitle>Consultas para {selectedCalendarDate ? format(selectedCalendarDate, 'dd/MM/yyyy') : 'Data Selecionada'}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {renderAppointmentList(appointmentsForSelectedDate)}
@@ -108,7 +108,6 @@ export default function ScheduleCalendarManager({ appointments, doctor }: Schedu
 
                 <div className="mt-8">
                     <ManageAvailability 
-                        doctorId={doctor.id} 
                         initialAvailability={doctor.availability || []} 
                         selectedDate={selectedCalendarDate}
                     />

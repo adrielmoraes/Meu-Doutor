@@ -4,7 +4,9 @@
 import { getDoctorById, updateDoctorAvailability } from '@/lib/db-adapter';
 import { getSession } from '@/lib/session';
 import { revalidatePath, revalidateTag } from 'next/cache';
-import type { AvailabilitySlot } from '@/types';
+
+// Tipos locais
+type AvailabilitySlot = { date: string; time: string; available: boolean };
 
 // Tipagem para o estado da ação
 interface ActionResult {
