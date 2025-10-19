@@ -164,12 +164,6 @@ async def entrypoint(ctx: JobContext):
     patient_context = await get_patient_context(patient_id)
     logger.info(f"[MediAI] ✅ Patient context loaded ({len(patient_context)} chars)")
     
-    userdata = UserData(
-        ctx=ctx,
-        patient_id=patient_id,
-        patient_context=patient_context
-    )
-    
     logger.info(f"[MediAI] 🤖 Creating MediAI agent...")
     agent = MediAIAgent(patient_context=patient_context)
     
@@ -213,11 +207,11 @@ async def entrypoint(ctx: JobContext):
     
     logger.info("[MediAI] 🏥 Starting medical consultation session...")
     
+    # FIXED: Removed 'userdata' parameter - not supported by AgentSession.start()
     await session.start(
         agent=agent,
         room=ctx.room,
-        room_output_options=room_output_options,
-        userdata=userdata
+        room_output_options=room_output_options
     )
     
     logger.info("[MediAI] ✅ Session started successfully!")

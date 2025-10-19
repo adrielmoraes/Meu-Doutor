@@ -7,7 +7,6 @@ import {
   VideoTrack,
   useRemoteParticipants,
   useTracks,
-  ControlBar,
   useLocalParticipant
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
@@ -177,7 +176,7 @@ export default function LiveKitConsultation({ patientId, patientName }: LiveKitC
               Consulta ao Vivo com MediAI
             </CardTitle>
             <CardDescription className="text-slate-300">
-              Conecte-se com nossa assistente médica virtual através de vídeo e voz em tempo real
+              Conecte-se com nossa assistente médica virtual através de voz em tempo real
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -245,7 +244,7 @@ export default function LiveKitConsultation({ patientId, patientName }: LiveKitC
         serverUrl={serverUrl}
         connect={true}
         audio={true}
-        video={false}
+        video={true}
         onDisconnected={endConsultation}
         className="h-full w-full"
       >
