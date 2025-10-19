@@ -7,12 +7,13 @@ import {
   VideoTrack,
   useRemoteParticipants,
   useTracks,
-  useLocalParticipant
+  useLocalParticipant,
+  useConnectionState
 } from '@livekit/components-react';
-import { Track } from 'livekit-client';
+import { Track, RoomConnectOptions, VideoPresets } from 'livekit-client';
 import '@livekit/components-styles';
 import { Button } from '@/components/ui/button';
-import { Loader2, Mic, MicOff, PhoneOff } from 'lucide-react';
+import { Loader2, Mic, MicOff, PhoneOff, WifiOff } from 'lucide-react';
 
 interface LiveKitConsultationProps {
   patientId: string;
@@ -198,9 +199,24 @@ export default function LiveKitConsultation({ patientId, patientName }: LiveKitC
         token={token}
         serverUrl={serverUrl}
         connect={true}
-        audio={true}
+        audio={{
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        }}
         video={true}
         onDisconnected={endConsultation}
+        onError={(error) => {
+          console.error('LiveKit error:', error);
+          setError(`Erro de conexão: ${error.message}`);
+        }}
+        options={{
+          adaptiveStream: true,
+          dynacast: true,
+          videoCaptureDefaults: {
+            resolution: VideoPresets.h720.resolution,
+          },
+        }}
         className="h-full w-full"
       >
         <div className="relative h-full w-full">
