@@ -7,7 +7,10 @@ export async function GET(request: NextRequest) {
     const conversationId = searchParams.get('conversationId');
 
     if (!conversationId) {
-      return NextResponse.json({ error: 'Conversation ID obrigatório' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'conversationId é obrigatório' },
+        { status: 400 }
+      );
     }
 
     const tavusApiKey = process.env.TAVUS_API_KEY;
@@ -15,16 +18,20 @@ export async function GET(request: NextRequest) {
       throw new Error('TAVUS_API_KEY não configurada');
     }
 
-    const response = await fetch(`https://tavusapi.com/v2/conversations/${conversationId}`, {
-      headers: {
-        'x-api-key': tavusApiKey
+    const response = await fetch(
+      `https://tavusapi.com/v2/conversations/${conversationId}`,
+      {
+        headers: {
+          'x-api-key': tavusApiKey,
+          'Content-Type': 'application/json'
+        }
       }
-    });
+    );
 
     if (!response.ok) {
       const error = await response.text();
       console.error('Tavus API Error:', error);
-      throw new Error(`Falha ao buscar transcrição: ${error}`);
+      throw new Error(`Falha ao obter transcrição: ${error}`);
     }
 
     const data = await response.json();
@@ -32,14 +39,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       transcript: data.transcript || '',
-      status: data.status
+      status: data.status,
+      duration: data.duration
     });
 
   } catch (error: any) {
-    console.error('Erro ao buscar transcrição Tavus:', error);
+    console.error('Erro ao obter transcrição:', error);
     return NextResponse.json(
       { 
-        error: 'Erro ao buscar transcrição',
+        error: 'Erro ao obter transcrição',
         details: error.message
       },
       { status: 500 }

@@ -1,64 +1,90 @@
 
-'use server';
-
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { ai } from '../genkit';
+import { z } from 'zod';
 
 const AnalyzeTavusConversationInputSchema = z.object({
-  transcript: z.string().describe('A transcrição completa da conversa Tavus'),
-  patientId: z.string().describe('ID do paciente'),
+  transcript: z.string(),
+  patientId: z.string()
 });
-export type AnalyzeTavusConversationInput = z.infer<typeof AnalyzeTavusConversationInputSchema>;
 
 const AnalyzeTavusConversationOutputSchema = z.object({
-  summary: z.string().describe('Resumo estruturado da consulta'),
-  mainConcerns: z.array(z.string()).describe('Principais preocupações do paciente'),
-  aiRecommendations: z.array(z.string()).describe('Recomendações dadas pela IA'),
-  suggestedFollowUp: z.array(z.string()).describe('Ações de acompanhamento sugeridas'),
-  sentiment: z.enum(['positive', 'neutral', 'concerned', 'urgent']).describe('Tom geral da consulta'),
-  qualityScore: z.number().min(1).max(10).describe('Pontuação de qualidade da consulta (1-10)'),
-});
-export type AnalyzeTavusConversationOutput = z.infer<typeof AnalyzeTavusConversationOutputSchema>;
-
-const ANALYSIS_PROMPT = `Você é um assistente médico especializado em análise de consultas.
-
-Analise a seguinte transcrição de uma consulta médica virtual realizada com o avatar AI da MediAI:
-
-{{{transcript}}}
-
-Forneça uma análise estruturada que inclua:
-
-1. **Resumo**: Um resumo conciso e profissional da consulta (2-3 parágrafos)
-2. **Principais Preocupações**: Lista das principais queixas e preocupações do paciente
-3. **Recomendações da IA**: O que a assistente virtual recomendou
-4. **Acompanhamento Sugerido**: Próximos passos recomendados (exames, consultas com especialistas, etc.)
-5. **Sentimento**: Avalie o tom geral (positive, neutral, concerned, urgent)
-6. **Pontuação de Qualidade**: De 1 a 10, avalie a qualidade e completude da consulta
-
-Seja objetivo, profissional e focado nos aspectos médicos relevantes.
-Sua resposta deve estar sempre em Português Brasileiro.`;
-
-const prompt = ai.definePrompt({
-  name: 'analyzeTavusConversationPrompt',
-  input: { schema: AnalyzeTavusConversationInputSchema },
-  output: { schema: AnalyzeTavusConversationOutputSchema },
-  prompt: ANALYSIS_PROMPT,
+  summary: z.string(),
+  mainConcerns: z.array(z.string()),
+  aiRecommendations: z.array(z.string()),
+  suggestedFollowUp: z.array(z.string()),
+  sentiment: z.string(),
+  qualityScore: z.number()
 });
 
-const analyzeTavusConversationFlow = ai.defineFlow(
+export const analyzeTavusConversation = ai.defineFlow(
   {
-    name: 'analyzeTavusConversationFlow',
+    name: 'analyzeTavusConversation',
     inputSchema: AnalyzeTavusConversationInputSchema,
     outputSchema: AnalyzeTavusConversationOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output!;
+    const { transcript, patientId } = input;
+
+    const { text } = await ai.generate({
+      model: 'googleai/gemini-2.0-flash-exp',
+      config: {
+        temperature: 0.3,
+      },
+      prompt: `Você é um assistente médico especializado em análise de consultas virtuais.
+
+Analise a seguinte transcrição de uma consulta virtual entre um paciente e a assistente virtual MediAI:
+
+TRANSCRIÇÃO:
+${transcript}
+
+PACIENTE ID: ${patientId}
+
+Forneça uma análise detalhada no seguinte formato JSON:
+
+{
+  "summary": "Resumo conciso da consulta em 2-3 frases",
+  "mainConcerns": ["Preocupação 1", "Preocupação 2", "Preocupação 3"],
+  "aiRecommendations": ["Recomendação 1", "Recomendação 2", "Recomendação 3"],
+  "suggestedFollowUp": ["Ação de acompanhamento 1", "Ação de acompanhamento 2"],
+  "sentiment": "positivo/neutro/negativo",
+  "qualityScore": número de 1-10 indicando a qualidade da interação
+}
+
+IMPORTANTE:
+- Seja objetivo e profissional
+- Identifique os principais sintomas mencionados
+- Sugira próximos passos relevantes
+- Avalie a qualidade da conversa (clareza, completude, empatia)
+- O sentiment deve refletir o tom geral da conversa`,
+    });
+
+    try {
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('Resposta não contém JSON válido');
+      }
+
+      const analysis = JSON.parse(jsonMatch[0]);
+      
+      return {
+        summary: analysis.summary || 'Consulta realizada com sucesso',
+        mainConcerns: analysis.mainConcerns || [],
+        aiRecommendations: analysis.aiRecommendations || [],
+        suggestedFollowUp: analysis.suggestedFollowUp || [],
+        sentiment: analysis.sentiment || 'neutro',
+        qualityScore: Math.min(10, Math.max(1, analysis.qualityScore || 7))
+      };
+    } catch (parseError) {
+      console.error('Erro ao fazer parse da análise:', parseError);
+      
+      return {
+        summary: 'Consulta virtual realizada. Análise automática indisponível.',
+        mainConcerns: ['Informações não processadas automaticamente'],
+        aiRecommendations: ['Revisar transcrição manualmente'],
+        suggestedFollowUp: ['Agendar consulta de acompanhamento se necessário'],
+        sentiment: 'neutro',
+        qualityScore: 5
+      };
+    }
   }
 );
-
-export async function analyzeTavusConversation(
-  input: AnalyzeTavusConversationInput
-): Promise<AnalyzeTavusConversationOutput> {
-  return analyzeTavusConversationFlow(input);
-}
