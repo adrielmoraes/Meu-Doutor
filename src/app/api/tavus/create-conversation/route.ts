@@ -11,12 +11,14 @@ export async function POST(request: NextRequest) {
 
     const tavusApiKey = process.env.TAVUS_API_KEY;
     const replicaId = process.env.TAVUS_REPLICA_ID;
+    const personaId = process.env.TAVUS_PERSONA_ID;
 
-    if (!tavusApiKey || !replicaId) {
+    if (!tavusApiKey || !replicaId || !personaId) {
       throw new Error('Variáveis de ambiente Tavus não configuradas');
     }
 
     const conversationPayload = {
+      persona_id: personaId,
       replica_id: replicaId,
       conversation_name: conversationName || `Consulta - ${patientName}`,
       conversational_context: `Você é MediAI, uma assistente médica virtual especializada em fazer triagem inicial de pacientes.
@@ -43,15 +45,9 @@ IMPORTANTE:
         max_call_duration: 1800,
         participant_left_timeout: 60,
         enable_recording: true,
-        apply_filter: true,
-        language: 'pt-BR'
+        language: 'Portuguese'
       },
-      custom_greeting: `Olá ${patientName}, eu sou a MediAI, sua assistente virtual de saúde. Como posso ajudá-lo hoje?`,
-      metadata: {
-        patientId,
-        patientName,
-        timestamp: new Date().toISOString()
-      }
+      custom_greeting: `Olá ${patientName}, eu sou a MediAI, sua assistente virtual de saúde. Como posso ajudá-lo hoje?`
     };
 
     console.log('[Tavus] Criando conversa com payload:', conversationPayload);
