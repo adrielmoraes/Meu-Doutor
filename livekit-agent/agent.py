@@ -108,13 +108,13 @@ class MediAIAgent(Agent):
         """Called when agent enters the session - generates initial greeting"""
         import asyncio
         
-        # Wait 4 seconds for Tavus avatar to fully load and be visible
-        logger.info("[MediAI] ⏳ Waiting for avatar to be visible...")
-        await asyncio.sleep(4)
+        # Wait 5 seconds for Tavus avatar to fully load and sync audio/video
+        logger.info("[MediAI] ⏳ Waiting for avatar to be visible and audio/video to sync...")
+        await asyncio.sleep(5)
         
         logger.info("[MediAI] 🎤 Generating initial greeting...")
         await self.session.generate_reply(
-            instructions="Cumprimente o paciente calorosamente pelo nome em PORTUGUÊS BRASILEIRO claro e pergunte como pode ajudá-lo hoje com sua saúde. Seja natural e acolhedora."
+            instructions="Cumprimente o paciente calorosamente pelo nome em PORTUGUÊS BRASILEIRO claro e pergunte como pode ajudá-lo hoje com sua saúde. Seja natural, breve e acolhedora."
         )
 
 
@@ -183,11 +183,11 @@ CONTEXTO DO PACIENTE:
         llm=google.beta.realtime.RealtimeModel(
             model="gemini-2.0-flash-exp",
             voice="Aoede",  # Female voice (Portuguese)
-            temperature=0.7,  # Slightly lower for more consistent pronunciation
+            temperature=0.5,  # Lower for more consistent responses and pronunciation
             instructions=system_prompt,
             # Configure for Brazilian Portuguese
             language="pt-BR",  # Explicitly set Brazilian Portuguese
-        )
+        ),
     )
     
     # Create agent instance with instructions
