@@ -173,7 +173,7 @@ export function useAvatarSpeech(containerRef: React.RefObject<HTMLDivElement>) {
     try {
       await avatarInstance.speakText(text, {
         avatarMood: options?.mood || 'neutral',
-        ttsVoice: options?.voice || 'Puck'
+        ttsVoice: options?.voice || 'Aoede'
       }, options?.onSubtitles);
     } catch (err) {
       console.error('Erro ao falar:', err);
