@@ -212,7 +212,54 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
           </TabsContent>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6 mt-6"></TabsContent>
+          <TabsContent value="overview" className="space-y-6 mt-6">
+            {/* Live Consultation Banner - Restaurado */}
+            <Card className="text-white border-0 shadow-2xl overflow-hidden relative min-h-[280px]">
+              <video 
+                autoPlay 
+                loop 
+                muted 
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover"
+              >
+                <source src="/ai-assistant-video.mp4" type="video/mp4" />
+              </video>
+              
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-900/40 via-pink-900/40 to-purple-900/40" />
+              
+              <CardContent className="p-8 relative z-10">
+                <div className="flex flex-col items-start gap-4">
+                  <div className="flex items-center gap-3 mb-1">
+                    <h3 className="text-4xl md:text-5xl font-bold drop-shadow-2xl">Consulta ao Vivo com a IA</h3>
+                    <Badge className="bg-white/30 text-white border-white/40 text-xs backdrop-blur-sm">NOVO</Badge>
+                  </div>
+                  <p className="text-white/90 text-base drop-shadow-lg mb-2">
+                    Atendimento médico personalizado 24/7 com acesso completo ao seu histórico
+                  </p>
+                  <div className="flex flex-wrap gap-2 text-sm mb-4">
+                    <span className="flex items-center gap-1 bg-white/25 px-3 py-1.5 rounded-full backdrop-blur-sm">
+                      <Brain className="h-4 w-4" /> Conhece seus exames
+                    </span>
+                    <span className="flex items-center gap-1 bg-white/25 px-3 py-1.5 rounded-full backdrop-blur-sm">
+                      <HeartPulse className="h-4 w-4" /> Orientação personalizada
+                    </span>
+                    <span className="flex items-center gap-1 bg-white/25 px-3 py-1.5 rounded-full backdrop-blur-sm">
+                      <Activity className="h-4 w-4" /> Disponível sempre
+                    </span>
+                  </div>
+                  <Link href="/patient/live-consultation">
+                    <Button
+                      size="lg"
+                      className="bg-white text-purple-600 hover:bg-white/90 font-semibold shadow-2xl hover:scale-105 transition-transform"
+                    >
+                      <Video className="mr-2 h-5 w-5" />
+                      Iniciar Consulta ao Vivo
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="exams" className="space-y-6 mt-6">
             <div className="text-center mb-6">
