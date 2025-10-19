@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import Link from "next/link";
 import type { Patient } from "@/types";
 import { Badge } from "@/components/ui/badge";
-import dynamic from 'next/dynamic';
 import { PatientHeader } from './patient-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
