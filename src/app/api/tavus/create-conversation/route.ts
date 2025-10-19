@@ -64,7 +64,19 @@ IMPORTANTE:
     if (!response.ok) {
       const error = await response.text();
       console.error('Tavus API Error:', error);
-      throw new Error(`Falha ao criar conversa: ${error}`);
+      
+      let errorMessage = 'Falha ao criar conversa';
+      if (error.includes('out of conversational credits')) {
+        errorMessage = 'Sua conta Tavus está sem créditos conversacionais. Por favor, adicione créditos em https://platform.tavus.io';
+      } else if (error.includes('Invalid API key')) {
+        errorMessage = 'Chave de API Tavus inválida. Verifique suas variáveis de ambiente.';
+      } else if (error.includes('Persona not found')) {
+        errorMessage = 'Persona ID não encontrado. Verifique se o ID está correto.';
+      } else if (error.includes('Replica not found')) {
+        errorMessage = 'Replica ID não encontrado. Verifique se o ID está correto.';
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();

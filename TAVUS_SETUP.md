@@ -15,6 +15,26 @@ Você já configurou todas as variáveis necessárias:
 - ✅ `TAVUS_REPLICA_ID` - ID do avatar visual (r3a47ce45e68)
 - ✅ `TAVUS_PERSONA_ID` - ID da persona com Gemini LLM (pa9ba32a3418)
 
+## ⚠️ Importante: Créditos Conversacionais
+
+**Atenção**: Sua conta Tavus atualmente está **sem créditos conversacionais**.
+
+Para utilizar a funcionalidade de consulta ao vivo, você precisa:
+
+1. **Acessar o Dashboard Tavus**: https://platform.tavus.io
+2. **Adicionar Créditos**: Navegue até a seção de Billing/Credits
+3. **Configurar Plano**: Escolha um plano que atenda suas necessidades
+
+**Erro Atual**:
+```
+{"message":"The user is out of conversational credits."}
+```
+
+**Como Resolver**:
+- Adicione créditos à sua conta Tavus
+- Ou configure um plano mensal/anual no dashboard
+- Verifique a documentação de preços: https://docs.tavus.io/pricing
+
 ---
 
 ## 🎯 Como Configurar o Persona para Usar Gemini
