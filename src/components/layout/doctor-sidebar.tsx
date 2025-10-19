@@ -3,7 +3,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Users, Calendar, History, UserCircle } from "lucide-react";
+import { Users, Calendar, History, UserCircle, Video } from "lucide-react";
 import {
   SidebarContent,
   SidebarMenu,
@@ -17,6 +17,7 @@ const DoctorSidebar = () => {
   const menuItems = [
     { href: "/doctor/patients", label: "Meus Pacientes", icon: <Users /> },
     { href: "/doctor/schedule", label: "Agenda", icon: <Calendar /> },
+    { href: "/doctor/calls", label: "Chamadas", icon: <Video /> },
     { href: "/doctor/history", label: "Histórico", icon: <History /> },
     { href: "/doctor/profile", label: "Meu Perfil", icon: <UserCircle /> },
   ];

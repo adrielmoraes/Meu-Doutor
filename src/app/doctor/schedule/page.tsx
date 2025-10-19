@@ -17,6 +17,7 @@ import { isToday, isThisWeek, isThisMonth, parseISO } from 'date-fns';
 import ManageAvailability from '@/components/doctor/manage-availability';
 import ScheduleCalendarManager from '@/components/doctor/schedule-calendar-manager'; // Importar o novo componente
 import CancelAppointmentButton from '@/components/ui/cancel-appointment-button'; // Importar CancelAppointmentButton
+import StartVideoCallButton from '@/components/doctor/start-video-call-button';
 
 
 async function getScheduleData(doctorId: string): Promise<{ appointments: Appointment[], doctor: Doctor | null, error?: string, fixUrl?: string }> {
@@ -146,9 +147,13 @@ export default async function SchedulePage() {
                         <p className="text-sm text-muted-foreground">{appt.type}</p>
                         <p className="text-xs text-muted-foreground">{new Date(appt.date).toLocaleDateString('pt-BR')}</p>
                     </div>
-                    <Button size="icon" variant="ghost">
-                        <Video className="h-5 w-5 text-primary" />
-                    </Button>
+                    {appt.status === 'Agendada' && appt.type.includes('Vídeo') && (
+                        <StartVideoCallButton 
+                            patientId={appt.patientId}
+                            appointmentId={appt.id}
+                            patientName={appt.patientName}
+                        />
+                    )}
                     <CancelAppointmentButton appointment={appt} />
                 </Card>
             ))
