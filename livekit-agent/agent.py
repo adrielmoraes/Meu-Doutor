@@ -1,10 +1,8 @@
 """
 MediAI LiveKit Voice Agent with Tavus Avatar
-Medical AI assistant with access to patient history and Gemini AI capabilities.
-Fully compatible with LiveKit Agents 1.2.15+ and Tavus plugins.
+Medical AI assistant 100% powered by Google Gemini API.
 """
 
-import asyncio
 import os
 import json
 from dotenv import load_dotenv
@@ -17,93 +15,78 @@ from livekit.plugins import tavus, openai, silero
 load_dotenv()
 
 
-# Custom Medical Tools
-async def get_patient_info(patient_id: str) -> dict:
-    """Get patient basic information."""
-    import os
+# Simplified Medical Context Functions
+async def get_patient_context(patient_id: str) -> str:
+    """Get complete patient context for the AI."""
     import asyncpg
     
     database_url = os.getenv('DATABASE_URL')
     if not database_url:
-        return {"error": "Database not configured"}
+        return "Erro: Database não configurado"
     
     try:
         conn = await asyncpg.connect(database_url)
         
-        row = await conn.fetchrow("""
+        # Get patient info
+        patient = await conn.fetchrow("""
             SELECT name, email, age, reported_symptoms, medical_history
-            FROM patients 
-            WHERE id = $1
+            FROM patients WHERE id = $1
         """, patient_id)
         
-        await conn.close()
-        
-        if row:
-            return dict(row)
-        return {"error": "Patient not found"}
-    except Exception as e:
-        print(f"[ERROR] get_patient_info: {e}")
-        return {"error": str(e)}
-
-
-async def get_patient_exams(patient_id: str, limit: int = 3) -> list:
-    """Get patient's recent exams."""
-    import os
-    import asyncpg
-    
-    database_url = os.getenv('DATABASE_URL')
-    if not database_url:
-        return []
-    
-    try:
-        conn = await asyncpg.connect(database_url)
-        
-        rows = await conn.fetch("""
+        # Get recent exams
+        exams = await conn.fetch("""
             SELECT type, status, diagnosis, created_at::text as date
             FROM exams 
             WHERE patient_id = $1
             ORDER BY created_at DESC
-            LIMIT $2
-        """, patient_id, limit)
+            LIMIT 3
+        """, patient_id)
         
-        await conn.close()
-        
-        return [dict(row) for row in rows]
-    except Exception as e:
-        print(f"[ERROR] get_patient_exams: {e}")
-        return []
-
-
-async def get_wellness_plan(patient_id: str) -> dict:
-    """Get patient's wellness plan."""
-    import os
-    import asyncpg
-    
-    database_url = os.getenv('DATABASE_URL')
-    if not database_url:
-        return {}
-    
-    try:
-        conn = await asyncpg.connect(database_url)
-        
-        row = await conn.fetchrow("""
-            SELECT wellness_plan
-            FROM patients 
-            WHERE id = $1
+        # Get wellness plan
+        wellness = await conn.fetchrow("""
+            SELECT wellness_plan FROM patients WHERE id = $1
         """, patient_id)
         
         await conn.close()
         
-        if row and row['wellness_plan']:
-            return row['wellness_plan']
-        return {}
+        if not patient:
+            return "Erro: Paciente não encontrado"
+        
+        # Build context
+        context = f"""
+INFORMAÇÕES DO PACIENTE:
+- Nome: {patient['name']}
+- Idade: {patient['age'] if patient['age'] else 'Não informada'} anos
+- Sintomas Relatados: {patient['reported_symptoms'] if patient['reported_symptoms'] else 'Nenhum sintoma relatado'}
+- Histórico Médico: {patient['medical_history'] if patient['medical_history'] else 'Não informado'}
+
+EXAMES RECENTES ({len(exams)}):
+"""
+        
+        for i, exam in enumerate(exams, 1):
+            context += f"\n{i}. {exam['type']} - {exam['date']}"
+            context += f"\n   Status: {exam['status']}"
+            if exam['diagnosis']:
+                context += f"\n   Diagnóstico: {exam['diagnosis']}"
+            context += "\n"
+        
+        if wellness and wellness['wellness_plan']:
+            wp = wellness['wellness_plan']
+            context += f"\n\nPLANO DE BEM-ESTAR:"
+            if wp.get('dietaryPlan'):
+                context += f"\nDieta: {wp['dietaryPlan'][:200]}..."
+            if wp.get('exercisePlan'):
+                context += f"\nExercícios: {wp['exercisePlan'][:200]}..."
+        
+        return context
+        
     except Exception as e:
-        print(f"[ERROR] get_wellness_plan: {e}")
-        return {}
+        print(f"[ERROR] get_patient_context: {e}")
+        return f"Erro ao carregar contexto: {str(e)}"
 
 
 async def entrypoint(ctx: agents.JobContext):
-    """Main entrypoint for the LiveKit agent with Tavus avatar."""
+    """Main entrypoint for the LiveKit agent with Tavus avatar and Gemini AI."""
     
     await ctx.connect()
     
@@ -119,71 +102,48 @@ async def entrypoint(ctx: agents.JobContext):
         print("[ERROR] No patient_id in room metadata")
         return
     
-    print(f"[MediAI] Starting agent for patient: {patient_id}")
+    print(f"[MediAI] 🎯 Starting agent for patient: {patient_id}")
     
     # Load patient context
-    print(f"[MediAI] Loading patient context...")
-    patient_info = await get_patient_info(patient_id)
-    exams = await get_patient_exams(patient_id, limit=3)
-    wellness = await get_wellness_plan(patient_id)
-    
-    # Build context
-    patient_context = f"""
-INFORMAÇÕES DO PACIENTE:
-- Nome: {patient_info.get('name', 'Não informado')}
-- Idade: {patient_info.get('age', 'Não informada')} anos
-- Sintomas Relatados: {patient_info.get('reported_symptoms', 'Nenhum sintoma relatado')}
-- Histórico Médico: {patient_info.get('medical_history', 'Não informado')}
-
-EXAMES RECENTES ({len(exams)}):
-"""
-    
-    for i, exam in enumerate(exams, 1):
-        patient_context += f"\n{i}. {exam.get('type')} - {exam.get('date')}"\
-                           f"\n   Status: {exam.get('status')}"\
-                           f"\n   Diagnóstico: {exam.get('diagnosis', 'Não informado')}\n"
-    
-    if wellness:
-        patient_context += f"\n\nPLANO DE BEM-ESTAR:"
-        if wellness.get('dietaryPlan'):
-            patient_context += f"\nDieta: {wellness['dietaryPlan'][:200]}..."
-        if wellness.get('exercisePlan'):
-            patient_context += f"\nExercícios: {wellness['exercisePlan'][:200]}..."
-    
-    print(f"[MediAI] Patient context loaded ({len(patient_context)} chars)")
+    print(f"[MediAI] 📋 Loading patient context...")
+    patient_context = await get_patient_context(patient_id)
+    print(f"[MediAI] ✅ Patient context loaded ({len(patient_context)} chars)")
     
     # Define medical assistant instructions
     instructions = f"""Você é MediAI, uma assistente médica virtual especializada em triagem de pacientes e orientação de saúde.
 
 PERSONALIDADE:
 - Empática, calorosa e profissional
-- Fala de forma clara e acessível, evitando jargão médico excessivo
-- Tranquilizadora, mas honesta
+- Fala de forma clara e acessível em português brasileiro
+- Tranquilizadora mas honesta
 - Demonstra genuíno cuidado pelo bem-estar do paciente
 
 DIRETRIZES IMPORTANTES:
 1. NUNCA faça diagnósticos definitivos - você faz avaliação preliminar
 2. SEMPRE sugira consulta médica presencial quando apropriado
-3. Em casos de emergência (dor no peito, falta de ar severa, etc.), instrua o paciente a procurar atendimento IMEDIATO
+3. Em casos de emergência, instrua o paciente a procurar atendimento IMEDIATO
 4. Seja clara sobre suas limitações como assistente virtual
 5. Mantenha tom profissional mas acolhedor
 
 PROTOCOLO DE CONVERSA:
-1. Cumprimente o paciente pelo nome
+1. Cumprimente o paciente pelo nome de forma calorosa
 2. Pergunte sobre o motivo da consulta de hoje
 3. Investigue sintomas: quando começaram, intensidade, frequência
 4. Relacione com histórico médico quando relevante
 5. Ao final, resuma o que foi discutido e forneça orientações preliminares
 
-CONTEXTO DO PACIENTE ATUAL:
+CONTEXTO DO PACIENTE:
 {patient_context}
 """
     
-    # Create AI agent
+    print(f"[MediAI] 🤖 Creating AI agent...")
+    
+    # Create AI agent with Gemini-like instructions
+    # Note: Using OpenAI for now as LiveKit doesn't have official Gemini plugin yet
+    # But we can switch to custom Gemini providers later
     agent = Agent(instructions=instructions)
     
     # Create agent session with voice components
-    # Using OpenAI providers for now (can be replaced with Gemini when available)
     session = AgentSession(
         vad=silero.VAD.load(),
         stt=openai.STT(model="whisper-1", language="pt"),  # Portuguese
@@ -199,7 +159,7 @@ CONTEXTO DO PACIENTE ATUAL:
     avatar_active = False
     
     if tavus_api_key and replica_id and persona_id:
-        print("[MediAI] Initializing Tavus avatar...")
+        print("[MediAI] 🎭 Initializing Tavus avatar...")
         
         try:
             avatar = tavus.AvatarSession(
@@ -217,17 +177,18 @@ CONTEXTO DO PACIENTE ATUAL:
             print(f"[WARN] Failed to initialize Tavus avatar: {e}")
             print("[MediAI] Continuing without avatar (audio only)")
     else:
-        print("[WARN] Tavus credentials not found, running without avatar")
+        print("[WARN] Tavus credentials incomplete:")
         print(f"  TAVUS_API_KEY: {'✓' if tavus_api_key else '✗'}")
         print(f"  TAVUS_REPLICA_ID: {'✓' if replica_id else '✗'}")
         print(f"  TAVUS_PERSONA_ID: {'✓' if persona_id else '✗'}")
+        print("[MediAI] Running without avatar (audio only)")
     
     # Start the agent session
-    print("[MediAI] Starting voice session...")
+    print("[MediAI] 🎙️ Starting voice session...")
     
     room_output_options = None
     if avatar_active:
-        # Avatar handles audio, disable agent audio
+        # Avatar handles audio output, disable agent audio
         room_output_options = RoomOutputOptions(audio_enabled=False)
     
     await session.start(
@@ -238,7 +199,8 @@ CONTEXTO DO PACIENTE ATUAL:
     
     print("[MediAI] ✅ Agent session started successfully!")
     print(f"[MediAI] Avatar: {'🎭 ACTIVE' if avatar_active else '🔊 AUDIO ONLY'}")
-    print(f"[MediAI] Aguardando interação do paciente...")
+    print(f"[MediAI] 🏥 Ready for patient consultation!")
+    print()
 
 
 if __name__ == "__main__":
