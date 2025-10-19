@@ -73,3 +73,9 @@ Preferred communication style: Simple, everyday language.
 - Tailwind CSS
 - Drizzle ORM
 - `jose` library
+
+## Recent Changes
+
+### October 19, 2025
+- **React 19 Migration**: Updated login page from deprecated `useFormState` (React-DOM) to `useActionState` (React) following React 19 API changes
+- **UI Restoration**: Restored the highlighted "Consulta ao Vivo com a IA" banner in the Overview tab of patient dashboard with video background, badges, and call-to-action button
