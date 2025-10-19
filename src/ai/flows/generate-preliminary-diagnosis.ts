@@ -41,6 +41,32 @@ const SpecialistFindingSchema = z.object({
   findings: z.string().describe("The detailed clinical findings from the specialist."),
   clinicalAssessment: z.string().describe("The specialist's assessment of severity and urgency."),
   recommendations: z.string().describe("Specific recommendations from this specialist."),
+  suggestedMedications: z.array(z.object({
+    medication: z.string(),
+    dosage: z.string(),
+    frequency: z.string(),
+    duration: z.string(),
+    route: z.string(),
+    justification: z.string(),
+  })).optional().describe("Medications suggested by this specialist with dosages and justification"),
+  treatmentPlan: z.object({
+    primaryTreatment: z.string(),
+    supportiveCare: z.string().optional(),
+    lifestyleModifications: z.string().optional(),
+    expectedOutcome: z.string(),
+  }).optional().describe("Treatment plan from this specialist"),
+  monitoringProtocol: z.object({
+    parameters: z.string(),
+    frequency: z.string(),
+    warningSignals: z.string(),
+  }).optional().describe("Monitoring protocol recommended by this specialist"),
+  contraindications: z.array(z.string()).optional().describe("Contraindications noted by this specialist"),
+  relevantMetrics: z.array(z.object({
+    metric: z.string(),
+    value: z.string(),
+    status: z.enum(['normal', 'borderline', 'abnormal', 'critical']),
+    interpretation: z.string(),
+  })).optional().describe("Key clinical metrics identified by this specialist"),
 });
 
 const GeneratePreliminaryDiagnosisOutputSchema = z.object({
@@ -146,6 +172,18 @@ const synthesisPrompt = ai.definePrompt({
             lifestyleModifications: z.string().optional(),
             expectedOutcome: z.string(),
           }).optional(),
+          monitoringProtocol: z.object({
+            parameters: z.string(),
+            frequency: z.string(),
+            warningSignals: z.string(),
+          }).optional(),
+          contraindications: z.array(z.string()).optional(),
+          relevantMetrics: z.array(z.object({
+            metric: z.string(),
+            value: z.string(),
+            status: z.enum(['normal', 'borderline', 'abnormal', 'critical']),
+            interpretation: z.string(),
+          })).optional(),
         })
       ),
     }),
@@ -202,6 +240,27 @@ Create a unified, evidence-based preliminary diagnosis by integrating ALL specia
 - Modificações de Estilo de Vida: {{treatmentPlan.lifestyleModifications}}
 {{/if}}
 - Prognóstico Esperado: {{treatmentPlan.expectedOutcome}}
+{{/if}}
+
+{{#if monitoringProtocol}}
+**Protocolo de Monitoramento:**
+- Parâmetros: {{monitoringProtocol.parameters}}
+- Frequência: {{monitoringProtocol.frequency}}
+- Sinais de Alerta: {{monitoringProtocol.warningSignals}}
+{{/if}}
+
+{{#if contraindications}}
+**Contraindicações:**
+{{#each contraindications}}
+- {{this}}
+{{/each}}
+{{/if}}
+
+{{#if relevantMetrics}}
+**Métricas Relevantes:**
+{{#each relevantMetrics}}
+- **{{metric}}**: {{value}} ({{status}}) - {{interpretation}}
+{{/each}}
 {{/if}}
 ---
 {{/each}}
@@ -373,6 +432,11 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
         findings: report.findings,
         clinicalAssessment: report.clinicalAssessment,
         recommendations: report.recommendations,
+        suggestedMedications: report.suggestedMedications,
+        treatmentPlan: report.treatmentPlan,
+        monitoringProtocol: report.monitoringProtocol,
+        contraindications: report.contraindications,
+        relevantMetrics: report.relevantMetrics,
       }));
     });
 
