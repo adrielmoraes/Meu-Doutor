@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Calendar, History, Sparkles, Bot, Activity, TrendingUp, Clock } from "lucide-react";
 import Link from "next/link";
 import { TalkingAvatar3D } from "@/components/avatar/TalkingAvatar3D";
+import { OnlineStatusToggle } from "@/components/doctor/online-status-toggle";
 import { useState } from "react";
 import type { Doctor } from "@/types";
 
@@ -104,6 +105,11 @@ export default function DoctorDashboardImproved({
           <p className="text-lg text-blue-200/70">
             Gerencie seus pacientes, agenda e histórico de forma eficiente.
           </p>
+          
+          {/* Status Online/Offline Toggle */}
+          <div className="max-w-md">
+            <OnlineStatusToggle initialStatus={doctor.online || false} doctorName={doctor.name} />
+          </div>
         </div>
 
         {/* Statistics Cards */}
@@ -195,5 +201,5 @@ export default function DoctorDashboardImproved({
         </div>
       </div>
     </div>
-  )
+  );
 }
