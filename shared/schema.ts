@@ -237,3 +237,28 @@ export const consultationsRelations = relations(consultations, ({ one }) => ({
     references: [callRooms.id],
   }),
 }));
+
+export const tavusConversations = pgTable('tavus_conversations', {
+  id: text('id').primaryKey(),
+  patientId: text('patient_id').notNull().references(() => patients.id, { onDelete: 'cascade' }),
+  conversationId: text('conversation_id').notNull().unique(),
+  transcript: text('transcript').default(''),
+  summary: text('summary'),
+  mainConcerns: json('main_concerns').$type<string[]>(),
+  aiRecommendations: json('ai_recommendations').$type<string[]>(),
+  suggestedFollowUp: json('suggested_follow_up').$type<string[]>(),
+  sentiment: text('sentiment'),
+  qualityScore: integer('quality_score'),
+  startTime: timestamp('start_time').notNull(),
+  endTime: timestamp('end_time'),
+  duration: integer('duration'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const tavusConversationsRelations = relations(tavusConversations, ({ one }) => ({
+  patient: one(patients, {
+    fields: [tavusConversations.patientId],
+    references: [patients.id],
+  }),
+}));
