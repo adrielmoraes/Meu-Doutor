@@ -10,10 +10,9 @@ import os
 from typing import Optional
 from pathlib import Path
 from dotenv import load_dotenv
-from livekit.agents import JobContext, WorkerOptions, cli, RoomOutputOptions
+from livekit.agents import JobContext, WorkerOptions, cli, RoomOutputOptions, Agent
 from livekit.agents.voice import AgentSession
-from livekit.plugins import tavus
-from livekit.plugins.google import realtime
+from livekit.plugins import tavus, google
 
 load_dotenv(dotenv_path=Path(__file__).parent / '.env')
 
@@ -123,11 +122,7 @@ async def entrypoint(ctx: JobContext):
     
     logger.info(f"[MediAI] 🤖 Creating Gemini Live API model...")
     
-    # Create Gemini Live API model with integrated STT + LLM + TTS
-    model = realtime.RealtimeModel(
-        model="gemini-2.0-flash-exp",
-        voice="Aoede",  # Female voice (supports pt-BR)
-        instructions=f"""Você é MediAI, uma assistente médica virtual especializada em triagem de pacientes e orientação de saúde.
+    system_prompt = f"""Você é MediAI, uma assistente médica virtual especializada em triagem de pacientes e orientação de saúde.
 
 PERSONALIDADE:
 - Empática, calorosa e profissional
@@ -154,14 +149,17 @@ IMPORTANTE: Mantenha suas respostas curtas e objetivas. Faça perguntas uma de c
 CONTEXTO DO PACIENTE:
 {patient_context}
 """
-    )
     
     logger.info(f"[MediAI] 🎙️ Creating agent session with Gemini Live API...")
     
-    # Create AgentSession with integrated Gemini Live model
+    # Create AgentSession with integrated Gemini Live model (STT + LLM + TTS)
     session = AgentSession(
-        model=model,
-        # No separate STT/LLM/TTS needed - all integrated in RealtimeModel!
+        llm=google.beta.realtime.RealtimeModel(
+            model="gemini-2.0-flash-exp",
+            voice="Aoede",  # Female voice (supports pt-BR)
+            temperature=0.8,
+            instructions=system_prompt,
+        )
     )
     
     tavus_api_key = os.getenv('TAVUS_API_KEY')
