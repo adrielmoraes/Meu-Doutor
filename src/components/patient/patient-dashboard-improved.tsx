@@ -22,10 +22,6 @@ const AIConsultationCard = dynamic(() => import('./ai-consultation-card'), {
   )
 });
 
-const TavusConsultationClient = dynamic(() => import('./tavus-consultation-client'), {
-  ssr: false,
-  loading: () => <div className="flex items-center justify-center h-96"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>
-});
 
 
 interface PatientDashboardProps {
@@ -198,7 +194,22 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
               </p>
             </div>
 
-            <TavusConsultationClient patientId={patient.id} patientName={patient.name} />
+            <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-slate-700">
+              <CardContent className="p-8 text-center space-y-4">
+                <Video className="h-16 w-16 text-blue-400 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-white">Pronto para começar?</h3>
+                <p className="text-slate-300 max-w-md mx-auto">
+                  Clique no botão abaixo para iniciar sua consulta ao vivo com a MediAI. 
+                  Você poderá conversar por voz e vídeo em tempo real.
+                </p>
+                <Link href="/patient/live-consultation">
+                  <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                    <Video className="mr-2 h-5 w-5" />
+                    Iniciar Consulta ao Vivo
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Overview Tab */}
