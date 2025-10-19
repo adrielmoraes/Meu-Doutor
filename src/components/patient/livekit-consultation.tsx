@@ -11,10 +11,8 @@ import {
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import '@livekit/components-styles';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Video, Mic, MicOff, PhoneOff } from 'lucide-react';
+import { Loader2, Mic, MicOff, PhoneOff } from 'lucide-react';
 
 interface LiveKitConsultationProps {
   patientId: string;
@@ -27,7 +25,6 @@ function AvatarVideoDisplay() {
     onlySubscribed: true,
   });
 
-  // Find the avatar's video track
   const avatarTrack = tracks.find(track => 
     track.participant.identity.includes('agent') || 
     track.participant.name?.includes('MediAI')
@@ -44,7 +41,6 @@ function AvatarVideoDisplay() {
     );
   }
 
-  // Show loading state while waiting for avatar
   return (
     <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex flex-col items-center justify-center gap-6">
       <div className="relative">
@@ -110,133 +106,92 @@ function CustomControls({ onEndConsultation }: { onEndConsultation: () => void }
 export default function LiveKitConsultation({ patientId, patientName }: LiveKitConsultationProps) {
   const [token, setToken] = useState<string>('');
   const [serverUrl, setServerUrl] = useState<string>('');
-  const [isConnecting, setIsConnecting] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isActive, setIsActive] = useState(false);
 
   const roomName = `mediai-consultation-${patientId}`;
 
-  const startConsultation = async () => {
-    setIsConnecting(true);
-    setError(null);
+  // Auto-start consultation on component mount
+  useEffect(() => {
+    const startConsultation = async () => {
+      try {
+        const response = await fetch('/api/livekit/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomName,
+            participantName: patientName,
+            metadata: {
+              patient_id: patientId,
+              patient_name: patientName,
+              session_type: 'medical_consultation'
+            }
+          })
+        });
 
-    try {
-      // Generate LiveKit access token
-      const response = await fetch('/api/livekit/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          roomName,
-          participantName: patientName,
-          metadata: {
-            patient_id: patientId,
-            patient_name: patientName,
-            session_type: 'medical_consultation'
-          }
-        })
-      });
+        const data = await response.json();
 
-      const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Erro ao conectar');
+        }
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Erro ao conectar');
+        setToken(data.token);
+        setServerUrl(data.url);
+        setIsConnecting(false);
+
+      } catch (err: any) {
+        console.error('Erro ao iniciar consulta:', err);
+        setError(err.message || 'Não foi possível iniciar a consulta ao vivo.');
+        setIsConnecting(false);
       }
+    };
 
-      setToken(data.token);
-      setServerUrl(data.url);
-      setIsActive(true);
-
-    } catch (err: any) {
-      console.error('Erro ao iniciar consulta:', err);
-      setError(err.message || 'Não foi possível iniciar a consulta ao vivo. Por favor, tente novamente.');
-    } finally {
-      setIsConnecting(false);
-    }
-  };
+    startConsultation();
+  }, [patientId, patientName, roomName]);
 
   const endConsultation = () => {
-    setIsActive(false);
-    setToken('');
-    setServerUrl('');
+    window.location.href = '/patient/dashboard';
   };
 
-  if (!isActive) {
+  // Loading state
+  if (isConnecting) {
     return (
-      <div className="space-y-4">
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-slate-700">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Video className="w-5 h-5" />
-              Consulta ao Vivo com MediAI
-            </CardTitle>
-            <CardDescription className="text-slate-300">
-              Conecte-se com nossa assistente médica virtual através de voz em tempo real
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="bg-slate-800/30 rounded-lg p-6 space-y-3">
-              <h3 className="font-semibold text-lg text-white">Como funciona:</h3>
-              <ul className="text-sm text-slate-300 space-y-2">
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-400 font-bold">1.</span>
-                  <span>Clique em "Iniciar Consulta" para conectar</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-400 font-bold">2.</span>
-                  <span>Permita acesso ao microfone quando solicitado</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-400 font-bold">3.</span>
-                  <span>Converse naturalmente com a MediAI sobre seus sintomas</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-400 font-bold">4.</span>
-                  <span>Receba orientações preliminares e recomendações personalizadas</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-400 font-bold">5.</span>
-                  <span>A conversa será transcrita e salva no seu histórico</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4">
-              <p className="text-sm text-blue-200">
-                <strong>Importante:</strong> A MediAI tem acesso ao seu histórico médico completo 
-                (exames, consultas anteriores, plano de bem-estar) para fornecer orientações 
-                mais precisas e personalizadas.
-              </p>
-            </div>
-
-            <Button
-              onClick={startConsultation}
-              disabled={isConnecting}
-              className="w-full h-14 text-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              {isConnecting ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Conectando...
-                </>
-              ) : (
-                <>
-                  <Video className="mr-2 h-5 w-5" />
-                  Iniciar Consulta ao Vivo
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 flex flex-col items-center justify-center z-50">
+        <div className="relative mb-8">
+          <div className="absolute inset-0 animate-ping opacity-20">
+            <div className="w-32 h-32 bg-blue-500 rounded-full"></div>
+          </div>
+          <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+            <Loader2 className="w-16 h-16 text-white animate-spin" />
+          </div>
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-2">Iniciando Consulta ao Vivo</h2>
+        <p className="text-slate-300 text-center max-w-md">
+          Conectando você com a MediAI...
+        </p>
       </div>
     );
   }
 
+  // Error state
+  if (error) {
+    return (
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 flex flex-col items-center justify-center z-50 p-8">
+        <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-8 max-w-md text-center">
+          <h2 className="text-2xl font-bold text-red-300 mb-4">Erro ao Conectar</h2>
+          <p className="text-red-200 mb-6">{error}</p>
+          <Button
+            onClick={() => window.location.href = '/patient/dashboard'}
+            className="bg-slate-700 hover:bg-slate-600"
+          >
+            Voltar ao Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Connected - show LiveKit room
   return (
     <div className="fixed inset-0 bg-slate-900 z-50">
       <LiveKitRoom
