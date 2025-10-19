@@ -37,6 +37,7 @@ Preferred communication style: Simple, everyday language.
 - A multi-specialist medical analysis system where exam uploads trigger parallel consultation with up to 15 specialist AI agents, coordinated by an orchestrator AI (Dr. Márcio Silva), providing deep domain-specific analysis with complete traceability.
 - **LiveKit + Tavus + Gemini Architecture** (✅ PRODUCTION READY - October 19, 2025): A production-grade architecture leveraging LiveKit for WebRTC, a Python agent orchestrating **100% Google Gemini API** for STT, LLM, and TTS, and Tavus for avatar integration. The route `/patient/live-consultation` uses a Python Agent (`livekit-agent/agent.py`) that follows the official LiveKit example structure with medical context integration. Key features:
   - **100% Gemini Powered**: Google Speech-to-Text (pt-BR), Gemini 2.0 Flash LLM, Google Text-to-Speech (pt-BR)
+  - **Unified Voice System**: ALL audio generation uses "Aoede" voice (female, pt-BR) for consistency across therapist chat, LiveKit consultations, and TalkingHead avatar
   - **Tavus Avatar**: Real-time lip-synced video avatar (replica_id: r3a47ce45e68, persona_id: pd18f02bdb67)
   - **Room Metadata**: Patient ID passed via LiveKit room metadata for context loading
   - **Medical Context**: Agent loads complete patient history (exams, wellness plan, symptoms) from PostgreSQL before consultation
@@ -44,6 +45,7 @@ Preferred communication style: Simple, everyday language.
   - **Low Latency**: WebRTC direct connection (~200ms vs ~500ms)
   - **Worker Architecture**: Python Agent runs as LiveKit worker, automatically joins rooms when patients connect
 - **Tavus Medical Context Integration**: The AI avatar has complete access to patient medical history (profile, exams, consultations, wellness plan) for personalized and context-aware consultations in Portuguese. Context is loaded via database query when agent detects new room participant.
+- **AI Therapist Chat with WhatsApp-Style Audio**: Bidirectional voice chat with waveform visualization, play/pause controls, duration display, and recording indicators. User audio messages are saved for playback. Text→text and audio→audio response modes.
 - **UI Design Updates**: Includes a live consultation banner with video backgrounds and gradient overlays, minimalist live consultation interfaces, and a visual display for specialist findings with color-coded icons, severity indicators, and expandable content.
 
 ## External Dependencies
