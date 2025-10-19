@@ -79,3 +79,11 @@ Preferred communication style: Simple, everyday language.
 ### October 19, 2025
 - **React 19 Migration**: Updated login page from deprecated `useFormState` (React-DOM) to `useActionState` (React) following React 19 API changes
 - **UI Restoration**: Restored the highlighted "Consulta ao Vivo com a IA" banner in the Overview tab of patient dashboard with video background, badges, and call-to-action button
+- **Doctor-Patient Video Calls**: Implemented complete real-time video call system using LiveKit for doctor-to-patient consultations:
+  - Created `DoctorLiveKitCall` component for doctor video interface with patient video in full screen and doctor preview in picture-in-picture
+  - Added `/doctor/video-call` route for conducting video consultations
+  - Integrated "Start Video Call" button in doctor's schedule page for appointments marked as video consultations
+  - Added "Chamadas de Vídeo" link to doctor sidebar for quick access to video call functionality
+  - Server actions for creating unique consultation rooms with format `consultation-{appointmentId}-{timestamp}`
+  - Full microphone and camera controls with mute/unmute toggles during calls
+  - Automatic redirect to schedule page after ending calls
