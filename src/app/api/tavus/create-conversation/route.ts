@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const { patientId, patientName, conversationName } = await request.json();
 
     if (!patientId) {
-      return NextResponse.json({ error: 'Patient ID obrigatório' }, { status: 400 });
+      return NextResponse.json({ error: 'Informações de paciente inválidas' }, { status: 400 });
     }
 
     const tavusApiKey = process.env.TAVUS_API_KEY;
@@ -14,7 +14,8 @@ export async function POST(request: NextRequest) {
     const personaId = process.env.TAVUS_PERSONA_ID;
 
     if (!tavusApiKey || !replicaId || !personaId) {
-      throw new Error('Variáveis de ambiente Tavus não configuradas');
+      console.error('[Sistema] Configurações de consulta ao vivo não encontradas');
+      throw new Error('Serviço de consulta ao vivo temporariamente indisponível. Por favor, tente novamente mais tarde.');
     }
 
     const conversationPayload = {
@@ -63,17 +64,20 @@ IMPORTANTE:
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('Tavus API Error:', error);
+      console.error('[Sistema] Erro na API de consulta ao vivo:', error);
       
-      let errorMessage = 'Falha ao criar conversa';
+      // Mensagens amigáveis ao paciente, sem detalhes técnicos
+      let errorMessage = 'Não foi possível iniciar a consulta ao vivo no momento.';
+      
       if (error.includes('out of conversational credits')) {
-        errorMessage = 'Sua conta Tavus está sem créditos conversacionais. Por favor, adicione créditos em https://platform.tavus.io';
+        console.error('[Sistema] Créditos esgotados - necessário adicionar créditos');
+        errorMessage = 'O serviço de consulta ao vivo está temporariamente indisponível. Por favor, entre em contato com o suporte ou tente novamente mais tarde.';
       } else if (error.includes('Invalid API key')) {
-        errorMessage = 'Chave de API Tavus inválida. Verifique suas variáveis de ambiente.';
-      } else if (error.includes('Persona not found')) {
-        errorMessage = 'Persona ID não encontrado. Verifique se o ID está correto.';
-      } else if (error.includes('Replica not found')) {
-        errorMessage = 'Replica ID não encontrado. Verifique se o ID está correto.';
+        console.error('[Sistema] Chave de API inválida');
+        errorMessage = 'Erro de configuração do sistema. Por favor, entre em contato com o suporte técnico.';
+      } else if (error.includes('Persona not found') || error.includes('Replica not found')) {
+        console.error('[Sistema] Configuração do assistente virtual não encontrada');
+        errorMessage = 'Serviço de assistente virtual em manutenção. Por favor, tente novamente mais tarde.';
       }
       
       throw new Error(errorMessage);
@@ -96,11 +100,10 @@ IMPORTANTE:
     });
 
   } catch (error: any) {
-    console.error('Erro ao criar conversa Tavus:', error);
+    console.error('[Sistema] Erro ao criar consulta ao vivo:', error);
     return NextResponse.json(
       { 
-        error: 'Erro ao criar conversa virtual',
-        details: error.message
+        error: error.message || 'Não foi possível iniciar a consulta ao vivo. Por favor, tente novamente.'
       },
       { status: 500 }
     );
