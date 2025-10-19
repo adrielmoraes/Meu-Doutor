@@ -87,3 +87,45 @@ Preferred communication style: Simple, everyday language.
   - Server actions for creating unique consultation rooms with format `consultation-{appointmentId}-{timestamp}`
   - Full microphone and camera controls with mute/unmute toggles during calls
   - Automatic redirect to schedule page after ending calls
+- **Ultra-Detailed AI Medical Analysis System** (✅ MAJOR ENHANCEMENT):
+  - **Enhanced Specialist Output Schema**: All 15+ specialist AI agents now return structured data including:
+    * `suggestedMedications`: Array of medications with specific dosages, frequencies, duration, route of administration, and clinical justification
+    * `treatmentPlan`: Comprehensive treatment plan with primary treatment, supportive care, lifestyle modifications, and expected outcomes
+    * `monitoringProtocol`: Detailed monitoring parameters, frequency, and warning signals
+    * `contraindications`: List of important contraindications for suggested treatments
+    * `relevantMetrics`: Enhanced metrics with detailed clinical interpretation for each value
+  - **Ultra-Detailed Specialist Prompts**: Completely rewrote key specialist agents with pharmaceutical-grade precision:
+    * **Cardiologist Agent (Dra. Ana Silva)**: 
+      - Deep analysis of all cardiovascular parameters (ECG intervals, biomarkers, echocardiogram measurements)
+      - Specific medication protocols for hypertension (Losartana, Anlodipino, HCTZ with exact mg dosages)
+      - Dyslipidemia treatment (Atorvastatina 20-40mg, Rosuvastatina 20-40mg with LDL targets)
+      - Heart failure management (Carvedilol titration, Enalapril, Espironolactona, Furosemida)
+      - Atrial fibrillation protocols (rate control, anticoagulation with NOACs)
+      - Acute coronary syndrome DAPT (AAS + Clopidogrel/Ticagrelor)
+    * **Endocrinologist Agent (Dra. Beatriz Almeida)**:
+      - Granular diabetes management with HbA1c-based treatment escalation
+      - Metformin dosing (500mg→1000mg 2x/dia titration)
+      - iSGLT2 inhibitors (Empagliflozina 10-25mg) and GLP-1 agonists (Liraglutida, Semaglutida)
+      - Insulin protocols (basal-bolus regimens with Glargina, NPH, rapid-acting)
+      - Thyroid management (Levotiroxina dosing by TSH level, Metimazol for hyperthyroidism)
+      - Osteoporosis treatment (Alendronato 70mg weekly, Denosumabe, Ácido Zoledrônico)
+      - Vitamin D reposition protocols (7,000-14,000 UI loading doses)
+      - PCOS management (Metformina, anticonceptionals, Espironolactona)
+      - Male hypogonadism (Testosterone replacement protocols)
+  - **Enhanced Orchestrator Synthesis (Dr. Márcio Silva)**: 
+    - Integrates ALL specialist medications into unified prescription plan
+    - Medication interaction checking and deduplication
+    - Structured output with sections: Executive Summary, Findings by System, Differential Diagnoses, Therapeutic Priorities
+    - Ultra-detailed recommendations including:
+      * Integrated Medication Plan (organized by class with targets)
+      * Prioritized Diagnostic Tests (immediate/urgent/elective)
+      * Lifestyle Modifications (diet, exercise, weight targets)
+      * Monitoring Protocol (parameters, frequency, warning signals)
+      * Treatment Timeline (week-by-week progression)
+      * Prognosis with expected outcomes
+  - **Enhanced Patient History Summarization (Dra. Sofia Mendes)**:
+    - Comprehensive 9-section structure: Chief Complaint, History of Present Illness, Past Medical History, Family History, Social History, Review of Systems, Clinical Timeline, Red Flags, Psychosocial Factors
+    - Organizes symptoms by organ system
+    - Identifies warning signs requiring immediate attention
+    - Creates chronological clinical journey timeline
+  - **Result**: The AI system now provides hospital-grade preliminary diagnoses with specific medication recommendations, exact dosages, treatment protocols, monitoring guidelines, and contraindications—transforming from general advice to actionable clinical guidance that physicians can immediately implement.
