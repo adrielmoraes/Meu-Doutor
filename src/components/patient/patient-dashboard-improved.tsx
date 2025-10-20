@@ -67,6 +67,14 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
 
   const navigationCards = [
     {
+      title: "Assinatura",
+      icon: <Zap className="h-6 w-6 text-yellow-400" />,
+      href: "/patient/subscription",
+      description: "Gerencie sua assinatura e planos",
+      gradient: "from-yellow-500/10 to-amber-500/10",
+      borderColor: "border-yellow-500/30",
+    },
+    {
       title: "Histórico de Exames",
       icon: <FileClock className="h-6 w-6 text-amber-400" />,
       href: "/patient/history",
