@@ -8,6 +8,32 @@ import { Badge } from "@/components/ui/badge";
 
 const plans = [
   {
+    id: 'trial',
+    name: 'Teste Grátis',
+    price: 0,
+    interval: '7 dias',
+    description: 'Experimente a plataforma sem compromisso',
+    features: [
+      'Chat terapeuta ilimitado',
+      '5 análises de exames',
+      '5 minutos de consulta com IA em tempo real',
+      'Plano de bem-estar personalizado',
+      'Histórico completo de saúde',
+      'Chatbot médico 24/7',
+      'Sem cartão de crédito necessário',
+    ],
+    limits: {
+      examAnalysis: 5,
+      aiConsultationMinutes: 5,
+      doctorConsultationMinutes: 0,
+      therapistChat: 'ilimitado',
+      durationDays: 7,
+    },
+    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_TRIAL_PRICE_ID || '',
+    popular: true,
+    isTrial: true,
+  },
+  {
     id: 'basico',
     name: 'Básico',
     price: 9790,
@@ -54,7 +80,7 @@ const plans = [
       therapistChat: 'ilimitado',
     },
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID || '',
-    popular: true,
+    popular: false,
   },
   {
     id: 'familiar',
@@ -256,7 +282,7 @@ export default function SubscriptionPage() {
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                   <Badge className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-4 py-1">
-                    Mais Popular
+                    {plan.isTrial ? '🎁 Grátis por 7 dias' : 'Mais Popular'}
                   </Badge>
                 </div>
               )}
