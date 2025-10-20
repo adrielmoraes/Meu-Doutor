@@ -109,8 +109,8 @@ export async function POST(req: NextRequest) {
         stripeSubscriptionId: subscription.id,
         stripeCustomerId: customerId,
         status: 'trialing',
-        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
+        currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
       });
 
       return NextResponse.json({ 
