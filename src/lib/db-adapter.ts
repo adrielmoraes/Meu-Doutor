@@ -8,12 +8,14 @@ import {
   appointments,
   patientAuth,
   doctorAuth,
+  admins,
+  adminAuth,
   callRooms,
   signals,
   consultations,
 } from '../../shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import type { Doctor, DoctorWithPassword, Patient, PatientWithPassword, Exam, Appointment, Consultation } from '@/types';
+import type { Doctor, DoctorWithPassword, Patient, PatientWithPassword, Admin, AdminWithPassword, Exam, Appointment, Consultation } from '@/types';
 import { randomUUID } from 'crypto';
 
 export async function getDoctorByEmail(email: string): Promise<Doctor | null> {
@@ -434,4 +436,49 @@ export async function updateTavusConversation(conversationId: string, data: Part
     .update(tavusConversations)
     .set({ ...data, updatedAt: new Date() })
     .where(eq(tavusConversations.conversationId, conversationId));
+}
+
+// ========== Admin Functions ==========
+
+export async function getAdminByEmail(email: string): Promise<Admin | null> {
+  const result = await db.select().from(admins).where(eq(admins.email, email)).limit(1);
+  if (!result[0]) return null;
+  return result[0] as Admin;
+}
+
+export async function getAdminById(id: string): Promise<Admin | null> {
+  const result = await db.select().from(admins).where(eq(admins.id, id)).limit(1);
+  if (!result[0]) return null;
+  return result[0] as Admin;
+}
+
+export async function getAdminByEmailWithAuth(email: string): Promise<AdminWithPassword | null> {
+  const result = await db
+    .select({
+      admin: admins,
+      password: adminAuth.password,
+    })
+    .from(admins)
+    .leftJoin(adminAuth, eq(admins.id, adminAuth.id))
+    .where(eq(admins.email, email))
+    .limit(1);
+
+  if (!result[0]) return null;
+
+  return {
+    ...result[0].admin,
+    password: result[0].password || null,
+  } as AdminWithPassword;
+}
+
+export async function addAdminWithAuth(adminData: Omit<Admin, 'id'>, hashedPassword: string): Promise<void> {
+  const id = randomUUID();
+  
+  await db.insert(admins).values({ ...adminData, id });
+  await db.insert(adminAuth).values({ id, password: hashedPassword });
+}
+
+export async function getAdmins(): Promise<Admin[]> {
+  const results = await db.select().from(admins);
+  return results as Admin[];
 }

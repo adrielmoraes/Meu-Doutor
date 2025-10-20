@@ -5,7 +5,7 @@ export const patientStatusEnum = pgEnum('patient_status', ['Requer Validação',
 export const examStatusEnum = pgEnum('exam_status', ['Requer Validação', 'Validado']);
 export const appointmentStatusEnum = pgEnum('appointment_status', ['Agendada', 'Concluída', 'Cancelada']);
 export const callStatusEnum = pgEnum('call_status', ['waiting', 'active', 'ended']);
-export const userRoleEnum = pgEnum('user_role', ['doctor', 'patient']);
+export const userRoleEnum = pgEnum('user_role', ['doctor', 'patient', 'admin']);
 
 export const patients = pgTable('patients', {
   id: text('id').primaryKey(),
@@ -83,6 +83,22 @@ export const doctors = pgTable('doctors', {
 
 export const doctorAuth = pgTable('doctor_auth', {
   id: text('id').primaryKey().references(() => doctors.id, { onDelete: 'cascade' }),
+  password: text('password').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const admins = pgTable('admins', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  avatar: text('avatar').notNull(),
+  role: text('role').default('admin').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const adminAuth = pgTable('admin_auth', {
+  id: text('id').primaryKey().references(() => admins.id, { onDelete: 'cascade' }),
   password: text('password').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

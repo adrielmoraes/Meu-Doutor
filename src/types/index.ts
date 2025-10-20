@@ -90,6 +90,16 @@ export type Doctor = {
 // Type for authentication that includes the hashed password
 export type DoctorWithPassword = Doctor & { password?: string | null };
 
+export type Admin = {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  role: string;
+};
+
+export type AdminWithPassword = Admin & { password?: string | null };
+
 export type Exam = {
   id: string;
   patientId: string;

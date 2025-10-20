@@ -9,7 +9,7 @@ import { updateDoctorStatus } from '@/lib/db-adapter'; // Importar a função de
 
 export type SessionPayload = {
     userId: string;
-    role: 'patient' | 'doctor';
+    role: 'patient' | 'doctor' | 'admin';
     expires?: Date;
 }
 
