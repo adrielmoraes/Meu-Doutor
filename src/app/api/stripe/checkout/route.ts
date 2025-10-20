@@ -88,12 +88,15 @@ export async function POST(req: NextRequest) {
     if (planId === 'trial') {
       const trialEndDate = new Date();
       trialEndDate.setDate(trialEndDate.getDate() + 7);
+      const trialEndTimestamp = Math.floor(trialEndDate.getTime() / 1000);
       
       // Criar subscription com trial sem payment method
+      // cancel_at garante que a subscription seja automaticamente cancelada após 7 dias
       const subscription = await stripe.subscriptions.create({
         customer: customerId,
         items: [{ price: stripePriceId }],
-        trial_end: Math.floor(trialEndDate.getTime() / 1000),
+        trial_end: trialEndTimestamp,
+        cancel_at: trialEndTimestamp,
         metadata: {
           patientId: session.userId,
           planId: planId,

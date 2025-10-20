@@ -15,6 +15,7 @@ async function seedPlans() {
         'Chat terapeuta ilimitado',
         '5 análises de exames durante o período',
         '5 minutos de consulta com IA em tempo real',
+        'Sem acesso a médico real',
         'Plano de bem-estar personalizado',
         'Histórico completo de saúde',
         'Chatbot médico 24/7',
