@@ -3,6 +3,7 @@ import { stripe, createCheckoutSession, createCustomer } from '@/lib/stripe';
 import { getSubscriptionByPatientId, createOrUpdateSubscriptionPlan } from '@/lib/subscription-adapter';
 import { getPatientById } from '@/lib/db-adapter';
 import { getSession } from '@/lib/session';
+import { getPlanIdFromStripePrice, isValidStripePriceId } from '@/lib/plan-mapping';
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,11 +16,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { planId } = await req.json();
+    const { stripePriceId } = await req.json();
 
+    if (!stripePriceId) {
+      return NextResponse.json(
+        { error: 'ID do preço Stripe é obrigatório' },
+        { status: 400 }
+      );
+    }
+
+    // Validar price ID e obter plan ID autoritativo do servidor
+    if (!isValidStripePriceId(stripePriceId)) {
+      return NextResponse.json(
+        { error: 'ID de preço inválido' },
+        { status: 400 }
+      );
+    }
+
+    const planId = getPlanIdFromStripePrice(stripePriceId);
     if (!planId) {
       return NextResponse.json(
-        { error: 'ID do plano é obrigatório' },
+        { error: 'Não foi possível mapear o preço para um plano' },
         { status: 400 }
       );
     }
@@ -54,13 +71,18 @@ export async function POST(req: NextRequest) {
       customerId = customer.id;
     }
 
-    const baseUrl = process.env.REPLIT_DOMAINS || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:5000';
+    // Construir base URL de forma segura
+    const replitDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                    (replitDomain ? `https://${replitDomain}` : 'http://localhost:5000');
     
     const checkoutSession = await createCheckoutSession({
-      priceId: planId,
+      priceId: stripePriceId,
       customerId,
       metadata: {
         patientId: session.userId,
+        planId: planId,
+        stripePriceId: stripePriceId,
       },
       successUrl: `${baseUrl}/patient/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${baseUrl}/patient/subscription/canceled`,

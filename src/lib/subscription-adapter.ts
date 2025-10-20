@@ -23,6 +23,48 @@ export async function getSubscriptionPlanById(planId: string) {
   return plan[0] || null;
 }
 
+export async function upsertSubscription(data: {
+  patientId: string;
+  planId: string;
+  stripeSubscriptionId: string;
+  stripeCustomerId: string;
+  status: 'active' | 'canceled' | 'past_due' | 'trialing' | 'incomplete';
+  currentPeriodStart?: Date;
+  currentPeriodEnd?: Date;
+}) {
+  const existing = await getSubscriptionByStripeId(data.stripeSubscriptionId);
+  
+  if (existing) {
+    await db
+      .update(subscriptions)
+      .set({
+        planId: data.planId,
+        status: data.status,
+        currentPeriodStart: data.currentPeriodStart,
+        currentPeriodEnd: data.currentPeriodEnd,
+        updatedAt: new Date(),
+      })
+      .where(eq(subscriptions.stripeSubscriptionId, data.stripeSubscriptionId));
+    
+    return existing.id;
+  } else {
+    const id = randomUUID();
+    
+    await db.insert(subscriptions).values({
+      id,
+      patientId: data.patientId,
+      planId: data.planId,
+      stripeSubscriptionId: data.stripeSubscriptionId,
+      stripeCustomerId: data.stripeCustomerId,
+      status: data.status,
+      currentPeriodStart: data.currentPeriodStart,
+      currentPeriodEnd: data.currentPeriodEnd,
+    });
+    
+    return id;
+  }
+}
+
 export async function createSubscription(data: {
   patientId: string;
   planId: string;
@@ -80,6 +122,62 @@ export async function getSubscriptionByStripeId(stripeSubscriptionId: string) {
     .limit(1);
   
   return subscription[0] || null;
+}
+
+export async function getPaymentByStripeId(stripePaymentIntentId: string) {
+  const payment = await db
+    .select()
+    .from(payments)
+    .where(eq(payments.stripePaymentIntentId, stripePaymentIntentId))
+    .limit(1);
+  
+  return payment[0] || null;
+}
+
+export async function upsertPayment(data: {
+  subscriptionId: string;
+  patientId: string;
+  stripePaymentIntentId: string;
+  amount: number;
+  currency?: string;
+  status: 'pending' | 'succeeded' | 'failed' | 'refunded';
+  paidAt?: Date;
+  failedAt?: Date;
+  failureReason?: string;
+}) {
+  const existing = await getPaymentByStripeId(data.stripePaymentIntentId);
+  
+  if (existing) {
+    await db
+      .update(payments)
+      .set({
+        status: data.status,
+        paidAt: data.paidAt,
+        failedAt: data.failedAt,
+        failureReason: data.failureReason,
+        updatedAt: new Date(),
+      })
+      .where(eq(payments.stripePaymentIntentId, data.stripePaymentIntentId));
+    
+    return existing.id;
+  } else {
+    const id = randomUUID();
+    
+    await db.insert(payments).values({
+      id,
+      subscriptionId: data.subscriptionId,
+      patientId: data.patientId,
+      stripePaymentIntentId: data.stripePaymentIntentId,
+      amount: data.amount,
+      currency: data.currency || 'brl',
+      status: data.status,
+      paidAt: data.paidAt,
+      failedAt: data.failedAt,
+      failureReason: data.failureReason,
+    });
+    
+    return id;
+  }
 }
 
 export async function createPayment(data: {

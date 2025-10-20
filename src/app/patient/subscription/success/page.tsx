@@ -49,7 +49,7 @@ export default function SubscriptionSuccessPage() {
 
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
             <Button
-              onClick={() => router.push('/patient')}
+              onClick={() => router.push('/patient/dashboard')}
               className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
             >
               Ir para Dashboard

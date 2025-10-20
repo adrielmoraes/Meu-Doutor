@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { 
-  createSubscription, 
+  upsertSubscription, 
   updateSubscription, 
   getSubscriptionByStripeId,
-  createPayment,
+  upsertPayment,
   updatePayment 
 } from '@/lib/subscription-adapter';
 import { headers } from 'next/headers';
+import { getPlanIdFromStripePrice } from '@/lib/plan-mapping';
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+if (!webhookSecret) {
+  throw new Error('STRIPE_WEBHOOK_SECRET não está configurado');
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,14 +45,30 @@ export async function POST(req: NextRequest) {
       case 'checkout.session.completed': {
         const session = event.data.object;
         const patientId = session.metadata?.patientId;
+        const stripePriceId = session.metadata?.stripePriceId;
         const subscriptionId = session.subscription as string;
 
         if (patientId && subscriptionId) {
           const stripeSubscription = await stripe.subscriptions.retrieve(subscriptionId);
           
-          await createSubscription({
+          // Determinar planId de forma autoritativa do mapeamento servidor
+          let planId = stripePriceId ? getPlanIdFromStripePrice(stripePriceId) : null;
+          
+          // Fallback: usar o price do primeiro item da subscription
+          if (!planId && stripeSubscription.items.data.length > 0) {
+            const itemPriceId = stripeSubscription.items.data[0].price.id;
+            planId = getPlanIdFromStripePrice(itemPriceId);
+          }
+          
+          // Se ainda não temos planId, logar e usar 'basico' como fallback
+          if (!planId) {
+            console.error('Não foi possível determinar planId para subscription:', subscriptionId);
+            planId = 'basico';
+          }
+          
+          await upsertSubscription({
             patientId,
-            planId: session.metadata?.planId || 'default',
+            planId,
             stripeSubscriptionId: subscriptionId,
             stripeCustomerId: session.customer as string,
             status: stripeSubscription.status as any,
@@ -91,8 +112,8 @@ export async function POST(req: NextRequest) {
         const subscriptionId = invoice.subscription as string;
         const dbSubscription = await getSubscriptionByStripeId(subscriptionId);
 
-        if (dbSubscription) {
-          await createPayment({
+        if (dbSubscription && invoice.payment_intent) {
+          await upsertPayment({
             subscriptionId: dbSubscription.id,
             patientId: dbSubscription.patientId,
             stripePaymentIntentId: invoice.payment_intent as string,
@@ -110,8 +131,8 @@ export async function POST(req: NextRequest) {
         const subscriptionId = invoice.subscription as string;
         const dbSubscription = await getSubscriptionByStripeId(subscriptionId);
 
-        if (dbSubscription) {
-          await createPayment({
+        if (dbSubscription && invoice.payment_intent) {
+          await upsertPayment({
             subscriptionId: dbSubscription.id,
             patientId: dbSubscription.patientId,
             stripePaymentIntentId: invoice.payment_intent as string,
@@ -119,7 +140,7 @@ export async function POST(req: NextRequest) {
             currency: invoice.currency,
             status: 'failed',
             failedAt: new Date(),
-            failureReason: 'Falha no pagamento',
+            failureReason: invoice.last_payment_error?.message || 'Falha no pagamento',
           });
 
           await updateSubscription(dbSubscription.id, {

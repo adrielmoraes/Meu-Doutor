@@ -50,7 +50,7 @@ export default function SubscriptionCanceledPage() {
               Tentar Novamente
             </Button>
             <Button
-              onClick={() => router.push('/patient')}
+              onClick={() => router.push('/patient/dashboard')}
               variant="outline"
               className="flex-1 border-slate-600 text-gray-300 hover:bg-slate-800"
             >
