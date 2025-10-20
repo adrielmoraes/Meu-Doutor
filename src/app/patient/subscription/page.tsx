@@ -12,7 +12,7 @@ const plans = [
     name: 'Básico',
     price: 9790,
     interval: 'mês',
-    description: 'Acesso essencial à plataforma',
+    description: 'Acesso essencial à plataforma com limites mensais',
     features: [
       'Chat terapeuta ilimitado',
       '20 análises de exames por mês',
@@ -35,7 +35,7 @@ const plans = [
     name: 'Premium',
     price: 19790,
     interval: 'mês',
-    description: 'Acesso completo com médicos reais',
+    description: 'Acesso completo com consultas IA e médicos reais',
     features: [
       'Chat terapeuta ilimitado',
       'Análise de exames ilimitada',
