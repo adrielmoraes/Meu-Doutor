@@ -55,3 +55,29 @@ Preferred communication style: Simple, everyday language.
 - Tailwind CSS
 - Drizzle ORM
 - `jose` library
+
+### Payment & Subscription
+- Stripe (payment processing and subscription management)
+
+## Recent Changes
+
+### October 20, 2025
+- **Stripe Subscription System** (✅ PRODUCTION READY):
+  - Complete subscription infrastructure with three usage-based pricing tiers:
+    * **Básico R$97,90/mês**: Chat terapeuta ilimitado, 20 análises de exames/mês, 5 min consulta IA/mês, sem consulta médico real
+    * **Premium R$197,90/mês**: Chat terapeuta ilimitado, análise exames ilimitada, 30 min consulta IA/mês, 30 min consulta médico/mês
+    * **Família R$297,90/mês**: Tudo do Premium para até 4 membros da família (economia de R$49,16/mês)
+  - Secure payment processing with Stripe Checkout and webhook integration
+  - Database schema: `subscription_plans`, `subscriptions`, `payments` tables with proper enums and relations
+  - API routes: `/api/stripe/checkout`, `/api/stripe/webhook`, `/api/stripe/cancel-subscription`, `/api/stripe/resume-subscription`, `/api/subscription/status`
+  - Patient-facing pages: subscription management with usage limits display, success/canceled flows
+  - Security features:
+    * Server-side plan mapping (`plan-mapping.ts`) prevents privilege escalation
+    * Price ID validation against allowlist
+    * Idempotent webhook handlers with upsert semantics
+    * Stripe signature verification with required STRIPE_WEBHOOK_SECRET
+  - User experience: subscription status display with usage tracking, cancellation/reactivation, automatic renewal management
+  - Dashboard integration: "Assinatura" card in patient navigation for easy access
+  - Seed script for plan updates (`scripts/seed-subscription-plans.ts`)
+  - Environment variables: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, NEXT_PUBLIC_STRIPE_*_PRICE_ID
+  - Usage enforcement: Each plan includes specific limits for exam analysis, AI consultations, and doctor consultations
