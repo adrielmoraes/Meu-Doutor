@@ -177,6 +177,11 @@ export async function deleteExam(patientId: string, examId: string): Promise<voi
   await db.delete(exams).where(and(eq(exams.id, examId), eq(exams.patientId, patientId)));
 }
 
+export async function getExams(): Promise<Exam[]> {
+  const results = await db.select().from(exams).orderBy(desc(exams.createdAt));
+  return results.map(e => ({ ...e, results: e.results || undefined })) as Exam[];
+}
+
 export async function getAllExamsForWellnessPlan(patientId: string): Promise<Exam[]> {
   const results = await db
     .select()
@@ -377,6 +382,15 @@ export async function getConsultationsByDoctor(doctorId: string): Promise<Consul
     .from(consultations)
     .where(eq(consultations.doctorId, doctorId))
     .orderBy(desc(consultations.createdAt));
+  
+  return results.map(c => ({ ...c, roomId: c.roomId || '' })) as Consultation[];
+}
+
+export async function getConsultations(): Promise<Consultation[]> {
+  const results = await db
+    .select()
+    .from(consultations)
+    .orderBy(desc(consultations.date));
   
   return results.map(c => ({ ...c, roomId: c.roomId || '' })) as Consultation[];
 }
