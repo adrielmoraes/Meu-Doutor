@@ -148,7 +148,12 @@ export default function SubscriptionPage() {
         return;
       }
 
-      if (data.url) {
+      // Para trial, redirectUrl é retornado diretamente
+      if (data.redirectUrl) {
+        window.location.href = data.redirectUrl;
+      }
+      // Para planos pagos, url do checkout é retornado
+      else if (data.url) {
         window.location.href = data.url;
       }
     } catch (error) {

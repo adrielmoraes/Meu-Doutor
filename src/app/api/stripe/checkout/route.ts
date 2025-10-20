@@ -51,6 +51,14 @@ export async function POST(req: NextRequest) {
 
     const existingSubscription = await getSubscriptionByPatientId(session.userId);
     
+    // Verificar se já teve trial antes
+    if (planId === 'trial' && existingSubscription) {
+      return NextResponse.json(
+        { error: 'Você já utilizou o período de teste gratuito' },
+        { status: 400 }
+      );
+    }
+    
     if (existingSubscription && existingSubscription.status === 'active') {
       return NextResponse.json(
         { error: 'Você já possui uma assinatura ativa' },
@@ -76,6 +84,42 @@ export async function POST(req: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
                     (replitDomain ? `https://${replitDomain}` : 'http://localhost:5000');
     
+    // Para trial, criar subscription direta sem checkout (sem necessidade de cartão)
+    if (planId === 'trial') {
+      const trialEndDate = new Date();
+      trialEndDate.setDate(trialEndDate.getDate() + 7);
+      
+      // Criar subscription com trial sem payment method
+      const subscription = await stripe.subscriptions.create({
+        customer: customerId,
+        items: [{ price: stripePriceId }],
+        trial_end: Math.floor(trialEndDate.getTime() / 1000),
+        metadata: {
+          patientId: session.userId,
+          planId: planId,
+          stripePriceId: stripePriceId,
+        },
+      });
+
+      // Salvar subscription no banco
+      const { upsertSubscription } = await import('@/lib/subscription-adapter');
+      await upsertSubscription({
+        patientId: session.userId,
+        planId: planId,
+        stripeSubscriptionId: subscription.id,
+        stripeCustomerId: customerId,
+        status: 'trialing',
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      });
+
+      return NextResponse.json({ 
+        success: true, 
+        redirectUrl: `${baseUrl}/patient/subscription/success?trial=true` 
+      });
+    }
+    
+    // Para planos pagos, usar checkout session normal
     const checkoutSession = await createCheckoutSession({
       priceId: stripePriceId,
       customerId,
