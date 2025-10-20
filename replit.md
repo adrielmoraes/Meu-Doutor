@@ -26,7 +26,7 @@ Preferred communication style: Simple, everyday language.
 - Migration to Neon PostgreSQL with Drizzle ORM.
 - JWT-based authentication with bcrypt hashing.
 - Google Cloud Storage for file storage.
-- Enhanced AI system with Gemini 2.5 Flash, including a "Central Brain" system with a 3D TalkingHead avatar using TalkingHead.js and Gemini 2.5 Flash TTS for realistic interactions.
+- Enhanced AI system with Gemini 2.5 Flash for medical analysis and consultations.
 - Call recording and transcription via Gemini AI.
 - Server-side AI processing for medical data security.
 - Implementation of an AI Nutritionist for personalized wellness plans, including dietary, exercise, and mental wellness components.
@@ -75,6 +75,11 @@ Preferred communication style: Simple, everyday language.
 - `jose` library
 
 ## Recent Changes
+
+### October 20, 2025
+- **UI Cleanup**: Removed non-functional "IA Central Brain" card from doctor dashboard to streamline interface
+  - Removed TalkingAvatar3D component from dashboard (still available for patient consultations)
+  - Simplified navigation card layout to full-width 3-column grid
 
 ### October 19, 2025
 - **React 19 Migration**: Updated login page from deprecated `useFormState` (React-DOM) to `useActionState` (React) following React 19 API changes
