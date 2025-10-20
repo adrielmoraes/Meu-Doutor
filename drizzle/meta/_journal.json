@@ -8,6 +8,13 @@
       "when": 1760833007589,
       "tag": "0000_exotic_midnight",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1760984343292,
+      "tag": "0001_flaky_crusher_hogan",
+      "breakpoints": true
     }
   ]
 }
