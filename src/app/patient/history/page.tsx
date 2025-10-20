@@ -214,16 +214,16 @@ export default async function ExamHistoryPage() {
                                     {exam.results.map((result, idx) => (
                                       <div key={idx} className="grid grid-cols-3 gap-3 p-2 bg-gray-900/50 rounded border border-gray-700/50">
                                         <div>
-                                          <p className="text-xs text-gray-500">Parâmetro</p>
-                                          <p className="text-sm font-medium text-white">{result.name}</p>
+                                          <p className="text-xs font-medium text-gray-400">Parâmetro</p>
+                                          <p className="text-sm font-semibold text-white">{result.name}</p>
                                         </div>
                                         <div>
-                                          <p className="text-xs text-gray-500">Valor</p>
+                                          <p className="text-xs font-medium text-gray-400">Valor</p>
                                           <p className="text-sm font-bold text-cyan-400">{result.value}</p>
                                         </div>
                                         <div>
-                                          <p className="text-xs text-gray-500">Referência</p>
-                                          <p className="text-sm text-gray-400">{result.reference}</p>
+                                          <p className="text-xs font-medium text-gray-400">Referência</p>
+                                          <p className="text-sm font-medium text-gray-300">{result.reference}</p>
                                         </div>
                                       </div>
                                     ))}

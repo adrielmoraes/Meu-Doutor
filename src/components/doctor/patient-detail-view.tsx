@@ -192,16 +192,16 @@ export default function PatientDetailView({
                                                     {exam.results.map((result, idx) => (
                                                         <div key={idx} className="grid grid-cols-3 gap-2 p-2 bg-white rounded border border-blue-100">
                                                             <div>
-                                                                <p className="text-xs text-muted-foreground">Parâmetro</p>
-                                                                <p className="text-sm font-medium">{result.name}</p>
+                                                                <p className="text-xs font-medium text-gray-700">Parâmetro</p>
+                                                                <p className="text-sm font-semibold text-gray-900">{result.name}</p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-xs text-muted-foreground">Valor</p>
+                                                                <p className="text-xs font-medium text-gray-700">Valor</p>
                                                                 <p className="text-sm font-bold text-blue-700">{result.value}</p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-xs text-muted-foreground">Referência</p>
-                                                                <p className="text-sm text-muted-foreground">{result.reference}</p>
+                                                                <p className="text-xs font-medium text-gray-700">Referência</p>
+                                                                <p className="text-sm font-medium text-gray-700">{result.reference}</p>
                                                             </div>
                                                         </div>
                                                     ))}

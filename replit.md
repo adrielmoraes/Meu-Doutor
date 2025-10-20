@@ -80,6 +80,10 @@ Preferred communication style: Simple, everyday language.
 - **UI Cleanup**: Removed non-functional "IA Central Brain" card from doctor dashboard to streamline interface
   - Removed TalkingAvatar3D component from dashboard (still available for patient consultations)
   - Simplified navigation card layout to full-width 3-column grid
+- **Improved Exam Values Readability**: Enhanced text contrast and legibility for exam result displays
+  - Doctor view: Improved label and parameter text colors from muted-foreground to gray-700/900 for better contrast
+  - Patient view: Enhanced label colors from gray-500 to gray-400 with medium font-weight for better visibility
+  - Maintained distinct value highlighting (blue-700 for doctors, cyan-400 for patients)
 
 ### October 19, 2025
 - **React 19 Migration**: Updated login page from deprecated `useFormState` (React-DOM) to `useActionState` (React) following React 19 API changes
