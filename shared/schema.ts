@@ -6,6 +6,8 @@ export const examStatusEnum = pgEnum('exam_status', ['Requer Validação', 'Vali
 export const appointmentStatusEnum = pgEnum('appointment_status', ['Agendada', 'Concluída', 'Cancelada']);
 export const callStatusEnum = pgEnum('call_status', ['waiting', 'active', 'ended']);
 export const userRoleEnum = pgEnum('user_role', ['doctor', 'patient', 'admin']);
+export const subscriptionStatusEnum = pgEnum('subscription_status', ['active', 'canceled', 'past_due', 'trialing', 'incomplete']);
+export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'succeeded', 'failed', 'refunded']);
 
 export const patients = pgTable('patients', {
   id: text('id').primaryKey(),
@@ -275,6 +277,74 @@ export const tavusConversations = pgTable('tavus_conversations', {
 export const tavusConversationsRelations = relations(tavusConversations, ({ one }) => ({
   patient: one(patients, {
     fields: [tavusConversations.patientId],
+    references: [patients.id],
+  }),
+}));
+
+export const subscriptionPlans = pgTable('subscription_plans', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description').notNull(),
+  price: integer('price').notNull(),
+  currency: text('currency').notNull().default('brl'),
+  interval: text('interval').notNull().default('month'),
+  features: json('features').$type<string[]>().notNull(),
+  stripePriceId: text('stripe_price_id'),
+  stripeProductId: text('stripe_product_id'),
+  active: boolean('active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const subscriptions = pgTable('subscriptions', {
+  id: text('id').primaryKey(),
+  patientId: text('patient_id').notNull().references(() => patients.id, { onDelete: 'cascade' }),
+  planId: text('plan_id').notNull().references(() => subscriptionPlans.id),
+  stripeSubscriptionId: text('stripe_subscription_id').unique(),
+  stripeCustomerId: text('stripe_customer_id').notNull(),
+  status: subscriptionStatusEnum('status').notNull().default('active'),
+  currentPeriodStart: timestamp('current_period_start'),
+  currentPeriodEnd: timestamp('current_period_end'),
+  cancelAtPeriodEnd: boolean('cancel_at_period_end').default(false).notNull(),
+  canceledAt: timestamp('canceled_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const payments = pgTable('payments', {
+  id: text('id').primaryKey(),
+  subscriptionId: text('subscription_id').notNull().references(() => subscriptions.id, { onDelete: 'cascade' }),
+  patientId: text('patient_id').notNull().references(() => patients.id, { onDelete: 'cascade' }),
+  stripePaymentIntentId: text('stripe_payment_intent_id').unique(),
+  amount: integer('amount').notNull(),
+  currency: text('currency').notNull().default('brl'),
+  status: paymentStatusEnum('status').notNull().default('pending'),
+  paidAt: timestamp('paid_at'),
+  failedAt: timestamp('failed_at'),
+  failureReason: text('failure_reason'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const subscriptionsRelations = relations(subscriptions, ({ one, many }) => ({
+  patient: one(patients, {
+    fields: [subscriptions.patientId],
+    references: [patients.id],
+  }),
+  plan: one(subscriptionPlans, {
+    fields: [subscriptions.planId],
+    references: [subscriptionPlans.id],
+  }),
+  payments: many(payments),
+}));
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+  subscription: one(subscriptions, {
+    fields: [payments.subscriptionId],
+    references: [subscriptions.id],
+  }),
+  patient: one(patients, {
+    fields: [payments.patientId],
     references: [patients.id],
   }),
 }));
