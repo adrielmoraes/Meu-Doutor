@@ -63,7 +63,8 @@ Preferred communication style: Simple, everyday language.
 
 ### October 20, 2025
 - **Stripe Subscription System** (✅ PRODUCTION READY):
-  - Complete subscription infrastructure with three usage-based pricing tiers:
+  - Complete subscription infrastructure with trial period and three usage-based pricing tiers:
+    * **Teste Grátis (7 dias)**: Chat terapeuta ilimitado, 5 análises de exames, 5 min consulta IA, sem cartão de crédito
     * **Básico R$97,90/mês**: Chat terapeuta ilimitado, 20 análises de exames/mês, 5 min consulta IA/mês, sem consulta médico real
     * **Premium R$197,90/mês**: Chat terapeuta ilimitado, análise exames ilimitada, 30 min consulta IA/mês, 30 min consulta médico/mês
     * **Família R$297,90/mês**: Tudo do Premium para até 4 membros da família (economia de R$49,16/mês)
@@ -79,5 +80,7 @@ Preferred communication style: Simple, everyday language.
   - User experience: subscription status display with usage tracking, cancellation/reactivation, automatic renewal management
   - Dashboard integration: "Assinatura" card in patient navigation for easy access
   - Seed script for plan updates (`scripts/seed-subscription-plans.ts`)
-  - Environment variables: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, NEXT_PUBLIC_STRIPE_*_PRICE_ID
+  - Environment variables: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, NEXT_PUBLIC_STRIPE_TRIAL_PRICE_ID, NEXT_PUBLIC_STRIPE_BASIC_PRICE_ID, NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID, NEXT_PUBLIC_STRIPE_FAMILY_PRICE_ID
   - Usage enforcement: Each plan includes specific limits for exam analysis, AI consultations, and doctor consultations
+  - Trial period: 7-day free trial without credit card, automatically converts or expires after trial period
+  - Trial protection: Users can only activate trial once to prevent abuse
