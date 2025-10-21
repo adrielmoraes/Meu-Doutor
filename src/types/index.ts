@@ -8,6 +8,9 @@ export type Patient = {
   cpf: string;
   phone: string;
   email: string;
+  emailVerified: boolean;
+  verificationToken?: string | null;
+  tokenExpiry?: Date | null;
   city: string;
   state: string;
   lastVisit: string;
@@ -40,14 +43,6 @@ export type Patient = {
       title: string;
       description: string;
     }>;
-    weeklyRecipes: Array<{
-      id: string;
-      title: string;
-      mealType: 'cafe-da-manha' | 'almoco' | 'jantar' | 'lanche';
-      ingredients: string[];
-      instructions: string;
-      dayOfWeek: string;
-    }>;
     weeklyTasks: Array<{
       id: string;
       category: 'nutrition' | 'exercise' | 'mental' | 'general';
@@ -67,6 +62,7 @@ export type PatientWithPassword = Patient & { password?: string | null };
 export type Doctor = {
   id: string;
   name: string;
+  crm: string;
   specialty: string;
   city: string;
   state: string;
@@ -74,6 +70,9 @@ export type Doctor = {
   avatar: string;
   avatarHint: string;
   email: string;
+  emailVerified: boolean;
+  verificationToken?: string | null;
+  tokenExpiry?: Date | null;
   level: number;
   xp: number;
   xpToNextLevel: number;

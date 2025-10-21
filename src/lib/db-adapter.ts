@@ -24,6 +24,12 @@ export async function getDoctorByEmail(email: string): Promise<Doctor | null> {
   return { ...result[0], avatarHint: result[0].avatarHint || '' } as Doctor;
 }
 
+export async function getDoctorByCrm(crm: string): Promise<Doctor | null> {
+  const result = await db.select().from(doctors).where(eq(doctors.crm, crm)).limit(1);
+  if (!result[0]) return null;
+  return { ...result[0], avatarHint: result[0].avatarHint || '' } as Doctor;
+}
+
 export async function getDoctorById(id: string): Promise<Doctor | null> {
   const result = await db.select().from(doctors).where(eq(doctors.id, id)).limit(1);
   if (!result[0]) return null;
@@ -54,11 +60,24 @@ export async function getDoctors(): Promise<Doctor[]> {
   return results.map(d => ({ ...d, avatarHint: d.avatarHint || '' })) as Doctor[];
 }
 
-export async function addDoctorWithAuth(doctorData: Omit<Doctor, 'id'>, hashedPassword: string): Promise<void> {
+export async function addDoctorWithAuth(
+  doctorData: Omit<Doctor, 'id'>, 
+  hashedPassword: string,
+  verificationToken?: string,
+  tokenExpiry?: Date
+): Promise<string> {
   const id = randomUUID();
   
-  await db.insert(doctors).values({ ...doctorData, id });
+  await db.insert(doctors).values({ 
+    ...doctorData, 
+    id,
+    emailVerified: false,
+    verificationToken: verificationToken || null,
+    tokenExpiry: tokenExpiry || null,
+  });
   await db.insert(doctorAuth).values({ id, password: hashedPassword });
+  
+  return id;
 }
 
 export async function updateDoctor(id: string, data: Partial<Doctor>): Promise<void> {
@@ -98,6 +117,12 @@ export async function getPatientByEmail(email: string): Promise<Patient | null> 
   return { ...result[0], lastVisit: result[0].lastVisit || '', avatarHint: result[0].avatarHint || '' } as Patient;
 }
 
+export async function getPatientByCpf(cpf: string): Promise<Patient | null> {
+  const result = await db.select().from(patients).where(eq(patients.cpf, cpf)).limit(1);
+  if (!result[0]) return null;
+  return { ...result[0], lastVisit: result[0].lastVisit || '', avatarHint: result[0].avatarHint || '' } as Patient;
+}
+
 export async function getPatientByEmailWithAuth(email: string): Promise<PatientWithPassword | null> {
   const result = await db
     .select({
@@ -121,11 +146,24 @@ export async function updatePatient(id: string, data: Partial<Patient>): Promise
   await db.update(patients).set({ ...data, updatedAt: new Date() }).where(eq(patients.id, id));
 }
 
-export async function addPatientWithAuth(patientData: Omit<Patient, 'id'>, hashedPassword: string): Promise<void> {
+export async function addPatientWithAuth(
+  patientData: Omit<Patient, 'id'>, 
+  hashedPassword: string,
+  verificationToken?: string,
+  tokenExpiry?: Date
+): Promise<string> {
   const id = randomUUID();
   
-  await db.insert(patients).values({ ...patientData, id });
+  await db.insert(patients).values({ 
+    ...patientData, 
+    id,
+    emailVerified: false,
+    verificationToken: verificationToken || null,
+    tokenExpiry: tokenExpiry || null,
+  });
   await db.insert(patientAuth).values({ id, password: hashedPassword });
+  
+  return id;
 }
 
 export async function getExamsByPatientId(patientId: string): Promise<Exam[]> {
