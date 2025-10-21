@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { differenceInYears } from 'date-fns';
 import bcrypt from 'bcrypt';
 import { generateVerificationToken, getTokenExpiry, sendVerificationEmail } from '@/lib/email-service';
+import type { Patient } from '@/types';
 
 const PatientSchema = z.object({
   fullName: z.string().min(3, { message: "O nome completo é obrigatório." }),
@@ -73,12 +74,13 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       reportedSymptoms: '',
       examResults: '',
       email: email,
+      emailVerified: false,
       cpf: rest.cpf,
       phone: rest.phone,
       gender: rest.gender,
       city: rest.city,
       state: rest.state.toUpperCase(),
-    }, hashedPassword, verificationToken, tokenExpiry);
+    } as Omit<Patient, 'id'>, hashedPassword, verificationToken, tokenExpiry);
 
     // Enviar email de verificação
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 

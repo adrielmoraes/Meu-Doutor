@@ -61,6 +61,21 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 21, 2025
+- **Email Verification System** (✅ PRODUCTION READY):
+  - Unique CPF validation for patients (prevents duplicate registrations)
+  - Unique CRM validation for doctors (prevents duplicate registrations)
+  - Email verification flow with 24-hour token expiration
+  - Beautiful email template with gradient design matching platform theme
+  - Support for Resend and SendGrid email providers
+  - Fallback logging when no email service is configured
+  - Database fields: `emailVerified`, `verificationToken`, `tokenExpiry` for both patients and doctors
+  - Verification endpoint: `/api/verify-email`
+  - Verification page: `/verify-email?token=<token>&type=<patient|doctor>`
+  - CRM field added to doctors table with unique constraint
+  - Email service: `src/lib/email-service.ts` with token generation and email sending
+  - Note: Email service requires `RESEND_API_KEY` or `SENDGRID_API_KEY` to send emails
+
 ### October 20, 2025
 - **Stripe Subscription System** (✅ PRODUCTION READY):
   - Complete subscription infrastructure with trial period and three usage-based pricing tiers:

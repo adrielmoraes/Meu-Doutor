@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import { generateVerificationToken, getTokenExpiry, sendVerificationEmail } from '@/lib/email-service';
+import type { Doctor } from '@/types';
 
 const DoctorSchema = z.object({
   fullName: z.string().min(3, { message: "O nome completo é obrigatório." }),
@@ -58,6 +59,7 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
       name: fullName,
       crm: crm,
       email: email,
+      emailVerified: false,
       specialty: specialty,
       city: city,
       state: state.toUpperCase(),
@@ -69,7 +71,7 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
       xpToNextLevel: 100,
       validations: 0,
       badges: [],
-    }, hashedPassword, verificationToken, tokenExpiry);
+    } as Omit<Doctor, 'id'>, hashedPassword, verificationToken, tokenExpiry);
 
     // Enviar email de verificação
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
