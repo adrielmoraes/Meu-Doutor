@@ -151,3 +151,39 @@ export type Consultation = {
     date: string;
     type: 'video-call' | 'chat';
 };
+
+export type AdminSettings = {
+    id: string;
+    platformName: string;
+    platformDescription: string;
+    supportEmail: string;
+    maxFileSize: number; // MB
+    sessionTimeout: number; // dias
+    notifyNewPatient: boolean;
+    notifyNewDoctor: boolean;
+    notifyNewExam: boolean;
+    notifyNewConsultation: boolean;
+    notifySystemAlerts: boolean;
+    notifyWeeklyReport: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+};
+
+export type AuditLog = {
+    id: string;
+    adminId: string;
+    adminName: string;
+    adminEmail: string;
+    action: string; // 'update_settings', 'change_password', 'create_admin', etc
+    entityType: string; // 'admin_settings', 'admin_auth', 'admin', etc
+    entityId?: string | null; // ID do registro afetado, se aplicável
+    changes?: Array<{
+        field: string;
+        oldValue: string | number | boolean | null;
+        newValue: string | number | boolean | null;
+    }>;
+    metadata?: Record<string, any>;
+    ipAddress?: string | null;
+    userAgent?: string | null;
+    createdAt: Date;
+};

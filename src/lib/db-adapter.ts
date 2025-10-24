@@ -15,7 +15,7 @@ import {
   consultations,
 } from '../../shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import type { Doctor, DoctorWithPassword, Patient, PatientWithPassword, Admin, AdminWithPassword, Exam, Appointment, Consultation } from '@/types';
+import type { Doctor, DoctorWithPassword, Patient, PatientWithPassword, Admin, AdminWithPassword, Exam, Appointment, Consultation, AdminSettings, AuditLog } from '@/types';
 import { randomUUID } from 'crypto';
 
 export async function getDoctorByEmail(email: string): Promise<Doctor | null> {
@@ -533,4 +533,99 @@ export async function addAdminWithAuth(adminData: Omit<Admin, 'id'>, hashedPassw
 export async function getAdmins(): Promise<Admin[]> {
   const results = await db.select().from(admins);
   return results as Admin[];
+}
+
+// ========== Admin Settings Functions ==========
+
+export async function getAdminSettings(): Promise<AdminSettings | null> {
+  const { adminSettings } = await import('../../shared/schema');
+  
+  const result = await db.select().from(adminSettings).limit(1);
+  
+  if (!result[0]) {
+    // Create default settings if they don't exist
+    const defaultId = 'default';
+    await db.insert(adminSettings).values({ id: defaultId });
+    const newResult = await db.select().from(adminSettings).where(eq(adminSettings.id, defaultId)).limit(1);
+    return newResult[0] as AdminSettings;
+  }
+  
+  return result[0] as AdminSettings;
+}
+
+export async function updateAdminSettings(
+  settingsId: string,
+  updates: Partial<Omit<AdminSettings, 'id' | 'createdAt' | 'updatedAt'>>
+): Promise<void> {
+  const { adminSettings } = await import('../../shared/schema');
+  
+  await db
+    .update(adminSettings)
+    .set({ ...updates, updatedAt: new Date() })
+    .where(eq(adminSettings.id, settingsId));
+}
+
+// ========== Audit Logs Functions ==========
+
+export async function createAuditLog(logData: {
+  adminId: string;
+  adminName: string;
+  adminEmail: string;
+  action: string;
+  entityType: string;
+  entityId?: string;
+  changes?: Array<{
+    field: string;
+    oldValue: string | number | boolean | null;
+    newValue: string | number | boolean | null;
+  }>;
+  metadata?: Record<string, any>;
+  ipAddress?: string;
+  userAgent?: string;
+}): Promise<void> {
+  const { auditLogs } = await import('../../shared/schema');
+  
+  await db.insert(auditLogs).values({
+    id: randomUUID(),
+    ...logData,
+  });
+}
+
+export async function getAuditLogs(limit: number = 50, offset: number = 0): Promise<AuditLog[]> {
+  const { auditLogs } = await import('../../shared/schema');
+  
+  const results = await db
+    .select()
+    .from(auditLogs)
+    .orderBy(desc(auditLogs.createdAt))
+    .limit(limit)
+    .offset(offset);
+  
+  return results as AuditLog[];
+}
+
+export async function getAuditLogsByAdmin(adminId: string, limit: number = 50): Promise<AuditLog[]> {
+  const { auditLogs } = await import('../../shared/schema');
+  
+  const results = await db
+    .select()
+    .from(auditLogs)
+    .where(eq(auditLogs.adminId, adminId))
+    .orderBy(desc(auditLogs.createdAt))
+    .limit(limit);
+  
+  return results as AuditLog[];
+}
+
+export async function getAuditLogsByAction(action: string, limit: number = 50): Promise<AuditLog[]> {
+  const { auditLogs } = await import('../../shared/schema');
+  
+  const results = await db
+    .select()
+    .from(auditLogs)
+    .where(eq(auditLogs.action, action))
+    .orderBy(desc(auditLogs.createdAt))
+    .limit(limit);
+  
+  return results as AuditLog[];
 }

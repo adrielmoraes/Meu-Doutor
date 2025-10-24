@@ -333,6 +333,44 @@ export const payments = pgTable('payments', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Admin Settings
+export const adminSettings = pgTable('admin_settings', {
+  id: text('id').primaryKey(),
+  platformName: text('platform_name').notNull().default('MediAI'),
+  platformDescription: text('platform_description').notNull().default('Plataforma de saúde com IA'),
+  supportEmail: text('support_email').notNull().default('suporte@mediai.com'),
+  maxFileSize: integer('max_file_size').notNull().default(10), // MB
+  sessionTimeout: integer('session_timeout').notNull().default(7), // dias
+  notifyNewPatient: boolean('notify_new_patient').notNull().default(true),
+  notifyNewDoctor: boolean('notify_new_doctor').notNull().default(true),
+  notifyNewExam: boolean('notify_new_exam').notNull().default(true),
+  notifyNewConsultation: boolean('notify_new_consultation').notNull().default(false),
+  notifySystemAlerts: boolean('notify_system_alerts').notNull().default(true),
+  notifyWeeklyReport: boolean('notify_weekly_report').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Audit Logs
+export const auditLogs = pgTable('audit_logs', {
+  id: text('id').primaryKey(),
+  adminId: text('admin_id').notNull().references(() => admins.id, { onDelete: 'cascade' }),
+  adminName: text('admin_name').notNull(),
+  adminEmail: text('admin_email').notNull(),
+  action: text('action').notNull(), // 'update_settings', 'change_password', 'create_admin', etc
+  entityType: text('entity_type').notNull(), // 'admin_settings', 'admin_auth', 'admin', etc
+  entityId: text('entity_id'), // ID do registro afetado, se aplicável
+  changes: json('changes').$type<{
+    field: string;
+    oldValue: string | number | boolean | null;
+    newValue: string | number | boolean | null;
+  }[]>(),
+  metadata: json('metadata').$type<Record<string, any>>(),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const subscriptionsRelations = relations(subscriptions, ({ one, many }) => ({
   patient: one(patients, {
     fields: [subscriptions.patientId],
