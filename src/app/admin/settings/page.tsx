@@ -58,10 +58,10 @@ export default async function AdminSettingsPage() {
         <DatabaseSettings stats={dbStats} />
 
         {/* Notificações */}
-        <NotificationSettings />
+        <NotificationSettings adminId={admin.id} />
 
         {/* Geral */}
-        <GeneralSettings />
+        <GeneralSettings adminId={admin.id} />
       </div>
     </div>
   );

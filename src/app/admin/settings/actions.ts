@@ -48,7 +48,7 @@ export async function changeAdminPassword({
       .where(eq(adminAuth.id, adminId));
 
     // Criar log de auditoria
-    const headersList = headers();
+    const headersList = await headers();
     const ipAddress = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'unknown';
     const userAgent = headersList.get('user-agent') || 'unknown';
 
@@ -145,7 +145,7 @@ export async function updateGeneralSettings({
 
     // Criar log de auditoria
     if (changes.length > 0) {
-      const headersList = headers();
+      const headersList = await headers();
       const ipAddress = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'unknown';
       const userAgent = headersList.get('user-agent') || 'unknown';
 
@@ -234,7 +234,7 @@ export async function updateNotificationSettings({
 
     // Criar log de auditoria
     if (changes.length > 0) {
-      const headersList = headers();
+      const headersList = await headers();
       const ipAddress = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'unknown';
       const userAgent = headersList.get('user-agent') || 'unknown';
 
