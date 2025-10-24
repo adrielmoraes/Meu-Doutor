@@ -2,8 +2,7 @@
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/header";
 import Link from "next/link";
-import { Stethoscope, ShieldCheck, Zap, ArrowRight, PlayCircle, Sparkles, Lock, Brain, Activity, HeartPulse, Check } from "lucide-react";
-import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
+import { Stethoscope, ShieldCheck, Zap, ArrowRight, Sparkles, Lock, Brain, Activity, HeartPulse, Check } from "lucide-react";
 
 export default function LandingPage() {
   return (
@@ -38,26 +37,6 @@ export default function LandingPage() {
                       <ArrowRight className="h-5 w-5" />
                     </Link>
                   </Button>
-                  
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="lg" className="h-14 border-2 border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/10 hover:border-cyan-400 font-semibold text-lg px-8 rounded-xl backdrop-blur-sm transition-all duration-300 transform hover:scale-105 flex items-center gap-2">
-                        <PlayCircle className="h-5 w-5" />
-                        Ver Demo
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[800px] p-0 bg-transparent border-none">
-                      <div className="aspect-video w-full">
-                        <iframe
-                          className="w-full h-full rounded-2xl shadow-2xl"
-                          src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=example"
-                          title="MediAI Demo"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        ></iframe>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
                 </div>
 
                 {/* Stats */}
