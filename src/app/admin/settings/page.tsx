@@ -1,9 +1,45 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Settings, Shield, Database, Bell } from "lucide-react";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { getAdminById, getPatients, getDoctors, getExams, getConsultations } from "@/lib/db-adapter";
+import { SecuritySettings } from "@/components/admin/settings/security-settings";
+import { DatabaseSettings } from "@/components/admin/settings/database-settings";
+import { NotificationSettings } from "@/components/admin/settings/notification-settings";
+import { GeneralSettings } from "@/components/admin/settings/general-settings";
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
+  const session = await getSession();
+  
+  if (!session || session.role !== 'admin') {
+    redirect('/login');
+  }
+
+  const admin = await getAdminById(session.userId);
+  
+  if (!admin) {
+    redirect('/login');
+  }
+
+  // Buscar estatísticas do banco de dados
+  const [patients, doctors, exams, consultations] = await Promise.all([
+    getPatients(),
+    getDoctors(),
+    getExams(),
+    getConsultations(),
+  ]);
+
+  const dbStats = {
+    totalPatients: patients.length,
+    totalDoctors: doctors.length,
+    totalExams: exams.length,
+    totalConsultations: consultations.length,
+    pendingPatients: patients.filter((p: any) => p.status === 'Requer Validação').length,
+    verifiedPatients: patients.filter((p: any) => p.emailVerified).length,
+  };
+
   return (
     <div className="p-8 space-y-8">
+      {/* Header */}
       <div>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
           Configurações
@@ -13,58 +49,19 @@ export default function AdminSettingsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-cyan-500/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Shield className="h-5 w-5 text-cyan-400" />
-              Segurança
-            </CardTitle>
-            <CardDescription>Configurações de segurança e autenticação</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-500">Em desenvolvimento</p>
-          </CardContent>
-        </Card>
+      {/* Settings Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Segurança */}
+        <SecuritySettings admin={admin} />
 
-        <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-purple-500/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Database className="h-5 w-5 text-purple-400" />
-              Banco de Dados
-            </CardTitle>
-            <CardDescription>Gerenciamento e backup de dados</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-500">Em desenvolvimento</p>
-          </CardContent>
-        </Card>
+        {/* Banco de Dados */}
+        <DatabaseSettings stats={dbStats} />
 
-        <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-green-500/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Bell className="h-5 w-5 text-green-400" />
-              Notificações
-            </CardTitle>
-            <CardDescription>Configurações de notificações do sistema</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-500">Em desenvolvimento</p>
-          </CardContent>
-        </Card>
+        {/* Notificações */}
+        <NotificationSettings />
 
-        <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-orange-500/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Settings className="h-5 w-5 text-orange-400" />
-              Geral
-            </CardTitle>
-            <CardDescription>Configurações gerais da plataforma</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-500">Em desenvolvimento</p>
-          </CardContent>
-        </Card>
+        {/* Geral */}
+        <GeneralSettings />
       </div>
     </div>
   );

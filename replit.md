@@ -91,6 +91,13 @@ Run the script: `npx tsx scripts/create-admin.ts`
   - Script available: `scripts/create-admin.ts` for creating additional admins
   - Fixed trial period display from "5 dias" to "7 dias" on homepage and subscription page
   - Optimized subscription page layout to display all 4 plans (Trial, Básico, Premium, Familiar)
+  - **Admin Settings Page** (✅ COMPLETE):
+    - **Security Settings**: Change admin password, view session info (7-day timeout)
+    - **Database Settings**: Live statistics dashboard with patient/doctor/exam/consultation counts, table health monitoring
+    - **Notification Settings**: Configure email notifications for new patients, doctors, exams, consultations, system alerts, and weekly reports
+    - **General Settings**: Platform info (name, description, support email), system limits (max file size, session timeout), theme configuration
+    - Server actions: `changeAdminPassword` for secure password updates with bcrypt validation
+    - All settings pages use responsive cards with futuristic dark theme (cyan/purple/green/orange gradients)
 
 ### October 21, 2025
 - **Email Verification System** (✅ PRODUCTION READY):
