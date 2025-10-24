@@ -186,7 +186,7 @@ export default function LandingPage() {
           <div className="container px-4 md:px-6 relative z-10">
             <div className="max-w-4xl mx-auto text-center space-y-8">
               <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
-                Experimente Gratuitamente por 5 Dias
+                Experimente Gratuitamente por 7 Dias
               </h2>
               <p className="text-xl text-blue-200/70">
                 Teste todos os recursos premium sem compromisso. Cancele quando quiser.
