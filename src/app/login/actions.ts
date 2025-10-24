@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getDoctorByEmailWithAuth, getPatientByEmailWithAuth } from '@/lib/db-adapter';
+import { getDoctorByEmailWithAuth, getPatientByEmailWithAuth, getAdminByEmailWithAuth } from '@/lib/db-adapter';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
@@ -29,20 +29,40 @@ export async function loginAction(prevState: any, formData: FormData) {
 
   try {
     console.log('Tentando login com email:', email);
-    const doctor = await getDoctorByEmailWithAuth(email);
-    if (doctor && doctor.password) {
-        const passwordIsValid = await bcrypt.compare(password, doctor.password);
+    
+    // First check if it's an admin
+    const admin = await getAdminByEmailWithAuth(email);
+    if (admin && admin.password) {
+        const passwordIsValid = await bcrypt.compare(password, admin.password);
 
         if (passwordIsValid) {
-            console.log('Login bem-sucedido para médico:', doctor.id);
-            await createSession({ userId: doctor.id, role: 'doctor' });
-            console.log('Sessão criada para médico, redirecionando...');
-            redirectPath = '/doctor';
+            console.log('Login bem-sucedido para admin:', admin.id);
+            await createSession({ userId: admin.id, role: 'admin' });
+            console.log('Sessão criada para admin, redirecionando...');
+            redirectPath = '/admin';
         } else {
-            console.log('Senha inválida para médico');
+            console.log('Senha inválida para admin');
         }
     }
 
+    // Then check doctor
+    if (!redirectPath) {
+        const doctor = await getDoctorByEmailWithAuth(email);
+        if (doctor && doctor.password) {
+            const passwordIsValid = await bcrypt.compare(password, doctor.password);
+
+            if (passwordIsValid) {
+                console.log('Login bem-sucedido para médico:', doctor.id);
+                await createSession({ userId: doctor.id, role: 'doctor' });
+                console.log('Sessão criada para médico, redirecionando...');
+                redirectPath = '/doctor';
+            } else {
+                console.log('Senha inválida para médico');
+            }
+        }
+    }
+
+    // Finally check patient
     if (!redirectPath) {
         console.log('Verificando paciente...');
         const patient = await getPatientByEmailWithAuth(email);

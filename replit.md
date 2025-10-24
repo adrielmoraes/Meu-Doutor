@@ -59,7 +59,38 @@ Preferred communication style: Simple, everyday language.
 ### Payment & Subscription
 - Stripe (payment processing and subscription management)
 
+## Admin Access
+
+### Default Admin Credentials
+- **Email**: admin@mediai.com
+- **Password**: admin123
+- **Access**: Navigate to `/login` and enter the credentials above
+- **Admin Panel**: After login, you'll be redirected to `/admin`
+
+### Admin Features
+- **Dashboard**: Overview of platform statistics (patients, doctors, exams, consultations)
+- **Patient Management**: View and manage all patient records
+- **Doctor Management**: View and manage all doctor profiles
+- **Exam Management**: View all submitted exams and their AI analysis results
+- **Consultation Management**: Monitor all consultation sessions
+- **Global Search**: Search across all platform data
+- **Settings**: Platform configuration and security settings
+
+### Creating Additional Admins
+Run the script: `npx tsx scripts/create-admin.ts`
+
 ## Recent Changes
+
+### October 24, 2025
+- **Admin System** (✅ PRODUCTION READY):
+  - Created default admin user with credentials (admin@mediai.com / admin123)
+  - Enhanced login system to support admin authentication
+  - Admin panel fully functional with complete platform oversight
+  - Database tables: `admins` and `adminAuth` with JWT-based session management
+  - Admin layout with sidebar navigation and role-based access control
+  - Script available: `scripts/create-admin.ts` for creating additional admins
+  - Fixed trial period display from "5 dias" to "7 dias" on homepage and subscription page
+  - Optimized subscription page layout to display all 4 plans (Trial, Básico, Premium, Familiar)
 
 ### October 21, 2025
 - **Email Verification System** (✅ PRODUCTION READY):
