@@ -4,7 +4,7 @@
 import { useEffect, useState, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Eye, EyeOff } from 'lucide-react';
 import { loginAction } from './actions';
 import { useRouter } from 'next/navigation';
 
@@ -26,6 +26,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [state, formAction] = useActionState(loginAction, { message: '' });
   const [errorMessage, setErrorMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (state?.success && state?.redirectPath) {
@@ -84,14 +85,28 @@ export default function LoginPage() {
               <label htmlFor="password" className="text-sm font-medium text-blue-200">
                 Senha
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="w-full px-4 py-3 rounded-lg bg-slate-800/50 border border-cyan-500/30 text-white placeholder-blue-200/40 focus:outline-none focus:border-cyan-500 transition-colors"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  className="w-full px-4 py-3 pr-12 rounded-lg bg-slate-800/50 border border-cyan-500/30 text-white placeholder-blue-200/40 focus:outline-none focus:border-cyan-500 transition-colors"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-200/60 hover:text-cyan-400 transition-colors"
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
             </div>
             
             <SubmitButton />
