@@ -59,6 +59,9 @@ Preferred communication style: Simple, everyday language.
 ### Payment & Subscription
 - Stripe (payment processing and subscription management)
 
+### Email & Notifications
+- Resend (transactional email service for admin notifications)
+
 ## Admin Access
 
 ### Default Admin Credentials
@@ -74,12 +77,37 @@ Preferred communication style: Simple, everyday language.
 - **Exam Management**: View all submitted exams and their AI analysis results
 - **Consultation Management**: Monitor all consultation sessions
 - **Global Search**: Search across all platform data
-- **Settings**: Platform configuration and security settings
+- **Settings**: Platform configuration with 4 sections:
+  - Security: Password management and session info
+  - Database: Real-time stats and health monitoring
+  - Notifications: Email alerts configuration
+  - General: Platform info and system limits
 
 ### Creating Additional Admins
 Run the script: `npx tsx scripts/create-admin.ts`
 
 ## Recent Changes
+
+### October 25, 2025
+- **Admin Notifications & Audit System** (✅ PRODUCTION READY):
+  - **Database Schema**: 
+    - Created `admin_settings` table with all configuration fields (platform info, limits, notification preferences)
+    - Created `audit_logs` table for complete change tracking with IP, User Agent, and detailed change history
+  - **Email Integration**:
+    - Resend integration fully configured and connected
+    - Email notification service (`src/lib/admin-notification-service.ts`) with professional HTML templates
+    - Support for 6 notification types: new patient, new doctor, new exam, new consultation, system alerts, weekly reports
+    - Smart filtering based on admin notification preferences
+  - **Settings Persistence**:
+    - All admin settings now save to and load from database automatically
+    - Real-time feedback with loading states, success/error messages
+    - `getSettings()`, `updateGeneralSettings()`, and `updateNotificationSettings()` server actions
+  - **Audit Logging**:
+    - Automatic tracking of all configuration changes
+    - Logs include: admin info, action type, entity affected, before/after values, IP address, User Agent
+    - Database adapter functions: `createAuditLog()`, `getAuditLogs()`, `getAuditLogsByAdmin()`, `getAuditLogsByAction()`
+  - **Documentation**: Complete guide created in `ADMIN_NOTIFICATIONS_GUIDE.md`
+  - **Security**: All changes tracked with IP and User Agent for accountability
 
 ### October 24, 2025
 - **Admin System** (✅ PRODUCTION READY):
