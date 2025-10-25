@@ -1,7 +1,7 @@
 
 'use server';
 
-import { addExamToPatient, updatePatient, addAppointment, deleteExam } from "@/lib/db-adapter";
+import { addExamToPatient, updatePatient, addAppointment, deleteExam, trackUsage } from "@/lib/db-adapter";
 import { revalidatePath } from "next/cache";
 import type { Appointment, Exam } from "@/types";
 import { regeneratePatientWellnessPlan } from "@/ai/flows/update-wellness-plan";
@@ -31,6 +31,15 @@ export async function saveExamAnalysisAction(patientId: string, analysisData: Ex
             suggestions: analysisData.suggestions,
             results: analysisData.structuredResults || [],
             specialistFindings: analysisData.specialistFindings || [],
+        });
+        
+        // Track exam analysis usage
+        trackUsage({
+            patientId,
+            usageType: 'exam_analysis',
+            resourceName: analysisData.fileName,
+        }).catch(error => {
+            console.error('[Usage Tracking] Failed to track exam analysis:', error);
         });
         
         // Trigger wellness plan update in the background (fire-and-forget)

@@ -8,6 +8,58 @@ const protectedPatientRoutes = ['/patient'];
 const protectedDoctorRoutes = ['/doctor'];
 const publicRoutes = ['/login', '/register', '/'];
 
+/**
+ * Adiciona headers de segurança às respostas
+ */
+function addSecurityHeaders(response: NextResponse): NextResponse {
+  // Content Security Policy - permite recursos necessários para o MediAI
+  const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://cdn.jsdelivr.net;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    img-src 'self' blob: data: https://*.googleusercontent.com https://*.livekit.cloud https://tavus.io;
+    font-src 'self' https://fonts.gstatic.com;
+    connect-src 'self' https://*.googleapis.com https://*.livekit.cloud wss://*.livekit.cloud https://api.stripe.com https://tavus.io wss://tavus.io https://*.daily.co;
+    media-src 'self' blob: https://*.livekit.cloud https://tavus.io;
+    object-src 'none';
+    frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://tavus.io;
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    upgrade-insecure-requests;
+  `.replace(/\s{2,}/g, ' ').trim();
+
+  response.headers.set('Content-Security-Policy', cspHeader);
+  
+  // Previne clickjacking
+  response.headers.set('X-Frame-Options', 'DENY');
+  
+  // Previne MIME-type sniffing
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  
+  // Controle de informações do referrer
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // Controle de permissões de APIs do navegador
+  response.headers.set(
+    'Permissions-Policy',
+    'camera=(self), microphone=(self), geolocation=(), interest-cohort=()'
+  );
+  
+  // HSTS - força HTTPS (apenas em produção)
+  if (process.env.NODE_ENV === 'production') {
+    response.headers.set(
+      'Strict-Transport-Security',
+      'max-age=31536000; includeSubDomains'
+    );
+  }
+  
+  // XSS Protection (legacy, mas ainda útil)
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+  
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
@@ -18,7 +70,8 @@ export async function middleware(request: NextRequest) {
   const isDoctorRoute = protectedDoctorRoutes.some(prefix => pathname.startsWith(prefix));
   
   if (!replitUserId && (isPatientRoute || isDoctorRoute)) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    const response = NextResponse.redirect(new URL('/login', request.url));
+    return addSecurityHeaders(response);
   }
 
   if (replitUserId) {
@@ -29,20 +82,24 @@ export async function middleware(request: NextRequest) {
       .limit(1);
 
     if (userMapping.length === 0 && (isPatientRoute || isDoctorRoute)) {
-      return NextResponse.redirect(new URL('/role-selection', request.url));
+      const response = NextResponse.redirect(new URL('/role-selection', request.url));
+      return addSecurityHeaders(response);
     }
 
     const role = userMapping[0]?.role;
 
     if (isPatientRoute && role !== 'patient') {
-      return NextResponse.redirect(new URL('/login', request.url));
+      const response = NextResponse.redirect(new URL('/login', request.url));
+      return addSecurityHeaders(response);
     }
     if (isDoctorRoute && role !== 'doctor') {
-      return NextResponse.redirect(new URL('/login', request.url));
+      const response = NextResponse.redirect(new URL('/login', request.url));
+      return addSecurityHeaders(response);
     }
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  return addSecurityHeaders(response);
 }
 
 // See "Matching Paths" below to learn more
