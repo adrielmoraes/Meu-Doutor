@@ -1,14 +1,12 @@
 
 'use server';
 
-import { Storage } from '@google-cloud/storage';
 import { getSession } from '@/lib/session';
 import { revalidateTag } from 'next/cache';
 import { updatePatient } from '@/lib/db-adapter';
 import type { Patient } from '@/types';
-
-const storage = new Storage();
-const bucketName = process.env.GCS_BUCKET_NAME || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'mediai-uploads';
+import { writeFile, mkdir } from 'fs/promises';
+import path from 'path';
 
 // Ação para atualizar os campos de texto do perfil do paciente
 export async function updatePatientProfile(formData: FormData): Promise<{ success: boolean; message: string }> {
@@ -67,17 +65,18 @@ export async function uploadPatientAvatarAction(formData: FormData): Promise<{ s
     try {
         const fileBuffer = Buffer.from(await file.arrayBuffer());
         const fileExtension = file.name.split('.').pop();
-        const fileName = `avatars/patients/${userId}-${Date.now()}.${fileExtension}`;
+        const fileName = `${userId}-${Date.now()}.${fileExtension}`;
         
-        const bucket = storage.bucket(bucketName);
-        const fileUpload = bucket.file(fileName);
-
-        await fileUpload.save(fileBuffer, {
-            metadata: { contentType: file.type },
-        });
-
-        await fileUpload.makePublic();
-        const publicUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
+        // Criar diretório se não existir
+        const uploadDir = path.join(process.cwd(), 'public', 'avatars', 'patients');
+        await mkdir(uploadDir, { recursive: true });
+        
+        // Salvar arquivo localmente
+        const filePath = path.join(uploadDir, fileName);
+        await writeFile(filePath, fileBuffer);
+        
+        // URL público relativo
+        const publicUrl = `/avatars/patients/${fileName}`;
 
         await updatePatient(userId, { avatar: publicUrl });
         revalidateTag(`patient-profile-${userId}`);
