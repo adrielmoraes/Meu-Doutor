@@ -34,6 +34,11 @@ Preferred communication style: Simple, everyday language.
 - **Email Verification**: System for patient and doctor email verification with unique CPF/CRM validation and secure token-based verification.
 - **Subscription Management**: Integrated Stripe for handling subscription plans (Trial, Basic, Premium, Family) with usage-based tiers, secure payment processing, and webhook integration. Includes a 7-day free trial.
 - **Security & Monitoring**: Implemented comprehensive security headers (CSP, X-Frame-Options, etc.), Sentry for error tracking, structured logging, and usage tracking for resource consumption per patient.
+- **Performance Optimization**: In-memory cache layer with TTL/LRU eviction, generic pagination system with offset and cursor support, optimized image components with lazy loading.
+- **Real-Time Notifications**: Server-Sent Events (SSE) system for real-time notifications of exam results, appointments, and alerts.
+- **Data Export & LGPD**: Patient data export system supporting JSON and HTML formats for LGPD compliance (data portability rights).
+- **Appointment Scheduling**: Intelligent scheduling system with conflict detection, availability checking, and slot management to prevent double-bookings.
+- **Advanced Search**: Multi-entity search system with filters for patients, doctors, and exams, integrated with pagination.
 
 ## External Dependencies
 
