@@ -6,6 +6,8 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import { login as createSession } from '@/lib/session';
+import { loginRateLimiter } from '@/lib/rate-limiter';
+import { headers } from 'next/headers';
 
 const LoginSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
@@ -24,6 +26,25 @@ export async function loginAction(prevState: any, formData: FormData) {
   }
 
   const { email, password } = validatedFields.data;
+
+  // Rate limiting por IP
+  const headersList = await headers();
+  const forwardedFor = headersList.get('x-forwarded-for');
+  const realIp = headersList.get('x-real-ip');
+  const ip = forwardedFor?.split(',')[0] || realIp || 'unknown';
+  
+  // Verificar se está bloqueado
+  if (loginRateLimiter.isBlocked(ip)) {
+    const remainingSeconds = loginRateLimiter.getBlockedTimeRemaining(ip);
+    const minutes = Math.ceil(remainingSeconds / 60);
+    
+    console.warn(`[RateLimiter] Login bloqueado para IP ${ip} - ${remainingSeconds}s restantes`);
+    
+    return {
+      ...prevState,
+      message: `Muitas tentativas de login falhadas. Tente novamente em ${minutes} minuto(s).`,
+    };
+  }
 
   let redirectPath: string | null = null;
 
@@ -87,6 +108,9 @@ export async function loginAction(prevState: any, formData: FormData) {
     }
     
     if (redirectPath) {
+        // Login bem-sucedido - limpar tentativas
+        loginRateLimiter.recordSuccessfulAttempt(ip);
+        
         return {
             ...prevState,
             success: true,
@@ -95,10 +119,21 @@ export async function loginAction(prevState: any, formData: FormData) {
         };
     }
 
+    // Login falhou - registrar tentativa
+    loginRateLimiter.recordFailedAttempt(ip);
+    const remainingAttempts = loginRateLimiter.getRemainingAttempts(ip);
+    
+    console.warn(`[RateLimiter] Tentativa falhada para IP ${ip} - ${remainingAttempts} tentativas restantes`);
+    
     // Generic error message for security reasons
+    let message = 'E-mail ou senha inválidos.';
+    if (remainingAttempts <= 2 && remainingAttempts > 0) {
+      message += ` Você tem ${remainingAttempts} tentativa(s) restante(s).`;
+    }
+    
     return {
       ...prevState,
-      message: 'E-mail ou senha inválidos.',
+      message,
     };
 
   } catch (error: any) {

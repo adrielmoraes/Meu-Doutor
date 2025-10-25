@@ -22,9 +22,6 @@ if (!providedSecret) {
 }
 const secretKey = providedSecret || 'dev-insecure-secret';
 
-// Debug: Log a part of the secret key to ensure consistency
-console.log('[Session Debug] JWT_SECRET (partial):', secretKey.substring(0, 5) + '...');
-
 const encodedKey = new TextEncoder().encode(secretKey);
 
 export async function encrypt(payload: SessionPayload) {

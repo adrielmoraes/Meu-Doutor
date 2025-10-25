@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPatientById, getDoctorById } from '@/lib/db-adapter';
+import { getPatientById, getDoctorById, getAdminById } from '@/lib/db-adapter';
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,6 +34,18 @@ export async function GET(request: NextRequest) {
         email: doctor.email,
         avatar: doctor.avatar,
         avatarHint: doctor.avatarHint,
+      });
+    } else if (role === 'admin') {
+      const admin = await getAdminById(userId);
+      if (!admin) {
+        return NextResponse.json({ error: 'Admin not found' }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        name: admin.name,
+        email: admin.email,
+        avatar: null,
+        avatarHint: null,
       });
     }
 
