@@ -221,8 +221,8 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6 mt-6">
-            {/* Live Consultation Banner - Restaurado */}
-            <Card className="text-white border-0 shadow-2xl overflow-hidden relative min-h-[280px]">
+            {/* Live Consultation Banner - Responsivo */}
+            <Card className="text-white border-0 shadow-2xl overflow-hidden relative min-h-[320px] md:min-h-[400px] lg:min-h-[450px]">
               <video 
                 autoPlay 
                 loop 
@@ -235,16 +235,16 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
               
               <div className="absolute inset-0 bg-gradient-to-br from-purple-900/40 via-pink-900/40 to-purple-900/40" />
               
-              <CardContent className="p-8 relative z-10">
-                <div className="flex flex-col items-start gap-4">
-                  <div className="flex items-center gap-3 mb-1">
-                    <h3 className="text-4xl md:text-5xl font-bold drop-shadow-2xl">Consulta ao Vivo com a IA</h3>
+              <CardContent className="p-6 md:p-8 lg:p-10 relative z-10">
+                <div className="flex flex-col items-start gap-3 md:gap-4">
+                  <div className="flex items-center gap-2 md:gap-3 mb-1">
+                    <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold drop-shadow-2xl">Consulta ao Vivo com a IA</h3>
                     <Badge className="bg-white/30 text-white border-white/40 text-xs backdrop-blur-sm">NOVO</Badge>
                   </div>
-                  <p className="text-white/90 text-base drop-shadow-lg mb-2">
+                  <p className="text-white/90 text-sm md:text-base lg:text-lg drop-shadow-lg mb-2">
                     Atendimento médico personalizado 24/7 com acesso completo ao seu histórico
                   </p>
-                  <div className="flex flex-wrap gap-2 text-sm mb-4">
+                  <div className="flex flex-wrap gap-2 text-xs md:text-sm mb-4">
                     <span className="flex items-center gap-1 bg-white/25 px-3 py-1.5 rounded-full backdrop-blur-sm">
                       <Brain className="h-4 w-4" /> Conhece seus exames
                     </span>
