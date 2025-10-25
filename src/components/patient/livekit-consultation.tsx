@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   LiveKitRoom, 
   RoomAudioRenderer, 
@@ -109,7 +109,8 @@ export default function LiveKitConsultation({ patientId, patientName }: LiveKitC
   const [serverUrl, setServerUrl] = useState<string>('');
   const [isConnecting, setIsConnecting] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  
+  const consultationStartTime = useRef<number | null>(null);
   const roomName = `mediai-consultation-${patientId}`;
 
   // Auto-start consultation on component mount
@@ -139,6 +140,9 @@ export default function LiveKitConsultation({ patientId, patientName }: LiveKitC
         setToken(data.token);
         setServerUrl(data.url);
         setIsConnecting(false);
+        
+        // Track consultation start time
+        consultationStartTime.current = Date.now();
 
       } catch (err: any) {
         console.error('Erro ao iniciar consulta:', err);
@@ -150,7 +154,36 @@ export default function LiveKitConsultation({ patientId, patientName }: LiveKitC
     startConsultation();
   }, [patientId, patientName, roomName]);
 
-  const endConsultation = () => {
+  const endConsultation = async () => {
+    // Track consultation duration usando navigator.sendBeacon para garantir envio
+    if (consultationStartTime.current) {
+      const durationSeconds = Math.floor((Date.now() - consultationStartTime.current) / 1000);
+      
+      // Usar sendBeacon para garantir que o request seja enviado mesmo durante navegação
+      const data = JSON.stringify({
+        patientId,
+        consultationType: 'ai',
+        durationSeconds,
+      });
+      
+      const blob = new Blob([data], { type: 'application/json' });
+      const sent = navigator.sendBeacon('/api/track-consultation', blob);
+      
+      if (!sent) {
+        // Fallback: await fetch se sendBeacon falhar
+        try {
+          await fetch('/api/track-consultation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: data,
+            keepalive: true, // Permite request continuar após página fechar
+          });
+        } catch (error) {
+          console.error('[Usage Tracking] Failed to track consultation:', error);
+        }
+      }
+    }
+    
     window.location.href = '/patient/dashboard';
   };
 
