@@ -76,6 +76,7 @@ Preferred communication style: Simple, everyday language.
 - **Doctor Management**: View and manage all doctor profiles
 - **Exam Management**: View all submitted exams and their AI analysis results
 - **Consultation Management**: Monitor all consultation sessions
+- **Usage Tracking**: Real-time monitoring of resource consumption per patient (tokens, call duration, costs)
 - **Global Search**: Search across all platform data
 - **Settings**: Platform configuration with 4 sections:
   - Security: Password management and session info
@@ -88,7 +89,33 @@ Run the script: `npx tsx scripts/create-admin.ts`
 
 ## Recent Changes
 
-### October 25, 2025
+### October 25, 2025 (Latest Update)
+- **Enhanced Login UX** (✅ COMPLETE):
+  - Added show/hide password toggle on login page with eye icon
+  - Improved user experience with better password visibility control
+  
+- **Usage Tracking System** (✅ PRODUCTION READY):
+  - **Database Schema**: 
+    - Created `usage_tracking` table to monitor patient resource consumption
+    - Tracks: exam analysis, STT/LLM/TTS tokens, AI call time, doctor call time, chat usage
+  - **Admin Dashboard**:
+    - New "Uso de Recursos" page at `/admin/usage`
+    - Real-time monitoring of token usage per patient
+    - Detailed breakdown of resource consumption by type
+    - Cost estimation for API usage
+    - Summary cards showing total tokens, call duration, exams, and costs
+  - **Database Functions**:
+    - `trackUsage()`: Record resource consumption events
+    - `getPatientUsageStats()`: Get usage statistics for a specific patient
+    - `getAllPatientsUsageStats()`: Get usage stats for all patients
+  - **TypeScript Types**: `UsageTracking`, `PatientUsageStats`
+  
+- **Avatar Upload Fix** (✅ COMPLETE):
+  - Fixed patient and doctor avatar upload functionality
+  - Replaced Google Cloud Storage dependency with local file storage
+  - Avatars now saved to `public/avatars/patients/` and `public/avatars/doctors/`
+  - No external cloud credentials required
+
 - **Admin Notifications & Audit System** (✅ PRODUCTION READY):
   - **Database Schema**: 
     - Created `admin_settings` table with all configuration fields (platform info, limits, notification preferences)

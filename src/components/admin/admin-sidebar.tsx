@@ -12,7 +12,8 @@ import {
   Search,
   Settings,
   Shield,
-  LogOut
+  LogOut,
+  Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -24,6 +25,7 @@ const navigation = [
   { name: 'Médicos', href: '/admin/doctors', icon: Stethoscope },
   { name: 'Exames', href: '/admin/exams', icon: FileText },
   { name: 'Consultas', href: '/admin/consultations', icon: MessageSquare },
+  { name: 'Uso de Recursos', href: '/admin/usage', icon: Activity },
   { name: 'Busca Global', href: '/admin/search', icon: Search },
   { name: 'Configurações', href: '/admin/settings', icon: Settings },
 ];
