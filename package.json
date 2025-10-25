@@ -59,6 +59,7 @@
     "drizzle-kit": "^0.31.5",
     "drizzle-orm": "^0.44.6",
     "embla-carousel-react": "^8.6.0",
+    "file-type": "^21.0.0",
     "firebase": "^11.10.0",
     "firebase-admin": "^12.2.0",
     "genkit": "^1.14.1",

@@ -26,9 +26,26 @@ export async function uploadAvatarAction(formData: FormData): Promise<{ success:
     }
 
     try {
+        // Validação de tamanho (2MB máximo)
+        const MAX_FILE_SIZE = 2 * 1024 * 1024;
+        if (file.size > MAX_FILE_SIZE) {
+            return { success: false, message: "Arquivo muito grande. Tamanho máximo: 2MB." };
+        }
+
         const fileBuffer = Buffer.from(await file.arrayBuffer());
-        const fileExtension = file.name.split('.').pop();
-        const fileName = `${userId}-${Date.now()}.${fileExtension}`;
+        
+        // Validação server-side do tipo real do arquivo usando magic bytes
+        const { fileTypeFromBuffer } = await import('file-type');
+        const detectedType = await fileTypeFromBuffer(fileBuffer);
+        
+        const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!detectedType || !ALLOWED_MIME_TYPES.includes(detectedType.mime)) {
+            return { success: false, message: "Tipo de arquivo não permitido. Use apenas JPEG, PNG ou GIF." };
+        }
+        
+        // Usar a extensão detectada pelo servidor (não confiável do cliente)
+        const safeExtension = detectedType.ext;
+        const fileName = `${userId}-${Date.now()}.${safeExtension}`;
         
         // Criar diretório se não existir
         const uploadDir = path.join(process.cwd(), 'public', 'avatars', 'doctors');
