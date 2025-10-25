@@ -15,7 +15,7 @@ import {
   consultations,
 } from '../../shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import type { Doctor, DoctorWithPassword, Patient, PatientWithPassword, Admin, AdminWithPassword, Exam, Appointment, Consultation, AdminSettings, AuditLog } from '@/types';
+import type { Doctor, DoctorWithPassword, Patient, PatientWithPassword, Admin, AdminWithPassword, Exam, Appointment, Consultation, AdminSettings, AuditLog, UsageTracking, PatientUsageStats } from '@/types';
 import { randomUUID } from 'crypto';
 
 export async function getDoctorByEmail(email: string): Promise<Doctor | null> {
@@ -628,4 +628,130 @@ export async function getAuditLogsByAction(action: string, limit: number = 50): 
     .limit(limit);
   
   return results as AuditLog[];
+}
+
+// ========== Usage Tracking Functions ==========
+
+export async function trackUsage(usageData: {
+  patientId: string;
+  usageType: 'exam_analysis' | 'stt' | 'llm' | 'tts' | 'ai_call' | 'doctor_call' | 'chat';
+  resourceName?: string;
+  tokensUsed?: number;
+  durationSeconds?: number;
+  cost?: number;
+  metadata?: Record<string, any>;
+}): Promise<void> {
+  const { usageTracking } = await import('../../shared/schema');
+  
+  await db.insert(usageTracking).values({
+    id: randomUUID(),
+    patientId: usageData.patientId,
+    usageType: usageData.usageType,
+    resourceName: usageData.resourceName || null,
+    tokensUsed: usageData.tokensUsed || 0,
+    durationSeconds: usageData.durationSeconds || 0,
+    cost: usageData.cost || 0,
+    metadata: usageData.metadata || null,
+  });
+}
+
+export async function getPatientUsageStats(patientId: string): Promise<PatientUsageStats | null> {
+  const { usageTracking } = await import('../../shared/schema');
+  
+  const usage = await db
+    .select()
+    .from(usageTracking)
+    .where(eq(usageTracking.patientId, patientId));
+  
+  if (usage.length === 0) {
+    const patient = await getPatientById(patientId);
+    if (!patient) return null;
+    
+    return {
+      patientId,
+      patientName: patient.name,
+      patientEmail: patient.email,
+      totalTokens: 0,
+      totalCallDuration: 0,
+      totalCost: 0,
+      examAnalysisCount: 0,
+      aiCallDuration: 0,
+      doctorCallDuration: 0,
+      breakdown: {
+        examAnalysis: 0,
+        stt: 0,
+        llm: 0,
+        tts: 0,
+        aiCall: 0,
+        doctorCall: 0,
+        chat: 0,
+      },
+    };
+  }
+  
+  const patient = await getPatientById(patientId);
+  if (!patient) return null;
+  
+  const stats = {
+    patientId,
+    patientName: patient.name,
+    patientEmail: patient.email,
+    totalTokens: 0,
+    totalCallDuration: 0,
+    totalCost: 0,
+    examAnalysisCount: 0,
+    aiCallDuration: 0,
+    doctorCallDuration: 0,
+    breakdown: {
+      examAnalysis: 0,
+      stt: 0,
+      llm: 0,
+      tts: 0,
+      aiCall: 0,
+      doctorCall: 0,
+      chat: 0,
+    },
+  };
+  
+  for (const record of usage) {
+    stats.totalTokens += record.tokensUsed || 0;
+    stats.totalCallDuration += record.durationSeconds || 0;
+    stats.totalCost += record.cost || 0;
+    
+    switch (record.usageType) {
+      case 'exam_analysis':
+        stats.breakdown.examAnalysis += record.tokensUsed || 0;
+        stats.examAnalysisCount += 1;
+        break;
+      case 'stt':
+        stats.breakdown.stt += record.tokensUsed || 0;
+        break;
+      case 'llm':
+        stats.breakdown.llm += record.tokensUsed || 0;
+        break;
+      case 'tts':
+        stats.breakdown.tts += record.tokensUsed || 0;
+        break;
+      case 'ai_call':
+        stats.breakdown.aiCall += record.durationSeconds || 0;
+        stats.aiCallDuration += record.durationSeconds || 0;
+        break;
+      case 'doctor_call':
+        stats.breakdown.doctorCall += record.durationSeconds || 0;
+        stats.doctorCallDuration += record.durationSeconds || 0;
+        break;
+      case 'chat':
+        stats.breakdown.chat += record.tokensUsed || 0;
+        break;
+    }
+  }
+  
+  return stats;
+}
+
+export async function getAllPatientsUsageStats(): Promise<PatientUsageStats[]> {
+  const patients = await getPatients();
+  const statsPromises = patients.map(patient => getPatientUsageStats(patient.id));
+  const allStats = await Promise.all(statsPromises);
+  return allStats.filter((stat): stat is PatientUsageStats => stat !== null);
 }

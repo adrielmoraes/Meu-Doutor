@@ -371,6 +371,27 @@ export const auditLogs = pgTable('audit_logs', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Usage Tracking - Rastreamento de uso de recursos por paciente
+export const usageTracking = pgTable('usage_tracking', {
+  id: text('id').primaryKey(),
+  patientId: text('patient_id').notNull().references(() => patients.id, { onDelete: 'cascade' }),
+  usageType: text('usage_type').notNull(), // 'exam_analysis', 'stt', 'llm', 'tts', 'ai_call', 'doctor_call', 'chat'
+  resourceName: text('resource_name'), // Nome específico do recurso (ex: 'Gemini 2.5 Flash', 'Tavus Avatar')
+  tokensUsed: integer('tokens_used').default(0), // Tokens de AI usados
+  durationSeconds: integer('duration_seconds').default(0), // Duração em segundos (para chamadas)
+  cost: integer('cost').default(0), // Custo estimado em centavos
+  metadata: json('metadata').$type<{
+    examId?: string;
+    consultationId?: string;
+    model?: string;
+    inputTokens?: number;
+    outputTokens?: number;
+    audioSeconds?: number;
+    [key: string]: any;
+  }>(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const subscriptionsRelations = relations(subscriptions, ({ one, many }) => ({
   patient: one(patients, {
     fields: [subscriptions.patientId],

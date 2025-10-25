@@ -187,3 +187,44 @@ export type AuditLog = {
     userAgent?: string | null;
     createdAt: Date;
 };
+
+export type UsageTracking = {
+    id: string;
+    patientId: string;
+    usageType: 'exam_analysis' | 'stt' | 'llm' | 'tts' | 'ai_call' | 'doctor_call' | 'chat';
+    resourceName?: string | null;
+    tokensUsed: number;
+    durationSeconds: number;
+    cost: number;
+    metadata?: {
+        examId?: string;
+        consultationId?: string;
+        model?: string;
+        inputTokens?: number;
+        outputTokens?: number;
+        audioSeconds?: number;
+        [key: string]: any;
+    };
+    createdAt: Date;
+};
+
+export type PatientUsageStats = {
+    patientId: string;
+    patientName: string;
+    patientEmail: string;
+    totalTokens: number;
+    totalCallDuration: number; // em segundos
+    totalCost: number; // em centavos
+    examAnalysisCount: number;
+    aiCallDuration: number; // em segundos
+    doctorCallDuration: number; // em segundos
+    breakdown: {
+        examAnalysis: number; // tokens
+        stt: number; // tokens
+        llm: number; // tokens
+        tts: number; // tokens
+        aiCall: number; // segundos
+        doctorCall: number; // segundos
+        chat: number; // tokens
+    };
+};
