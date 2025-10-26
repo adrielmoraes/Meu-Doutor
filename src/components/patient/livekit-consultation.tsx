@@ -25,12 +25,26 @@ function AvatarVideoDisplay() {
   const tracks = useTracks([Track.Source.Camera], {
     onlySubscribed: true,
   });
+  const [showAudioOnly, setShowAudioOnly] = useState(false);
 
   const avatarTrack = tracks.find(track => 
     track.participant.identity.includes('agent') || 
     track.participant.name?.includes('MediAI')
   );
 
+  // Timeout: Se não houver vídeo após 10 segundos, mostra modo áudio
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!avatarTrack && remoteParticipants.length > 0) {
+        console.log('[MediAI] Tavus avatar não disponível - usando modo áudio apenas');
+        setShowAudioOnly(true);
+      }
+    }, 10000); // 10 segundos
+
+    return () => clearTimeout(timeout);
+  }, [avatarTrack, remoteParticipants]);
+
+  // Se há vídeo do avatar, mostra
   if (avatarTrack && avatarTrack.publication) {
     return (
       <div className="w-full h-full bg-slate-900 flex items-center justify-center">
@@ -42,6 +56,54 @@ function AvatarVideoDisplay() {
     );
   }
 
+  // Se detectou participante remoto mas sem vídeo (modo áudio)
+  if (showAudioOnly || (remoteParticipants.length > 0 && !avatarTrack)) {
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 flex flex-col items-center justify-center gap-6 relative overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-300 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        </div>
+        
+        {/* Content */}
+        <div className="relative z-10 flex flex-col items-center gap-6">
+          <div className="w-32 h-32 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center border-4 border-white/30 shadow-2xl">
+            <div className="w-24 h-24 bg-gradient-to-br from-white to-blue-100 rounded-full flex items-center justify-center">
+              <svg className="w-12 h-12 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+              </svg>
+            </div>
+          </div>
+          
+          <div className="text-center space-y-3">
+            <p className="text-2xl font-bold text-white drop-shadow-lg">MediAI está ouvindo</p>
+            <p className="text-lg text-white/90">Consulta por áudio conectada</p>
+            <p className="text-sm text-white/70 max-w-md mx-auto">
+              Fale normalmente - a assistente pode ouvir você e responder
+            </p>
+          </div>
+
+          {/* Audio wave animation */}
+          <div className="flex items-center gap-2 mt-4">
+            {[...Array(5)].map((_, i) => (
+              <div
+                key={i}
+                className="w-1 bg-white rounded-full animate-pulse"
+                style={{
+                  height: `${Math.random() * 40 + 20}px`,
+                  animationDelay: `${i * 0.1}s`,
+                  animationDuration: '0.8s'
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Aguardando conexão
   return (
     <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex flex-col items-center justify-center gap-6">
       <div className="relative">
