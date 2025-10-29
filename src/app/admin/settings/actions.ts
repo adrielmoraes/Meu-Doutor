@@ -257,3 +257,62 @@ export async function updateNotificationSettings({
     return { success: false, error: 'Erro ao processar solicitação' };
   }
 }
+
+export async function updateAvatarSettings({
+  adminId,
+  avatarProvider,
+}: {
+  adminId: string;
+  avatarProvider: 'tavus' | 'bey';
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const settings = await getAdminSettings();
+    if (!settings) {
+      return { success: false, error: 'Configurações não encontradas' };
+    }
+
+    const adminRecord = await db.select().from(admins).where(eq(admins.id, adminId)).limit(1);
+    if (!adminRecord[0]) {
+      return { success: false, error: 'Administrador não encontrado' };
+    }
+
+    // Criar logs das mudanças
+    const changes: Array<{
+      field: string;
+      oldValue: string | number | boolean | null;
+      newValue: string | number | boolean | null;
+    }> = [];
+
+    if (settings.avatarProvider !== avatarProvider) {
+      changes.push({ field: 'avatarProvider', oldValue: settings.avatarProvider, newValue: avatarProvider });
+    }
+
+    await updateAdminSettings(settings.id, {
+      avatarProvider,
+    });
+
+    // Criar log de auditoria
+    if (changes.length > 0) {
+      const headersList = await headers();
+      const ipAddress = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'unknown';
+      const userAgent = headersList.get('user-agent') || 'unknown';
+
+      await createAuditLog({
+        adminId: adminRecord[0].id,
+        adminName: adminRecord[0].name,
+        adminEmail: adminRecord[0].email,
+        action: 'update_avatar_settings',
+        entityType: 'admin_settings',
+        entityId: settings.id,
+        changes,
+        ipAddress,
+        userAgent,
+      });
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Erro ao atualizar configurações de avatar:', error);
+    return { success: false, error: 'Erro ao processar solicitação' };
+  }
+}

@@ -159,6 +159,7 @@ export type AdminSettings = {
     supportEmail: string;
     maxFileSize: number; // MB
     sessionTimeout: number; // dias
+    avatarProvider: 'tavus' | 'bey'; // Avatar provider for AI consultations
     notifyNewPatient: boolean;
     notifyNewDoctor: boolean;
     notifyNewExam: boolean;

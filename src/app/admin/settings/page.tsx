@@ -6,6 +6,7 @@ import { SecuritySettings } from "@/components/admin/settings/security-settings"
 import { DatabaseSettings } from "@/components/admin/settings/database-settings";
 import { NotificationSettings } from "@/components/admin/settings/notification-settings";
 import { GeneralSettings } from "@/components/admin/settings/general-settings";
+import { AvatarSettings } from "@/components/admin/settings/avatar-settings";
 
 export default async function AdminSettingsPage() {
   const session = await getSession();
@@ -56,6 +57,9 @@ export default async function AdminSettingsPage() {
 
         {/* Banco de Dados */}
         <DatabaseSettings stats={dbStats} />
+
+        {/* Avatar Provider */}
+        <AvatarSettings adminId={admin.id} />
 
         {/* Notificações */}
         <NotificationSettings adminId={admin.id} />

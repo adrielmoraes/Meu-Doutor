@@ -8,6 +8,7 @@ export const callStatusEnum = pgEnum('call_status', ['waiting', 'active', 'ended
 export const userRoleEnum = pgEnum('user_role', ['doctor', 'patient', 'admin']);
 export const subscriptionStatusEnum = pgEnum('subscription_status', ['active', 'canceled', 'past_due', 'trialing', 'incomplete']);
 export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'succeeded', 'failed', 'refunded']);
+export const avatarProviderEnum = pgEnum('avatar_provider', ['tavus', 'bey']);
 
 export const patients = pgTable('patients', {
   id: text('id').primaryKey(),
@@ -341,6 +342,7 @@ export const adminSettings = pgTable('admin_settings', {
   supportEmail: text('support_email').notNull().default('suporte@mediai.com'),
   maxFileSize: integer('max_file_size').notNull().default(10), // MB
   sessionTimeout: integer('session_timeout').notNull().default(7), // dias
+  avatarProvider: avatarProviderEnum('avatar_provider').notNull().default('tavus'), // Avatar provider: Tavus or BEY
   notifyNewPatient: boolean('notify_new_patient').notNull().default(true),
   notifyNewDoctor: boolean('notify_new_doctor').notNull().default(true),
   notifyNewExam: boolean('notify_new_exam').notNull().default(true),
