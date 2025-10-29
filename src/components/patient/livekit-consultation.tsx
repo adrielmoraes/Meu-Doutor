@@ -117,6 +117,31 @@ export default function LiveKitConsultation({ patientId, patientName }: LiveKitC
   useEffect(() => {
     const startConsultation = async () => {
       try {
+        // Primeiro, verificar permissões de mídia
+        console.log('[MediAI] Solicitando permissões de mídia...');
+        
+        try {
+          // Tentar obter permissão de microfone
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            audio: true,
+            video: false // Não exigir vídeo
+          });
+          
+          // Parar a stream depois de conseguir permissão
+          stream.getTracks().forEach(track => track.stop());
+          console.log('[MediAI] Permissões de mídia concedidas');
+        } catch (mediaError: any) {
+          console.error('[MediAI] Erro ao acessar mídia:', mediaError);
+          
+          // Se o erro for de permissão negada, mostrar mensagem clara
+          if (mediaError.name === 'NotAllowedError' || mediaError.name === 'PermissionDeniedError') {
+            throw new Error('Por favor, permita o acesso ao microfone para iniciar a consulta.');
+          }
+          
+          // Outros erros de mídia - tentar continuar mesmo assim
+          console.warn('[MediAI] Continuando apesar do erro de mídia:', mediaError.message);
+        }
+        
         const response = await fetch('/api/livekit/token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -237,10 +262,20 @@ export default function LiveKitConsultation({ patientId, patientName }: LiveKitC
           noiseSuppression: true,
           autoGainControl: true,
         }}
-        video={true}
+        video={{
+          deviceId: undefined, // Deixa o browser escolher
+          resolution: VideoPresets.h720.resolution,
+        }}
         onDisconnected={endConsultation}
         onError={(error) => {
           console.error('LiveKit error:', error);
+          // Ignora erros de dispositivo não encontrado (usuário pode não ter câmera)
+          if (error.message.includes('device not found') || 
+              error.message.includes('NotFoundError') ||
+              error.message.includes('Requested device')) {
+            console.warn('Dispositivo de vídeo não encontrado - continuando apenas com áudio');
+            return; // Não mostra erro, continua sem vídeo
+          }
           setError(`Erro de conexão: ${error.message}`);
         }}
         options={{
