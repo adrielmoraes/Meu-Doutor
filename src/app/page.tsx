@@ -2,7 +2,8 @@
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/header";
 import Link from "next/link";
-import { Stethoscope, ShieldCheck, Zap, ArrowRight, Sparkles, Lock, Brain, Activity, HeartPulse, Check } from "lucide-react";
+import { Stethoscope, ShieldCheck, Zap, ArrowRight, Sparkles, Lock, Brain, Activity, HeartPulse, Check, Upload, Video, MessageSquare, Star, CheckCircle2, Clock, Users } from "lucide-react";
+import MediAILogo from "@/components/layout/mediai-logo";
 
 export default function LandingPage() {
   return (
@@ -173,6 +174,211 @@ export default function LandingPage() {
                     Recomendações de nutrição, exercícios e lifestyle baseadas em IA para seu perfil único.
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* How It Works Section */}
+        <section className="relative w-full py-20 md:py-32">
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900"></div>
+          
+          <div className="container px-4 md:px-6 relative z-10">
+            <div className="text-center mb-16 space-y-4">
+              <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
+                Como Funciona
+              </h2>
+              <p className="text-lg text-blue-200/70 max-w-3xl mx-auto">
+                Três passos simples para revolucionar seu cuidado com a saúde
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              <div className="relative">
+                <div className="absolute -top-4 -left-4 w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-2xl shadow-cyan-500/50">
+                  1
+                </div>
+                <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-8 pt-12 border border-cyan-500/20 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/20 h-full">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center mb-6">
+                    <Upload className="h-7 w-7 text-cyan-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4">Envie seus Exames</h3>
+                  <p className="text-blue-200/70 leading-relaxed">
+                    Upload de documentos médicos, exames de sangue, imagens ou relatórios. Suporte para PDF, JPG, PNG.
+                  </p>
+                </div>
+              </div>
+
+              <div className="relative">
+                <div className="absolute -top-4 -left-4 w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-2xl shadow-purple-500/50">
+                  2
+                </div>
+                <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-8 pt-12 border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20 h-full">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mb-6">
+                    <Brain className="h-7 w-7 text-purple-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4">IA Analisa em Paralelo</h3>
+                  <p className="text-blue-200/70 leading-relaxed">
+                    15 especialistas IA examinam simultaneamente: cardiologista, neurologista, dermatologista e mais.
+                  </p>
+                </div>
+              </div>
+
+              <div className="relative">
+                <div className="absolute -top-4 -left-4 w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-2xl shadow-emerald-500/50">
+                  3
+                </div>
+                <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-8 pt-12 border border-emerald-500/20 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/20 h-full">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center mb-6">
+                    <Video className="h-7 w-7 text-emerald-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4">Consulta ao Vivo</h3>
+                  <p className="text-blue-200/70 leading-relaxed">
+                    Converse com IA médica por voz e vídeo. Receba diagnóstico detalhado e plano de tratamento personalizado.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Live Consultation Preview */}
+            <div className="mt-16 max-w-4xl mx-auto">
+              <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-3xl p-8 border border-cyan-500/20 shadow-2xl">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-semibold text-cyan-400">CONSULTA AO VIVO</span>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                      <MessageSquare className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 bg-cyan-500/10 rounded-2xl rounded-tl-none p-4 border border-cyan-500/20">
+                      <p className="text-sm text-blue-100">
+                        Olá! Sou a Dra. Sofia, sua assistente médica IA. Analisei seus exames e identifiquei alguns pontos importantes para discutirmos...
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 text-sm text-blue-200/50">
+                    <Clock className="h-4 w-4" />
+                    <span>Resposta em tempo real • Disponível 24/7</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials Section */}
+        <section className="relative w-full py-20 md:py-32">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-950/30 to-transparent"></div>
+          
+          <div className="container px-4 md:px-6 relative z-10">
+            <div className="text-center mb-16 space-y-4">
+              <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
+                O Que Nossos Pacientes Dizem
+              </h2>
+              <div className="flex items-center justify-center gap-1 text-yellow-400">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star key={star} className="h-6 w-6 fill-current" />
+                ))}
+                <span className="ml-2 text-blue-200/70 text-lg">4.9/5 de 2.500+ avaliações</span>
+              </div>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+              <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-8 border border-cyan-500/20 hover:border-cyan-500/40 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/20">
+                <div className="flex items-center gap-1 text-yellow-400 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="h-4 w-4 fill-current" />
+                  ))}
+                </div>
+                <p className="text-blue-100 mb-6 leading-relaxed">
+                  "Incrível! Recebi meu diagnóstico preliminar em minutos. A análise foi tão detalhada que meu médico ficou impressionado. Economizei semanas de espera."
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-lg font-bold">
+                    MC
+                  </div>
+                  <div>
+                    <div className="font-semibold text-cyan-300">Maria Clara</div>
+                    <div className="text-sm text-blue-200/60">Paciente desde Jan 2025</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-8 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
+                <div className="flex items-center gap-1 text-yellow-400 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="h-4 w-4 fill-current" />
+                  ))}
+                </div>
+                <p className="text-blue-100 mb-6 leading-relaxed">
+                  "A consulta por vídeo com a IA é surpreendentemente natural. Tirei todas minhas dúvidas e recebi um plano de bem-estar personalizado. Simplesmente fantástico!"
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-lg font-bold">
+                    RS
+                  </div>
+                  <div>
+                    <div className="font-semibold text-purple-300">Roberto Silva</div>
+                    <div className="text-sm text-blue-200/60">Paciente desde Dez 2024</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-8 border border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/20">
+                <div className="flex items-center gap-1 text-yellow-400 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="h-4 w-4 fill-current" />
+                  ))}
+                </div>
+                <p className="text-blue-100 mb-6 leading-relaxed">
+                  "Como médica, fiquei impressionada com a profundidade da análise. É uma ferramenta poderosa para triagem e segunda opinião. Recomendo fortemente!"
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-lg font-bold">
+                    AP
+                  </div>
+                  <div>
+                    <div className="font-semibold text-emerald-300">Dra. Ana Paula</div>
+                    <div className="text-sm text-blue-200/60">Cardiologista</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Stats Section */}
+        <section className="relative w-full py-20 md:py-32">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-blue-950 to-purple-950"></div>
+          <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
+          
+          <div className="container px-4 md:px-6 relative z-10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
+              <div className="text-center space-y-2">
+                <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                  2.5K+
+                </div>
+                <div className="text-blue-200/70 font-medium">Pacientes Ativos</div>
+              </div>
+              <div className="text-center space-y-2">
+                <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  10K+
+                </div>
+                <div className="text-blue-200/70 font-medium">Exames Analisados</div>
+              </div>
+              <div className="text-center space-y-2">
+                <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                  99.9%
+                </div>
+                <div className="text-blue-200/70 font-medium">Taxa de Satisfação</div>
+              </div>
+              <div className="text-center space-y-2">
+                <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
+                  24/7
+                </div>
+                <div className="text-blue-200/70 font-medium">Disponibilidade</div>
               </div>
             </div>
           </div>

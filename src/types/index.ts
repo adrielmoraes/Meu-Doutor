@@ -38,8 +38,22 @@ export type Patient = {
     dietaryPlan: string;
     exercisePlan: string;
     mentalWellnessPlan: string;
+    weeklyMealPlan?: Array<{
+      day: string;
+      breakfast: string;
+      lunch: string;
+      dinner: string;
+      snacks?: string;
+    }>;
+    hydrationPlan?: string;
+    sleepPlan?: string;
+    goals?: {
+      shortTerm: string[];
+      mediumTerm: string[];
+      longTerm: string[];
+    };
     dailyReminders: Array<{
-      icon: 'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell';
+      icon: 'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell' | 'Apple' | 'Heart' | 'Sun' | 'Moon' | 'Activity' | 'Utensils' | 'Brain' | 'Smile' | 'Wind' | 'Leaf';
       title: string;
       description: string;
     }>;

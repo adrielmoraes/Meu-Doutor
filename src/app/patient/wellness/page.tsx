@@ -10,7 +10,6 @@ import type { Patient } from "@/types";
 import { getSession } from "@/lib/session";
 import RegenerateWellnessPlanButton from "@/components/patient/regenerate-wellness-plan-button";
 import WeeklyTasksSection from "@/components/patient/weekly-tasks-section";
-import WeeklyRecipesSection from "@/components/patient/weekly-recipes-section";
 
 
 async function getWellnessPageData(patientId: string): Promise<{ patient: Patient | null, error?: string }> {
@@ -193,13 +192,43 @@ export default async function WellnessPlanPage() {
                 </div>
             </div>
 
-            {wellnessPlan.weeklyRecipes && wellnessPlan.weeklyRecipes.length > 0 && (
+            {wellnessPlan.weeklyMealPlan && wellnessPlan.weeklyMealPlan.length > 0 && (
                 <div className="mt-8">
                     <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-amber-300 via-orange-300 to-pink-300 bg-clip-text text-transparent flex items-center gap-2">
                         <ChefHat className="h-7 w-7 text-amber-400" />
-                        Receitas da Semana
+                        Plano Semanal de Refeições
                     </h2>
-                    <WeeklyRecipesSection recipes={wellnessPlan.weeklyRecipes} />
+                    <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border border-cyan-500/20">
+                        <CardContent className="p-6">
+                            <div className="space-y-6">
+                                {wellnessPlan.weeklyMealPlan.map((dayPlan) => (
+                                    <div key={dayPlan.day} className="border-b border-cyan-500/10 last:border-0 pb-6 last:pb-0">
+                                        <h3 className="font-bold text-lg mb-3 text-cyan-400">{dayPlan.day}</h3>
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-sm font-semibold text-blue-300 mb-1">☀️ Café da Manhã</p>
+                                                <p className="text-sm text-blue-100/80">{dayPlan.breakfast}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-blue-300 mb-1">🍽️ Almoço</p>
+                                                <p className="text-sm text-blue-100/80">{dayPlan.lunch}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-blue-300 mb-1">🌙 Jantar</p>
+                                                <p className="text-sm text-blue-100/80">{dayPlan.dinner}</p>
+                                            </div>
+                                            {dayPlan.snacks && (
+                                                <div>
+                                                    <p className="text-sm font-semibold text-blue-300 mb-1">🍎 Lanches</p>
+                                                    <p className="text-sm text-blue-100/80">{dayPlan.snacks}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
             )}
 

@@ -2,8 +2,8 @@
 'use client';
 
 import Link from "next/link";
-import { Brain, Infinity } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import MediAILogo from "./mediai-logo";
 import { useEffect, useState } from 'react';
 import { getSessionOnClient, SessionPayload } from '@/lib/session';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -31,12 +31,8 @@ const Header = () => {
       <header className="bg-slate-900/80 backdrop-blur-xl border-b border-cyan-500/20 shadow-lg shadow-cyan-500/5">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <Brain className="h-8 w-8 text-cyan-400" />
-              <Infinity className="h-8 w-8 text-cyan-400" />
-              <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                MediAI
-              </span>
+            <Link href="/">
+              <MediAILogo size="md" />
             </Link>
             <div className="flex items-center gap-4">
               <Button variant="ghost" asChild className="text-base font-medium text-cyan-300">
@@ -56,12 +52,8 @@ const Header = () => {
     <header className="bg-slate-900/80 backdrop-blur-xl border-b border-cyan-500/20 shadow-lg shadow-cyan-500/5">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <Brain className="h-8 w-8 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
-            <Infinity className="h-8 w-8 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
-            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent group-hover:from-cyan-300 group-hover:to-blue-300 transition-all">
-              MediAI
-            </span>
+          <Link href="/">
+            <MediAILogo size="md" />
           </Link>
           <nav className="flex items-center gap-6">
             <div className="hidden md:flex items-center gap-6">
