@@ -52,6 +52,15 @@ class MetricsCollector:
         self.is_active = True
         self._flush_task = None
         
+        # Últimos valores enviados (para calcular deltas)
+        self.last_sent_stt = 0
+        self.last_sent_llm_input = 0
+        self.last_sent_llm_output = 0
+        self.last_sent_tts = 0
+        self.last_sent_vision_input = 0
+        self.last_sent_vision_output = 0
+        self.last_sent_active_seconds = 0
+        
         # Configurações
         self.next_public_url = os.getenv('NEXT_PUBLIC_URL', 'http://localhost:5000')
         self.agent_secret = os.getenv('AGENT_SECRET', '')
@@ -134,26 +143,57 @@ class MetricsCollector:
         return total_brl_cents
     
     async def send_metrics(self, retry_count: int = 0, max_retries: int = 3):
-        """Envia métricas para o endpoint da API com retry exponencial."""
+        """Envia métricas DELTA para o endpoint da API com retry exponencial."""
         if not self.agent_secret:
             logger.warning("[Metrics] Não é possível enviar métricas sem AGENT_SECRET")
             return
         
+        # Atualizar tempo ativo primeiro
         self.update_active_time()
-        cost_cents = self.calculate_cost_cents()
         
+        # Calcular deltas desde o último envio
+        delta_stt = self.stt_tokens - self.last_sent_stt
+        delta_llm_input = self.llm_input_tokens - self.last_sent_llm_input
+        delta_llm_output = self.llm_output_tokens - self.last_sent_llm_output
+        delta_tts = self.tts_tokens - self.last_sent_tts
+        delta_vision_input = self.vision_input_tokens - self.last_sent_vision_input
+        delta_vision_output = self.vision_output_tokens - self.last_sent_vision_output
+        delta_active_seconds = self.active_seconds - self.last_sent_active_seconds
+        
+        # Verificar se há mudanças para enviar
+        if (delta_stt == 0 and delta_llm_input == 0 and delta_llm_output == 0 and 
+            delta_tts == 0 and delta_vision_input == 0 and delta_vision_output == 0 and 
+            delta_active_seconds == 0):
+            logger.debug("[Metrics] Nenhuma mudança desde último envio - pulando")
+            return
+        
+        # Calcular custo apenas dos deltas
+        usd_to_brl = 5.0
+        delta_stt_cost_usd = (delta_stt / 1_000_000) * 0.10
+        delta_llm_input_cost_usd = (delta_llm_input / 1_000_000) * 0.10
+        delta_llm_output_cost_usd = (delta_llm_output / 1_000_000) * 0.40
+        delta_tts_cost_usd = (delta_tts / 1_000_000) * 0.40
+        delta_vision_input_cost_usd = (delta_vision_input / 1_000_000) * 0.075
+        delta_vision_output_cost_usd = (delta_vision_output / 1_000_000) * 0.30
+        
+        delta_cost_usd = (delta_stt_cost_usd + delta_llm_input_cost_usd + 
+                          delta_llm_output_cost_usd + delta_tts_cost_usd + 
+                          delta_vision_input_cost_usd + delta_vision_output_cost_usd)
+        delta_cost_cents = int(delta_cost_usd * usd_to_brl * 100)
+        
+        # Payload com DELTAS (não totais acumulativos)
         payload = {
             "patientId": self.patient_id,
             "sessionId": self.session_id,
-            "sttTokens": self.stt_tokens,
-            "llmInputTokens": self.llm_input_tokens,
-            "llmOutputTokens": self.llm_output_tokens,
-            "ttsTokens": self.tts_tokens,
-            "visionTokens": self.vision_input_tokens + self.vision_output_tokens,
-            "visionInputTokens": self.vision_input_tokens,
-            "visionOutputTokens": self.vision_output_tokens,
-            "activeSeconds": self.active_seconds,
-            "costCents": cost_cents,
+            "sttTokens": delta_stt,
+            "llmInputTokens": delta_llm_input,
+            "llmOutputTokens": delta_llm_output,
+            "ttsTokens": delta_tts,
+            "visionTokens": delta_vision_input + delta_vision_output,
+            "visionInputTokens": delta_vision_input,
+            "visionOutputTokens": delta_vision_output,
+            "activeSeconds": delta_active_seconds,
+            "costCents": delta_cost_cents,
             "metadata": {
                 "model": "gemini-2.0-flash-exp",
                 "timestamp": time.time()
@@ -171,10 +211,20 @@ class MetricsCollector:
                 response = await client.post(url, json=payload, headers=headers)
                 response.raise_for_status()
                 
-                logger.info(f"[Metrics] ✅ Métricas enviadas com sucesso!")
-                logger.info(f"[Metrics] Total tokens: {self.stt_tokens + self.llm_input_tokens + self.llm_output_tokens + self.tts_tokens + self.vision_input_tokens + self.vision_output_tokens}")
+                logger.info(f"[Metrics] ✅ Métricas DELTA enviadas com sucesso!")
+                logger.info(f"[Metrics] Delta tokens: +{delta_stt + delta_llm_input + delta_llm_output + delta_tts + delta_vision_input + delta_vision_output}")
+                logger.info(f"[Metrics] Total acumulado: {self.stt_tokens + self.llm_input_tokens + self.llm_output_tokens + self.tts_tokens + self.vision_input_tokens + self.vision_output_tokens}")
                 logger.info(f"[Metrics] Tempo ativo: {self.active_seconds}s")
-                logger.info(f"[Metrics] Custo: R$ {cost_cents / 100:.2f}")
+                logger.info(f"[Metrics] Custo delta: R$ {delta_cost_cents / 100:.2f}")
+                
+                # Atualizar últimos valores enviados APÓS envio bem-sucedido
+                self.last_sent_stt = self.stt_tokens
+                self.last_sent_llm_input = self.llm_input_tokens
+                self.last_sent_llm_output = self.llm_output_tokens
+                self.last_sent_tts = self.tts_tokens
+                self.last_sent_vision_input = self.vision_input_tokens
+                self.last_sent_vision_output = self.vision_output_tokens
+                self.last_sent_active_seconds = self.active_seconds
                 
                 self.last_flush = time.time()
                 
