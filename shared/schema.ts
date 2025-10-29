@@ -394,6 +394,16 @@ export const usageTracking = pgTable('usage_tracking', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+export const contactMessages = pgTable('contact_messages', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  subject: text('subject').notNull(),
+  message: text('message').notNull(),
+  status: text('status').default('new').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const subscriptionsRelations = relations(subscriptions, ({ one, many }) => ({
   patient: one(patients, {
     fields: [subscriptions.patientId],

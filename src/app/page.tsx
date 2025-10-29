@@ -433,15 +433,15 @@ export default function LandingPage() {
             <div className="space-y-4">
               <h4 className="font-semibold text-cyan-400">Empresa</h4>
               <ul className="space-y-2 text-sm text-blue-200/70">
-                <li><Link href="#" className="hover:text-cyan-300 transition-colors">Sobre</Link></li>
-                <li><Link href="#" className="hover:text-cyan-300 transition-colors">Contato</Link></li>
+                <li><Link href="/sobre" className="hover:text-cyan-300 transition-colors">Sobre</Link></li>
+                <li><Link href="/contato" className="hover:text-cyan-300 transition-colors">Contato</Link></li>
               </ul>
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold text-cyan-400">Legal</h4>
               <ul className="space-y-2 text-sm text-blue-200/70">
-                <li><Link href="#" className="hover:text-cyan-300 transition-colors">Privacidade</Link></li>
-                <li><Link href="#" className="hover:text-cyan-300 transition-colors">Termos</Link></li>
+                <li><Link href="/privacidade" className="hover:text-cyan-300 transition-colors">Privacidade</Link></li>
+                <li><Link href="/termos" className="hover:text-cyan-300 transition-colors">Termos</Link></li>
               </ul>
             </div>
           </div>
