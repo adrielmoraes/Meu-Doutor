@@ -13,6 +13,7 @@ import base64
 import time
 from typing import Optional
 from pathlib import Path
+from datetime import datetime
 from dotenv import load_dotenv
 from livekit.agents import JobContext, WorkerOptions, cli, Agent
 from livekit.agents.voice import AgentSession
@@ -21,6 +22,14 @@ from livekit import rtc
 import google.generativeai as genai
 import psycopg2
 import httpx
+
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+    before_sleep_log
+)
 
 load_dotenv(dotenv_path=Path(__file__).parent / '.env')
 
@@ -32,6 +41,85 @@ logger.setLevel(logging.INFO)
 
 # Configure Gemini for vision
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
+
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=1, max=10),
+    retry=retry_if_exception_type((Exception,)),
+    before_sleep=before_sleep_log(logger, logging.WARNING),
+    reraise=True
+)
+async def call_gemini_with_retry(fn):
+    """Wrapper for Gemini API calls with exponential backoff retry."""
+    return await fn()
+
+
+class SimpleCircuitBreaker:
+    """Simple circuit breaker for external API calls."""
+    
+    def __init__(self, failure_threshold=5, recovery_timeout=60):
+        self.failure_count = 0
+        self.failure_threshold = failure_threshold
+        self.recovery_timeout = recovery_timeout
+        self.last_failure_time = None
+        self.state = 'closed'
+    
+    async def call_async(self, fn):
+        """Execute async function with circuit breaker logic."""
+        if self.state == 'open':
+            if self.last_failure_time and time.time() - self.last_failure_time > self.recovery_timeout:
+                self.state = 'half-open'
+                logger.info(f"[CircuitBreaker] Attempting recovery (half-open)")
+            else:
+                raise Exception(f"Circuit breaker OPEN - too many failures")
+        
+        try:
+            result = await fn()
+            if self.state == 'half-open':
+                self.state = 'closed'
+                self.failure_count = 0
+                logger.info(f"[CircuitBreaker] Recovered (closed)")
+            return result
+        except Exception as e:
+            self.failure_count += 1
+            self.last_failure_time = time.time()
+            
+            if self.failure_count >= self.failure_threshold:
+                self.state = 'open'
+                logger.error(f"[CircuitBreaker] OPENED after {self.failure_count} failures")
+            
+            raise e
+    
+    def call(self, fn):
+        """Execute sync function with circuit breaker logic."""
+        if self.state == 'open':
+            if self.last_failure_time and time.time() - self.last_failure_time > self.recovery_timeout:
+                self.state = 'half-open'
+                logger.info(f"[CircuitBreaker] Attempting recovery (half-open)")
+            else:
+                raise Exception(f"Circuit breaker OPEN - too many failures")
+        
+        try:
+            result = fn()
+            if self.state == 'half-open':
+                self.state = 'closed'
+                self.failure_count = 0
+                logger.info(f"[CircuitBreaker] Recovered (closed)")
+            return result
+        except Exception as e:
+            self.failure_count += 1
+            self.last_failure_time = time.time()
+            
+            if self.failure_count >= self.failure_threshold:
+                self.state = 'open'
+                logger.error(f"[CircuitBreaker] OPENED after {self.failure_count} failures")
+            
+            raise e
+
+
+gemini_circuit_breaker = SimpleCircuitBreaker(failure_threshold=5, recovery_timeout=60)
+avatar_circuit_breaker = SimpleCircuitBreaker(failure_threshold=3, recovery_timeout=30)
 
 
 class MetricsCollector:
@@ -299,42 +387,43 @@ class VideoAnalyzer:
         self.metrics_collector = metrics_collector
         
     async def analyze_frame(self, frame_data: bytes) -> str:
-        """Analyze a video frame and return description."""
+        """Analyze a video frame and return description with retry."""
         try:
-            # Convert frame to base64
             frame_b64 = base64.b64encode(frame_data).decode('utf-8')
             
-            # Send to Gemini Vision
-            response = await asyncio.to_thread(
-                self.vision_model.generate_content,
-                [
-                    {
-                        'mime_type': 'image/jpeg',
-                        'data': frame_b64
-                    },
-                    """Descreva brevemente o que você vê nesta imagem do paciente em português brasileiro.
-                    Inclua:
-                    - Características físicas visíveis (aparência geral, expressão facial)
-                    - Ambiente/localização
-                    - Qualquer detalhe relevante para um atendimento médico
-                    
-                    Seja objetivo e profissional, em no máximo 3 frases."""
-                ]
-            )
+            async def gemini_vision_call():
+                """Wrapper function for Gemini Vision API call."""
+                return await asyncio.to_thread(
+                    self.vision_model.generate_content,
+                    [
+                        {
+                            'mime_type': 'image/jpeg',
+                            'data': frame_b64
+                        },
+                        """Descreva brevemente o que você vê nesta imagem do paciente em português brasileiro.
+                        Inclua:
+                        - Características físicas visíveis (aparência geral, expressão facial)
+                        - Ambiente/localização
+                        - Qualquer detalhe relevante para um atendimento médico
+                        
+                        Seja objetivo e profissional, em no máximo 3 frases."""
+                    ]
+                )
+            
+            response = await call_gemini_with_retry(gemini_vision_call)
             
             description = response.text.strip()
             self.last_analysis = description
-            logger.info(f"[Vision] Análise: {description[:100]}...")
+            logger.info(f"[Vision] ✅ Análise: {description[:100]}...")
             
-            # Rastrear tokens de visão
             if self.metrics_collector and hasattr(response, 'usage_metadata'):
                 self.metrics_collector.track_vision(response.usage_metadata)
             
             return description
             
         except Exception as e:
-            logger.error(f"[Vision] Erro ao analisar frame: {e}")
-            return "Não foi possível analisar a imagem no momento."
+            logger.error(f"[Vision] ❌ Failed after retries: {e}")
+            return "Análise visual temporariamente indisponível."
 
 
 async def get_patient_context(patient_id: str) -> str:
