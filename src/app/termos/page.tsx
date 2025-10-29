@@ -376,9 +376,9 @@ export default function TermosPage() {
                     <h3 className="text-xl font-semibold text-purple-300 mt-6">8.2. Processamento de Pagamentos</h3>
                     <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6">
                       <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                        <li>Pagamentos são processados de forma segura pelo <strong className="text-cyan-300">Stripe</strong></li>
+                        <li>Pagamentos são processados de forma segura por <strong className="text-cyan-300">processadores de pagamento certificados</strong></li>
                         <li>Não armazenamos informações completas de cartão de crédito</li>
-                        <li>Aceitamos cartões de crédito, débito e outros métodos suportados pelo Stripe</li>
+                        <li>Aceitamos cartões de crédito, débito e outros métodos de pagamento disponíveis</li>
                         <li>Cobranças são em Reais (BRL)</li>
                       </ul>
                     </div>

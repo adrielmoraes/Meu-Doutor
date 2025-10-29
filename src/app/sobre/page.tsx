@@ -119,10 +119,10 @@ export default function SobreNosPage() {
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
                         <Brain className="h-6 w-6 text-cyan-400" />
                       </div>
-                      <h3 className="text-xl font-bold text-cyan-300">Google Gemini AI</h3>
+                      <h3 className="text-xl font-bold text-cyan-300">Modelos de Inteligência Artificial Avançados</h3>
                     </div>
                     <p className="text-blue-100/70 leading-relaxed">
-                      Motor de inteligência artificial multimodal de última geração da Google, capaz de analisar 
+                      Motor de inteligência artificial multimodal de última geração, capaz de analisar 
                       texto, imagens e dados médicos complexos com precisão superior.
                     </p>
                   </CardContent>
@@ -134,7 +134,7 @@ export default function SobreNosPage() {
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
                         <Activity className="h-6 w-6 text-purple-400" />
                       </div>
-                      <h3 className="text-xl font-bold text-purple-300">LiveKit</h3>
+                      <h3 className="text-xl font-bold text-purple-300">Infraestrutura de Comunicação em Tempo Real</h3>
                     </div>
                     <p className="text-blue-100/70 leading-relaxed">
                       Plataforma de comunicação em tempo real que permite consultas por vídeo e voz de alta 
@@ -149,10 +149,10 @@ export default function SobreNosPage() {
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
                         <Sparkles className="h-6 w-6 text-emerald-400" />
                       </div>
-                      <h3 className="text-xl font-bold text-emerald-300">Avatar Conversacional</h3>
+                      <h3 className="text-xl font-bold text-emerald-300">Avatares Virtuais Hiper-Realistas</h3>
                     </div>
                     <p className="text-blue-100/70 leading-relaxed">
-                      Tecnologia avançada de avatares (Tavus, Beyond Presence) que cria interações naturais 
+                      Tecnologia avançada de avatares que cria interações naturais 
                       e humanizadas com assistentes médicos virtuais.
                     </p>
                   </CardContent>
@@ -167,7 +167,7 @@ export default function SobreNosPage() {
                       <h3 className="text-xl font-bold text-orange-300">Segurança e Pagamentos</h3>
                     </div>
                     <p className="text-blue-100/70 leading-relaxed">
-                      Stripe para processamento seguro de pagamentos, criptografia de dados médicos e 
+                      Processador de pagamentos seguro com criptografia de dados médicos e 
                       conformidade total com LGPD e normas brasileiras de saúde.
                     </p>
                   </CardContent>

@@ -178,7 +178,7 @@ export default function PrivacidadePage() {
                     <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
                       <li>Informações de assinatura e plano</li>
                       <li>Histórico de pagamentos</li>
-                      <li>Dados de cartão de crédito (processados e armazenados exclusivamente pelo Stripe)</li>
+                      <li>Dados de cartão de crédito (processados e armazenados exclusivamente por processadores de pagamento certificados)</li>
                     </ul>
                   </CardContent>
                 </Card>
@@ -238,7 +238,7 @@ export default function PrivacidadePage() {
                     <h3 className="text-xl font-semibold text-purple-300 mt-6">4.1. Análises Médicas por IA</h3>
                     <p className="text-blue-100/80 leading-relaxed">
                       Seus exames médicos e dados de saúde são processados por nossos 15 especialistas de IA 
-                      (cardiologista, neurologista, dermatologista, etc.) utilizando o <strong className="text-cyan-300">Google Gemini AI</strong> para:
+                      (cardiologista, neurologista, dermatologista, etc.) utilizando <strong className="text-cyan-300">modelos de inteligência artificial avançados</strong> para:
                     </p>
                     <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
                       <li>Gerar diagnósticos preliminares</li>
@@ -250,7 +250,7 @@ export default function PrivacidadePage() {
 
                     <h3 className="text-xl font-semibold text-purple-300 mt-6">4.2. Consultas ao Vivo</h3>
                     <p className="text-blue-100/80 leading-relaxed">
-                      Utilizamos <strong className="text-cyan-300">LiveKit</strong> para consultas por vídeo e voz em tempo real com:
+                      Utilizamos <strong className="text-cyan-300">infraestrutura de comunicação em tempo real</strong> para consultas por vídeo e voz com:
                     </p>
                     <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
                       <li>Assistentes médicos virtuais alimentados por IA</li>
@@ -261,7 +261,7 @@ export default function PrivacidadePage() {
 
                     <h3 className="text-xl font-semibold text-purple-300 mt-6">4.3. Avatares Conversacionais</h3>
                     <p className="text-blue-100/80 leading-relaxed">
-                      Utilizamos tecnologias de avatar (<strong className="text-cyan-300">Tavus, Beyond Presence</strong>) para:
+                      Utilizamos <strong className="text-cyan-300">tecnologias de avatares virtuais</strong> para:
                     </p>
                     <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
                       <li>Criar interações naturais e humanizadas</li>
@@ -296,62 +296,28 @@ export default function PrivacidadePage() {
                       </p>
                     </div>
 
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">5.1. Provedores de Tecnologia</h3>
-                    <div className="space-y-4">
-                      <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4">
-                        <h4 className="font-semibold text-cyan-300 mb-2">Google Gemini AI</h4>
-                        <p className="text-blue-200/70 text-sm">
-                          <strong>Dados compartilhados:</strong> Exames médicos, imagens, dados de saúde para análise
-                          <br />
-                          <strong>Finalidade:</strong> Processamento de IA para diagnósticos preliminares
-                          <br />
-                          <strong>Localização:</strong> Servidores Google Cloud (pode incluir transferência internacional)
-                        </p>
-                      </div>
+                    <h3 className="text-xl font-semibold text-purple-300 mt-6">5.1. Categorias de Terceiros</h3>
+                    <p className="text-blue-100/80 leading-relaxed mb-4">
+                      Compartilhamos seus dados com as seguintes categorias de prestadores de serviços:
+                    </p>
+                    <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
+                      <li><strong className="text-cyan-300">Provedores de Inteligência Artificial:</strong> Para análise médica, diagnósticos preliminares e processamento de linguagem natural</li>
+                      <li><strong className="text-cyan-300">Serviços de Comunicação em Tempo Real:</strong> Para consultas por vídeo e áudio</li>
+                      <li><strong className="text-cyan-300">Provedores de Avatares Virtuais:</strong> Para consultas com assistentes virtuais</li>
+                      <li><strong className="text-cyan-300">Processadores de Pagamento:</strong> Para transações financeiras e assinaturas</li>
+                      <li><strong className="text-cyan-300">Provedores de Infraestrutura em Nuvem:</strong> Para armazenamento seguro de dados</li>
+                      <li><strong className="text-cyan-300">Serviços de Email Transacional:</strong> Para notificações e comunicações</li>
+                    </ul>
 
-                      <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4">
-                        <h4 className="font-semibold text-purple-300 mb-2">LiveKit</h4>
-                        <p className="text-blue-200/70 text-sm">
-                          <strong>Dados compartilhados:</strong> Áudio, vídeo de consultas
-                          <br />
-                          <strong>Finalidade:</strong> Comunicação em tempo real (WebRTC)
-                          <br />
-                          <strong>Localização:</strong> Servidores LiveKit Cloud
-                        </p>
-                      </div>
-
-                      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4">
-                        <h4 className="font-semibold text-emerald-300 mb-2">Tavus / Beyond Presence</h4>
-                        <p className="text-blue-200/70 text-sm">
-                          <strong>Dados compartilhados:</strong> Conversações de texto/áudio para avatares
-                          <br />
-                          <strong>Finalidade:</strong> Geração de avatares conversacionais
-                          <br />
-                          <strong>Localização:</strong> Servidores dos respectivos provedores
-                        </p>
-                      </div>
-
-                      <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
-                        <h4 className="font-semibold text-orange-300 mb-2">Stripe</h4>
-                        <p className="text-blue-200/70 text-sm">
-                          <strong>Dados compartilhados:</strong> Informações de pagamento, email
-                          <br />
-                          <strong>Finalidade:</strong> Processamento de pagamentos e assinaturas
-                          <br />
-                          <strong>Localização:</strong> Servidores Stripe (global)
-                        </p>
-                      </div>
-
-                      <div className="bg-pink-500/10 border border-pink-500/30 rounded-xl p-4">
-                        <h4 className="font-semibold text-pink-300 mb-2">Neon Database</h4>
-                        <p className="text-blue-200/70 text-sm">
-                          <strong>Dados compartilhados:</strong> Todos os dados da plataforma armazenados
-                          <br />
-                          <strong>Finalidade:</strong> Armazenamento e gestão de banco de dados PostgreSQL
-                          <br />
-                          <strong>Localização:</strong> Servidores Neon (pode incluir transferência internacional)
-                        </p>
-                      </div>
+                    <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6 mt-6">
+                      <p className="text-blue-100 font-semibold mb-2">
+                        📋 Lista Completa de Terceiros
+                      </p>
+                      <p className="text-blue-200/70 leading-relaxed">
+                        Conforme Art. 18, VII da LGPD, você tem direito de requisitar a lista completa 
+                        com nomes específicos de todas as empresas terceiras. Para solicitar, entre em 
+                        contato com nosso DPO: <a href="mailto:dpo@mediai.com.br" className="text-cyan-300 hover:underline">dpo@mediai.com.br</a>
+                      </p>
                     </div>
 
                     <h3 className="text-xl font-semibold text-purple-300 mt-6">5.2. Médicos e Profissionais de Saúde</h3>
@@ -601,7 +567,7 @@ export default function PrivacidadePage() {
                       <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6">
                         <h3 className="font-semibold text-orange-300 mb-2">Cookies de Terceiros</h3>
                         <p className="text-blue-200/70 text-sm">
-                          Google Analytics, Stripe e outros parceiros podem utilizar cookies. Consulte suas políticas de privacidade.
+                          Ferramentas de analytics, processadores de pagamento e outros parceiros podem utilizar cookies. Consulte suas políticas de privacidade.
                         </p>
                       </div>
                     </div>
@@ -651,8 +617,8 @@ export default function PrivacidadePage() {
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">11. Transferência Internacional de Dados</h2>
                     
                     <p className="text-blue-100/80 leading-relaxed">
-                      Alguns de nossos fornecedores de tecnologia (Google Gemini AI, LiveKit, Stripe, Tavus, Beyond Presence, Neon Database) podem 
-                      processar dados em servidores localizados fora do Brasil.
+                      Alguns de nossos fornecedores de tecnologia podem processar dados em servidores localizados fora do Brasil 
+                      (incluindo provedores de IA, comunicação em tempo real, avatares virtuais, pagamentos e infraestrutura em nuvem).
                     </p>
 
                     <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6 mt-6">
