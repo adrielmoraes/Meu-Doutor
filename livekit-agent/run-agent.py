@@ -16,6 +16,8 @@ GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 TAVUS_API_KEY = os.getenv('TAVUS_API_KEY')
 TAVUS_REPLICA_ID = os.getenv('TAVUS_REPLICA_ID')
 TAVUS_PERSONA_ID = os.getenv('TAVUS_PERSONA_ID')
+BEY_API_KEY = os.getenv('BEY_API_KEY')
+BEY_AVATAR_ID = os.getenv('BEY_AVATAR_ID')
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 print("🚀 MediAI LiveKit Agent - 100% Gemini Powered")
@@ -45,15 +47,30 @@ print(f"  • LiveKit URL: {LIVEKIT_URL}")
 print(f"  • LiveKit API Key: {LIVEKIT_API_KEY[:10]}...")
 print(f"  • Gemini API: ✅ Configurado (100% Gemini powered)")
 
+print("  • Avatar Providers Disponíveis:")
+
+# Tavus status
 if TAVUS_API_KEY and TAVUS_REPLICA_ID and TAVUS_PERSONA_ID:
-    print(f"  • Tavus Avatar: 🎭 ATIVADO")
-    print(f"    - Replica ID: {TAVUS_REPLICA_ID}")
-    print(f"    - Persona ID: {TAVUS_PERSONA_ID}")
+    print(f"    - Tavus: 🎭 CONFIGURADO")
+    print(f"      Replica ID: {TAVUS_REPLICA_ID}")
+    print(f"      Persona ID: {TAVUS_PERSONA_ID}")
 else:
-    print("  • Tavus Avatar: ⚪ Desativado (apenas áudio)")
-    print(f"    - API Key: {'✓' if TAVUS_API_KEY else '✗'}")
-    print(f"    - Replica ID: {'✓' if TAVUS_REPLICA_ID else '✗'}")
-    print(f"    - Persona ID: {'✓' if TAVUS_PERSONA_ID else '✗'}")
+    print("    - Tavus: ⚪ Não configurado")
+    print(f"      API Key: {'✓' if TAVUS_API_KEY else '✗'}")
+    print(f"      Replica ID: {'✓' if TAVUS_REPLICA_ID else '✗'}")
+    print(f"      Persona ID: {'✓' if TAVUS_PERSONA_ID else '✗'}")
+
+# BEY status
+if BEY_API_KEY:
+    print(f"    - Beyond Presence (BEY): 🎭 CONFIGURADO")
+    if BEY_AVATAR_ID:
+        print(f"      Avatar ID: {BEY_AVATAR_ID}")
+    else:
+        print(f"      Avatar ID: usando padrão")
+else:
+    print("    - Beyond Presence (BEY): ⚪ Não configurado")
+
+print("  • Avatar Ativo: Definido no Admin Panel (banco de dados)")
 
 if DATABASE_URL:
     print("  • Database: ✅ Configurado")

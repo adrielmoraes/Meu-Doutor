@@ -15,9 +15,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 from livekit.agents import JobContext, WorkerOptions, cli, Agent
 from livekit.agents.voice import AgentSession
-from livekit.plugins import tavus, google
+from livekit.plugins import tavus, bey, google
 from livekit import rtc
 import google.generativeai as genai
+import psycopg2
 
 load_dotenv(dotenv_path=Path(__file__).parent / '.env')
 
@@ -29,6 +30,38 @@ logger.setLevel(logging.INFO)
 
 # Configure Gemini for vision
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
+
+
+def get_avatar_provider_config() -> str:
+    """Fetch avatar provider configuration from database."""
+    try:
+        database_url = os.getenv('DATABASE_URL')
+        if not database_url:
+            logger.warning("[MediAI] DATABASE_URL not found, defaulting to Tavus")
+            return 'tavus'
+        
+        conn = psycopg2.connect(database_url)
+        cur = conn.cursor()
+        
+        # Query admin settings for avatar provider
+        cur.execute("SELECT avatar_provider FROM admin_settings LIMIT 1")
+        result = cur.fetchone()
+        
+        cur.close()
+        conn.close()
+        
+        if result and result[0]:
+            provider = result[0]
+            logger.info(f"[MediAI] Avatar provider configured: {provider}")
+            return provider
+        else:
+            logger.info("[MediAI] No avatar provider config found, defaulting to Tavus")
+            return 'tavus'
+            
+    except Exception as e:
+        logger.error(f"[MediAI] Error fetching avatar config from database: {e}")
+        logger.info("[MediAI] Defaulting to Tavus")
+        return 'tavus'
 
 
 class VideoAnalyzer:
@@ -315,31 +348,68 @@ CONTEXTO VISUAL (o que você vê agora):
     
     logger.info("[MediAI] ✅ Session started successfully!")
     
-    # Now initialize Tavus avatar AFTER session is started
-    tavus_api_key = os.getenv('TAVUS_API_KEY')
-    replica_id = os.getenv('TAVUS_REPLICA_ID')
-    persona_id = os.getenv('TAVUS_PERSONA_ID')
+    # Get avatar provider configuration from database
+    avatar_provider = get_avatar_provider_config()
+    logger.info(f"[MediAI] 🎭 Avatar provider selected: {avatar_provider}")
     
-    if tavus_api_key and replica_id and persona_id:
-        logger.info("[MediAI] 🎭 Initializing Tavus avatar...")
+    # Initialize avatar based on configuration
+    if avatar_provider == 'bey':
+        # Beyond Presence (BEY) Avatar
+        bey_api_key = os.getenv('BEY_API_KEY')
+        bey_avatar_id = os.getenv('BEY_AVATAR_ID')  # Optional, uses default if not set
         
-        try:
-            avatar = tavus.AvatarSession(
-                replica_id=replica_id,
-                persona_id=persona_id,
-                avatar_participant_name="MediAI"
-            )
+        if bey_api_key:
+            logger.info("[MediAI] 🎭 Initializing Beyond Presence (BEY) avatar...")
             
-            logger.info("[MediAI] 🎥 Starting Tavus avatar...")
-            await avatar.start(session, room=ctx.room)
-            
-            logger.info("[MediAI] ✅ Tavus avatar started successfully!")
-            
-        except Exception as e:
-            logger.error(f"[MediAI] ⚠️ Tavus avatar error: {e}")
-            logger.info("[MediAI] Continuing with audio only")
+            try:
+                # Create BEY avatar session
+                avatar_params = {
+                    'avatar_participant_name': 'MediAI'
+                }
+                
+                # Add avatar_id if specified
+                if bey_avatar_id:
+                    avatar_params['avatar_id'] = bey_avatar_id
+                
+                avatar = bey.AvatarSession(**avatar_params)
+                
+                logger.info("[MediAI] 🎥 Starting BEY avatar...")
+                await avatar.start(session, room=ctx.room)
+                
+                logger.info("[MediAI] ✅ Beyond Presence avatar started successfully!")
+                
+            except Exception as e:
+                logger.error(f"[MediAI] ⚠️ BEY avatar error: {e}")
+                logger.info("[MediAI] Continuing with audio only")
+        else:
+            logger.warning("[MediAI] BEY_API_KEY not found - running audio only")
+    
     else:
-        logger.warning("[MediAI] Tavus credentials not found - running audio only")
+        # Tavus Avatar (default)
+        tavus_api_key = os.getenv('TAVUS_API_KEY')
+        replica_id = os.getenv('TAVUS_REPLICA_ID')
+        persona_id = os.getenv('TAVUS_PERSONA_ID')
+        
+        if tavus_api_key and replica_id and persona_id:
+            logger.info("[MediAI] 🎭 Initializing Tavus avatar...")
+            
+            try:
+                avatar = tavus.AvatarSession(
+                    replica_id=replica_id,
+                    persona_id=persona_id,
+                    avatar_participant_name="MediAI"
+                )
+                
+                logger.info("[MediAI] 🎥 Starting Tavus avatar...")
+                await avatar.start(session, room=ctx.room)
+                
+                logger.info("[MediAI] ✅ Tavus avatar started successfully!")
+                
+            except Exception as e:
+                logger.error(f"[MediAI] ⚠️ Tavus avatar error: {e}")
+                logger.info("[MediAI] Continuing with audio only")
+        else:
+            logger.warning("[MediAI] Tavus credentials not found - running audio only")
 
 
 if __name__ == "__main__":

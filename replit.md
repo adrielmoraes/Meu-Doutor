@@ -26,11 +26,11 @@ Preferred communication style: Simple, everyday language.
 - **UI/UX**: Futuristic dark theme, live consultation banner with video backgrounds, minimalist consultation interfaces, and visual display for specialist findings. Includes gamification features for doctors.
 - **AI Enhancements**: Enhanced AI system with Gemini 2.5 Flash for medical analysis and consultations, including call recording and transcription via Gemini AI. Server-side AI processing ensures medical data security. Implementation of an AI Nutritionist for personalized wellness plans.
 - **Real-time Communication**: LiveKit for WebRTC, Daily.co SDK for Tavus CVI integration, with automatic device detection and noise cancellation.
-- **AI Consultations**: LiveKit + Tavus + Gemini Architecture for production-grade real-time consultations with vision capabilities. This involves a Python agent orchestrating Google Gemini API for STT, LLM, and TTS, Tavus for avatar integration, and Gemini Vision API for visual patient analysis. A unified voice system ("Aoede" voice, female, pt-BR) is used across all audio generations. The AI can see the patient through their camera and describe their appearance when asked.
+- **AI Consultations**: LiveKit + Avatar Providers (Tavus/BEY) + Gemini Architecture for production-grade real-time consultations with vision capabilities. This involves a Python agent orchestrating Google Gemini API for STT, LLM, and TTS, configurable avatar integration (Tavus or Beyond Presence selected via admin panel), and Gemini Vision API for visual patient analysis. A unified voice system ("Aoede" voice, female, pt-BR) is used across all audio generations. The AI can see the patient through their camera and describe their appearance when asked. **Avatar Provider Configuration**: Admins can select between Tavus and Beyond Presence (BEY) avatar providers through the admin panel settings, with the choice stored in the database and automatically applied to all new consultations.
 - **AI Therapist Chat**: Bidirectional voice chat with WhatsApp-style audio features and voice support.
 - **Medical Analysis**: A multi-specialist medical analysis system where exam uploads trigger parallel consultation with up to 15 specialist AI agents, coordinated by an orchestrator AI. This provides deep domain-specific analysis with complete traceability, returning structured data including suggested medications, treatment plans, monitoring protocols, contraindications, and relevant metrics. The orchestrator synthesizes this into an integrated medication plan and detailed recommendations.
 - **Data Visualization**: Exam history visualization with interactive time-series graphs using Recharts.
-- **Admin System**: Comprehensive admin panel for platform oversight, including user management, exam review, consultation monitoring, resource usage tracking, and platform settings configuration. Features include secure login, audit logging, and email notifications for key events.
+- **Admin System**: Comprehensive admin panel for platform oversight, including user management, exam review, consultation monitoring, resource usage tracking, and platform settings configuration. Features include secure login, audit logging, email notifications for key events, and **avatar provider selection** (Tavus vs Beyond Presence) for AI consultations.
 - **Email Verification**: System for patient and doctor email verification with unique CPF/CRM validation and secure token-based verification.
 - **Subscription Management**: Integrated Stripe for handling subscription plans (Trial, Basic, Premium, Family) with usage-based tiers, secure payment processing, and webhook integration. Includes a 7-day free trial.
 - **Security & Monitoring**: Implemented comprehensive security headers (CSP, X-Frame-Options, etc.), Sentry for error tracking, structured logging, and usage tracking for resource consumption per patient.
@@ -46,6 +46,7 @@ Preferred communication style: Simple, everyday language.
 - Google Gemini API (Gemini 2.0 Flash, Gemini 2.0 Flash Vision, Gemini 1.5 Pro, Gemini 2.5 Flash TTS)
 - Google Genkit (AI orchestration framework)
 - Tavus CVI (Conversational Video Interface for AI avatars)
+- Beyond Presence (BEY) - Hyper-realistic virtual avatar alternative
 
 ### Cloud Services
 - Google Cloud Storage (for specific uses, though local storage is preferred for avatars)
