@@ -44,7 +44,10 @@ if errors:
 # Display configuration
 print("✅ Configuração LiveKit Agent:")
 print(f"  • LiveKit URL: {LIVEKIT_URL}")
-print(f"  • LiveKit API Key: {LIVEKIT_API_KEY[:10]}...")
+if LIVEKIT_API_KEY:
+    print(f"  • LiveKit API Key: {LIVEKIT_API_KEY[:10]}...")
+else:
+    print("  • LiveKit API Key: Não configurado")
 print(f"  • Gemini API: ✅ Configurado (100% Gemini powered)")
 
 print("  • Avatar Providers Disponíveis:")
