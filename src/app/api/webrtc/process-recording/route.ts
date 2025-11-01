@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateCallRecording, saveConsultation } from '@/lib/db-adapter';
+import { saveConsultation } from '@/lib/db-adapter';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
@@ -24,10 +24,7 @@ export async function POST(request: NextRequest) {
 
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
-    const transcriptionPrompt = `Você é um assistente médico especializado em transcrever consultas médicas.
-Transcreva com precisão a conversa de áudio entre médico e paciente.
-Identifique quem está falando (Médico ou Paciente) e formate a transcrição de forma clara.
-Mantenha todos os termos médicos e detalhes clínicos mencionados.`;
+    const transcriptionPrompt = `Você é um assistente médico especializado em transcrever consultas médicas.\nTranscreva com precisão a conversa de áudio entre médico e paciente.\nIdentifique quem está falando (Médico ou Paciente) e formate a transcrição de forma clara.\nMantenha todos os termos médicos e detalhes clínicos mencionados.`;
 
     const transcriptionResult = await model.generateContent([
       {
@@ -41,25 +38,11 @@ Mantenha todos os termos médicos e detalhes clínicos mencionados.`;
 
     const transcription = transcriptionResult.response.text();
 
-    const summaryPrompt = `Com base na seguinte transcrição de uma consulta médica, crie um resumo estruturado em português brasileiro que inclua:
-
-1. **Queixa Principal**: O motivo da consulta
-2. **Sintomas Relatados**: Lista de sintomas mencionados pelo paciente
-3. **Histórico Relevante**: Informações importantes do histórico médico mencionadas
-4. **Exames Solicitados**: Se o médico solicitou algum exame
-5. **Diagnóstico Preliminar**: Se houve algum diagnóstico mencionado
-6. **Prescrições/Orientações**: Medicamentos ou orientações dadas pelo médico
-7. **Observações Importantes**: Qualquer informação adicional relevante
-
-Transcrição:
-${transcription}
-
-Formate o resumo de forma profissional e clara, adequado para registro médico.`;
+    const summaryPrompt = `Com base na seguinte transcrição de uma consulta médica, crie um resumo estruturado em português brasileiro que inclua:\n\n1. **Queixa Principal**: O motivo da consulta\n2. **Sintomas Relatados**: Lista de sintomas mencionados pelo paciente\n3. **Histórico Relevante**: Informações importantes do histórico médico mencionadas\n4. **Exames Solicitados**: Se o médico solicitou algum exame\n5. **Diagnóstico Preliminar**: Se houve algum diagnóstico mencionado\n6. **Prescrições/Orientações**: Medicamentos ou orientações dadas pelo médico\n7. **Observações Importantes**: Qualquer informação adicional relevante\n\nTranscrição:\n${transcription}\n\nFormate o resumo de forma profissional e clara, adequado para registro médico.`;
 
     const summaryResult = await model.generateContent(summaryPrompt);
     const summary = summaryResult.response.text();
 
-    await updateCallRecording(roomId, transcription, summary);
     await saveConsultation(doctorId, patientId, roomId, transcription, summary, 'video-call');
 
     return NextResponse.json({
