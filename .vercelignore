@@ -1,0 +1,47 @@
+# Python agent (não será deployado na Vercel)
+livekit-agent/
+*.py
+*.pyc
+__pycache__/
+.pythonlibs/
+
+# Arquivos de desenvolvimento
+.env
+.env.local
+.env*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache
+.next/
+.cache/
+
+# Testes
+coverage/
+.nyc_output/
+
+# Outros
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Replit specific
+.replit
+replit.nix
+.config/
+.local/
+.upm/
+
+# Documentação
+docs/
+*.md
+!README.md
+
+# Scripts
+scripts/
