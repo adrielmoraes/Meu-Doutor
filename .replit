@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "web", "bash", "python-3.11", "postgresql-16"]
+modules = ["nodejs-20", "python-3.11", "web", "bash"]
 [agent]
 expertMode = true
 integrations = ["resend:1.0.0"]
@@ -36,6 +36,9 @@ task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[workflows.workflow]]
 name = "MediAI Avatar Agent"
 author = "agent"
@@ -52,7 +55,7 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 8081
+localPort = 36973
 externalPort = 8081
 
 [[ports]]
