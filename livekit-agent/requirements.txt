@@ -2,6 +2,7 @@
 livekit>=0.17.0
 livekit-agents>=0.10.0
 livekit-plugins-tavus>=0.1.0
+livekit-plugins-bey>=0.1.0
 livekit-plugins-google>=0.1.0
 
 # Google Gemini API
