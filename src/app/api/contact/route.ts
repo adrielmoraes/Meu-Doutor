@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { db } from '../../../server/storage';
+import { db } from '../../../../server/storage';
 import { contactMessages } from '@/shared/schema';
 import { getUncachableResendClient } from '@/lib/resend-client';
 
