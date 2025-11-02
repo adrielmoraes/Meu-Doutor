@@ -5,15 +5,7 @@
   "installCommand": "npm install",
   "devCommand": "npm run dev",
   "ignoreCommand": "git diff --quiet HEAD^ HEAD ./",
-  "env": {
-    "DATABASE_URL": "@database_url",
-    "GEMINI_API_KEY": "@gemini_api_key",
-    "LIVEKIT_API_KEY": "@livekit_api_key",
-    "LIVEKIT_API_SECRET": "@livekit_api_secret",
-    "STRIPE_SECRET_KEY": "@stripe_secret_key",
-    "NEXTAUTH_SECRET": "@nextauth_secret",
-    "JWT_SECRET": "@jwt_secret"
-  },
+
   "functions": {
     "app/api/**/*.ts": {
       "maxDuration": 60,
