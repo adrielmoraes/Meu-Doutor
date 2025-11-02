@@ -1,8 +1,8 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "python agent.py dev",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "installCommand": "npm install",
+  "installCommand": "npm iinstall -r requirements.txt",
   "devCommand": "npm run dev",
   "ignoreCommand": "git diff --quiet HEAD^ HEAD ./",
   "env": {
