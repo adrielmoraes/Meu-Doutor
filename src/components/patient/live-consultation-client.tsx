@@ -23,7 +23,7 @@ export default function LiveConsultationClient() {
         {
             id: '1',
             source: 'ai',
-            text: 'Olá! 👋 Sou sua assistente de saúde IA. Como posso ajudar você hoje?',
+            text: 'Olá! Sou sua assistente de saúde IA. Como posso ajudar você hoje?',
             timestamp: new Date(),
         }
     ]);

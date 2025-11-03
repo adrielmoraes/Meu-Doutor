@@ -144,7 +144,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
-            Olá, {patient.name.split(' ')[0]}! 👋
+            Olá, {patient.name.split(' ')[0]}!
           </h1>
           <p className="text-lg text-blue-200/70 max-w-2xl">
             Sua saúde em primeiro lugar. Acompanhe seus exames, consulte especialistas e mantenha seu bem-estar com nossa tecnologia de IA avançada.
