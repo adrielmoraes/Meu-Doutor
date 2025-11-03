@@ -125,15 +125,15 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
   ];
 
   return (
-    <div className="bg-gradient-to-br from-background via-muted to-background min-h-screen relative overflow-hidden">
+    <div className="bg-gradient-to-br from-[#fce7f5] via-[#f9d5ed] to-[#fce7f5] dark:from-slate-950 dark:via-blue-950 dark:to-slate-900 min-h-screen relative overflow-hidden">
       {/* Header with Menu */}
       <PatientHeader patient={patient} />
 
       {/* Background Effects */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent dark:from-cyan-900/20"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#f774c0]/15 via-transparent to-transparent dark:from-cyan-900/20"></div>
       <div className="absolute inset-0 bg-grid-white/[0.02] dark:bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
-      <div className="absolute top-10 right-10 w-72 h-72 bg-primary/10 dark:bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-10 left-10 w-96 h-96 bg-accent/10 dark:bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
+      <div className="absolute top-10 right-10 w-72 h-72 bg-[#f774c0]/15 dark:bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-10 left-10 w-96 h-96 bg-[#e85bb5]/15 dark:bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
 
       <div className="relative z-10 p-4 sm:p-6 lg:p-8">
         {/* Welcome Section */}

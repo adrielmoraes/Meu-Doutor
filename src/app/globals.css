@@ -3,43 +3,43 @@
 @tailwind utilities;
 
 @layer base {
-  :root { /* Light theme - Rosa claro e branco */
-    --background: 0 0% 100%; /* Branco puro */
-    --foreground: 340 15% 25%; /* Texto escuro rosado */
-    --card: 330 40% 98%; /* Rosa muito claro para cards */
-    --card-foreground: 340 15% 25%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 340 15% 25%;
-    --primary: 330 70% 60%; /* Rosa principal */
+  :root { /* Light theme - Rosa vibrante #f774c0 */
+    --background: 325 85% 95%; /* Rosa claro base (#f774c0 clarinho) */
+    --foreground: 325 30% 20%; /* Texto escuro rosado */
+    --card: 325 60% 97%; /* Rosa muito claro para cards */
+    --card-foreground: 325 30% 20%;
+    --popover: 325 70% 98%;
+    --popover-foreground: 325 30% 20%;
+    --primary: 325 89% 71%; /* Rosa vibrante #f774c0 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 330 30% 95%; /* Rosa muito claro */
-    --secondary-foreground: 340 15% 30%;
-    --muted: 330 20% 96%;
-    --muted-foreground: 340 10% 45%;
-    --accent: 340 65% 55%; /* Rosa vibrante para destaques */
+    --secondary: 325 70% 92%; /* Rosa claro */
+    --secondary-foreground: 325 30% 25%;
+    --muted: 325 50% 93%;
+    --muted-foreground: 325 20% 40%;
+    --accent: 320 85% 65%; /* Rosa intenso para destaques */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 70% 50%; /* Vermelho para ações destrutivas */
     --destructive-foreground: 0 0% 98%;
-    --border: 330 20% 90%; /* Borda sutil rosa */
-    --input: 330 20% 95%;
-    --ring: 330 70% 60%; /* Anel rosa */
+    --border: 325 40% 88%; /* Borda rosa suave */
+    --input: 325 50% 94%;
+    --ring: 325 89% 71%; /* Anel rosa vibrante */
     --radius: 0.75rem;
     
     /* Chart colors para tema claro */
-    --chart-1: 330 70% 60%;
-    --chart-2: 340 65% 55%;
-    --chart-3: 350 60% 50%;
-    --chart-4: 320 75% 65%;
-    --chart-5: 310 70% 60%;
+    --chart-1: 325 89% 71%;
+    --chart-2: 320 85% 65%;
+    --chart-3: 330 80% 60%;
+    --chart-4: 315 85% 68%;
+    --chart-5: 335 90% 73%;
 
-    --sidebar-background: 330 40% 98%;
-    --sidebar-foreground: 340 15% 25%;
-    --sidebar-primary: 330 70% 60%;
+    --sidebar-background: 325 60% 97%;
+    --sidebar-foreground: 325 30% 20%;
+    --sidebar-primary: 325 89% 71%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 330 30% 95%;
-    --sidebar-accent-foreground: 340 15% 30%;
-    --sidebar-border: 330 20% 90%;
-    --sidebar-ring: 330 70% 60%;
+    --sidebar-accent: 325 70% 92%;
+    --sidebar-accent-foreground: 325 30% 25%;
+    --sidebar-border: 325 40% 88%;
+    --sidebar-ring: 325 89% 71%;
   }
 
   .dark { /* Explicit dark theme - even deeper */
