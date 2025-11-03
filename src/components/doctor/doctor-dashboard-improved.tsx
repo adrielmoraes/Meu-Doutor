@@ -1,10 +1,9 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Calendar, History, Sparkles, Bot, Activity, TrendingUp, Clock } from "lucide-react";
+import { Users, Calendar, History, Sparkles, Activity, TrendingUp, Clock } from "lucide-react";
 import Link from "next/link";
-import { TalkingAvatar3D } from "@/components/avatar/TalkingAvatar3D";
-import { useState } from "react";
+import { OnlineStatusToggle } from "@/components/doctor/online-status-toggle";
 import type { Doctor } from "@/types";
 
 interface DoctorDashboardImprovedProps {
@@ -20,7 +19,6 @@ export default function DoctorDashboardImproved({
   upcomingAppointments,
   completedConsultations 
 }: DoctorDashboardImprovedProps) {
-    const [avatarReady, setAvatarReady] = useState(false);
 
     const stats = [
       {
@@ -104,6 +102,11 @@ export default function DoctorDashboardImproved({
           <p className="text-lg text-blue-200/70">
             Gerencie seus pacientes, agenda e histórico de forma eficiente.
           </p>
+          
+          {/* Status Online/Offline Toggle */}
+          <div className="max-w-md">
+            <OnlineStatusToggle initialStatus={doctor.online || false} doctorName={doctor.name} />
+          </div>
         </div>
 
         {/* Statistics Cards */}
@@ -134,66 +137,32 @@ export default function DoctorDashboardImproved({
           ))}
         </div>
         
-        {/* Navigation Cards + AI Brain */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {navigationCards.map(card => (
-                <Card
-                    key={card.title}
-                    className={`group relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border ${card.borderColor} ${card.hoverBorder} transition-all duration-300 hover:shadow-2xl ${card.hoverShadow} overflow-hidden transform hover:scale-105`}
-                >
-                    <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity`}></div>
-                    
-                    <Link href={card.href} className="block h-full relative">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-xl font-bold text-cyan-300">
-                                {card.title}
-                            </CardTitle>
-                            {card.icon}
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-blue-200/70">
-                                {card.description}
-                            </p>
-                        </CardContent>
-                    </Link>
-                </Card>
-            ))}
-          </div>
-          
-          {/* AI Brain Card */}
-          <div className="lg:col-span-1">
-            <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-cyan-500/30 hover:border-cyan-500/50 transition-all duration-300 h-full">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                <CardTitle className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                  IA Central Brain
-                </CardTitle>
-                <Bot className="h-8 w-8 text-cyan-400" />
-              </CardHeader>
-              <CardContent>
-                <div className="relative">
-                  <TalkingAvatar3D 
-                    className="w-full h-80"
-                    mood="neutral"
-                    onReady={() => setAvatarReady(true)}
-                  />
-                </div>
-                <div className="mt-4 space-y-2">
-                  <p className="text-sm text-cyan-300/80 text-center">
-                    {avatarReady ? 'IA MediAI pronta para auxiliar' : 'Carregando assistente de IA...'}
+        {/* Navigation Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {navigationCards.map(card => (
+            <Card
+              key={card.title}
+              className={`group relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border ${card.borderColor} ${card.hoverBorder} transition-all duration-300 hover:shadow-2xl ${card.hoverShadow} overflow-hidden transform hover:scale-105`}
+            >
+              <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity`}></div>
+              
+              <Link href={card.href} className="block h-full relative">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-xl font-bold text-cyan-300">
+                    {card.title}
+                  </CardTitle>
+                  {card.icon}
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-blue-200/70">
+                    {card.description}
                   </p>
-                  <div className="flex items-center justify-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${avatarReady ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`}></div>
-                    <span className="text-xs text-blue-200/60">
-                      {avatarReady ? 'Online' : 'Inicializando'}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
+                </CardContent>
+              </Link>
             </Card>
-          </div>
+          ))}
         </div>
       </div>
     </div>
-  )
+  );
 }

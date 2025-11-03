@@ -9,6 +9,7 @@ import { Mic, MicOff, Send, Volume2, Loader2, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
+import { AudioMessage } from './audio-message';
 
 type Message = {
   id: string;
@@ -25,15 +26,7 @@ interface TherapistChatProps {
 }
 
 export default function TherapistChat({ patientId, patientName }: TherapistChatProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: `Olá, ${patientName.split(' ')[0]}! Sou sua terapeuta IA e assistente pessoal. Estou aqui para apoiar você em sua jornada de saúde e bem-estar. Como posso ajudar hoje?`,
-      isAudio: false,
-      timestamp: new Date(),
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -42,23 +35,25 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
   
   const audioChunks = useRef<Blob[]>([]);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      audioPlayerRef.current = new Audio();
-    }
+    setMessages([{
+      id: '1',
+      role: 'assistant',
+      content: `Olá, ${patientName.split(' ')[0]}! Sou sua terapeuta IA e assistente pessoal. Estou aqui para apoiar você em sua jornada de saúde e bem-estar. Como posso ajudar hoje?`,
+      isAudio: false,
+      timestamp: new Date(),
+    }]);
+  }, [patientName]);
+
+  useEffect(() => {
     return () => {
-      if (audioPlayerRef.current) {
-        audioPlayerRef.current.pause();
-        audioPlayerRef.current = null;
-      }
       if (audioStream) {
         audioStream.getTracks().forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [audioStream]);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -170,6 +165,13 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
     setIsProcessing(true);
 
     try {
+      // Convert blob to data URI for playback
+      const reader = new FileReader();
+      const userAudioDataUri = await new Promise<string>((resolve) => {
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(audioBlob);
+      });
+
       const formData = new FormData();
       formData.append('audio', audioBlob);
 
@@ -195,6 +197,7 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
         role: 'user',
         content: transcript,
         isAudio: true,
+        audioDataUri: userAudioDataUri, // Save user audio for playback
         timestamp: new Date(),
       };
 
@@ -231,10 +234,8 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      if (data.audioDataUri && audioPlayerRef.current) {
-        audioPlayerRef.current.src = data.audioDataUri;
-        await audioPlayerRef.current.play();
-      }
+      // Audio will auto-play via AudioMessage component when user clicks play
+      // No need to auto-play here to avoid interrupting user
 
     } catch (error: any) {
       console.error('Erro ao processar mensagem de voz:', error);
@@ -245,17 +246,6 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
       });
     } finally {
       setIsProcessing(false);
-    }
-  };
-
-  const playAudio = async (audioDataUri: string) => {
-    if (audioPlayerRef.current) {
-      audioPlayerRef.current.src = audioDataUri;
-      try {
-        await audioPlayerRef.current.play();
-      } catch (error) {
-        console.error('Erro ao reproduzir áudio:', error);
-      }
     }
   };
 
@@ -294,33 +284,30 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[75%] rounded-2xl p-3 ${
+                className={`rounded-2xl p-3 ${
                   message.role === 'user'
                     ? 'bg-green-600 text-white'
                     : 'bg-slate-800/80 text-slate-100'
-                }`}
+                } ${message.isAudio ? 'min-w-[300px] max-w-[80%]' : 'max-w-[75%]'}`}
               >
-                <div className="flex items-start gap-2">
-                  {message.isAudio && message.role === 'assistant' && message.audioDataUri && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 text-green-300 hover:text-green-200"
-                      onClick={() => playAudio(message.audioDataUri!)}
-                    >
-                      <Volume2 className="h-4 w-4" />
-                    </Button>
-                  )}
+                {message.isAudio && message.audioDataUri ? (
+                  // Audio message with WhatsApp-style player
+                  <AudioMessage 
+                    audioDataUri={message.audioDataUri}
+                    isUser={message.role === 'user'}
+                    timestamp={formatTime(message.timestamp)}
+                  />
+                ) : (
+                  // Text message
                   <div className="flex-1">
                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     <p className={`text-xs mt-1 ${
                       message.role === 'user' ? 'text-green-100/70' : 'text-slate-400'
                     }`}>
                       {formatTime(message.timestamp)}
-                      {message.isAudio && ' 🎤'}
                     </p>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           ))}
@@ -336,24 +323,36 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
 
       {/* Input */}
       <div className="bg-slate-900/50 backdrop-blur-md border-t border-green-500/20 p-4">
-        <div className="flex items-center gap-2">
-          <Input
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && sendTextMessage()}
-            placeholder="Digite sua mensagem..."
-            className="flex-1 bg-slate-800/50 border-green-500/20 text-slate-100 placeholder:text-slate-500"
-            disabled={isProcessing || isRecording}
-          />
-          {isRecording ? (
+        {isRecording ? (
+          // Recording indicator (WhatsApp style)
+          <div className="flex items-center gap-3 justify-center py-2">
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-75"></div>
+                <div className="relative bg-red-600 rounded-full h-3 w-3"></div>
+              </div>
+              <span className="text-red-400 font-medium">Gravando áudio...</span>
+            </div>
             <Button
               onClick={stopRecording}
-              size="icon"
-              className="bg-red-600 hover:bg-red-700 text-white"
+              size="lg"
+              className="bg-red-600 hover:bg-red-700 text-white rounded-full"
             >
-              <MicOff className="h-5 w-5" />
+              <MicOff className="h-5 w-5 mr-2" />
+              Parar
             </Button>
-          ) : (
+          </div>
+        ) : (
+          // Normal input
+          <div className="flex items-center gap-2">
+            <Input
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendTextMessage()}
+              placeholder="Digite sua mensagem..."
+              className="flex-1 bg-slate-800/50 border-green-500/20 text-slate-100 placeholder:text-slate-500"
+              disabled={isProcessing}
+            />
             <Button
               onClick={startRecording}
               size="icon"
@@ -363,16 +362,16 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
             >
               <Mic className="h-5 w-5" />
             </Button>
-          )}
-          <Button
-            onClick={sendTextMessage}
-            size="icon"
-            className="bg-green-600 hover:bg-green-700 text-white"
-            disabled={isProcessing || !inputText.trim()}
-          >
-            <Send className="h-5 w-5" />
-          </Button>
-        </div>
+            <Button
+              onClick={sendTextMessage}
+              size="icon"
+              className="bg-green-600 hover:bg-green-700 text-white"
+              disabled={isProcessing || !inputText.trim()}
+            >
+              <Send className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

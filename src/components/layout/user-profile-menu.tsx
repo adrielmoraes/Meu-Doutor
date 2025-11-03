@@ -18,7 +18,7 @@ import { useRouter } from 'next/navigation';
 
 interface UserProfileMenuProps {
   userId: string;
-  role: 'patient' | 'doctor';
+  role: 'patient' | 'doctor' | 'admin';
 }
 
 interface UserData {
@@ -91,7 +91,7 @@ export default function UserProfileMenu({ userId, role }: UserProfileMenuProps) 
               {userData?.name || 'Usuário'}
             </span>
             <span className="text-xs text-slate-400">
-              {role === 'patient' ? 'Paciente' : 'Médico'}
+              {role === 'patient' ? 'Paciente' : role === 'doctor' ? 'Médico' : 'Administrador'}
             </span>
           </div>
         </Button>
@@ -118,7 +118,7 @@ export default function UserProfileMenu({ userId, role }: UserProfileMenuProps) 
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-cyan-500/20" />
         <DropdownMenuItem asChild className="cursor-pointer hover:bg-cyan-500/10 focus:bg-cyan-500/10">
-          <Link href={role === 'patient' ? '/patient/dashboard' : '/doctor'} className="flex items-center gap-2">
+          <Link href={role === 'patient' ? '/patient/dashboard' : role === 'doctor' ? '/doctor' : '/admin'} className="flex items-center gap-2">
             <LayoutDashboard className="h-4 w-4 text-cyan-400" />
             <span>Dashboard</span>
           </Link>
@@ -139,12 +139,22 @@ export default function UserProfileMenu({ userId, role }: UserProfileMenuProps) 
             </Link>
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem asChild className="cursor-pointer hover:bg-cyan-500/10 focus:bg-cyan-500/10">
-          <Link href={`/${role}/profile`} className="flex items-center gap-2">
-            <Settings className="h-4 w-4 text-blue-400" />
-            <span>Configurações</span>
-          </Link>
-        </DropdownMenuItem>
+        {role !== 'admin' && (
+          <DropdownMenuItem asChild className="cursor-pointer hover:bg-cyan-500/10 focus:bg-cyan-500/10">
+            <Link href={`/${role}/profile`} className="flex items-center gap-2">
+              <Settings className="h-4 w-4 text-blue-400" />
+              <span>Configurações</span>
+            </Link>
+          </DropdownMenuItem>
+        )}
+        {role === 'admin' && (
+          <DropdownMenuItem asChild className="cursor-pointer hover:bg-cyan-500/10 focus:bg-cyan-500/10">
+            <Link href="/admin/settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4 text-blue-400" />
+              <span>Configurações</span>
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator className="bg-cyan-500/20" />
         <DropdownMenuItem
           onClick={handleLogout}

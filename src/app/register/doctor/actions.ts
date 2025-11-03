@@ -1,10 +1,12 @@
 
 'use server';
 
-import { addDoctorWithAuth, getDoctorByEmail } from '@/lib/db-adapter';
+import { addDoctorWithAuth, getDoctorByEmail, getDoctorByCrm } from '@/lib/db-adapter';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
+import { generateVerificationToken, getTokenExpiry, sendVerificationEmail } from '@/lib/email-service';
+import type { Doctor } from '@/types';
 
 const DoctorSchema = z.object({
   fullName: z.string().min(3, { message: "O nome completo é obrigatório." }),
@@ -29,8 +31,9 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
   const { fullName, email, password, specialty, crm, city, state } = validatedFields.data;
 
   try {
-    const existingDoctor = await getDoctorByEmail(email);
-    if (existingDoctor) {
+    // Verificar se email já existe
+    const existingEmail = await getDoctorByEmail(email);
+    if (existingEmail) {
         return {
             ...prevState,
             errors: { email: ['Este e-mail já está em uso.'] },
@@ -38,11 +41,25 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
         };
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Verificar se CRM já existe
+    const existingCrm = await getDoctorByCrm(crm);
+    if (existingCrm) {
+        return {
+            ...prevState,
+            errors: { crm: ['Este CRM já está cadastrado.'] },
+            message: 'Falha no cadastro. Este CRM já está cadastrado no sistema.',
+        };
+    }
 
-    await addDoctorWithAuth({
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationToken = generateVerificationToken();
+    const tokenExpiry = getTokenExpiry();
+
+    const doctorId = await addDoctorWithAuth({
       name: fullName,
+      crm: crm,
       email: email,
+      emailVerified: false,
       specialty: specialty,
       city: city,
       state: state.toUpperCase(),
@@ -54,12 +71,26 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
       xpToNextLevel: 100,
       validations: 0,
       badges: [],
-    }, hashedPassword);
+    } as Omit<Doctor, 'id'>, hashedPassword, verificationToken, tokenExpiry);
+
+    // Enviar email de verificação
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                    (process.env.REPLIT_DOMAINS?.split(',')[0] 
+                      ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` 
+                      : 'http://localhost:5000');
+    
+    const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}&type=doctor`;
+    
+    await sendVerificationEmail({
+      to: email,
+      name: fullName,
+      verificationUrl,
+    });
 
     revalidatePath('/doctor/patients');
     return {
       ...prevState,
-      message: 'Cadastro de médico realizado com sucesso! Você será redirecionado para a página de login.',
+      message: 'Cadastro realizado com sucesso! Verifique seu email para ativar sua conta.',
       errors: null,
       success: true,
     };

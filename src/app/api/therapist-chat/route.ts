@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { therapistChat } from '@/ai/flows/therapist-chat-flow';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
-import { getPatientById, updatePatient } from '@/lib/db-adapter';
+import { getPatientById, updatePatient, trackUsage } from '@/lib/db-adapter';
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,10 +36,28 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Track chat usage
+    trackUsage({
+      patientId,
+      usageType: 'chat',
+      resourceName: 'Therapist Chat',
+    }).catch(error => {
+      console.error('[Usage Tracking] Failed to track therapist chat:', error);
+    });
+
     if (isAudioRequest) {
       const audioResponse = await textToSpeech({ text: chatResponse.response });
       
       if (audioResponse && audioResponse.audioDataUri) {
+        // Track TTS usage separately
+        trackUsage({
+          patientId,
+          usageType: 'tts',
+          resourceName: 'Therapist Audio Response',
+        }).catch(error => {
+          console.error('[Usage Tracking] Failed to track TTS:', error);
+        });
+        
         return NextResponse.json({
           response: chatResponse.response,
           audioDataUri: audioResponse.audioDataUri,

@@ -1,232 +1,77 @@
 # MediAI - AI-Powered Healthcare Platform
 
 ## Overview
-MediAI is an AI-powered healthcare platform connecting patients with medical professionals for AI-assisted diagnosis and real-time communication. It features patient and doctor portals, leveraging Google's Gemini AI models for intelligent medical analysis, preliminary diagnoses, and personalized wellness recommendations, all in Brazilian Portuguese. The platform aims to revolutionize healthcare delivery by integrating advanced AI capabilities with a robust, user-friendly interface.
+MediAI is an AI-powered healthcare platform designed to connect patients with medical professionals for AI-assisted diagnosis and real-time communication. It offers both patient and doctor portals, leveraging Google's Gemini AI models for intelligent medical analysis, preliminary diagnoses, and personalized wellness recommendations, all presented in Brazilian Portuguese. The platform aims to innovate healthcare delivery by integrating advanced AI within a robust, user-friendly interface, enhancing the accessibility and quality of medical consultations. The business vision is to provide hospital-grade preliminary diagnoses with specific medication recommendations, exact dosages, treatment protocols, monitoring guidelines, and contraindications, transforming general advice into actionable clinical guidance.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-### Frontend Architecture
-**Framework**: Next.js 15 with App Router, TypeScript, and React Server Components.
-**UI Components**: shadcn/ui with Radix UI primitives, Tailwind CSS. Features a futuristic dark theme with cyan/blue/purple gradients, neon accents, glow effects, semi-transparent cards, animated background orbs, and gradient text.
-**Routing Structure**: Public routes (`/`, `/login`, `/register`), protected patient routes (`/patient/*`), and protected doctor routes (`/doctor/*`) with middleware-based authentication and role-based access control.
+### Frontend
+- **Framework**: Next.js 15 with App Router, TypeScript, and React Server Components.
+- **UI Components**: shadcn/ui with Radix UI, Tailwind CSS, featuring a futuristic dark theme with gradients, neon accents, glow effects, semi-transparent cards, animated backgrounds, and gradient text.
+- **Routing**: Public, protected patient, and protected doctor routes with middleware-based authentication and role-based access control.
 
-### Backend Architecture
-**AI/ML Layer**: Google Genkit framework with Gemini models (Gemini 2.5 Flash) orchestrating multiple specialized AI agents for domain-specific analysis. Includes text-to-speech integration and real-time consultation flow.
-**AI Agent System**:
-- **Specialist Agents**: 15+ domain-specific agents (e.g., Cardiologist, Pulmonologist, Radiologist) with professional identities, comprehensive clinical assessment frameworks, and explicit JSON output instructions.
-- **Orchestrator Pattern**: A General Practitioner AI coordinates specialist consultations.
-- **Central Brain Concept**: MediAI acts as an intelligent coordinator for patient care.
-- **Tool Integration**: Includes `medicalKnowledgeBaseTool`, `patientDataAccessTool`, `consultationHistoryAccessTool`, `doctorsListAccessTool`, and `internetSearchTool`.
-**API Layer**: Next.js API routes (App Router) utilizing server actions for data mutations, RESTful endpoints for WebRTC signaling, and Server-Sent Events for real-time communication.
-**Authentication & Session Management**: JWT-based sessions with `jose` library, bcrypt password hashing, and role-based middleware protection.
+### Backend
+- **AI/ML Layer**: Google Genkit orchestrates specialized AI agents using Gemini models (Gemini 2.5 Flash) for domain-specific analysis, text-to-speech, and real-time consultation flows. It includes 15+ specialist agents, an Orchestrator AI (General Practitioner - Dr. Márcio Silva), and a "Central Brain" for intelligent coordination, employing a 3-stage analysis pipeline (Triage → Parallel Specialist Analysis → Synthesis).
+- **API Layer**: Next.js API routes with server actions, RESTful endpoints for WebRTC signaling, and Server-Sent Events for real-time communication.
+- **Authentication**: JWT-based sessions with `jose` library, bcrypt password hashing, and role-based middleware.
 
 ### Data Storage
-**Primary Database**: Neon PostgreSQL, managed via Drizzle ORM.
-**Data Model**: Includes tables for `patients`, `doctors`, `patientAuth`, `doctorAuth`, `exams`, `appointments`, `callRooms`, `signals`, and `consultations`.
+- **Primary Database**: Neon PostgreSQL, managed via Drizzle ORM.
+- **Data Model**: Includes tables for `patients`, `doctors`, `patientAuth`, `doctorAuth`, `exams`, `appointments`, `callRooms`, `signals`, `consultations`, and `wellnessPlan` (JSONB).
 
 ### System Design Choices
-- Complete migration from Firebase to Neon PostgreSQL with Drizzle ORM for improved type safety and infrastructure.
-- Migration from Firebase Auth to bcrypt + JWT for authentication.
-- File storage migrated from Firebase Storage to Google Cloud Storage.
-- WebRTC signaling migrated from Firestore to PostgreSQL.
-- Enhanced AI system with Gemini 2.5 Flash and improved specialist agent schemas for detailed clinical findings, assessments, and recommendations.
-- **AI "Central Brain" system with 3D TalkingHead avatar** - Implemented using TalkingHead.js + Gemini 2.5 Flash TTS for realistic lip-sync and natural voice in Portuguese.
-- Call recording and transcription via Gemini AI with storage in PostgreSQL.
-- Server-side AI processing to secure sensitive medical data.
-- Per-exam validation workflow.
-- Gamification for doctors (XP, levels, badges) to encourage platform engagement.
-
-## Recent Changes (Oct 2025)
-
-### AI Therapist Chat with Voice Support (Oct 10, 2025)
-**Main Feature:**
-- WhatsApp-style chat interface for patients to interact with AI therapist
-- Dual functionality: therapeutic support and personal health assistant
-- Full voice and text support with intelligent response matching (text→text, voice→voice)
-- Complete access to patient medical history, exam results, diagnoses, and wellness plans
-
-**Components Created:**
-- `therapist-chat.tsx` - WhatsApp-style chat component with text and voice message support
-- `/patient/therapist-chat` - Dedicated chat page with authentication protection
-- `/api/therapist-chat` - Chat API endpoint with conversation persistence
-- `/api/speech-to-text` - Backend STT service using Gemini 2.0 Flash for audio transcription
-- `therapist-chat-flow.ts` - AI flow with comprehensive patient context access
-
-**Technical Implementation:**
-- Uses Google Gemini 2.0 Flash for audio transcription (speech-to-text)
-- Integrates existing text-to-speech system for voice responses
-- Records audio via MediaRecorder API, uploads to backend for transcription
-- Conversation history persisted in patient's `conversationHistory` field
-- AI has full access to: medical history, exam results, validated diagnoses, wellness plans
-
-**AI Capabilities:**
-- Acts as empathetic therapist providing emotional support
-- Helps patients understand diagnoses and treatment plans
-- Motivates adherence to wellness recommendations
-- Answers questions about exams, medications, and health conditions
-- Offers stress management and mental wellness techniques
-- Provides personalized responses based on complete medical context
-
-**UX Features:**
-- New "Fale com o Terapeuta" card prominently featured in patient dashboard
-- Real-time message delivery with loading states
-- Voice recording with visual feedback (recording indicator)
-- Audio playback for voice responses from AI
-- Automatic scroll to newest messages
-- Timestamp display for all messages
-- Clean, modern interface matching platform's futuristic theme (green accents)
-
-**Security & Privacy:**
-- Protected route requiring patient authentication
-- Backend transcription ensures audio data privacy
-- Conversation persistence for continuity across sessions
-- No client-side storage of sensitive medical data
-
-## Recent Changes (Oct 2025)
-
-### Exam History Visualization with Time-Series Graphs (Oct 2025)
-**Main Feature:**
-- Comprehensive exam history visualization with interactive time-series graphs
-- Each exam type (blood tests, feces, urine, X-ray, CT scan) has its own dedicated graph
-- Graphs display progression over time with diagnosis information (AI preliminary or doctor-validated)
-- Automatic grouping of exams by category for better organization
-
-**Components Created:**
-- `exam-timeline-chart.tsx` - Reusable time-series graph component using Recharts
-- Custom tooltips showing exam date, status, result, and diagnosis
-- Color-coded graphs per exam type with gradient effects
-
-**Page Updates:**
-- `/patient/history` - Enhanced with tabbed interface (Graphs / List view)
-- Automatic exam categorization: Blood tests, Feces tests, Urine tests, X-rays, CT scans, Others
-- Each category displays evolution over time with interactive data points
-- Badges showing individual exam dates for quick reference
-
-**Technical Implementation:**
-- Uses Recharts library for responsive, interactive graphs
-- Data sorted chronologically to show proper timeline
-- Distinguishes between AI preliminary diagnosis and doctor-validated results
-- Futuristic design with cyan/blue/purple gradients matching platform theme
-- Responsive tooltips with detailed exam information
-
-**UX Improvements:**
-- Two visualization modes: Time-series graphs and traditional list
-- Easy comparison of exam results over time
-- Visual indicators for validated vs pending exams
-- Clear categorization helps patients understand their health trends
-- Interactive data points reveal detailed information on hover
-
-### Patient Dashboard with AI Consultation (Oct 2025)
-**Main Feature:**
-- AI Consultation Card integrated directly into patient dashboard main screen (first card after patient name)
-- Real-time video consultation with 3D avatar visible on first page
-- Featured section with futuristic design (purple/pink gradients)
-- Information sidebar explaining AI capabilities
-
-**Components Updated:**
-- `patient-dashboard-improved.tsx` - Added featured AI Consultation section as first card with dynamic import
-- `ai-consultation-card.tsx` - Updated design to match futuristic theme with gradient cards
-- `realistic-avatar.tsx` - **Fully refactored to use React rendering instead of DOM manipulation** (eliminates removeChild errors)
-- Removed old link-only approach, now full interactive component on dashboard
-
-**Technical Fixes:**
-- Eliminated all `innerHTML` and `appendChild` DOM manipulation in RealisticAvatar
-- Replaced with pure React conditional rendering for all avatar types
-- Proper cleanup of audio resources in useEffect
-- Fixed removeChild runtime errors during component unmount
-
-**UX Improvements:**
-- Immediate access to AI consultation without navigation
-- Avatar 3D preview visible on dashboard
-- "Novo" badge highlighting the feature
-- Quick access alongside other patient actions
-
-### Avatar 3D TalkingHead Implementation
-**Components Created:**
-- `TalkingAvatar3D` - Main 3D avatar component with CDN loading, WebGL rendering, lip-sync via Ready Player Me
-- `AvatarTestPanel` - Testing interface with speech controls
-- `/api/gemini-tts` - TTS endpoint using Gemini 2.5 Flash (Portuguese, Puck voice)
-- `useAvatarSpeech` hook - Control avatar speech with mood/subtitle support
-
-**Integration Points:**
-- Patient call page (`/patient/call/[doctorId]`) - Avatar during video consultations
-- Doctor dashboard (`/doctor`) - "IA Central Brain" card with online status
-- Uses Three.js 0.161.0 + TalkingHead.js from CDN
-- Ready Player Me avatar with ARKit/Oculus Visemes morphTargets for lip-sync
-- Audio: PCM 16-bit, 24kHz, mono via Gemini 2.5 Flash TTS
-
-### AI Nutritionist Wellness Plan System (Oct 2025)
-**Database Schema:**
-- Added `wellnessPlan` JSONB field to `patients` table with dietary, exercise, mental wellness plans, daily reminders, weekly recipes, and weekly tasks
-
-**AI Integration:**
-- `regeneratePatientWellnessPlan` - Consolidates all patient exams and generates personalized wellness plan via AI Nutritionist agent
-- Icon validation with explicit constraints: `'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell'`
-- Category validation for weekly tasks: `'nutrition' | 'exercise' | 'mental' | 'general'`
-- Meal type validation for recipes: `'cafe-da-manha' | 'almoco' | 'jantar' | 'lanche'`
-- Comprehensive error logging for validation failures
-- Automatic regeneration after exam analysis (fire-and-forget pattern)
-- Generates 7 healthy recipes (one per day) tailored to patient's medical conditions
-- Generates 7-10 categorized weekly tasks with suggested days
-- **Automatic recipe-to-task conversion:** Each recipe becomes a "Preparar: [recipe name]" task in nutrition category
-- **Weekly regeneration limit:** Wellness plan can only be regenerated once every 7 days to ensure stability
-
-**UI Components:**
-- `/patient/wellness` page refactored to display persistent wellness plan from database
-- Futuristic cards with cyan/blue/purple gradients for each wellness section
-- Regeneration button with 7-day cooldown period and visual feedback
-- Last updated timestamp display
-- **Weekly Recipes Section** with:
-  - Grid layout with color-coded meal type cards (breakfast, lunch, dinner, snack)
-  - Click-to-view recipe details in modal dialog
-  - Full ingredients list with quantities
-  - Step-by-step preparation instructions
-  - Day-of-week suggestions
-- **Weekly Tasks Section** with:
-  - Interactive checkboxes to mark tasks as complete
-  - Visual progress bar showing completion percentage
-  - Tasks organized by category (nutrition, exercise, mental health, general)
-  - Category-specific icons and color gradients
-  - Optimistic UI updates for instant feedback
-  - Includes auto-generated tasks for preparing weekly recipes
-
-**Technical Details:**
-- Plans persist in PostgreSQL as JSONB for efficient querying
-- Zod schema validation ensures data integrity
-- Pre-validation of reminder icons, task categories, and recipe meal types before database save
-- Graceful error handling with detailed logging
-- `toggleWeeklyTaskAction` server action for updating task completion status
-- `RegenerateWellnessPlanButton` component with built-in 7-day cooldown logic
-- Recipes include: id, title, mealType, ingredients array, instructions, dayOfWeek
-- Tasks include: id, category, title, description, dayOfWeek (optional), completed status, completedAt timestamp
+- **UI/UX**: Futuristic dark theme, live consultation banner with video backgrounds, minimalist consultation interfaces, and visual display for specialist findings. Includes gamification features for doctors.
+- **AI Enhancements**: Enhanced AI system with Gemini 2.5 Flash for medical analysis and consultations, including call recording and transcription via Gemini AI. Server-side AI processing ensures medical data security. Implementation of an AI Nutritionist for personalized wellness plans.
+- **Real-time Communication**: LiveKit for WebRTC, Daily.co SDK for Tavus CVI integration, with automatic device detection and noise cancellation.
+- **AI Consultations**: LiveKit + Avatar Providers (Tavus/BEY) + Gemini Architecture for production-grade real-time consultations with vision capabilities. This involves a Python agent orchestrating Google Gemini API for STT, LLM, and TTS, configurable avatar integration (Tavus or Beyond Presence selected via admin panel), and Gemini Vision API for visual patient analysis. A unified voice system ("Aoede" voice, female, pt-BR) is used across all audio generations. The AI can see the patient through their camera and describe their appearance when asked. **Avatar Provider Configuration**: Admins can select between Tavus and Beyond Presence (BEY) avatar providers through the admin panel settings, with the choice stored in the database and automatically applied to all new consultations.
+- **AI Therapist Chat**: Bidirectional voice chat with WhatsApp-style audio features and voice support.
+- **Medical Analysis**: A multi-specialist medical analysis system where exam uploads trigger parallel consultation with up to 15 specialist AI agents, coordinated by an orchestrator AI. This provides deep domain-specific analysis with complete traceability, returning structured data including suggested medications, treatment plans, monitoring protocols, contraindications, and relevant metrics. The orchestrator synthesizes this into an integrated medication plan and detailed recommendations.
+- **Data Visualization**: Exam history visualization with interactive time-series graphs using Recharts.
+- **Admin System**: Comprehensive admin panel for platform oversight, including user management, exam review, consultation monitoring, resource usage tracking, and platform settings configuration. Features include secure login, audit logging, email notifications for key events, and **avatar provider selection** (Tavus vs Beyond Presence) for AI consultations.
+- **Email Verification**: System for patient and doctor email verification with unique CPF/CRM validation and secure token-based verification.
+- **Subscription Management**: Integrated Stripe for handling subscription plans (Trial, Basic, Premium, Family) with usage-based tiers, secure payment processing, and webhook integration. Includes a 7-day free trial.
+- **Security & Monitoring**: Implemented comprehensive security headers (CSP, X-Frame-Options, etc.), Sentry for error tracking, structured logging, and usage tracking for resource consumption per patient.
+- **Performance Optimization**: In-memory cache layer with TTL/LRU eviction, generic pagination system with offset and cursor support, optimized image components with lazy loading.
+- **Real-Time Notifications**: Server-Sent Events (SSE) system for real-time notifications of exam results, appointments, and alerts.
+- **Data Export & LGPD**: Patient data export system supporting JSON and HTML formats for LGPD compliance (data portability rights).
+- **Appointment Scheduling**: Intelligent scheduling system with conflict detection, availability checking, and slot management to prevent double-bookings.
+- **Advanced Search**: Multi-entity search system with filters for patients, doctors, and exams, integrated with pagination.
 
 ## External Dependencies
 
-**AI/ML Services**:
+### AI/ML Services
 - Google Gemini API (Gemini 2.0 Flash, Gemini 2.0 Flash Vision, Gemini 1.5 Pro, Gemini 2.5 Flash TTS)
 - Google Genkit (AI orchestration framework)
+- Tavus CVI (Conversational Video Interface for AI avatars)
+- Beyond Presence (BEY) - Hyper-realistic virtual avatar alternative
 
-**Cloud Services**:
-- Google Cloud Storage (File storage)
+### Cloud Services
+- Google Cloud Storage (for specific uses, though local storage is preferred for avatars)
+- LiveKit Cloud
 
-**Database**:
+### Database
 - Neon PostgreSQL
 
-**Real-Time Communication**:
-- WebRTC (Peer-to-peer video/audio calls)
-- Simple-peer library (WebRTC abstraction)
+### Real-Time Communication
+- WebRTC (LiveKit infrastructure)
+- LiveKit Python Agents
+- LiveKit Plugins: google (STT/LLM/TTS), tavus (avatar), silero (VAD)
 
-**Development & Build Tools**:
+### Development & Build Tools
 - TypeScript
 - Tailwind CSS
 - Drizzle ORM
-- `jose` library (JWT)
-- `@neondatabase/serverless`, `drizzle-orm`, `drizzle-kit`, `postgres`
+- `jose` library
 
-**API Integrations**:
-- Internal medical knowledge base tool
-- Internet search capability
-- Patient data access tool
+### Payment & Subscription
+- Stripe (payment processing and subscription management)
+
+### Email & Notifications
+- Resend (transactional email service for admin notifications and email verification)
+- SendGrid (optional, as an alternative email provider)
+
+### Monitoring
+- Sentry (for error tracking and performance monitoring)

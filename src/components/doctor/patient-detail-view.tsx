@@ -181,6 +181,34 @@ export default function PatientDetailView({
                                         </div>
                                     </AccordionTrigger>
                                     <AccordionContent className="space-y-4 pt-4">
+                                        {/* Valores Reais do Exame */}
+                                        {exam.results && exam.results.length > 0 && (
+                                            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                                <h4 className="font-semibold text-sm mb-3 text-blue-900 flex items-center gap-2">
+                                                    <FileText className="h-4 w-4" />
+                                                    Valores do Exame
+                                                </h4>
+                                                <div className="space-y-2">
+                                                    {exam.results.map((result, idx) => (
+                                                        <div key={idx} className="grid grid-cols-3 gap-2 p-2 bg-white rounded border border-blue-100">
+                                                            <div>
+                                                                <p className="text-xs font-medium text-gray-700">Parâmetro</p>
+                                                                <p className="text-sm font-semibold text-gray-900">{result.name}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs font-medium text-gray-700">Valor</p>
+                                                                <p className="text-sm font-bold text-blue-700">{result.value}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs font-medium text-gray-700">Referência</p>
+                                                                <p className="text-sm font-medium text-gray-700">{result.reference}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <div className="p-4 bg-muted/50 rounded-lg">
                                             <h4 className="font-semibold text-sm mb-2 text-primary">Análise Preliminar da IA</h4>
                                             <p className="text-sm text-muted-foreground whitespace-pre-wrap">{exam.preliminaryDiagnosis}</p>
@@ -243,14 +271,51 @@ export default function PatientDetailView({
                 </CardHeader>
                 <CardContent>
                      {validatedExams.length > 0 ? (
-                        <ul className="space-y-2">
+                        <Accordion type="single" collapsible className="w-full">
                             {validatedExams.map(exam => (
-                                <li key={exam.id} className="p-3 border rounded-md">
-                                    <p className="font-semibold">{exam.type}</p>
-                                    <p className="text-sm text-muted-foreground truncate">{exam.doctorNotes}</p>
-                                </li>
+                                <AccordionItem value={exam.id} key={exam.id}>
+                                    <AccordionTrigger className="text-sm font-medium hover:no-underline">
+                                        <div className="flex items-center gap-3">
+                                            <Files className="h-4 w-4 text-green-600"/>
+                                            <div className="text-left">
+                                                <p className="font-semibold">{exam.type}</p>
+                                                <p className="text-xs text-muted-foreground">{new Date(exam.date).toLocaleDateString('pt-BR')}</p>
+                                            </div>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="space-y-3 pt-3">
+                                        {/* Valores Reais do Exame */}
+                                        {exam.results && exam.results.length > 0 && (
+                                            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                                                <h4 className="font-semibold text-xs mb-2 text-green-900 flex items-center gap-2">
+                                                    <FileText className="h-3 w-3" />
+                                                    Valores do Exame
+                                                </h4>
+                                                <div className="space-y-1.5">
+                                                    {exam.results.map((result, idx) => (
+                                                        <div key={idx} className="grid grid-cols-3 gap-2 p-1.5 bg-white rounded border border-green-100">
+                                                            <div>
+                                                                <p className="text-xs text-muted-foreground">{result.name}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs font-bold text-green-700">{result.value}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs text-muted-foreground">{result.reference}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className="p-3 bg-muted/50 rounded-lg">
+                                            <h4 className="font-semibold text-xs mb-1 text-primary">Diagnóstico Final</h4>
+                                            <p className="text-xs text-muted-foreground whitespace-pre-wrap">{exam.doctorNotes}</p>
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
                             ))}
-                        </ul>
+                        </Accordion>
                      ): (
                         <p className="text-muted-foreground text-center py-4">Nenhum exame foi validado ainda.</p>
                      )}

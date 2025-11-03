@@ -5,6 +5,10 @@ export const patientStatusEnum = pgEnum('patient_status', ['Requer Validação',
 export const examStatusEnum = pgEnum('exam_status', ['Requer Validação', 'Validado']);
 export const appointmentStatusEnum = pgEnum('appointment_status', ['Agendada', 'Concluída', 'Cancelada']);
 export const callStatusEnum = pgEnum('call_status', ['waiting', 'active', 'ended']);
+export const userRoleEnum = pgEnum('user_role', ['doctor', 'patient', 'admin']);
+export const subscriptionStatusEnum = pgEnum('subscription_status', ['active', 'canceled', 'past_due', 'trialing', 'incomplete']);
+export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'succeeded', 'failed', 'refunded']);
+export const avatarProviderEnum = pgEnum('avatar_provider', ['tavus', 'bey']);
 
 export const patients = pgTable('patients', {
   id: text('id').primaryKey(),
@@ -14,6 +18,9 @@ export const patients = pgTable('patients', {
   cpf: text('cpf').notNull().unique(),
   phone: text('phone').notNull(),
   email: text('email').notNull().unique(),
+  emailVerified: boolean('email_verified').default(false).notNull(),
+  verificationToken: text('verification_token'),
+  tokenExpiry: timestamp('token_expiry'),
   city: text('city').notNull(),
   state: text('state').notNull(),
   lastVisit: text('last_visit'),
@@ -63,6 +70,7 @@ export const patientAuth = pgTable('patient_auth', {
 export const doctors = pgTable('doctors', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
+  crm: text('crm').notNull().unique(),
   specialty: text('specialty').notNull(),
   city: text('city').notNull(),
   state: text('state').notNull(),
@@ -70,6 +78,9 @@ export const doctors = pgTable('doctors', {
   avatar: text('avatar').notNull(),
   avatarHint: text('avatar_hint'),
   email: text('email').notNull().unique(),
+  emailVerified: boolean('email_verified').default(false).notNull(),
+  verificationToken: text('verification_token'),
+  tokenExpiry: timestamp('token_expiry'),
   level: integer('level').default(1).notNull(),
   xp: integer('xp').default(0).notNull(),
   xpToNextLevel: integer('xp_to_next_level').default(100).notNull(),
@@ -86,6 +97,32 @@ export const doctorAuth = pgTable('doctor_auth', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+export const admins = pgTable('admins', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  avatar: text('avatar').notNull(),
+  role: text('role').default('admin').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const adminAuth = pgTable('admin_auth', {
+  id: text('id').primaryKey().references(() => admins.id, { onDelete: 'cascade' }),
+  password: text('password').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Replit Auth user mapping
+export const replitUsers = pgTable('replit_users', {
+  replitUserId: text('replit_user_id').primaryKey(), // X-Replit-User-Id
+  replitUserName: text('replit_user_name').notNull(), // X-Replit-User-Name
+  role: userRoleEnum('role').notNull(),
+  profileId: text('profile_id').notNull(), // references doctors.id or patients.id
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 export const exams = pgTable('exams', {
   id: text('id').primaryKey(),
   patientId: text('patient_id').notNull().references(() => patients.id, { onDelete: 'cascade' }),
@@ -97,6 +134,12 @@ export const exams = pgTable('exams', {
   explanation: text('explanation').notNull(),
   suggestions: text('suggestions').notNull(),
   results: json('results').$type<{ name: string; value: string; reference: string }[]>(),
+  specialistFindings: json('specialist_findings').$type<Array<{
+    specialist: string;
+    findings: string;
+    clinicalAssessment: string;
+    recommendations: string;
+  }>>(),
   status: examStatusEnum('status').notNull().default('Requer Validação'),
   doctorNotes: text('doctor_notes'),
   finalExplanation: text('final_explanation'),
@@ -218,5 +261,168 @@ export const consultationsRelations = relations(consultations, ({ one }) => ({
   callRoom: one(callRooms, {
     fields: [consultations.roomId],
     references: [callRooms.id],
+  }),
+}));
+
+export const tavusConversations = pgTable('tavus_conversations', {
+  id: text('id').primaryKey(),
+  patientId: text('patient_id').notNull().references(() => patients.id, { onDelete: 'cascade' }),
+  conversationId: text('conversation_id').notNull().unique(),
+  transcript: text('transcript').default(''),
+  summary: text('summary'),
+  mainConcerns: json('main_concerns').$type<string[]>(),
+  aiRecommendations: json('ai_recommendations').$type<string[]>(),
+  suggestedFollowUp: json('suggested_follow_up').$type<string[]>(),
+  sentiment: text('sentiment'),
+  qualityScore: integer('quality_score'),
+  startTime: timestamp('start_time').notNull(),
+  endTime: timestamp('end_time'),
+  duration: integer('duration'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const tavusConversationsRelations = relations(tavusConversations, ({ one }) => ({
+  patient: one(patients, {
+    fields: [tavusConversations.patientId],
+    references: [patients.id],
+  }),
+}));
+
+export const subscriptionPlans = pgTable('subscription_plans', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description').notNull(),
+  price: integer('price').notNull(),
+  currency: text('currency').notNull().default('brl'),
+  interval: text('interval').notNull().default('month'),
+  features: json('features').$type<string[]>().notNull(),
+  stripePriceId: text('stripe_price_id'),
+  stripeProductId: text('stripe_product_id'),
+  active: boolean('active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const subscriptions = pgTable('subscriptions', {
+  id: text('id').primaryKey(),
+  patientId: text('patient_id').notNull().references(() => patients.id, { onDelete: 'cascade' }),
+  planId: text('plan_id').notNull().references(() => subscriptionPlans.id),
+  stripeSubscriptionId: text('stripe_subscription_id').unique(),
+  stripeCustomerId: text('stripe_customer_id').notNull(),
+  status: subscriptionStatusEnum('status').notNull().default('active'),
+  currentPeriodStart: timestamp('current_period_start'),
+  currentPeriodEnd: timestamp('current_period_end'),
+  cancelAtPeriodEnd: boolean('cancel_at_period_end').default(false).notNull(),
+  canceledAt: timestamp('canceled_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const payments = pgTable('payments', {
+  id: text('id').primaryKey(),
+  subscriptionId: text('subscription_id').notNull().references(() => subscriptions.id, { onDelete: 'cascade' }),
+  patientId: text('patient_id').notNull().references(() => patients.id, { onDelete: 'cascade' }),
+  stripePaymentIntentId: text('stripe_payment_intent_id').unique(),
+  amount: integer('amount').notNull(),
+  currency: text('currency').notNull().default('brl'),
+  status: paymentStatusEnum('status').notNull().default('pending'),
+  paidAt: timestamp('paid_at'),
+  failedAt: timestamp('failed_at'),
+  failureReason: text('failure_reason'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Admin Settings
+export const adminSettings = pgTable('admin_settings', {
+  id: text('id').primaryKey(),
+  platformName: text('platform_name').notNull().default('MediAI'),
+  platformDescription: text('platform_description').notNull().default('Plataforma de saúde com IA'),
+  supportEmail: text('support_email').notNull().default('suporte@mediai.com'),
+  maxFileSize: integer('max_file_size').notNull().default(10), // MB
+  sessionTimeout: integer('session_timeout').notNull().default(7), // dias
+  avatarProvider: avatarProviderEnum('avatar_provider').notNull().default('tavus'), // Avatar provider: Tavus or BEY
+  notifyNewPatient: boolean('notify_new_patient').notNull().default(true),
+  notifyNewDoctor: boolean('notify_new_doctor').notNull().default(true),
+  notifyNewExam: boolean('notify_new_exam').notNull().default(true),
+  notifyNewConsultation: boolean('notify_new_consultation').notNull().default(false),
+  notifySystemAlerts: boolean('notify_system_alerts').notNull().default(true),
+  notifyWeeklyReport: boolean('notify_weekly_report').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Audit Logs
+export const auditLogs = pgTable('audit_logs', {
+  id: text('id').primaryKey(),
+  adminId: text('admin_id').notNull().references(() => admins.id, { onDelete: 'cascade' }),
+  adminName: text('admin_name').notNull(),
+  adminEmail: text('admin_email').notNull(),
+  action: text('action').notNull(), // 'update_settings', 'change_password', 'create_admin', etc
+  entityType: text('entity_type').notNull(), // 'admin_settings', 'admin_auth', 'admin', etc
+  entityId: text('entity_id'), // ID do registro afetado, se aplicável
+  changes: json('changes').$type<{
+    field: string;
+    oldValue: string | number | boolean | null;
+    newValue: string | number | boolean | null;
+  }[]>(),
+  metadata: json('metadata').$type<Record<string, any>>(),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Usage Tracking - Rastreamento de uso de recursos por paciente
+export const usageTracking = pgTable('usage_tracking', {
+  id: text('id').primaryKey(),
+  patientId: text('patient_id').notNull().references(() => patients.id, { onDelete: 'cascade' }),
+  usageType: text('usage_type').notNull(), // 'exam_analysis', 'stt', 'llm', 'tts', 'ai_call', 'doctor_call', 'chat'
+  resourceName: text('resource_name'), // Nome específico do recurso (ex: 'Gemini 2.5 Flash', 'Tavus Avatar')
+  tokensUsed: integer('tokens_used').default(0), // Tokens de AI usados
+  durationSeconds: integer('duration_seconds').default(0), // Duração em segundos (para chamadas)
+  cost: integer('cost').default(0), // Custo estimado em centavos
+  metadata: json('metadata').$type<{
+    examId?: string;
+    consultationId?: string;
+    model?: string;
+    inputTokens?: number;
+    outputTokens?: number;
+    audioSeconds?: number;
+    [key: string]: any;
+  }>(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const contactMessages = pgTable('contact_messages', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  subject: text('subject').notNull(),
+  message: text('message').notNull(),
+  status: text('status').default('new').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const subscriptionsRelations = relations(subscriptions, ({ one, many }) => ({
+  patient: one(patients, {
+    fields: [subscriptions.patientId],
+    references: [patients.id],
+  }),
+  plan: one(subscriptionPlans, {
+    fields: [subscriptions.planId],
+    references: [subscriptionPlans.id],
+  }),
+  payments: many(payments),
+}));
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+  subscription: one(subscriptions, {
+    fields: [payments.subscriptionId],
+    references: [subscriptions.id],
+  }),
+  patient: one(patients, {
+    fields: [payments.patientId],
+    references: [patients.id],
   }),
 }));

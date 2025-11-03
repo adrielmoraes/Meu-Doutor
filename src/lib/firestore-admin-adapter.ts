@@ -192,3 +192,7 @@ export async function addPatientWithAuth(patientData: Omit<Patient, 'id'>, hashe
 
     await batch.commit();
 }
+
+
+
+

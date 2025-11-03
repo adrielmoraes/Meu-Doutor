@@ -1,11 +1,13 @@
 
 'use server';
 
-import { getDoctorByEmailWithAuth, getPatientByEmailWithAuth } from '@/lib/db-adapter';
+import { getDoctorByEmailWithAuth, getPatientByEmailWithAuth, getAdminByEmailWithAuth } from '@/lib/db-adapter';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import { login as createSession } from '@/lib/session';
+import { loginRateLimiter } from '@/lib/rate-limiter';
+import { headers } from 'next/headers';
 
 const LoginSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
@@ -25,24 +27,63 @@ export async function loginAction(prevState: any, formData: FormData) {
 
   const { email, password } = validatedFields.data;
 
+  // Rate limiting por IP
+  const headersList = await headers();
+  const forwardedFor = headersList.get('x-forwarded-for');
+  const realIp = headersList.get('x-real-ip');
+  const ip = forwardedFor?.split(',')[0] || realIp || 'unknown';
+  
+  // Verificar se está bloqueado
+  if (loginRateLimiter.isBlocked(ip)) {
+    const remainingSeconds = loginRateLimiter.getBlockedTimeRemaining(ip);
+    const minutes = Math.ceil(remainingSeconds / 60);
+    
+    console.warn(`[RateLimiter] Login bloqueado para IP ${ip} - ${remainingSeconds}s restantes`);
+    
+    return {
+      ...prevState,
+      message: `Muitas tentativas de login falhadas. Tente novamente em ${minutes} minuto(s).`,
+    };
+  }
+
   let redirectPath: string | null = null;
 
   try {
     console.log('Tentando login com email:', email);
-    const doctor = await getDoctorByEmailWithAuth(email);
-    if (doctor && doctor.password) {
-        const passwordIsValid = await bcrypt.compare(password, doctor.password);
+    
+    // First check if it's an admin
+    const admin = await getAdminByEmailWithAuth(email);
+    if (admin && admin.password) {
+        const passwordIsValid = await bcrypt.compare(password, admin.password);
 
         if (passwordIsValid) {
-            console.log('Login bem-sucedido para médico:', doctor.id);
-            await createSession({ userId: doctor.id, role: 'doctor' });
-            console.log('Sessão criada para médico, redirecionando...');
-            redirectPath = '/doctor';
+            console.log('Login bem-sucedido para admin:', admin.id);
+            await createSession({ userId: admin.id, role: 'admin' });
+            console.log('Sessão criada para admin, redirecionando...');
+            redirectPath = '/admin';
         } else {
-            console.log('Senha inválida para médico');
+            console.log('Senha inválida para admin');
         }
     }
 
+    // Then check doctor
+    if (!redirectPath) {
+        const doctor = await getDoctorByEmailWithAuth(email);
+        if (doctor && doctor.password) {
+            const passwordIsValid = await bcrypt.compare(password, doctor.password);
+
+            if (passwordIsValid) {
+                console.log('Login bem-sucedido para médico:', doctor.id);
+                await createSession({ userId: doctor.id, role: 'doctor' });
+                console.log('Sessão criada para médico, redirecionando...');
+                redirectPath = '/doctor';
+            } else {
+                console.log('Senha inválida para médico');
+            }
+        }
+    }
+
+    // Finally check patient
     if (!redirectPath) {
         console.log('Verificando paciente...');
         const patient = await getPatientByEmailWithAuth(email);
@@ -67,6 +108,9 @@ export async function loginAction(prevState: any, formData: FormData) {
     }
     
     if (redirectPath) {
+        // Login bem-sucedido - limpar tentativas
+        loginRateLimiter.recordSuccessfulAttempt(ip);
+        
         return {
             ...prevState,
             success: true,
@@ -75,10 +119,21 @@ export async function loginAction(prevState: any, formData: FormData) {
         };
     }
 
+    // Login falhou - registrar tentativa
+    loginRateLimiter.recordFailedAttempt(ip);
+    const remainingAttempts = loginRateLimiter.getRemainingAttempts(ip);
+    
+    console.warn(`[RateLimiter] Tentativa falhada para IP ${ip} - ${remainingAttempts} tentativas restantes`);
+    
     // Generic error message for security reasons
+    let message = 'E-mail ou senha inválidos.';
+    if (remainingAttempts <= 2 && remainingAttempts > 0) {
+      message += ` Você tem ${remainingAttempts} tentativa(s) restante(s).`;
+    }
+    
     return {
       ...prevState,
-      message: 'E-mail ou senha inválidos.',
+      message,
     };
 
   } catch (error: any) {

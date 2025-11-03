@@ -1,23 +1,17 @@
 'use client';
 
-import { FileClock, UserPlus, HeartPulse, Video, Activity, User, Upload, Brain, Calendar, TrendingUp, Award, Sparkles, MessageCircle } from "lucide-react";
+import { FileClock, UserPlus, HeartPulse, Video, Activity, User, Upload, Brain, Calendar, TrendingUp, Award, Sparkles, MessageCircle, LayoutDashboard, FileText, Heart, Users, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import type { Patient } from "@/types";
 import { Badge } from "@/components/ui/badge";
-import dynamic from 'next/dynamic';
 import { PatientHeader } from './patient-header';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
-const AIConsultationCard = dynamic(() => import('./ai-consultation-card'), { 
-  ssr: false,
-  loading: () => (
-    <Card className="flex flex-col justify-between bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-xl border border-purple-500/30">
-      <CardContent className="pt-6 flex items-center justify-center h-64">
-        <div className="text-purple-300 animate-pulse">Carregando consulta IA...</div>
-      </CardContent>
-    </Card>
-  )
-});
+
+
 
 interface PatientDashboardProps {
     patient: Patient;
@@ -26,6 +20,8 @@ interface PatientDashboardProps {
 }
 
 export default function PatientDashboardImproved({ patient, examCount = 0, upcomingAppointments = 0 }: PatientDashboardProps) {
+  const [activeTab, setActiveTab] = useState("overview");
+
   const quickActions = [
     {
       title: "Fale com o Terapeuta",
@@ -36,6 +32,16 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
       borderColor: "border-green-500/30",
       hoverBorder: "hover:border-green-500/60",
       hoverShadow: "hover:shadow-green-500/20",
+    },
+    {
+      title: "Consulta ao Vivo com IA",
+      icon: <Video className="h-6 w-6 text-purple-400" />,
+      href: "/patient/live-consultation",
+      description: "Consulta por vídeo com assistente inteligente em tempo real",
+      gradient: "from-purple-500/20 to-pink-500/20",
+      borderColor: "border-purple-500/30",
+      hoverBorder: "hover:border-purple-500/60",
+      hoverShadow: "hover:shadow-purple-500/20",
     },
     {
       title: "Upload de Exames",
@@ -60,6 +66,14 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
   ];
 
   const navigationCards = [
+    {
+      title: "Assinatura",
+      icon: <Zap className="h-6 w-6 text-yellow-400" />,
+      href: "/patient/subscription",
+      description: "Gerencie sua assinatura e planos",
+      gradient: "from-yellow-500/10 to-amber-500/10",
+      borderColor: "border-yellow-500/30",
+    },
     {
       title: "Histórico de Exames",
       icon: <FileClock className="h-6 w-6 text-amber-400" />,
@@ -122,7 +136,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
     <div className="bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 min-h-screen relative overflow-hidden">
       {/* Header with Menu */}
       <PatientHeader patient={patient} />
-      
+
       {/* Background Effects */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
@@ -136,7 +150,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
             <Sparkles className="h-4 w-4 text-cyan-400" />
             <span className="text-sm text-cyan-300 font-medium">Portal do Paciente</span>
           </div>
-          
+
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
             Olá, {patient.name.split(' ')[0]}! 👋
           </h1>
@@ -145,55 +159,183 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
           </p>
         </div>
 
-        {/* AI Consultation - Featured Section */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Brain className="h-7 w-7 text-purple-400" />
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent">
-              Consulta com IA em Tempo Real
-            </h2>
-            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 border-0">
-              <Sparkles className="h-3 w-3 mr-1" />
-              Novo
-            </Badge>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <AIConsultationCard />
+        {/* Tabs for Navigation */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
+          <TabsList className="grid w-full grid-cols-6 lg:grid-cols-6">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              <span className="hidden sm:inline">Visão Geral</span>
+            </TabsTrigger>
+            <TabsTrigger value="live-consultation" className="flex items-center gap-2 relative">
+              <Video className="h-4 w-4" />
+              <span className="hidden sm:inline">Consulta ao Vivo</span>
+              <Badge className="absolute -top-1 -right-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] px-1">NOVO</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="exams" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Exames</span>
+            </TabsTrigger>
+            <TabsTrigger value="wellness" className="flex items-center gap-2">
+              <Heart className="h-4 w-4" />
+              <span className="hidden sm:inline">Bem-estar</span>
+            </TabsTrigger>
+            <TabsTrigger value="appointments" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">Consultas</span>
+            </TabsTrigger>
+            <TabsTrigger value="doctors" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Médicos</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Live Consultation Tab - NOVO */}
+          <TabsContent value="live-consultation" className="space-y-6 mt-6">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-bold tracking-tight flex items-center justify-center gap-2">
+                <Video className="h-8 w-8 text-primary" />
+                Consulta ao Vivo com a IA
+              </h2>
+              <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
+                Tire suas dúvidas de saúde em tempo real com nosso assistente inteligente que conhece todo o seu histórico médico e pode orientá-lo sobre seus exames e tratamentos.
+              </p>
             </div>
-            <div className="space-y-4">
-              <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-purple-500/20">
-                <CardHeader>
-                  <CardTitle className="text-lg text-purple-300 flex items-center gap-2">
-                    <Brain className="h-5 w-5" />
-                    Sobre a Consulta IA
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm text-blue-200/70">
-                  <div className="flex items-start gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-cyan-400 mt-1.5 flex-shrink-0"></div>
-                    <p>Avatar 3D realista com sincronização labial em português</p>
+
+            <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-slate-700">
+              <CardContent className="p-8 text-center space-y-4">
+                <Video className="h-16 w-16 text-blue-400 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-white">Pronto para começar?</h3>
+                <p className="text-slate-300 max-w-md mx-auto">
+                  Clique no botão abaixo para iniciar sua consulta ao vivo com a MediAI. 
+                  Você poderá conversar por voz e vídeo em tempo real.
+                </p>
+                <Link href="/patient/live-consultation">
+                  <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                    <Video className="mr-2 h-5 w-5" />
+                    Iniciar Consulta ao Vivo
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6 mt-6">
+            {/* Live Consultation Banner - Responsivo */}
+            <Card className="text-white border-0 shadow-2xl overflow-hidden relative min-h-[320px] md:min-h-[400px] lg:min-h-[450px]">
+              <video 
+                autoPlay 
+                loop 
+                muted 
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover"
+              >
+                <source src="/ai-assistant-video.mp4" type="video/mp4" />
+              </video>
+              
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-900/40 via-pink-900/40 to-purple-900/40" />
+              
+              <CardContent className="p-6 md:p-8 lg:p-10 relative z-10">
+                <div className="flex flex-col items-start gap-3 md:gap-4">
+                  <div className="flex items-center gap-2 md:gap-3 mb-1">
+                    <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold drop-shadow-2xl">Consulta ao Vivo com a IA</h3>
+                    <Badge className="bg-white/30 text-white border-white/40 text-xs backdrop-blur-sm">NOVO</Badge>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-purple-400 mt-1.5 flex-shrink-0"></div>
-                    <p>Reconhecimento de voz em tempo real</p>
+                  <p className="text-white/90 text-sm md:text-base lg:text-lg drop-shadow-lg mb-2">
+                    Atendimento médico personalizado 24/7 com acesso completo ao seu histórico
+                  </p>
+                  <div className="flex flex-wrap gap-2 text-xs md:text-sm mb-4">
+                    <span className="flex items-center gap-1 bg-white/25 px-3 py-1.5 rounded-full backdrop-blur-sm">
+                      <Brain className="h-4 w-4" /> Conhece seus exames
+                    </span>
+                    <span className="flex items-center gap-1 bg-white/25 px-3 py-1.5 rounded-full backdrop-blur-sm">
+                      <HeartPulse className="h-4 w-4" /> Orientação personalizada
+                    </span>
+                    <span className="flex items-center gap-1 bg-white/25 px-3 py-1.5 rounded-full backdrop-blur-sm">
+                      <Activity className="h-4 w-4" /> Disponível sempre
+                    </span>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-pink-400 mt-1.5 flex-shrink-0"></div>
-                    <p>Análise médica com 15+ especialistas IA</p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"></div>
-                    <p>Respostas contextualizadas com seus exames</p>
-                  </div>
-                </CardContent>
-              </Card>
+                  <Link href="/patient/live-consultation">
+                    <Button
+                      size="lg"
+                      className="bg-white text-purple-600 hover:bg-white/90 font-semibold shadow-2xl hover:scale-105 transition-transform"
+                    >
+                      <Video className="mr-2 h-5 w-5" />
+                      Iniciar Consulta ao Vivo
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="exams" className="space-y-6 mt-6">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-bold tracking-tight flex items-center justify-center gap-2">
+                <FileText className="h-8 w-8 text-amber-400" />
+                Histórico de Exames
+              </h2>
+              <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
+                Acompanhe todos os seus exames e laudos de forma organizada e acessível.
+              </p>
             </div>
-          </div>
-        </div>
+            {/* Placeholder for Exam History */}
+            <Card className="p-8">
+              <p className="text-center text-muted-foreground">Seu histórico de exames será exibido aqui.</p>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="wellness" className="space-y-6 mt-6">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-bold tracking-tight flex items-center justify-center gap-2">
+                <HeartPulse className="h-8 w-8 text-pink-400" />
+                Seu Plano de Bem-Estar
+              </h2>
+              <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
+                Descubra recomendações personalizadas para otimizar sua saúde e qualidade de vida.
+              </p>
+            </div>
+            {/* Placeholder for Wellness Plan */}
+            <Card className="p-8">
+              <p className="text-center text-muted-foreground">Seu plano de bem-estar será exibido aqui.</p>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="appointments" className="space-y-6 mt-6">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-bold tracking-tight flex items-center justify-center gap-2">
+                <Calendar className="h-8 w-8 text-purple-400" />
+                Suas Consultas
+              </h2>
+              <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
+                Visualize suas consultas futuras e passadas. Agende novos atendimentos com facilidade.
+              </p>
+            </div>
+            {/* Placeholder for Appointments */}
+            <Card className="p-8">
+              <p className="text-center text-muted-foreground">Suas consultas serão exibidas aqui.</p>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="doctors" className="space-y-6 mt-6">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-bold tracking-tight flex items-center justify-center gap-2">
+                <Users className="h-8 w-8 text-indigo-400" />
+                Médicos da Rede
+              </h2>
+              <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
+                Conecte-se com profissionais qualificados em diversas especialidades.
+              </p>
+            </div>
+            {/* Placeholder for Doctors */}
+            <Card className="p-8">
+              <p className="text-center text-muted-foreground">Nossos médicos parceiros serão listados aqui.</p>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 mt-8">
           {stats.map((stat) => (
             <Card
               key={stat.title}
@@ -219,14 +361,14 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
           <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
             Ações Rápidas
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
             {quickActions.map((action) => (
               <Card
                 key={action.title}
                 className={`group relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border ${action.borderColor} ${action.hoverBorder} transition-all duration-300 hover:shadow-2xl ${action.hoverShadow} overflow-hidden transform hover:scale-105`}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-0 group-hover:opacity-100 transition-opacity`}></div>
-                
+
                 <Link href={action.href} className="block h-full relative">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-lg font-bold text-cyan-300">
@@ -257,7 +399,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                 className={`group bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl border ${card.borderColor} hover:border-cyan-500/40 transition-all duration-300 hover:scale-105 overflow-hidden`}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity`}></div>
-                
+
                 <Link href={card.href} className="block h-full relative">
                   <CardHeader className="space-y-3">
                     <div className="p-2 w-fit rounded-lg bg-gradient-to-br from-cyan-500/10 to-blue-500/10">

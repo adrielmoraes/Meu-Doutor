@@ -9,7 +9,7 @@ import { updateDoctorStatus } from '@/lib/db-adapter'; // Importar a função de
 
 export type SessionPayload = {
     userId: string;
-    role: 'patient' | 'doctor';
+    role: 'patient' | 'doctor' | 'admin';
     expires?: Date;
 }
 
@@ -21,9 +21,6 @@ if (!providedSecret) {
   console.log('[Session] JWT_SECRET carregado com sucesso');
 }
 const secretKey = providedSecret || 'dev-insecure-secret';
-
-// Debug: Log a part of the secret key to ensure consistency
-console.log('[Session Debug] JWT_SECRET (partial):', secretKey.substring(0, 5) + '...');
 
 const encodedKey = new TextEncoder().encode(secretKey);
 

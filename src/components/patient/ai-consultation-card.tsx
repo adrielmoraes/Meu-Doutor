@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -26,6 +25,10 @@ import { consultationFlow } from "@/ai/flows/consultation-flow";
 import { saveConversationHistoryAction } from "./actions";
 import { getSessionOnClient } from "@/lib/session";
 import type { SessionPayload } from "@/lib/session";
+import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
+
 
 type Message = {
     role: 'user' | 'model';
@@ -39,7 +42,6 @@ const AIConsultationCard = () => {
   const [isMicOn, setIsMicOn] = useState(false);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [avatarGender, setAvatarGender] = useState<"male" | "female">("female");
-  const [avatarType, setAvatarType] = useState<'3d' | 'd-id'>('3d');
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [history, setHistory] = useState<Message[]>([]);
   const [isThinking, setIsThinking] = useState(false);
@@ -52,6 +54,8 @@ const AIConsultationCard = () => {
   const userMediaStreamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const router = useRouter();
+
 
    useEffect(() => {
     // Fetch session data on the client
@@ -62,7 +66,7 @@ const AIConsultationCard = () => {
         audioRef.current = new Audio();
     }
   }, []);
-  
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [history]);
@@ -96,7 +100,7 @@ const AIConsultationCard = () => {
         }
         return;
     }
-    
+
     stopAiSpeaking();
     setIsThinking(true);
     setIsSpeaking(false);
@@ -104,13 +108,13 @@ const AIConsultationCard = () => {
     const newUserMessage: Message = { role: 'user', content: [{ text: userInput }] };
     const newHistory = [...history, newUserMessage];
     setHistory(newHistory);
-  
+
     try {
       const result = await consultationFlow({ patientId: session.userId, history: newHistory });
-      
+
       const aiResponseMessage: Message = { role: 'model', content: [{ text: result.response }] };
       setHistory(prev => [...prev, aiResponseMessage]);
-      
+
       if (isDialogOpen && result.audioDataUri) {
         const base64Audio = result.audioDataUri.split('base64,')[1];
         if (base64Audio) {
@@ -149,7 +153,7 @@ const AIConsultationCard = () => {
 
   const initializeSpeechRecognition = useCallback(() => {
     if (recognitionRef.current) return;
-    
+
     const SpeechRecognition =
       typeof window !== 'undefined'
         ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -168,7 +172,7 @@ const AIConsultationCard = () => {
     recognition.continuous = true;
     recognition.lang = 'pt-BR';
     recognition.interimResults = false;
-    
+
     recognition.onspeechstart = stopAiSpeaking;
 
     recognition.onresult = (event: any) => {
@@ -187,10 +191,10 @@ const AIConsultationCard = () => {
         }
       }
     };
-    
+
     recognitionRef.current = recognition;
   }, [toast, stopAiSpeaking]);
-  
+
   const toggleMic = () => {
     const nextState = !isMicOn;
     setIsMicOn(nextState);
@@ -210,7 +214,7 @@ const AIConsultationCard = () => {
 };
 
   const handleEndCall = async () => {
-    setIsDialogOpen(false); 
+    setIsDialogOpen(false);
   };
 
   // Effect to manage dialog lifecycle
@@ -227,7 +231,7 @@ const AIConsultationCard = () => {
         if (history.length > 1 && session?.userId) {
             const storableHistory = history.map(msg => ({
                 role: msg.role,
-                content: msg.content[0].text, 
+                content: msg.content[0].text,
             }));
             saveConversationHistoryAction(session.userId, storableHistory);
         }
@@ -240,7 +244,7 @@ const AIConsultationCard = () => {
           userMediaStreamRef.current.getTracks().forEach(track => track.stop());
           userMediaStreamRef.current = null;
         }
-        
+
         // Cleanup video refs
         if (videoRef.current) {
           videoRef.current.srcObject = null;
@@ -248,7 +252,7 @@ const AIConsultationCard = () => {
         if (previewVideoRef.current) {
           previewVideoRef.current.srcObject = null;
         }
-        
+
         setHasCameraPermission(null);
         return;
     }
@@ -286,7 +290,7 @@ const AIConsultationCard = () => {
               <div className="p-4 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 group-hover:scale-110 transition-transform duration-300">
                 <Video className="h-12 w-12 text-purple-300" />
               </div>
-              <p className="text-sm text-purple-300/80 font-medium">Avatar 3D com IA pronto para atender</p>
+              <p className="text-sm text-purple-300/80 font-medium">Assistente IA pronto para atender</p>
             </div>
           </div>
           <Button
@@ -331,14 +335,14 @@ const AIConsultationCard = () => {
                 isSpeaking={isSpeaking}
                 audioBase64={currentAudioBase64}
                 onAudioEnd={() => setIsSpeaking(false)}
-                avatarType={avatarType}
+                avatarType={'3d'}
                 gender={avatarGender}
               />
             </div>
             <div className="flex flex-col gap-4">
               <div className="bg-black rounded-lg h-48 flex-shrink-0 relative overflow-hidden flex items-center justify-center">
                  <video ref={videoRef} className={`w-full h-full object-cover ${!isVideoOn ? 'hidden' : ''}`} autoPlay muted playsInline />
-                 
+
                  {!isVideoOn && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4 text-white flex-col">
                         <VideoOff className="h-10 w-10 mb-2"/>
@@ -379,10 +383,6 @@ const AIConsultationCard = () => {
                   <ToggleGroupItem value="female" aria-label="Toggle female avatar">Feminino</ToggleGroupItem>
                   <ToggleGroupItem value="male" aria-label="Toggle male avatar">Masculino</ToggleGroupItem>
               </ToggleGroup>
-              <ToggleGroup type="single" value={avatarType} onValueChange={(value: '3d' | 'd-id') => value && setAvatarType(value)}>
-                  <ToggleGroupItem value="3d" aria-label="Toggle 3D avatar">3D</ToggleGroupItem>
-                  <ToggleGroupItem value="d-id" aria-label="Toggle D-ID avatar">D-ID</ToggleGroupItem>
-              </ToggleGroup>
             </div>
             <Button variant={isMicOn ? "secondary" : "destructive"} size="icon" onClick={toggleMic}>
               {isMicOn ? <Mic /> : <MicOff />}
@@ -401,5 +401,3 @@ const AIConsultationCard = () => {
 };
 
 export default AIConsultationCard;
-
-    

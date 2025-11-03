@@ -8,6 +8,9 @@ export type Patient = {
   cpf: string;
   phone: string;
   email: string;
+  emailVerified: boolean;
+  verificationToken?: string | null;
+  tokenExpiry?: Date | null;
   city: string;
   state: string;
   lastVisit: string;
@@ -35,18 +38,24 @@ export type Patient = {
     dietaryPlan: string;
     exercisePlan: string;
     mentalWellnessPlan: string;
+    weeklyMealPlan?: Array<{
+      day: string;
+      breakfast: string;
+      lunch: string;
+      dinner: string;
+      snacks?: string;
+    }>;
+    hydrationPlan?: string;
+    sleepPlan?: string;
+    goals?: {
+      shortTerm: string[];
+      mediumTerm: string[];
+      longTerm: string[];
+    };
     dailyReminders: Array<{
-      icon: 'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell';
+      icon: 'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell' | 'Apple' | 'Heart' | 'Sun' | 'Moon' | 'Activity' | 'Utensils' | 'Brain' | 'Smile' | 'Wind' | 'Leaf';
       title: string;
       description: string;
-    }>;
-    weeklyRecipes: Array<{
-      id: string;
-      title: string;
-      mealType: 'cafe-da-manha' | 'almoco' | 'jantar' | 'lanche';
-      ingredients: string[];
-      instructions: string;
-      dayOfWeek: string;
     }>;
     weeklyTasks: Array<{
       id: string;
@@ -67,6 +76,7 @@ export type PatientWithPassword = Patient & { password?: string | null };
 export type Doctor = {
   id: string;
   name: string;
+  crm: string;
   specialty: string;
   city: string;
   state: string;
@@ -74,6 +84,9 @@ export type Doctor = {
   avatar: string;
   avatarHint: string;
   email: string;
+  emailVerified: boolean;
+  verificationToken?: string | null;
+  tokenExpiry?: Date | null;
   level: number;
   xp: number;
   xpToNextLevel: number;
@@ -90,6 +103,16 @@ export type Doctor = {
 // Type for authentication that includes the hashed password
 export type DoctorWithPassword = Doctor & { password?: string | null };
 
+export type Admin = {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  role: string;
+};
+
+export type AdminWithPassword = Admin & { password?: string | null };
+
 export type Exam = {
   id: string;
   patientId: string;
@@ -101,6 +124,12 @@ export type Exam = {
   explanation: string;
   suggestions: string;
   results?: { name: string; value: string; reference: string }[];
+  specialistFindings?: Array<{
+    specialist: string;
+    findings: string;
+    clinicalAssessment: string;
+    recommendations: string;
+  }>;
   status: 'Requer Validação' | 'Validado';
   doctorNotes?: string;
   finalExplanation?: string;
@@ -135,4 +164,82 @@ export type Consultation = {
     summary: string;
     date: string;
     type: 'video-call' | 'chat';
+};
+
+export type AdminSettings = {
+    id: string;
+    platformName: string;
+    platformDescription: string;
+    supportEmail: string;
+    maxFileSize: number; // MB
+    sessionTimeout: number; // dias
+    avatarProvider: 'tavus' | 'bey'; // Avatar provider for AI consultations
+    notifyNewPatient: boolean;
+    notifyNewDoctor: boolean;
+    notifyNewExam: boolean;
+    notifyNewConsultation: boolean;
+    notifySystemAlerts: boolean;
+    notifyWeeklyReport: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+};
+
+export type AuditLog = {
+    id: string;
+    adminId: string;
+    adminName: string;
+    adminEmail: string;
+    action: string; // 'update_settings', 'change_password', 'create_admin', etc
+    entityType: string; // 'admin_settings', 'admin_auth', 'admin', etc
+    entityId?: string | null; // ID do registro afetado, se aplicável
+    changes?: Array<{
+        field: string;
+        oldValue: string | number | boolean | null;
+        newValue: string | number | boolean | null;
+    }>;
+    metadata?: Record<string, any>;
+    ipAddress?: string | null;
+    userAgent?: string | null;
+    createdAt: Date;
+};
+
+export type UsageTracking = {
+    id: string;
+    patientId: string;
+    usageType: 'exam_analysis' | 'stt' | 'llm' | 'tts' | 'ai_call' | 'doctor_call' | 'chat';
+    resourceName?: string | null;
+    tokensUsed: number;
+    durationSeconds: number;
+    cost: number;
+    metadata?: {
+        examId?: string;
+        consultationId?: string;
+        model?: string;
+        inputTokens?: number;
+        outputTokens?: number;
+        audioSeconds?: number;
+        [key: string]: any;
+    };
+    createdAt: Date;
+};
+
+export type PatientUsageStats = {
+    patientId: string;
+    patientName: string;
+    patientEmail: string;
+    totalTokens: number;
+    totalCallDuration: number; // em segundos
+    totalCost: number; // em centavos
+    examAnalysisCount: number;
+    aiCallDuration: number; // em segundos
+    doctorCallDuration: number; // em segundos
+    breakdown: {
+        examAnalysis: number; // tokens
+        stt: number; // tokens
+        llm: number; // tokens
+        tts: number; // tokens
+        aiCall: number; // segundos
+        doctorCall: number; // segundos
+        chat: number; // tokens
+    };
 };

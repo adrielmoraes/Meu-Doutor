@@ -205,6 +205,25 @@ export default function UploadExamClient() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {stagedFiles.map(sf => (
                     <Card key={sf.id} className="relative group overflow-hidden">
+                    
+                    {/* Scanning Animation Overlay */}
+                    {isAnalyzing && (
+                        <>
+                            <div className="absolute inset-0 z-[5] pointer-events-none">
+                                <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-80 blur-sm animate-scan" 
+                                     style={{ 
+                                         boxShadow: '0 0 20px 5px rgba(239, 68, 68, 0.5)',
+                                         animation: 'scan 2s ease-in-out infinite'
+                                     }} 
+                                />
+                                <div className="absolute w-full h-[2px] bg-red-400 opacity-60 animate-scan" 
+                                     style={{ animation: 'scan 2s ease-in-out infinite' }} 
+                                />
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-b from-red-500/10 via-transparent to-red-500/10 z-[4] pointer-events-none animate-pulse" />
+                        </>
+                    )}
+                    
                     <div className="absolute top-1 right-1 z-10">
                          <AlertDialog>
                             <AlertDialogTrigger asChild>

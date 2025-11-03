@@ -4,7 +4,9 @@
 import { getDoctorById, updateDoctorAvailability } from '@/lib/db-adapter';
 import { getSession } from '@/lib/session';
 import { revalidatePath, revalidateTag } from 'next/cache';
-import type { AvailabilitySlot } from '@/types';
+
+// Tipos locais
+type AvailabilitySlot = { date: string; time: string; available: boolean };
 
 // Tipagem para o estado da ação
 interface ActionResult {
@@ -33,7 +35,9 @@ export async function updateDoctorAvailabilityAction(prevState: ActionResult, fo
         }
         
         const selectedTimes = JSON.parse(timesJson) as string[];
-        const targetDate = new Date(dateStr);
+        
+        console.log('[UpdateAvailability] Data recebida:', dateStr);
+        console.log('[UpdateAvailability] Horários selecionados:', selectedTimes);
 
         const doctor = await getDoctorById(userId);
         if (!doctor) {
@@ -41,19 +45,22 @@ export async function updateDoctorAvailabilityAction(prevState: ActionResult, fo
         }
 
         const currentAvailability = doctor.availability || [];
+        console.log('[UpdateAvailability] Disponibilidade atual:', JSON.stringify(currentAvailability));
 
+        // CORREÇÃO: Usar formato yyyy-MM-dd consistente em vez de ISO
         const otherDaysAvailability = currentAvailability.filter((slot: AvailabilitySlot) => {
-            const slotDate = new Date(slot.date);
-            return slotDate.toDateString() !== targetDate.toDateString();
+            return slot.date !== dateStr;
         });
 
         const newAvailabilityForDay: AvailabilitySlot[] = selectedTimes.map(time => ({
-            date: targetDate.toISOString(),
+            date: dateStr, // Usar formato yyyy-MM-dd diretamente
             time: time,
             available: true,
         }));
 
         const finalAvailability = [...otherDaysAvailability, ...newAvailabilityForDay];
+        
+        console.log('[UpdateAvailability] Nova disponibilidade final:', JSON.stringify(finalAvailability));
 
         await updateDoctorAvailability(userId, finalAvailability);
 
@@ -62,7 +69,7 @@ export async function updateDoctorAvailabilityAction(prevState: ActionResult, fo
         revalidatePath('/doctor/schedule');
         revalidatePath('/patient/doctors');
 
-        return { success: true, message: 'Disponibilidade atualizada com sucesso!', errors: null };
+        return { success: true, message: `Disponibilidade atualizada! ${selectedTimes.length} horário(s) salvo(s) para ${dateStr}`, errors: null };
 
     } catch (error) {
         console.error("Erro ao atualizar disponibilidade:", error);

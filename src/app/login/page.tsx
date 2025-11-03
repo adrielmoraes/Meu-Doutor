@@ -1,62 +1,40 @@
 
 'use client';
 
-import { useEffect, useActionState } from 'react';
+import { useEffect, useState, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import Link from "next/link";
+import { Sparkles, Eye, EyeOff } from 'lucide-react';
 import { loginAction } from './actions';
-import { Loader2, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
 
 function SubmitButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button 
-            type="submit" 
-            className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold shadow-lg shadow-cyan-500/20 transition-all" 
-            disabled={pending}
-        >
-            {pending ? (
-                <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Entrando...
-                </>
-            ) : (
-                "Entrar"
-            )}
-        </Button>
-    );
+  const { pending } = useFormStatus();
+  
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {pending ? 'Entrando...' : 'Entrar'}
+    </button>
+  );
 }
 
 export default function LoginPage() {
-    const { toast } = useToast();
-    const router = useRouter();
-    const initialState = { message: null, errors: {}, success: false, redirectPath: null };
-    const [state, dispatch] = useActionState(loginAction, initialState);
+  const router = useRouter();
+  const [state, formAction] = useActionState(loginAction, { message: '' });
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
-    useEffect(() => {
-        if (!state) return;
-        
-        if (state.success && state.redirectPath) {
-            toast({
-                title: 'Login Sucesso!',
-                description: state.message || 'Você foi logado com sucesso.',
-                className: "bg-green-100 text-green-800 border-green-200",
-            });
-            router.push(state.redirectPath);
-        } else if (state.message && !state.success) {
-            toast({
-                variant: "destructive",
-                title: 'Falha no Login',
-                description: state.message,
-            });
-        }
-    }, [state, router, toast]);
+  useEffect(() => {
+    if (state?.success && state?.redirectPath) {
+      router.push(state.redirectPath);
+    } else if (state?.message) {
+      setErrorMessage(state.message);
+    }
+  }, [state, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden">
@@ -70,71 +48,69 @@ export default function LoginPage() {
         <CardHeader className="space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 w-fit">
             <Sparkles className="h-4 w-4 text-cyan-400" />
-            <span className="text-sm text-cyan-300 font-medium">Bem-vindo de volta</span>
+            <span className="text-sm text-cyan-300 font-medium">Bem-vindo ao MediAI</span>
           </div>
           
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
-            Login
+            Login Seguro
           </CardTitle>
           <CardDescription className="text-blue-200/70">
-            Entre com seu e-mail para acessar sua conta
+            Entre com suas credenciais para acessar o sistema
           </CardDescription>
         </CardHeader>
         
         <CardContent>
-            <form action={dispatch}>
-                <div className="grid gap-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="email" className="text-blue-100">E-mail</Label>
-                        <Input
-                            id="email"
-                            name="email"
-                            type="email"
-                            placeholder="seu@email.com"
-                            required
-                            className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white placeholder:text-slate-500"
-                        />
-                        {state?.errors?.email && <p className="text-xs text-red-400">{state.errors.email[0]}</p>}
-                    </div>
-                    
-                    <div className="grid gap-2">
-                        <div className="flex items-center">
-                            <Label htmlFor="password" className="text-blue-100">Senha</Label>
-                            <Link
-                                href="#"
-                                className="ml-auto inline-block text-sm underline text-cyan-400 hover:text-cyan-300"
-                            >
-                                Esqueceu sua senha?
-                            </Link>
-                        </div>
-                        <Input 
-                            id="password" 
-                            name="password" 
-                            type="password" 
-                            required 
-                            className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white"
-                        />
-                        {state?.errors?.password && <p className="text-xs text-red-400">{state.errors.password[0]}</p>}
-                    </div>
-
-                    <SubmitButton />
-                    
-                    <Button 
-                        variant="outline" 
-                        className="w-full border-2 border-cyan-500/30 hover:bg-cyan-500/10 text-cyan-300 hover:text-cyan-200 backdrop-blur-sm" 
-                        type="button"
-                    >
-                        Login com Google
-                    </Button>
-                </div>
-            </form>
+          <form action={formAction} className="space-y-4">
+            {errorMessage && (
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                {errorMessage}
+              </div>
+            )}
             
-            <div className="mt-6 text-center text-sm text-blue-200/70">
-                Não tem uma conta?{" "}
-                <Link href="/register" className="underline text-cyan-400 hover:text-cyan-300 font-medium">
-                    Cadastre-se
-                </Link>
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium text-blue-200">
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                className="w-full px-4 py-3 rounded-lg bg-slate-800/50 border border-cyan-500/30 text-white placeholder-blue-200/40 focus:outline-none focus:border-cyan-500 transition-colors"
+                placeholder="seu@email.com"
+              />
             </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium text-blue-200">
+                Senha
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  className="w-full px-4 py-3 pr-12 rounded-lg bg-slate-800/50 border border-cyan-500/30 text-white placeholder-blue-200/40 focus:outline-none focus:border-cyan-500 transition-colors"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-200/60 hover:text-cyan-400 transition-colors"
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+            
+            <SubmitButton />
+          </form>
         </CardContent>
       </Card>
     </div>

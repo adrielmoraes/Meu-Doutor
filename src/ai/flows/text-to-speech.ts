@@ -54,6 +54,13 @@ const textToSpeechFlow = ai.defineFlow(
         model: model,
         config: {
           responseModalities: ['AUDIO'],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {
+                voiceName: 'Aoede'
+              }
+            }
+          }
         },
         prompt: input.text,
       });

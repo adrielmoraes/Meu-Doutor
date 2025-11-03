@@ -3,11 +3,12 @@
 
 /**
  * @fileOverview An AI agent for analyzing medical exam documents and providing a preliminary diagnosis.
- * This version supports analyzing multiple documents as a single, coherent case.
+ * This version integrates a multi-specialist AI system for comprehensive analysis.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { generatePreliminaryDiagnosis } from './generate-preliminary-diagnosis';
 
 const DocumentInputSchema = z.object({
   examDataUri: z
@@ -34,6 +35,12 @@ const AnalyzeMedicalExamOutputSchema = z.object({
   explanation: z.string().describe('An empathetic and simple explanation of the exam results for the patient.'),
   suggestions: z.string().describe('A proposed initial treatment plan for the human doctor to review. This should include specific suggestions for medication (with purpose), therapies (like physiotherapy), and follow-up exams.'),
   structuredResults: z.array(StructuredResultSchema).optional().describe("A list of structured key-value results extracted from the exams, if available (e.g., blood test results)."),
+  specialistFindings: z.array(z.object({
+    specialist: z.string(),
+    findings: z.string(),
+    clinicalAssessment: z.string(),
+    recommendations: z.string(),
+  })).optional().describe("Detailed findings from specialist consultations, if applicable."),
 });
 export type AnalyzeMedicalExamOutput = z.infer<typeof AnalyzeMedicalExamOutputSchema>;
 
@@ -41,35 +48,40 @@ export async function analyzeMedicalExam(input: AnalyzeMedicalExamInput): Promis
   return analyzeMedicalExamFlow(input);
 }
 
-const analyzeMedicalExamPrompt = ai.definePrompt({
-  name: 'analyzeMedicalExamPrompt',
+// Step 1: Extract exam data and create patient-friendly explanation
+const documentAnalysisPrompt = ai.definePrompt({
+  name: 'documentAnalysisPrompt',
   input: {schema: AnalyzeMedicalExamInputSchema},
-  output: {schema: AnalyzeMedicalExamOutputSchema},
-  prompt: `You are an expert medical AI assistant with high emotional intelligence. Your role is twofold: 1) to explain findings to a patient in a simple way, and 2) to propose a preliminary treatment plan for a human doctor to review.
-  Your response must always be in Brazilian Portuguese.
+  output: {
+    schema: z.object({
+      examResultsSummary: z.string().describe("A comprehensive summary of all exam results in medical terminology."),
+      structuredResults: z.array(StructuredResultSchema).optional().describe("Structured lab results, if available."),
+      patientExplanation: z.string().describe("A simple, empathetic explanation for the patient (Brazilian Portuguese)."),
+    }),
+  },
+  prompt: `You are a medical AI assistant analyzing exam documents. Your task is to:
 
-  **Instructions:**
-  1.  **Analyze the Documents:** Carefully review all the provided medical exam documents.
-  2.  **Extract Structured Results:** If the document contains structured data like a blood panel or lab results, extract them into the 'structuredResults' array.
-  3.  **Preliminary Diagnosis:** Provide a concise preliminary diagnosis based on the findings from all documents. This is for the doctor.
-  4.  **Simple Explanation:** Write an explanation of the diagnosis as if you were talking to a friend who is not a doctor. Use simple analogies and avoid medical jargon. This is for the patient.
-  5.  **Propose a Treatment Plan (Suggestions):** This is the most critical part, for the human doctor's review. Create a structured, actionable, and preliminary treatment plan. Be specific.
-      - **Medication:** If applicable, suggest specific medications, their purpose, and a potential starting dose (e.g., "Iniciar Ivermectina 6mg, dose única, para tratar a parasitose.").
-      - **Therapies:** Recommend therapies like physiotherapy, specifying the goal (e.g., "Sessões de fisioterapia para fortalecimento do manguito rotador e melhora da amplitude de movimento.").
-      - **Referrals:** Suggest referrals to other specialists (e.g., "Encaminhar para um Ortopedista especialista em ombro.").
-      - **Follow-up:** Propose a timeline for follow-up exams (e.g., "Repetir o exame de colesterol em 3 meses.").
+1. **Extract and Summarize**: Review all provided medical documents and create a comprehensive medical summary of the findings.
+2. **Structure Lab Results**: If the documents contain lab results (blood tests, etc.), extract them into structured format.
+3. **Patient Explanation**: Write a simple, empathetic explanation of the findings for a non-medical patient in Brazilian Portuguese.
 
-  **Analyze the following documents:**
-  {{#each documents}}
-  ---
-  Document Name: {{this.fileName}}
-  Document Content:
-  {{media url=this.examDataUri}}
-  ---
-  {{/each}}
-  
-  Provide a single preliminary diagnosis, a unified and simple explanation, a proposed treatment plan (in the suggestions field), and any structured results based on all the documents provided.
-  `,
+**CRITICAL INSTRUCTIONS:**
+- Be thorough in extracting all medical findings
+- Use proper medical terminology in the summary
+- Make the patient explanation warm, simple, and reassuring
+- Use analogies and avoid medical jargon in the patient explanation
+- All patient-facing text must be in Brazilian Portuguese
+
+**Analyze the following documents:**
+{{#each documents}}
+---
+Document Name: {{this.fileName}}
+Document Content:
+{{media url=this.examDataUri}}
+---
+{{/each}}
+
+Return ONLY a bare JSON object with the exact fields specified. NO markdown fences, NO backticks.`,
 });
 
 const analyzeMedicalExamFlow = ai.defineFlow(
@@ -79,7 +91,49 @@ const analyzeMedicalExamFlow = ai.defineFlow(
     outputSchema: AnalyzeMedicalExamOutputSchema,
   },
   async input => {
-    const {output} = await analyzeMedicalExamPrompt(input);
-    return output!;
+    console.log('[🏥 Multi-Specialist Analysis] Starting comprehensive exam analysis...');
+    
+    // STEP 1: Extract exam data and create patient explanation
+    console.log('[📄 Document Analysis] Extracting exam data from documents...');
+    const {output: docAnalysis} = await documentAnalysisPrompt(input);
+    
+    if (!docAnalysis) {
+      throw new Error("Failed to analyze documents");
+    }
+    
+    console.log('[📄 Document Analysis] ✅ Extracted exam data successfully');
+    
+    // STEP 2: Call multi-specialist system for comprehensive diagnosis
+    console.log('[🩺 Specialist Team] Activating multi-specialist diagnostic system...');
+    console.log('[🩺 Specialist Team] Exam Summary:', docAnalysis.examResultsSummary.substring(0, 200) + '...');
+    
+    const specialistAnalysis = await generatePreliminaryDiagnosis({
+      examResults: docAnalysis.examResultsSummary,
+      patientHistory: "Histórico não disponível nesta análise inicial.", // Can be enhanced later with actual patient history
+    });
+    
+    console.log('[🩺 Specialist Team] ✅ Specialist analysis complete!');
+    console.log(`[🩺 Specialist Team] Consulted ${specialistAnalysis.structuredFindings.length} specialist(s)`);
+    
+    // Log which specialists were consulted
+    if (specialistAnalysis.structuredFindings.length > 0) {
+      const specialists = specialistAnalysis.structuredFindings.map(f => f.specialist).join(', ');
+      console.log(`[🩺 Specialist Team] Specialists consulted: ${specialists}`);
+    }
+    
+    // STEP 3: Combine results
+    console.log('[📊 Synthesis] Combining specialist findings with patient-friendly explanation...');
+    
+    const finalResult = {
+      preliminaryDiagnosis: specialistAnalysis.synthesis,
+      explanation: docAnalysis.patientExplanation,
+      suggestions: specialistAnalysis.suggestions,
+      structuredResults: docAnalysis.structuredResults,
+      specialistFindings: specialistAnalysis.structuredFindings,
+    };
+    
+    console.log('[✅ Analysis Complete] Multi-specialist system activated successfully!');
+    
+    return finalResult;
   }
 );

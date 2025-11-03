@@ -1,11 +1,13 @@
 
 'use server';
 
-import { addPatientWithAuth, getPatientByEmail } from '@/lib/db-adapter';
+import { addPatientWithAuth, getPatientByEmail, getPatientByCpf } from '@/lib/db-adapter';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { differenceInYears } from 'date-fns';
 import bcrypt from 'bcrypt';
+import { generateVerificationToken, getTokenExpiry, sendVerificationEmail } from '@/lib/email-service';
+import type { Patient } from '@/types';
 
 const PatientSchema = z.object({
   fullName: z.string().min(3, { message: "O nome completo é obrigatório." }),
@@ -36,8 +38,9 @@ export async function createPatientAction(prevState: any, formData: FormData) {
   const { fullName, birthDate, email, password, ...rest } = validatedFields.data;
 
   try {
-    const existingPatient = await getPatientByEmail(email);
-    if (existingPatient) {
+    // Verificar se email já existe
+    const existingEmail = await getPatientByEmail(email);
+    if (existingEmail) {
         return {
             ...prevState,
             errors: { email: ['Este e-mail já está em uso.'] },
@@ -45,9 +48,21 @@ export async function createPatientAction(prevState: any, formData: FormData) {
         };
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Verificar se CPF já existe
+    const existingCpf = await getPatientByCpf(rest.cpf);
+    if (existingCpf) {
+        return {
+            ...prevState,
+            errors: { cpf: ['Este CPF já está cadastrado.'] },
+            message: 'Falha no cadastro. Este CPF já está cadastrado no sistema.',
+        };
+    }
 
-    await addPatientWithAuth({
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationToken = generateVerificationToken();
+    const tokenExpiry = getTokenExpiry();
+
+    const patientId = await addPatientWithAuth({
       name: fullName,
       birthDate: birthDate,
       age: differenceInYears(new Date(), new Date(birthDate)),
@@ -59,17 +74,32 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       reportedSymptoms: '',
       examResults: '',
       email: email,
+      emailVerified: false,
       cpf: rest.cpf,
       phone: rest.phone,
       gender: rest.gender,
       city: rest.city,
       state: rest.state.toUpperCase(),
-    }, hashedPassword);
+    } as Omit<Patient, 'id'>, hashedPassword, verificationToken, tokenExpiry);
+
+    // Enviar email de verificação
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                    (process.env.REPLIT_DOMAINS?.split(',')[0] 
+                      ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` 
+                      : 'http://localhost:5000');
+    
+    const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}&type=patient`;
+    
+    await sendVerificationEmail({
+      to: email,
+      name: fullName,
+      verificationUrl,
+    });
 
     revalidatePath('/doctor/patients');
     return {
       ...prevState,
-      message: 'Cadastro realizado com sucesso! Você será redirecionado para a página de login.',
+      message: 'Cadastro realizado com sucesso! Verifique seu email para ativar sua conta.',
       errors: null,
       success: true,
     };

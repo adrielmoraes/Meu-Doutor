@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Printer, CheckCircle, BotMessageSquare, AlertTriangle, Lightbulb } from "lucide-react";
@@ -11,6 +10,7 @@ import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import type { Exam, Patient } from "@/types";
 import { getSession } from "@/lib/session";
+import SpecialistFindingsDisplay from "@/components/patient/specialist-findings-display";
 
 // Component to parse and render suggestions with proper formatting
 const RenderSuggestions = ({ suggestions }: { suggestions: string }) => {
@@ -51,7 +51,7 @@ async function getExamPageData(patientId: string, examId: string): Promise<{ pat
     } catch (e: any) {
         const errorMessage = e.message?.toLowerCase() || '';
         const errorCode = e.code?.toLowerCase() || '';
-        
+
         if (errorMessage.includes('connection') || errorCode.includes('not-found')) {
             return { 
                 patient: null, examData: null,
@@ -69,7 +69,7 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
   if (!session || session.role !== 'patient') {
       redirect('/login');
   }
-  
+
   const { patient, examData, error, fixUrl } = await getExamPageData(session.userId, params.examId);
 
   if (error || !examData || !patient) {
@@ -106,7 +106,7 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
       <div className="grid gap-8 md:grid-cols-3">
         <div className="md:col-span-2 space-y-6">
-          
+
           {/* Main Card for AI Analysis of the specific exam */}
           <Card>
             <CardHeader>
@@ -122,7 +122,7 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              
+
               {isExamValidated ? (
                 // Show Doctor's validated diagnosis
                 <div className="space-y-4">
@@ -152,7 +152,7 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                 // Show AI's preliminary analysis
                  <div className="space-y-4">
                     <AudioPlayback textToSpeak={textForMainAudio} />
-                    
+
                     {/* Diagnóstico Preliminar Card */}
                     <div className="rounded-lg border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 p-6 backdrop-blur-sm">
                       <div className="flex items-center gap-3 mb-3">
@@ -188,6 +188,11 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                         <RenderSuggestions suggestions={examData.suggestions || ""} />
                       </div>
                     </div>
+
+                    {/* Specialist Findings Section */}
+                    {examData.specialistFindings && examData.specialistFindings.length > 0 && (
+                      <SpecialistFindingsDisplay findings={examData.specialistFindings} />
+                    )}
 
                     {/* Alert de Aviso */}
                     <Alert variant="destructive" className="border-red-500/50 bg-red-950/50">

@@ -1,6 +1,7 @@
-modules = ["nodejs-20", "web", "nix", "postgresql-16"]
+modules = ["nodejs-20", "python-3.11", "web", "bash"]
 [agent]
 expertMode = true
+integrations = ["resend:1.0.0"]
 
 [nix]
 channel = "stable-25_05"
@@ -22,6 +23,10 @@ author = "agent"
 task = "workflow.run"
 args = "Start Game"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "MediAI Avatar Agent"
+
 [[workflows.workflow]]
 name = "Start Game"
 author = "agent"
@@ -31,14 +36,80 @@ task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow]]
+name = "MediAI Avatar Agent"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd livekit-agent && python run-agent.py"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 8081
+externalPort = 8081
+
+[[ports]]
+localPort = 37673
+externalPort = 5000
+
+[[ports]]
+localPort = 37939
+externalPort = 6800
+
+[[ports]]
+localPort = 40041
+externalPort = 8000
 
 [[ports]]
 localPort = 40205
 externalPort = 3000
 
 [[ports]]
+localPort = 40399
+externalPort = 4200
+
+[[ports]]
+localPort = 40709
+externalPort = 3003
+
+[[ports]]
 localPort = 40887
 externalPort = 3001
+
+[[ports]]
+localPort = 43039
+externalPort = 5173
+
+[[ports]]
+localPort = 43065
+externalPort = 8080
+
+[[ports]]
+localPort = 43103
+externalPort = 8099
+
+[[ports]]
+localPort = 43787
+externalPort = 3002
+
+[[ports]]
+localPort = 44603
+externalPort = 8008
+
+[[ports]]
+localPort = 45537
+externalPort = 6000
+
+[[ports]]
+localPort = 60255
+externalPort = 9000

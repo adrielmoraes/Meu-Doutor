@@ -106,12 +106,12 @@ export default function WeeklyRecipesSection({ recipes }: WeeklyRecipesSectionPr
                   <ChefHat className="h-6 w-6 text-cyan-400" />
                   {selectedRecipe.title}
                 </DialogTitle>
-                <DialogDescription className="flex items-center gap-3 mt-2">
+                <div className="flex items-center gap-3 mt-2">
                   <Badge className={`${mealTypeBadgeColors[selectedRecipe.mealType]} border`}>
                     {mealTypeLabels[selectedRecipe.mealType]}
                   </Badge>
-                  <span className="text-slate-400">{selectedRecipe.dayOfWeek}</span>
-                </DialogDescription>
+                  <span className="text-sm text-slate-400">{selectedRecipe.dayOfWeek}</span>
+                </div>
               </DialogHeader>
 
               <div className="space-y-6 mt-4">
