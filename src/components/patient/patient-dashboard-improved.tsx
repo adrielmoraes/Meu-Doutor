@@ -193,16 +193,16 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
               </p>
             </div>
 
-            <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-slate-700">
+            <Card className="bg-card/50 dark:bg-gradient-to-br dark:from-slate-800/50 dark:to-slate-900/50 border-border backdrop-blur-sm">
               <CardContent className="p-8 text-center space-y-4">
-                <Video className="h-16 w-16 text-blue-400 mx-auto mb-4" />
-                <h3 className="text-2xl font-bold text-white">Pronto para começar?</h3>
-                <p className="text-slate-300 max-w-md mx-auto">
+                <Video className="h-16 w-16 text-primary mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-card-foreground">Pronto para começar?</h3>
+                <p className="text-muted-foreground max-w-md mx-auto">
                   Clique no botão abaixo para iniciar sua consulta ao vivo com a MediAI. 
                   Você poderá conversar por voz e vídeo em tempo real.
                 </p>
                 <Link href="/patient/live-consultation">
-                  <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  <Button size="lg" className="bg-gradient-to-r from-primary to-accent hover:opacity-90">
                     <Video className="mr-2 h-5 w-5" />
                     Iniciar Consulta ao Vivo
                   </Button>
@@ -331,13 +331,13 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
           {stats.map((stat) => (
             <Card
               key={stat.title}
-              className={`bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl border ${stat.borderColor} hover:scale-105 transition-transform duration-300`}
+              className={`bg-card/60 dark:bg-gradient-to-br dark:from-slate-800/60 dark:to-slate-900/60 backdrop-blur-xl border ${stat.borderColor} hover:scale-105 transition-transform duration-300`}
             >
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-400 mb-1">{stat.title}</p>
-                    <p className="text-2xl font-bold text-slate-100">{stat.value}</p>
+                    <p className="text-sm text-muted-foreground mb-1">{stat.title}</p>
+                    <p className="text-2xl font-bold text-card-foreground">{stat.value}</p>
                   </div>
                   <div className={`p-3 rounded-lg bg-gradient-to-br ${stat.gradient}`}>
                     {stat.icon}
@@ -350,26 +350,26 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
 
         {/* Quick Actions */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Ações Rápidas
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
             {quickActions.map((action) => (
               <Card
                 key={action.title}
-                className={`group relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border ${action.borderColor} ${action.hoverBorder} transition-all duration-300 hover:shadow-2xl ${action.hoverShadow} overflow-hidden transform hover:scale-105`}
+                className={`group relative bg-card/80 dark:bg-gradient-to-br dark:from-slate-800/80 dark:to-slate-900/80 backdrop-blur-xl border ${action.borderColor} ${action.hoverBorder} transition-all duration-300 hover:shadow-2xl ${action.hoverShadow} overflow-hidden transform hover:scale-105`}
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-0 group-hover:opacity-100 transition-opacity`}></div>
+                <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-0 group-hover:opacity-10 dark:group-hover:opacity-100 transition-opacity`}></div>
 
                 <Link href={action.href} className="block h-full relative">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-bold text-cyan-300">
+                    <CardTitle className="text-lg font-bold text-primary">
                       {action.title}
                     </CardTitle>
                     {action.icon}
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-blue-200/70">
+                    <p className="text-sm text-muted-foreground">
                       {action.description}
                     </p>
                   </CardContent>
@@ -381,28 +381,28 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
 
         {/* Navigation Cards */}
         <div>
-          <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Seus Recursos
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {navigationCards.map((card) => (
               <Card
                 key={card.title}
-                className={`group bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl border ${card.borderColor} hover:border-cyan-500/40 transition-all duration-300 hover:scale-105 overflow-hidden`}
+                className={`group bg-card/60 dark:bg-gradient-to-br dark:from-slate-800/60 dark:to-slate-900/60 backdrop-blur-xl border ${card.borderColor} hover:border-primary/40 transition-all duration-300 hover:scale-105 overflow-hidden`}
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity`}></div>
+                <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-10 dark:group-hover:opacity-100 transition-opacity`}></div>
 
                 <Link href={card.href} className="block h-full relative">
                   <CardHeader className="space-y-3">
-                    <div className="p-2 w-fit rounded-lg bg-gradient-to-br from-cyan-500/10 to-blue-500/10">
+                    <div className="p-2 w-fit rounded-lg bg-primary/10">
                       {card.icon}
                     </div>
-                    <CardTitle className="text-base font-semibold text-slate-100">
+                    <CardTitle className="text-base font-semibold text-card-foreground">
                       {card.title}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-muted-foreground">
                       {card.description}
                     </p>
                   </CardContent>
