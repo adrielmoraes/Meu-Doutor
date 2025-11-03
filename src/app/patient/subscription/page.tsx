@@ -68,7 +68,6 @@ const plans = [
       'Análise de exames ilimitada',
       'Consulta com IA em tempo real',
       '30 minutos de consulta com médico real',
-      'Avatar IA ao vivo (Tavus)',
       'Prioridade no agendamento',
       'Acompanhamento personalizado',
       'Relatórios mensais detalhados',
