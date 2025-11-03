@@ -1,6 +1,6 @@
 'use client';
 
-import { Menu, LogOut, User, Mail, Phone, MapPin, Activity } from 'lucide-react';
+import { Menu, LogOut, User, Mail, Phone, MapPin, Activity, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -129,6 +129,13 @@ export function PatientHeader({ patient }: PatientHeaderProps) {
                 <DropdownMenuItem className="cursor-pointer hover:bg-cyan-500/10 focus:bg-cyan-500/10">
                   <User className="mr-2 h-4 w-4 text-cyan-400" />
                   <span className="text-gray-200">Meu Perfil</span>
+                </DropdownMenuItem>
+              </Link>
+
+              <Link href="/patient/subscription">
+                <DropdownMenuItem className="cursor-pointer hover:bg-cyan-500/10 focus:bg-cyan-500/10">
+                  <CreditCard className="mr-2 h-4 w-4 text-cyan-400" />
+                  <span className="text-gray-200">Assinatura</span>
                 </DropdownMenuItem>
               </Link>
 
