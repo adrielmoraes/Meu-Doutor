@@ -16,7 +16,7 @@ const plans = [
     features: [
       'Chat terapeuta ilimitado',
       '5 análises de exames',
-      '5 minutos de consulta com IA em tempo real',
+      'Consulta com IA em tempo real',
       'Sem acesso a médico real',
       'Plano de bem-estar personalizado',
       'Histórico completo de saúde',
@@ -43,7 +43,7 @@ const plans = [
     features: [
       'Chat terapeuta ilimitado',
       '20 análises de exames por mês',
-      '5 minutos de consulta com IA em tempo real',
+      'Consulta com IA em tempo real',
       'Plano de bem-estar personalizado',
       'Histórico completo de saúde',
       'Chatbot médico 24/7',
@@ -66,7 +66,7 @@ const plans = [
     features: [
       'Chat terapeuta ilimitado',
       'Análise de exames ilimitada',
-      '30 minutos de consulta com IA em tempo real',
+      'Consulta com IA em tempo real',
       '30 minutos de consulta com médico real',
       'Avatar IA ao vivo (Tavus)',
       'Prioridade no agendamento',
@@ -81,30 +81,6 @@ const plans = [
       therapistChat: 'ilimitado',
     },
     stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID || '',
-    popular: false,
-  },
-  {
-    id: 'familiar',
-    name: 'Familiar',
-    price: 29790,
-    interval: 'mês',
-    description: 'Premium para toda a família',
-    features: [
-      'Tudo do plano Premium',
-      'Até 4 membros da família',
-      'Consultas ilimitadas para todos',
-      'Painel familiar completo',
-      'Alertas de saúde da família',
-      'Economia de R$ 49,16 por mês',
-    ],
-    limits: {
-      examAnalysis: 'ilimitado',
-      aiConsultationMinutes: 30,
-      doctorConsultationMinutes: 30,
-      therapistChat: 'ilimitado',
-      familyMembers: 4,
-    },
-    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_FAMILY_PRICE_ID || '',
     popular: false,
   },
 ];
