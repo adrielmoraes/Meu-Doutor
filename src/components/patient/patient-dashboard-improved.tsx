@@ -125,28 +125,28 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
   ];
 
   return (
-    <div className="bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 min-h-screen relative overflow-hidden">
+    <div className="bg-gradient-to-br from-background via-muted to-background min-h-screen relative overflow-hidden">
       {/* Header with Menu */}
       <PatientHeader patient={patient} />
 
       {/* Background Effects */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
-      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
-      <div className="absolute top-10 right-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-10 left-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent dark:from-cyan-900/20"></div>
+      <div className="absolute inset-0 bg-grid-white/[0.02] dark:bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
+      <div className="absolute top-10 right-10 w-72 h-72 bg-primary/10 dark:bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-10 left-10 w-96 h-96 bg-accent/10 dark:bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
 
       <div className="relative z-10 p-4 sm:p-6 lg:p-8">
         {/* Welcome Section */}
         <div className="mb-8 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 backdrop-blur-sm">
-            <Sparkles className="h-4 w-4 text-cyan-400" />
-            <span className="text-sm text-cyan-300 font-medium">Portal do Paciente</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm text-primary font-medium">Portal do Paciente</span>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
             Olá, {patient.name.split(' ')[0]}!
           </h1>
-          <p className="text-lg text-blue-200/70 max-w-2xl">
+          <p className="text-lg text-muted-foreground max-w-2xl">
             Sua saúde em primeiro lugar. Acompanhe seus exames, consulte especialistas e mantenha seu bem-estar com nossa tecnologia de IA avançada.
           </p>
         </div>

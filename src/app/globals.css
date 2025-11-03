@@ -3,43 +3,43 @@
 @tailwind utilities;
 
 @layer base {
-  :root { /* Default (light) theme - leaning darker */
-    --background: 220 20% 12%; /* Deep charcoal/navy */
-    --foreground: 210 20% 85%; /* Soft off-white */
-    --card: 210 15% 15%; /* Slightly lighter than background for surfaces */
-    --card-foreground: 210 20% 90%;
-    --popover: 210 15% 15%;
-    --popover-foreground: 210 20% 90%;
-    --primary: 190 70% 45%; /* Richer teal/blue */
-    --primary-foreground: 210 20% 98%;
-    --secondary: 215 10% 20%; /* Muted dark gray */
-    --secondary-foreground: 210 20% 90%;
-    --muted: 215 10% 20%;
-    --muted-foreground: 210 10% 60%; /* Softer gray for muted text */
-    --accent: 160 80% 40%; /* Vibrant green/aqua for highlights */
-    --accent-foreground: 220 20% 12%; /* Dark background for accent text */
-    --destructive: 0 60% 50%; /* Standard red for destructive actions */
+  :root { /* Light theme - Rosa claro e branco */
+    --background: 0 0% 100%; /* Branco puro */
+    --foreground: 340 15% 25%; /* Texto escuro rosado */
+    --card: 330 40% 98%; /* Rosa muito claro para cards */
+    --card-foreground: 340 15% 25%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 340 15% 25%;
+    --primary: 330 70% 60%; /* Rosa principal */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 330 30% 95%; /* Rosa muito claro */
+    --secondary-foreground: 340 15% 30%;
+    --muted: 330 20% 96%;
+    --muted-foreground: 340 10% 45%;
+    --accent: 340 65% 55%; /* Rosa vibrante para destaques */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 70% 50%; /* Vermelho para ações destrutivas */
     --destructive-foreground: 0 0% 98%;
-    --border: 215 10% 25%; /* Subtle border color */
-    --input: 215 10% 20%;
-    --ring: 190 70% 45%; /* Primary color for ring */
-    --radius: 0.75rem; /* Slightly more rounded corners */
+    --border: 330 20% 90%; /* Borda sutil rosa */
+    --input: 330 20% 95%;
+    --ring: 330 70% 60%; /* Anel rosa */
+    --radius: 0.75rem;
     
-    /* Chart colors - adjust for dark theme if needed */
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    /* Chart colors para tema claro */
+    --chart-1: 330 70% 60%;
+    --chart-2: 340 65% 55%;
+    --chart-3: 350 60% 50%;
+    --chart-4: 320 75% 65%;
+    --chart-5: 310 70% 60%;
 
-    --sidebar-background: 220 20% 10%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 190 70% 45%;
-    --sidebar-primary-foreground: 210 20% 98%;
-    --sidebar-accent: 215 10% 20%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 215 10% 25%;
-    --sidebar-ring: 190 70% 45%;
+    --sidebar-background: 330 40% 98%;
+    --sidebar-foreground: 340 15% 25%;
+    --sidebar-primary: 330 70% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 330 30% 95%;
+    --sidebar-accent-foreground: 340 15% 30%;
+    --sidebar-border: 330 20% 90%;
+    --sidebar-ring: 330 70% 60%;
   }
 
   .dark { /* Explicit dark theme - even deeper */
