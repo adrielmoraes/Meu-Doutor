@@ -42,7 +42,7 @@ export default function LandingPage() {
                 {/* Stats */}
                 <div className="flex flex-wrap gap-8 pt-8">
                   <div className="space-y-1">
-                    <div className="text-3xl font-bold text-cyan-400">15+</div>
+                    <div className="text-3xl font-bold text-cyan-400">45+</div>
                     <div className="text-sm text-blue-200/70">Especialistas IA</div>
                   </div>
                   <div className="space-y-1">
@@ -105,7 +105,7 @@ export default function LandingPage() {
                   </div>
                   <h3 className="text-2xl font-bold">Diagnóstico Instantâneo</h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    Upload de exames com análise por 15 especialistas IA em segundos. Resultados detalhados em linguagem clara.
+                    Upload de exames com análise por mais de 45 especialistas IA em segundos. Resultados detalhados em linguagem clara.
                   </p>
                 </div>
               </div>
@@ -142,9 +142,9 @@ export default function LandingPage() {
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center">
                     <Brain className="h-7 w-7 text-blue-400" />
                   </div>
-                  <h3 className="text-2xl font-bold">15 Especialistas IA</h3>
+                  <h3 className="text-2xl font-bold">45+ Especialistas IA</h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    Cardiologia, neurologia, dermatologia e mais. Cada especialista analisa seu caso em paralelo.
+                    Cardiologia, neurologia, dermatologia e mais de 40 outras especialidades. Cada especialista analisa seu caso em paralelo.
                   </p>
                 </div>
               </div>
@@ -218,7 +218,7 @@ export default function LandingPage() {
                   </div>
                   <h3 className="text-2xl font-bold mb-4">IA Analisa em Paralelo</h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    15 especialistas IA examinam simultaneamente: cardiologista, neurologista, dermatologista e mais.
+                    Mais de 45 especialistas IA examinam simultaneamente: cardiologista, neurologista, dermatologista e muito mais.
                   </p>
                 </div>
               </div>
