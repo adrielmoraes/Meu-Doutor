@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, Settings, LayoutDashboard, Heart, Stethoscope } from 'lucide-react';
+import { User, LogOut, Settings, LayoutDashboard, Heart, Stethoscope, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { logoutAction } from '@/lib/logout-action';
 import { useRouter } from 'next/navigation';
@@ -124,12 +124,20 @@ export default function UserProfileMenu({ userId, role }: UserProfileMenuProps) 
           </Link>
         </DropdownMenuItem>
         {role === 'patient' && (
-          <DropdownMenuItem asChild className="cursor-pointer hover:bg-cyan-500/10 focus:bg-cyan-500/10">
-            <Link href="/patient/wellness" className="flex items-center gap-2">
-              <Heart className="h-4 w-4 text-pink-400" />
-              <span>Plano de Bem-Estar</span>
-            </Link>
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuItem asChild className="cursor-pointer hover:bg-cyan-500/10 focus:bg-cyan-500/10">
+              <Link href="/patient/wellness" className="flex items-center gap-2">
+                <Heart className="h-4 w-4 text-pink-400" />
+                <span>Plano de Bem-Estar</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="cursor-pointer hover:bg-cyan-500/10 focus:bg-cyan-500/10">
+              <Link href="/patient/subscription" className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-yellow-400" />
+                <span>Assinatura</span>
+              </Link>
+            </DropdownMenuItem>
+          </>
         )}
         {role === 'doctor' && (
           <DropdownMenuItem asChild className="cursor-pointer hover:bg-cyan-500/10 focus:bg-cyan-500/10">
