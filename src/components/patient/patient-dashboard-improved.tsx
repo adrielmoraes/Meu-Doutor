@@ -1,6 +1,6 @@
 'use client';
 
-import { FileClock, UserPlus, HeartPulse, Video, Activity, User, Upload, Brain, Calendar, TrendingUp, Award, Sparkles, MessageCircle, LayoutDashboard, FileText, Heart, Users, Zap } from "lucide-react";
+import { FileClock, UserPlus, HeartPulse, Video, Activity, User, Upload, Brain, Calendar, TrendingUp, Award, Sparkles, MessageCircle, LayoutDashboard, FileText, Heart, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import type { Patient } from "@/types";
@@ -66,14 +66,6 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
   ];
 
   const navigationCards = [
-    {
-      title: "Assinatura",
-      icon: <Zap className="h-6 w-6 text-yellow-400" />,
-      href: "/patient/subscription",
-      description: "Gerencie sua assinatura e planos",
-      gradient: "from-yellow-500/10 to-amber-500/10",
-      borderColor: "border-yellow-500/30",
-    },
     {
       title: "Histórico de Exames",
       icon: <FileClock className="h-6 w-6 text-amber-400" />,
