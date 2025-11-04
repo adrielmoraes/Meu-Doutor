@@ -34,18 +34,18 @@ export function ExamTimelineChart({ exams, examType, color, icon }: ExamTimeline
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-gray-900/95 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-4 shadow-xl">
-          <p className="text-white font-semibold mb-2">{data.fullDate}</p>
+        <div className="bg-background/95 backdrop-blur-sm border border-primary/30 rounded-lg p-4 shadow-xl">
+          <p className="text-foreground font-semibold mb-2">{data.fullDate}</p>
           <Badge 
             variant={data.status === 'Validado' ? 'default' : 'secondary'}
             className="mb-2"
           >
             {data.status}
           </Badge>
-          <p className="text-gray-300 text-sm mb-1">
+          <p className="text-foreground text-sm mb-1">
             <span className="font-medium">Resultado:</span> {data.result}
           </p>
-          <p className="text-gray-400 text-xs mt-2 max-w-xs line-clamp-3">
+          <p className="text-muted-foreground text-xs mt-2 max-w-xs line-clamp-3">
             {data.diagnosis}
           </p>
         </div>
@@ -59,17 +59,17 @@ export function ExamTimelineChart({ exams, examType, color, icon }: ExamTimeline
   }
 
   return (
-    <Card className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 border-cyan-500/20 backdrop-blur-sm">
+    <Card className="bg-card/80 backdrop-blur-sm border-border">
       <CardHeader>
         <div className="flex items-center gap-3">
           <div className={`p-2 rounded-lg bg-gradient-to-br ${color}`}>
             {icon}
           </div>
           <div className="flex-1">
-            <CardTitle className="text-xl bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            <CardTitle className="text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               {examType}
             </CardTitle>
-            <CardDescription className="text-gray-400">
+            <CardDescription>
               {sortedExams.length} {sortedExams.length === 1 ? 'exame realizado' : 'exames realizados'}
             </CardDescription>
           </div>
@@ -84,16 +84,16 @@ export function ExamTimelineChart({ exams, examType, color, icon }: ExamTimeline
                 <stop offset="95%" stopColor={color.includes('cyan') ? '#06b6d4' : color.includes('purple') ? '#a855f7' : '#3b82f6'} stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" opacity={0.3} />
             <XAxis 
               dataKey="date" 
-              stroke="#9ca3af"
-              tick={{ fill: '#9ca3af', fontSize: 12 }}
+              className="stroke-muted-foreground"
+              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
             />
             <YAxis 
-              stroke="#9ca3af"
-              tick={{ fill: '#9ca3af', fontSize: 12 }}
-              label={{ value: 'Exames', angle: -90, position: 'insideLeft', fill: '#9ca3af' }}
+              className="stroke-muted-foreground"
+              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+              label={{ value: 'Exames', angle: -90, position: 'insideLeft', fill: 'hsl(var(--muted-foreground))' }}
             />
             <Tooltip content={<CustomTooltip />} />
             <Line 

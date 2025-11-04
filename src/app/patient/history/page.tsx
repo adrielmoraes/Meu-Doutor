@@ -107,7 +107,7 @@ export default async function ExamHistoryPage() {
   const hasExams = exams.length > 0;
 
   return (
-      <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+      <div className="container mx-auto p-4 sm:p-6 lg:p-8 bg-background">
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Histórico de Exames
@@ -276,13 +276,13 @@ export default async function ExamHistoryPage() {
 
             <TabsContent value="list" className="space-y-4">
               {exams.map((exam) => (
-                <Card key={exam.id} className="transition-all hover:shadow-md hover:border-primary flex items-center pr-4">
+                <Card key={exam.id} className="bg-card border-border transition-all hover:shadow-md hover:border-primary flex items-center pr-4">
                     <Link href={`/patient/history/${exam.id}`} className="flex-grow">
                         <CardHeader className="flex flex-row items-center justify-between p-4">
                             <div className="flex items-center gap-4">
                                 {getIconForExam(exam)}
                                 <div>
-                                    <CardTitle className="text-lg">{exam.type}</CardTitle>
+                                    <CardTitle className="text-lg text-foreground">{exam.type}</CardTitle>
                                     <CardDescription>{new Date(exam.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</CardDescription>
                                 </div>
                             </div>
@@ -298,9 +298,9 @@ export default async function ExamHistoryPage() {
             </TabsContent>
           </Tabs>
         ) : (
-          <Card>
+          <Card className="bg-card border-border">
             <CardHeader>
-                <CardTitle>Nenhum exame encontrado</CardTitle>
+                <CardTitle className="text-foreground">Nenhum exame encontrado</CardTitle>
                 <CardDescription>
                 Você ainda não enviou nenhum exame para análise. Comece fazendo o upload na página principal.
                 </CardDescription>
