@@ -104,23 +104,23 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
     {
       title: "Exames Analisados",
       value: examCount.toString(),
-      icon: <FileClock className="h-5 w-5 text-cyan-700 dark:text-cyan-400" />,
-      gradient: "from-cyan-500/10 to-blue-500/10",
-      borderColor: "border-cyan-500/20",
+      icon: <FileClock className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />,
+      gradient: "from-cyan-500/20 to-blue-500/20 dark:from-cyan-500/10 dark:to-blue-500/10",
+      borderColor: "border-cyan-500/40 dark:border-cyan-500/20",
     },
     {
       title: "Consultas Agendadas",
       value: upcomingAppointments.toString(),
-      icon: <Calendar className="h-5 w-5 text-purple-700 dark:text-purple-400" />,
-      gradient: "from-purple-500/10 to-pink-500/10",
-      borderColor: "border-purple-500/20",
+      icon: <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />,
+      gradient: "from-purple-500/20 to-pink-500/20 dark:from-purple-500/10 dark:to-pink-500/10",
+      borderColor: "border-purple-500/40 dark:border-purple-500/20",
     },
     {
       title: "Status de Saúde",
       value: patient.status === 'Validado' ? 'Ótimo' : 'Em Análise',
-      icon: <TrendingUp className="h-5 w-5 text-green-700 dark:text-green-400" />,
-      gradient: "from-green-500/10 to-emerald-500/10",
-      borderColor: "border-green-500/20",
+      icon: <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />,
+      gradient: "from-green-500/20 to-emerald-500/20 dark:from-green-500/10 dark:to-emerald-500/10",
+      borderColor: "border-green-500/40 dark:border-green-500/20",
     },
   ];
 
