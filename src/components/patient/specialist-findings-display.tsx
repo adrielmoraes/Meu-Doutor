@@ -254,8 +254,8 @@ export default function SpecialistFindingsDisplay({ findings }: SpecialistFindin
             <Users className="h-6 w-6 text-purple-400" />
           </div>
           <div>
-            <h3 className="font-semibold text-xl text-purple-100">Equipe de Especialistas Consultados</h3>
-            <p className="text-sm text-purple-300 mt-1">
+            <h3 className="font-semibold text-xl text-foreground dark:text-purple-100">Equipe de Especialistas Consultados</h3>
+            <p className="text-sm text-foreground/80 dark:text-purple-300 mt-1">
               {findings.length} {findings.length === 1 ? 'especialista analisou' : 'especialistas analisaram'} seu exame em paralelo
             </p>
           </div>
