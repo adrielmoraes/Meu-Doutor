@@ -202,7 +202,7 @@ export default function SubscriptionPage() {
           <h1 className="text-5xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
             Escolha Seu Plano
           </h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+          <p className="text-black dark:text-white text-lg max-w-2xl mx-auto">
             Tenha acesso completo à melhor plataforma de saúde com IA do Brasil
           </p>
         </div>
@@ -274,7 +274,7 @@ export default function SubscriptionPage() {
                   <span className="text-5xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
                     R$ {(plan.price / 100).toFixed(2)}
                   </span>
-                  <span className="text-gray-400">/{plan.interval}</span>
+                  <span className="text-black dark:text-white">/{plan.interval}</span>
                 </div>
               </CardHeader>
 
@@ -283,7 +283,7 @@ export default function SubscriptionPage() {
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-3">
                       <Check className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300 text-sm">{feature}</span>
+                      <span className="text-black dark:text-white text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -322,11 +322,11 @@ export default function SubscriptionPage() {
         {/* Footer Info */}
         <Card className="bg-gradient-to-br from-slate-800/30 to-slate-900/30 border-slate-700/30">
           <CardContent className="p-6 text-center space-y-2">
-            <p className="text-gray-400 text-sm">
+            <p className="text-black dark:text-white text-sm">
               <Calendar className="h-4 w-4 inline mr-2" />
               Cancele a qualquer momento • Sem taxas ocultas • Suporte 24/7
             </p>
-            <p className="text-gray-500 text-xs">
+            <p className="text-black dark:text-white text-xs">
               Pagamentos processados de forma segura pelo Stripe
             </p>
           </CardContent>
