@@ -397,7 +397,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                     <div className="p-2 w-fit rounded-lg bg-primary/10">
                       {card.icon}
                     </div>
-                    <CardTitle className="text-base font-semibold text-foreground dark:text-card-foreground">
+                    <CardTitle className={`text-base font-semibold ${card.icon.props.className.replace('h-6 w-6', '')}`}>
                       {card.title}
                     </CardTitle>
                   </CardHeader>
