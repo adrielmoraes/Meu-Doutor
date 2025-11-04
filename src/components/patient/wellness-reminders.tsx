@@ -33,13 +33,17 @@ const iconMap: { [key: string]: React.ReactNode } = {
 export default function WellnessReminders({ reminders }: WellnessRemindersProps) {
 
     return (
-        <Card>
+        <Card className="border-blue-500/30">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <Bell className="h-6 w-6 text-primary" />
-                    Lembretes do Dia
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600">
+                        <Bell className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent">
+                        Lembretes do Dia
+                    </span>
                 </CardTitle>
-                <CardDescription className="text-foreground/70 dark:text-muted-foreground">
+                <CardDescription className="text-black dark:text-muted-foreground">
                     Pequenos hábitos que fazem a diferença.
                 </CardDescription>
             </CardHeader>
@@ -51,8 +55,8 @@ export default function WellnessReminders({ reminders }: WellnessRemindersProps)
                                 {iconMap[reminder.icon] || <Bell className="h-5 w-5" />}
                             </div>
                             <div>
-                                <p className="font-semibold">{reminder.title}</p>
-                                <p className="text-sm text-foreground/70 dark:text-muted-foreground">{reminder.description}</p>
+                                <p className="font-semibold text-foreground dark:text-foreground">{reminder.title}</p>
+                                <p className="text-sm text-black dark:text-muted-foreground">{reminder.description}</p>
                             </div>
                         </li>
                     ))}

@@ -121,11 +121,11 @@ export default async function WellnessPlanPage() {
     const planSections = [
         {
             title: "Plano Alimentar",
-            icon: <FileText className="h-6 w-6 text-green-500" />, // Changed icon color
+            icon: <Apple className="h-6 w-6 text-white" />,
             content: wellnessPlan.dietaryPlan,
-            border: "border-green-500/30", // Changed border color
-            iconBg: "bg-gradient-to-br from-green-500 to-emerald-600", // Changed icon background
-            titleColor: "bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent" // Changed title color
+            border: "border-green-500/30",
+            iconBg: "bg-gradient-to-br from-green-500 to-emerald-600",
+            titleColor: "bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent"
         },
         {
             title: "Plano de Exercícios",
