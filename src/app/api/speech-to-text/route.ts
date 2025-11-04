@@ -19,8 +19,13 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await audioFile.arrayBuffer();
     const base64Audio = Buffer.from(arrayBuffer).toString('base64');
 
-    // Usar Gemini 1.5 Flash que tem suporte robusto para áudio
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    // Usar Gemini 1.5 Pro que tem suporte completo para áudio multimodal
+    const model = genAI.getGenerativeModel({ 
+      model: 'gemini-1.5-pro-latest',
+      generationConfig: {
+        temperature: 0.1,
+      }
+    });
 
     const result = await model.generateContent([
       {
