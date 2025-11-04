@@ -43,24 +43,24 @@ export default async function PatientProfilePage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden">
-            {/* Background Effects */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
-            <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
-            <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
+        <div className="min-h-screen bg-background relative overflow-hidden">
+            {/* Background Effects - adaptar para funcionar em ambos os temas */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/20 dark:to-accent/20"></div>
+            <div className="absolute inset-0 bg-grid-foreground/[0.01] dark:bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
+            <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 dark:bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/5 dark:bg-accent/10 rounded-full blur-3xl animate-pulse delay-700"></div>
             
             <div className="relative z-10 container mx-auto p-4 sm:p-6 lg:p-8">
                 <div className="mb-12 space-y-4">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-sm">
-                        <Sparkles className="h-4 w-4 text-cyan-400" />
-                        <span className="text-sm text-cyan-300 font-medium">Configurações de Perfil</span>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
+                        <Sparkles className="h-4 w-4 text-primary dark:text-cyan-400" />
+                        <span className="text-sm text-primary dark:text-cyan-300 font-medium">Configurações de Perfil</span>
                     </div>
                     
-                    <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
+                    <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                         Meu Perfil
                     </h1>
-                    <p className="text-lg text-blue-200/70">
+                    <p className="text-lg text-muted-foreground">
                         Gerencie suas informações pessoais e foto de perfil.
                     </p>
                 </div>

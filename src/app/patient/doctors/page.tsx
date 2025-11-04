@@ -14,13 +14,18 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import CancelAppointmentButton from "@/components/ui/cancel-appointment-button"; // Importar CancelAppointmentButton
 
+// Type for enriched appointment with doctor info
+type EnrichedAppointment = Appointment & {
+    doctorName: string;
+    doctorSpecialty: string;
+};
 
 const DoctorCard = ({ doctor, patientId }: { doctor: Doctor, patientId: string }) => (
     <Card key={doctor.id} className="flex flex-col transform transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl">
         <CardHeader className="flex-grow">
         <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border-2 border-primary">
-            <AvatarImage src={doctor.avatarUrl} />
+            <AvatarImage src={doctor.avatar} />
             <AvatarFallback>{doctor.name.substring(0, 2)}</AvatarFallback>
             </Avatar>
             <div>
@@ -44,7 +49,7 @@ const DoctorCard = ({ doctor, patientId }: { doctor: Doctor, patientId: string }
     </Card>
 );
 
-async function getDoctorsPageData(patientId: string): Promise<{ localDoctors: Doctor[], otherDoctors: Doctor[], patient: Patient | null, appointments: Appointment[], error?: string, fixUrl?: string }> {
+async function getDoctorsPageData(patientId: string): Promise<{ localDoctors: Doctor[], otherDoctors: Doctor[], patient: Patient | null, appointments: EnrichedAppointment[], error?: string, fixUrl?: string }> {
     try {
         console.log('[DoctorsPage Debug] Buscando dados para patientId:', patientId);
         
@@ -54,8 +59,18 @@ async function getDoctorsPageData(patientId: string): Promise<{ localDoctors: Do
         const patient = await getPatientById(patientId);
         console.log('[DoctorsPage Debug] Paciente encontrado:', patient ? patient.name : 'Nenhum');
         
-        const appointments = await getAppointmentsForPatient(patientId);
-        console.log('[DoctorsPage Debug] Agendamentos encontrados:', appointments.length);
+        const rawAppointments = await getAppointmentsForPatient(patientId);
+        console.log('[DoctorsPage Debug] Agendamentos encontrados:', rawAppointments.length);
+
+        // Enrich appointments with doctor info
+        const appointments = rawAppointments.map(appt => {
+            const doctor = allDoctors.find(d => d.id === appt.doctorId);
+            return {
+                ...appt,
+                doctorName: doctor?.name || 'Médico não encontrado',
+                doctorSpecialty: doctor?.specialty || 'Especialidade não disponível'
+            };
+        });
 
         const localDoctors = patient 
             ? allDoctors.filter(d => 

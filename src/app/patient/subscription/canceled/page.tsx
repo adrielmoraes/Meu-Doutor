@@ -9,30 +9,30 @@ export default function SubscriptionCanceledPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <Card className="max-w-2xl w-full bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-orange-500/20">
+    <div className="min-h-screen flex items-center justify-center p-8 bg-background">
+      <Card className="max-w-2xl w-full bg-card/80 border-orange-500/30">
         <CardHeader className="text-center space-y-4 pb-8">
           <div className="flex justify-center">
             <div className="rounded-full bg-orange-500/20 p-6">
-              <XCircle className="h-16 w-16 text-orange-400" />
+              <XCircle className="h-16 w-16 text-orange-600 dark:text-orange-400" />
             </div>
           </div>
-          <CardTitle className="text-3xl text-white">
+          <CardTitle className="text-3xl text-foreground">
             Assinatura Cancelada
           </CardTitle>
         </CardHeader>
         
         <CardContent className="space-y-6 text-center">
-          <p className="text-gray-300 text-lg">
+          <p className="text-muted-foreground text-lg">
             O processo de assinatura foi cancelado. Nenhuma cobrança foi realizada.
           </p>
           
-          <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-6 space-y-3">
-            <p className="text-orange-400 font-semibold">Que pena que você desistiu!</p>
-            <p className="text-gray-300 text-sm">
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-6 space-y-3">
+            <p className="text-orange-600 dark:text-orange-400 font-semibold">Que pena que você desistiu!</p>
+            <p className="text-muted-foreground text-sm">
               Com a assinatura MediAI você teria acesso a:
             </p>
-            <ul className="text-gray-300 text-sm space-y-2 text-left">
+            <ul className="text-muted-foreground text-sm space-y-2 text-left">
               <li>✓ Consultas ilimitadas com IA médica avançada</li>
               <li>✓ Análise inteligente de exames</li>
               <li>✓ Chatbot médico disponível 24/7</li>
@@ -44,7 +44,7 @@ export default function SubscriptionCanceledPage() {
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
             <Button
               onClick={() => router.push('/patient/subscription')}
-              className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+              className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Tentar Novamente
@@ -52,14 +52,14 @@ export default function SubscriptionCanceledPage() {
             <Button
               onClick={() => router.push('/patient/dashboard')}
               variant="outline"
-              className="flex-1 border-slate-600 text-gray-300 hover:bg-slate-800"
+              className="flex-1 border-border text-foreground hover:bg-muted"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar ao Dashboard
             </Button>
           </div>
 
-          <p className="text-gray-500 text-xs pt-4">
+          <p className="text-muted-foreground text-xs pt-4">
             Tem dúvidas? Entre em contato com nosso suporte!
           </p>
         </CardContent>
