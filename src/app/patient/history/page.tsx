@@ -109,10 +109,10 @@ export default async function ExamHistoryPage() {
   return (
       <div className="container mx-auto p-4 sm:p-6 lg:p-8 bg-background">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground dark:bg-gradient-to-r dark:from-primary dark:to-accent dark:bg-clip-text dark:text-transparent">
             Histórico de Exames
           </h1>
-          <p className="text-foreground/70 dark:text-muted-foreground">
+          <p className="text-foreground/80 dark:text-muted-foreground">
             Visualize a evolução dos seus exames ao longo do tempo e acesse análises detalhadas.
           </p>
         </div>
@@ -161,10 +161,10 @@ export default async function ExamHistoryPage() {
                           {config.icon}
                         </div>
                         <div className="flex-1">
-                          <CardTitle className="text-xl sm:text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                          <CardTitle className="text-xl sm:text-2xl text-foreground dark:bg-gradient-to-r dark:from-primary dark:to-accent dark:bg-clip-text dark:text-transparent">
                             {category}
                           </CardTitle>
-                          <CardDescription className="text-xs sm:text-sm">
+                          <CardDescription className="text-xs sm:text-sm text-foreground/70 dark:text-muted-foreground">
                             {sortedExams.length} {sortedExams.length === 1 ? 'exame realizado' : 'exames realizados'}
                           </CardDescription>
                         </div>
@@ -206,7 +206,7 @@ export default async function ExamHistoryPage() {
                               {/* Valores Reais do Exame */}
                               {exam.results && exam.results.length > 0 && (
                                 <div className="mt-3 p-2 sm:p-3 bg-primary/5 dark:bg-primary/10 border-2 border-primary/30 dark:border-primary/40 rounded-lg">
-                                  <h5 className="text-xs font-semibold text-primary/60 dark:text-primary mb-2 flex items-center gap-2">
+                                  <h5 className="text-xs font-semibold text-primary dark:text-primary/90 mb-2 flex items-center gap-2">
                                     <FileText className="h-3 w-3" />
                                     Valores do Exame
                                   </h5>
@@ -214,16 +214,16 @@ export default async function ExamHistoryPage() {
                                     {exam.results.map((result, idx) => (
                                       <div key={idx} className="flex flex-col sm:grid sm:grid-cols-3 gap-2 sm:gap-3 p-2 bg-muted/50 rounded border-2 border-border">
                                         <div className="min-w-0">
-                                          <p className="text-xs font-medium text-foreground/70 dark:text-muted-foreground">Parâmetro</p>
-                                          <p className="text-xs sm:text-sm font-semibold text-foreground/60 dark:text-foreground break-words">{result.name}</p>
+                                          <p className="text-xs font-medium text-foreground/80 dark:text-muted-foreground">Parâmetro</p>
+                                          <p className="text-xs sm:text-sm font-semibold text-foreground dark:text-foreground break-words">{result.name}</p>
                                         </div>
                                         <div className="min-w-0">
-                                          <p className="text-xs font-medium text-foreground/70 dark:text-muted-foreground">Valor</p>
-                                          <p className="text-xs sm:text-sm font-bold text-primary/60 dark:text-primary break-words">{result.value}</p>
+                                          <p className="text-xs font-medium text-foreground/80 dark:text-muted-foreground">Valor</p>
+                                          <p className="text-xs sm:text-sm font-bold text-primary dark:text-primary break-words">{result.value}</p>
                                         </div>
                                         <div className="min-w-0">
-                                          <p className="text-xs font-medium text-foreground/70 dark:text-muted-foreground">Referência</p>
-                                          <p className="text-xs sm:text-sm font-medium text-foreground/60 dark:text-foreground break-words">{result.reference}</p>
+                                          <p className="text-xs font-medium text-foreground/80 dark:text-muted-foreground">Referência</p>
+                                          <p className="text-xs sm:text-sm font-medium text-foreground dark:text-foreground break-words">{result.reference}</p>
                                         </div>
                                       </div>
                                     ))}
@@ -232,10 +232,10 @@ export default async function ExamHistoryPage() {
                               )}
                               
                               <div className="mt-3 p-2 sm:p-3 bg-muted/50 rounded border-2 border-border">
-                                <p className="text-xs text-foreground/70 dark:text-muted-foreground mb-1">
+                                <p className="text-xs font-medium text-foreground/80 dark:text-muted-foreground mb-1">
                                   {exam.status === 'Validado' ? 'Diagnóstico Final' : 'Análise Preliminar'}
                                 </p>
-                                <p className="text-xs sm:text-sm text-foreground/60 dark:text-foreground line-clamp-3">
+                                <p className="text-xs sm:text-sm text-foreground dark:text-foreground line-clamp-3">
                                   {exam.status === 'Validado' && exam.finalExplanation 
                                     ? exam.finalExplanation 
                                     : exam.preliminaryDiagnosis}
@@ -244,7 +244,7 @@ export default async function ExamHistoryPage() {
                               
                               <Link 
                                 href={`/patient/history/${exam.id}`}
-                                className="mt-3 inline-flex items-center gap-2 text-xs sm:text-sm text-primary/60 dark:text-primary hover:text-primary/40 dark:hover:text-primary/80 transition-colors font-medium"
+                                className="mt-3 inline-flex items-center gap-2 text-xs sm:text-sm text-primary dark:text-primary hover:text-primary/70 dark:hover:text-primary/80 transition-colors font-medium"
                               >
                                 Ver detalhes completos
                                 <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -282,13 +282,13 @@ export default async function ExamHistoryPage() {
                             <div className="flex items-center gap-3 sm:gap-4">
                                 {getIconForExam(exam)}
                                 <div>
-                                    <CardTitle className="text-sm sm:text-lg text-foreground/60 dark:text-foreground">{exam.type}</CardTitle>
-                                    <CardDescription className="text-xs sm:text-sm">{new Date(exam.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</CardDescription>
+                                    <CardTitle className="text-sm sm:text-lg text-foreground dark:text-foreground">{exam.type}</CardTitle>
+                                    <CardDescription className="text-xs sm:text-sm text-foreground/70 dark:text-muted-foreground">{new Date(exam.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</CardDescription>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 sm:gap-4">
-                            <p className="text-xs sm:text-sm text-foreground/70 dark:text-muted-foreground hidden md:block">{exam.result}</p>
-                            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-foreground/70 dark:text-muted-foreground" />
+                            <p className="text-xs sm:text-sm text-foreground/80 dark:text-muted-foreground hidden md:block">{exam.result}</p>
+                            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-foreground/60 dark:text-muted-foreground" />
                             </div>
                         </CardHeader>
                     </Link>
@@ -300,8 +300,8 @@ export default async function ExamHistoryPage() {
         ) : (
           <Card className="bg-card border-2 border-border">
             <CardHeader>
-                <CardTitle className="text-foreground/60 dark:text-foreground text-base sm:text-xl">Nenhum exame encontrado</CardTitle>
-                <CardDescription className="text-xs sm:text-sm">
+                <CardTitle className="text-foreground dark:text-foreground text-base sm:text-xl">Nenhum exame encontrado</CardTitle>
+                <CardDescription className="text-xs sm:text-sm text-foreground/70 dark:text-muted-foreground">
                 Você ainda não enviou nenhum exame para análise. Comece fazendo o upload na página principal.
                 </CardDescription>
             </CardHeader>
