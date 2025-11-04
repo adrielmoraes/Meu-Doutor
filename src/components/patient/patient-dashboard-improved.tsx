@@ -363,7 +363,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
 
                 <Link href={action.href} className="block h-full relative">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-lg font-bold text-foreground dark:text-primary">
+                    <CardTitle className={`text-lg font-bold ${action.icon.props.className.replace('h-6 w-6', '')}`}>
                       {action.title}
                     </CardTitle>
                     {action.icon}
