@@ -55,7 +55,7 @@ export default function PatientProfileClient({ patient: initialPatient, userId }
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Coluna do Avatar */}
       <div className="lg:col-span-1 flex flex-col items-center">
-        <Card className="w-full max-w-sm bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-cyan-500/20 shadow-2xl shadow-cyan-500/10">
+        <Card className="w-full max-w-sm bg-card/95 backdrop-blur-xl border border-primary/20 shadow-2xl shadow-primary/10">
           <CardHeader className="p-6 pb-4">
             <AvatarUpload
               userId={userId}
@@ -66,28 +66,28 @@ export default function PatientProfileClient({ patient: initialPatient, userId }
             />
           </CardHeader>
           <CardContent className="p-6 pt-2 text-center">
-            <h2 className="text-2xl font-semibold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
+            <h2 className="text-2xl font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               {patient.name}
             </h2>
-            <p className="text-blue-200/70 mt-1">Paciente</p>
+            <p className="text-muted-foreground mt-1">Paciente</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Coluna de Informações e Formulário */}
       <div className="lg:col-span-2">
-        <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-cyan-500/20 shadow-2xl shadow-cyan-500/10">
+        <Card className="bg-card/95 backdrop-blur-xl border border-primary/20 shadow-2xl shadow-primary/10">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-cyan-300 flex items-center gap-2">
-              <User className="h-6 w-6" />
+            <CardTitle className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <User className="h-6 w-6 text-primary" />
               Minhas Informações
             </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleProfileUpdate} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-blue-100 flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-cyan-400" />
+                <Label htmlFor="email" className="text-foreground flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-primary" />
                   Email
                 </Label>
                 <Input 
@@ -95,43 +95,43 @@ export default function PatientProfileClient({ patient: initialPatient, userId }
                   type="email" 
                   defaultValue={patient.email} 
                   disabled 
-                  className="bg-slate-900/50 border-cyan-500/30 text-blue-100/50 cursor-not-allowed"
+                  className="bg-muted/50 border-border text-muted-foreground cursor-not-allowed"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-blue-100 flex items-center gap-2">
-                  <User className="h-4 w-4 text-cyan-400" />
+                <Label htmlFor="name" className="text-foreground flex items-center gap-2">
+                  <User className="h-4 w-4 text-primary" />
                   Nome Completo
                 </Label>
                 <Input 
                   id="name" 
                   name="name" 
                   defaultValue={patient.name}
-                  className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white"
+                  className="bg-background border-border focus:border-primary text-foreground"
                 />
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="city" className="text-blue-100 flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-cyan-400" />
+                  <Label htmlFor="city" className="text-foreground flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" />
                     Cidade
                   </Label>
                   <Input 
                     id="city" 
                     name="city" 
                     defaultValue={patient.city}
-                    className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white"
+                    className="bg-background border-border focus:border-primary text-foreground"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="state" className="text-blue-100">Estado</Label>
+                  <Label htmlFor="state" className="text-foreground">Estado</Label>
                   <Input 
                     id="state" 
                     name="state" 
                     defaultValue={patient.state}
-                    className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white"
+                    className="bg-background border-border focus:border-primary text-foreground"
                   />
                 </div>
               </div>
@@ -139,7 +139,7 @@ export default function PatientProfileClient({ patient: initialPatient, userId }
               <div className="flex justify-end pt-4">
                 <Button 
                   type="submit"
-                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold shadow-lg shadow-cyan-500/20 transition-all"
+                  className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all"
                 >
                   Salvar Alterações
                 </Button>
