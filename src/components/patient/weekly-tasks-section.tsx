@@ -101,27 +101,27 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
 
   return (
     <div className="space-y-6">
-      <Card className="relative overflow-hidden border border-cyan-500/20 bg-gradient-to-br from-slate-900/90 to-slate-800/90 backdrop-blur-sm p-6">
-        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-blue-500/5 to-purple-500/5" />
+      <Card className="relative overflow-hidden border-2 border-primary/30 bg-card/80 backdrop-blur-sm p-6">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-primary/5" />
         
         <div className="relative space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+            <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
               Progresso Semanal
             </h3>
             <div className="text-lg font-semibold">
-              <span className="text-cyan-400">{completedCount}</span>
-              <span className="text-slate-400">/</span>
-              <span className="text-slate-400">{totalCount}</span>
+              <span className="text-primary">{completedCount}</span>
+              <span className="text-muted-foreground">/</span>
+              <span className="text-muted-foreground">{totalCount}</span>
             </div>
           </div>
 
           <div className="space-y-2">
             <Progress 
               value={progressPercentage} 
-              className="h-3 bg-slate-700/50"
+              className="h-3"
             />
-            <p className="text-sm text-slate-400 text-center">
+            <p className="text-sm text-muted-foreground text-center">
               {progressPercentage === 100 
                 ? "🎉 Você completou todas as tarefas da semana!" 
                 : `${Math.round(progressPercentage)}% concluído - Continue assim!`}
@@ -137,17 +137,19 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
         return (
           <Card
             key={category}
-            className={`relative overflow-hidden border ${config.borderColor} bg-gradient-to-br ${config.bgGradient} backdrop-blur-sm p-6`}
+            className={`relative overflow-hidden border-2 ${config.borderColor} bg-card/80 backdrop-blur-sm p-6`}
           >
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-primary/5" />
+            
             <div className="relative space-y-4">
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-lg bg-gradient-to-br ${config.gradient}`}>
                   <CategoryIcon className="w-5 h-5 text-white" />
                 </div>
-                <h4 className="text-lg font-semibold text-white">
+                <h4 className="text-lg font-semibold text-foreground">
                   {config.label}
                 </h4>
-                <span className="ml-auto text-sm text-slate-400">
+                <span className="ml-auto text-sm text-muted-foreground">
                   {categoryTasks.filter(t => t.completed).length}/{categoryTasks.length}
                 </span>
               </div>
@@ -156,7 +158,7 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
                 {categoryTasks.map(task => (
                   <div
                     key={task.id}
-                    className={`flex items-start gap-3 p-4 rounded-lg bg-slate-900/40 border border-slate-700/50 transition-all hover:border-slate-600/50 ${
+                    className={`flex items-start gap-3 p-4 rounded-lg bg-muted/30 border-2 border-border/50 transition-all hover:border-border ${
                       task.completed ? 'opacity-60' : ''
                     }`}
                   >
@@ -164,21 +166,21 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
                       id={task.id}
                       checked={task.completed}
                       onCheckedChange={() => handleToggleTask(task.id, task.completed)}
-                      className="mt-1 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-cyan-500 data-[state=checked]:to-blue-600 border-slate-600"
+                      className="mt-1 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                     />
                     
                     <div className="flex-1 space-y-1">
                       <label
                         htmlFor={task.id}
                         className={`block font-medium cursor-pointer ${
-                          task.completed ? 'line-through text-slate-500' : 'text-white'
+                          task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
                         }`}
                       >
                         {task.title}
                       </label>
-                      <p className="text-sm text-slate-400">{task.description}</p>
+                      <p className="text-sm text-muted-foreground">{task.description}</p>
                       {task.dayOfWeek && (
-                        <span className="inline-block mt-1 text-xs px-2 py-1 rounded bg-slate-800/50 text-cyan-400 border border-cyan-500/20">
+                        <span className="inline-block mt-1 text-xs px-2 py-1 rounded bg-primary/10 text-primary border-2 border-primary/30">
                           {task.dayOfWeek}
                         </span>
                       )}
@@ -192,8 +194,8 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
       })}
 
       {totalCount === 0 && (
-        <Card className="border border-slate-700/50 bg-slate-900/40 p-8 text-center">
-          <p className="text-slate-400">
+        <Card className="border-2 border-border/50 bg-card/60 p-8 text-center">
+          <p className="text-muted-foreground">
             Suas tarefas semanais serão geradas assim que você tiver exames analisados.
           </p>
         </Card>
