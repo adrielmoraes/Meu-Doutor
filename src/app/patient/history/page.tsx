@@ -112,7 +112,7 @@ export default async function ExamHistoryPage() {
           <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Histórico de Exames
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-foreground/70 dark:text-muted-foreground">
             Visualize a evolução dos seus exames ao longo do tempo e acesse análises detalhadas.
           </p>
         </div>
@@ -184,7 +184,7 @@ export default async function ExamHistoryPage() {
                               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
                                 <div className="flex-1">
                                   <h4 className="font-semibold text-foreground text-sm sm:text-base">{exam.type}</h4>
-                                  <p className="text-xs sm:text-sm text-muted-foreground">
+                                  <p className="text-xs sm:text-sm text-foreground/70 dark:text-muted-foreground">
                                     {new Date(exam.date).toLocaleDateString('pt-BR', { 
                                       day: '2-digit', 
                                       month: 'long', 
@@ -214,15 +214,15 @@ export default async function ExamHistoryPage() {
                                     {exam.results.map((result, idx) => (
                                       <div key={idx} className="flex flex-col sm:grid sm:grid-cols-3 gap-2 sm:gap-3 p-2 bg-muted/50 rounded border-2 border-border">
                                         <div className="min-w-0">
-                                          <p className="text-xs font-medium text-muted-foreground">Parâmetro</p>
+                                          <p className="text-xs font-medium text-foreground/70 dark:text-muted-foreground">Parâmetro</p>
                                           <p className="text-xs sm:text-sm font-semibold text-foreground break-words">{result.name}</p>
                                         </div>
                                         <div className="min-w-0">
-                                          <p className="text-xs font-medium text-muted-foreground">Valor</p>
+                                          <p className="text-xs font-medium text-foreground/70 dark:text-muted-foreground">Valor</p>
                                           <p className="text-xs sm:text-sm font-bold text-primary break-words">{result.value}</p>
                                         </div>
                                         <div className="min-w-0">
-                                          <p className="text-xs font-medium text-muted-foreground">Referência</p>
+                                          <p className="text-xs font-medium text-foreground/70 dark:text-muted-foreground">Referência</p>
                                           <p className="text-xs sm:text-sm font-medium text-foreground break-words">{result.reference}</p>
                                         </div>
                                       </div>
@@ -232,7 +232,7 @@ export default async function ExamHistoryPage() {
                               )}
                               
                               <div className="mt-3 p-2 sm:p-3 bg-muted/50 rounded border-2 border-border">
-                                <p className="text-xs text-muted-foreground mb-1">
+                                <p className="text-xs text-foreground/70 dark:text-muted-foreground mb-1">
                                   {exam.status === 'Validado' ? 'Diagnóstico Final' : 'Análise Preliminar'}
                                 </p>
                                 <p className="text-xs sm:text-sm text-foreground line-clamp-3">
@@ -287,8 +287,8 @@ export default async function ExamHistoryPage() {
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 sm:gap-4">
-                            <p className="text-xs sm:text-sm text-muted-foreground hidden md:block">{exam.result}</p>
-                            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                            <p className="text-xs sm:text-sm text-foreground/70 dark:text-muted-foreground hidden md:block">{exam.result}</p>
+                            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-foreground/70 dark:text-muted-foreground" />
                             </div>
                         </CardHeader>
                     </Link>

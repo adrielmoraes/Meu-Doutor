@@ -60,7 +60,7 @@ export default async function WellnessPlanPage() {
                         <HeartPulse className="h-8 w-8 text-primary" /> 
                         Meu Plano de Bem-Estar Personalizado
                     </h1>
-                    <p className="text-muted-foreground mt-2">
+                    <p className="text-foreground/70 dark:text-muted-foreground mt-2">
                         Gerado pela IA Nutricionista para ajudar você a alcançar seus objetivos de saúde.
                     </p>
                 </div>
@@ -71,7 +71,7 @@ export default async function WellnessPlanPage() {
                             <Sparkles className="h-6 w-6" />
                             Plano de Bem-Estar em Preparo
                         </CardTitle>
-                        <CardDescription>
+                        <CardDescription className="text-foreground/70 dark:text-muted-foreground">
                             Seu plano personalizado será criado automaticamente
                         </CardDescription>
                     </CardHeader>
@@ -152,10 +152,10 @@ export default async function WellnessPlanPage() {
                             <HeartPulse className="h-8 w-8 text-primary" /> 
                             Meu Plano de Bem-Estar Personalizado
                         </h1>
-                        <p className="text-muted-foreground mt-2">
+                        <p className="text-foreground/70 dark:text-muted-foreground mt-2">
                             Gerado pela IA Nutricionista com base nos seus exames
                         </p>
-                        <div className="flex items-center gap-2 mt-3 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2 mt-3 text-sm text-foreground/70 dark:text-muted-foreground">
                             <Calendar className="h-4 w-4" />
                             <span>Última atualização: {lastUpdated}</span>
                         </div>

@@ -25,7 +25,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
   const quickActions = [
     {
       title: "Fale com o Terapeuta",
-      icon: <MessageCircle className="h-6 w-6 text-green-400" />,
+      icon: <MessageCircle className="h-6 w-6 text-green-700 dark:text-green-400" />,
       href: "/patient/therapist-chat",
       description: "Chat com IA terapeuta e assistente pessoal 24/7",
       gradient: "from-green-500/20 to-emerald-500/20",
@@ -35,7 +35,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
     },
     {
       title: "Consulta ao Vivo com IA",
-      icon: <Video className="h-6 w-6 text-purple-400" />,
+      icon: <Video className="h-6 w-6 text-purple-700 dark:text-purple-400" />,
       href: "/patient/live-consultation",
       description: "Consulta por vídeo com assistente inteligente em tempo real",
       gradient: "from-purple-500/20 to-pink-500/20",
@@ -45,7 +45,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
     },
     {
       title: "Upload de Exames",
-      icon: <Upload className="h-6 w-6 text-cyan-400" />,
+      icon: <Upload className="h-6 w-6 text-cyan-700 dark:text-cyan-400" />,
       href: "/patient/upload-exam",
       description: "Envie seus exames para análise imediata da IA",
       gradient: "from-cyan-500/20 to-blue-500/20",
@@ -55,7 +55,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
     },
     {
       title: "Médicos Disponíveis",
-      icon: <UserPlus className="h-6 w-6 text-blue-400" />,
+      icon: <UserPlus className="h-6 w-6 text-blue-700 dark:text-blue-400" />,
       href: "/patient/doctors",
       description: "Conecte-se com médicos da nossa rede",
       gradient: "from-blue-500/20 to-indigo-500/20",
@@ -68,7 +68,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
   const navigationCards = [
     {
       title: "Histórico de Exames",
-      icon: <FileClock className="h-6 w-6 text-amber-400" />,
+      icon: <FileClock className="h-6 w-6 text-amber-700 dark:text-amber-400" />,
       href: "/patient/history",
       description: "Acesse seus exames e análises anteriores",
       gradient: "from-amber-500/10 to-orange-500/10",
@@ -76,7 +76,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
     },
     {
       title: "Plano de Bem-Estar",
-      icon: <HeartPulse className="h-6 w-6 text-pink-400" />,
+      icon: <HeartPulse className="h-6 w-6 text-pink-700 dark:text-pink-400" />,
       href: "/patient/wellness",
       description: "Seu plano personalizado de saúde",
       gradient: "from-pink-500/10 to-rose-500/10",
@@ -84,7 +84,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
     },
     {
       title: "Monitoramento",
-      icon: <Activity className="h-6 w-6 text-green-400" />,
+      icon: <Activity className="h-6 w-6 text-green-700 dark:text-green-400" />,
       href: "/patient/monitoring",
       description: "Dados dos seus wearables em tempo real",
       gradient: "from-green-500/10 to-emerald-500/10",
@@ -92,7 +92,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
     },
     {
       title: "Meu Perfil",
-      icon: <User className="h-6 w-6 text-indigo-400" />,
+      icon: <User className="h-6 w-6 text-indigo-700 dark:text-indigo-400" />,
       href: "/patient/profile",
       description: "Visualize e edite suas informações",
       gradient: "from-indigo-500/10 to-violet-500/10",
@@ -104,21 +104,21 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
     {
       title: "Exames Analisados",
       value: examCount.toString(),
-      icon: <FileClock className="h-5 w-5 text-cyan-400" />,
+      icon: <FileClock className="h-5 w-5 text-cyan-700 dark:text-cyan-400" />,
       gradient: "from-cyan-500/10 to-blue-500/10",
       borderColor: "border-cyan-500/20",
     },
     {
       title: "Consultas Agendadas",
       value: upcomingAppointments.toString(),
-      icon: <Calendar className="h-5 w-5 text-purple-400" />,
+      icon: <Calendar className="h-5 w-5 text-purple-700 dark:text-purple-400" />,
       gradient: "from-purple-500/10 to-pink-500/10",
       borderColor: "border-purple-500/20",
     },
     {
       title: "Status de Saúde",
       value: patient.status === 'Validado' ? 'Ótimo' : 'Em Análise',
-      icon: <TrendingUp className="h-5 w-5 text-green-400" />,
+      icon: <TrendingUp className="h-5 w-5 text-green-700 dark:text-green-400" />,
       gradient: "from-green-500/10 to-emerald-500/10",
       borderColor: "border-green-500/20",
     },
@@ -146,7 +146,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
             Olá, {patient.name.split(' ')[0]}!
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl">
+          <p className="text-lg text-foreground/70 dark:text-muted-foreground max-w-2xl">
             Sua saúde em primeiro lugar. Acompanhe seus exames, consulte especialistas e mantenha seu bem-estar com nossa tecnologia de IA avançada.
           </p>
         </div>
@@ -188,7 +188,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                 <Video className="h-8 w-8 text-primary" />
                 Consulta ao Vivo com a IA
               </h2>
-              <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
+              <p className="text-foreground/70 dark:text-muted-foreground mt-2 max-w-2xl mx-auto">
                 Tire suas dúvidas de saúde em tempo real com nosso assistente inteligente que conhece todo o seu histórico médico e pode orientá-lo sobre seus exames e tratamentos.
               </p>
             </div>
@@ -197,7 +197,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
               <CardContent className="p-8 text-center space-y-4">
                 <Video className="h-16 w-16 text-primary mx-auto mb-4" />
                 <h3 className="text-2xl font-bold text-card-foreground">Pronto para começar?</h3>
-                <p className="text-muted-foreground max-w-md mx-auto">
+                <p className="text-foreground/70 dark:text-muted-foreground max-w-md mx-auto">
                   Clique no botão abaixo para iniciar sua consulta ao vivo com a MediAI. 
                   Você poderá conversar por voz e vídeo em tempo real.
                 </p>
@@ -267,13 +267,13 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                 <FileText className="h-8 w-8 text-amber-400" />
                 Histórico de Exames
               </h2>
-              <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
+              <p className="text-foreground/70 dark:text-muted-foreground mt-2 max-w-2xl mx-auto">
                 Acompanhe todos os seus exames e laudos de forma organizada e acessível.
               </p>
             </div>
             {/* Placeholder for Exam History */}
             <Card className="p-8">
-              <p className="text-center text-muted-foreground">Seu histórico de exames será exibido aqui.</p>
+              <p className="text-center text-foreground/70 dark:text-muted-foreground">Seu histórico de exames será exibido aqui.</p>
             </Card>
           </TabsContent>
 
@@ -283,13 +283,13 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                 <HeartPulse className="h-8 w-8 text-pink-400" />
                 Seu Plano de Bem-Estar
               </h2>
-              <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
+              <p className="text-foreground/70 dark:text-muted-foreground mt-2 max-w-2xl mx-auto">
                 Descubra recomendações personalizadas para otimizar sua saúde e qualidade de vida.
               </p>
             </div>
             {/* Placeholder for Wellness Plan */}
             <Card className="p-8">
-              <p className="text-center text-muted-foreground">Seu plano de bem-estar será exibido aqui.</p>
+              <p className="text-center text-foreground/70 dark:text-muted-foreground">Seu plano de bem-estar será exibido aqui.</p>
             </Card>
           </TabsContent>
 
@@ -299,13 +299,13 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                 <Calendar className="h-8 w-8 text-purple-400" />
                 Suas Consultas
               </h2>
-              <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
+              <p className="text-foreground/70 dark:text-muted-foreground mt-2 max-w-2xl mx-auto">
                 Visualize suas consultas futuras e passadas. Agende novos atendimentos com facilidade.
               </p>
             </div>
             {/* Placeholder for Appointments */}
             <Card className="p-8">
-              <p className="text-center text-muted-foreground">Suas consultas serão exibidas aqui.</p>
+              <p className="text-center text-foreground/70 dark:text-muted-foreground">Suas consultas serão exibidas aqui.</p>
             </Card>
           </TabsContent>
 
@@ -315,13 +315,13 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                 <Users className="h-8 w-8 text-indigo-400" />
                 Médicos da Rede
               </h2>
-              <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
+              <p className="text-foreground/70 dark:text-muted-foreground mt-2 max-w-2xl mx-auto">
                 Conecte-se com profissionais qualificados em diversas especialidades.
               </p>
             </div>
             {/* Placeholder for Doctors */}
             <Card className="p-8">
-              <p className="text-center text-muted-foreground">Nossos médicos parceiros serão listados aqui.</p>
+              <p className="text-center text-foreground/70 dark:text-muted-foreground">Nossos médicos parceiros serão listados aqui.</p>
             </Card>
           </TabsContent>
         </Tabs>
@@ -336,7 +336,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">{stat.title}</p>
+                    <p className="text-sm text-foreground/70 dark:text-muted-foreground mb-1">{stat.title}</p>
                     <p className="text-2xl font-bold text-card-foreground">{stat.value}</p>
                   </div>
                   <div className={`p-3 rounded-lg bg-gradient-to-br ${stat.gradient}`}>
@@ -369,7 +369,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                     {action.icon}
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-foreground/70 dark:text-muted-foreground">
                       {action.description}
                     </p>
                   </CardContent>
@@ -402,7 +402,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-foreground/70 dark:text-muted-foreground">
                       {card.description}
                     </p>
                   </CardContent>

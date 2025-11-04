@@ -101,7 +101,7 @@ export function ExamTimelineChart({ exams, examType, color, icon }: ExamTimeline
           <p className="text-primary font-bold text-base">
             {data.valueStr}
           </p>
-          <p className="text-muted-foreground text-xs mt-1">
+          <p className="text-foreground/70 dark:text-muted-foreground text-xs mt-1">
             Ref: {data.reference}
           </p>
         </div>
@@ -137,7 +137,7 @@ export function ExamTimelineChart({ exams, examType, color, icon }: ExamTimeline
               <CardTitle className="text-lg sm:text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 {examType}
               </CardTitle>
-              <CardDescription className="text-xs sm:text-sm">
+              <CardDescription className="text-xs sm:text-sm text-foreground/70 dark:text-muted-foreground">
                 {sortedExams.length} {sortedExams.length === 1 ? 'exame realizado' : 'exames realizados'}
               </CardDescription>
             </div>
@@ -154,7 +154,7 @@ export function ExamTimelineChart({ exams, examType, color, icon }: ExamTimeline
                 <h4 className="text-sm sm:text-base font-semibold text-foreground mb-1">
                   {paramName}
                 </h4>
-                <p className="text-xs text-muted-foreground mb-3">
+                <p className="text-xs text-foreground/70 dark:text-muted-foreground mb-3">
                   {chartData.length} {chartData.length === 1 ? 'medição' : 'medições'}
                 </p>
                 

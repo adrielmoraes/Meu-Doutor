@@ -231,7 +231,7 @@ export default function LiveMonitoringClient() {
                     </CardHeader>
                     <CardContent>
                         <p className={`text-6xl font-bold ${hrColor}`}>{currentVitals.hr > 0 ? currentVitals.hr : '--'}</p>
-                        <p className="text-muted-foreground">BPM</p>
+                        <p className="text-foreground/70 dark:text-muted-foreground">BPM</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -243,9 +243,9 @@ export default function LiveMonitoringClient() {
                     <CardContent>
                         <p className={`text-6xl font-bold ${bpColor}`}>
                             {currentVitals.systolic > 0 ? currentVitals.systolic : '--'}
-                            <span className="text-3xl text-muted-foreground">/{currentVitals.diastolic > 0 ? currentVitals.diastolic : '--'}</span>
+                            <span className="text-3xl text-foreground/70 dark:text-muted-foreground">/{currentVitals.diastolic > 0 ? currentVitals.diastolic : '--'}</span>
                         </p>
-                        <p className="text-muted-foreground">mmHg (Sist/Diast)</p>
+                        <p className="text-foreground/70 dark:text-muted-foreground">mmHg (Sist/Diast)</p>
                     </CardContent>
                 </Card>
                 <Card className="flex items-center justify-center bg-muted/50">
@@ -253,8 +253,8 @@ export default function LiveMonitoringClient() {
                         <div className="h-16 w-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-2">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22C6.5 22 2 17.5 2 12S6.5 2 12 2s10 4.5 10 10-4.5 10-10 10Z"></path><path d="M12 12v-2"></path><path d="M16.2 7.8l-1.4 1.4"></path><path d="M18 12h-2"></path><path d="M16.2 16.2l-1.4-1.4"></path><path d="M12 12v2"></path><path d="M7.8 16.2l1.4-1.4"></path><path d="M6 12H4"></path><path d="M7.8 7.8l1.4 1.4"></path></svg>
                         </div>
-                        <p className="font-bold text-6xl">-- <span className="text-3xl text-muted-foreground">°C</span></p>
-                        <p className="text-muted-foreground">Temperatura Corporal</p>
+                        <p className="font-bold text-6xl">-- <span className="text-3xl text-foreground/70 dark:text-muted-foreground">°C</span></p>
+                        <p className="text-foreground/70 dark:text-muted-foreground">Temperatura Corporal</p>
                     </CardContent>
                 </Card>
             </div>

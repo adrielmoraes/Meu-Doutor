@@ -10,7 +10,7 @@ export default function LiveMonitoringPage() {
                 <h1 className="text-3xl font-bold tracking-tight flex items-center justify-center gap-2">
                    <Activity className="h-8 w-8 text-primary" /> Monitoramento de Sinais Vitais
                 </h1>
-                <p className="text-muted-foreground mt-2 max-w-2xl">
+                <p className="text-foreground/70 dark:text-muted-foreground mt-2 max-w-2xl">
                     Esta é uma simulação de alta fidelidade que demonstra como os dados de um wearable (relógio, cinta, etc.) seriam exibidos em tempo real.
                 </p>
             </div>

@@ -111,8 +111,8 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
             </h3>
             <div className="text-lg font-semibold">
               <span className="text-primary">{completedCount}</span>
-              <span className="text-muted-foreground">/</span>
-              <span className="text-muted-foreground">{totalCount}</span>
+              <span className="text-foreground/70 dark:text-muted-foreground">/</span>
+              <span className="text-foreground/70 dark:text-muted-foreground">{totalCount}</span>
             </div>
           </div>
 
@@ -121,7 +121,7 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
               value={progressPercentage} 
               className="h-3"
             />
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-sm text-foreground/70 dark:text-muted-foreground text-center">
               {progressPercentage === 100 
                 ? "🎉 Você completou todas as tarefas da semana!" 
                 : `${Math.round(progressPercentage)}% concluído - Continue assim!`}
@@ -149,7 +149,7 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
                 <h4 className="text-lg font-semibold text-foreground">
                   {config.label}
                 </h4>
-                <span className="ml-auto text-sm text-muted-foreground">
+                <span className="ml-auto text-sm text-foreground/70 dark:text-muted-foreground">
                   {categoryTasks.filter(t => t.completed).length}/{categoryTasks.length}
                 </span>
               </div>
@@ -173,12 +173,12 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
                       <label
                         htmlFor={task.id}
                         className={`block font-medium cursor-pointer ${
-                          task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                          task.completed ? 'line-through text-foreground/70 dark:text-muted-foreground' : 'text-foreground'
                         }`}
                       >
                         {task.title}
                       </label>
-                      <p className="text-sm text-muted-foreground">{task.description}</p>
+                      <p className="text-sm text-foreground/70 dark:text-muted-foreground">{task.description}</p>
                       {task.dayOfWeek && (
                         <span className="inline-block mt-1 text-xs px-2 py-1 rounded bg-primary/10 text-primary border-2 border-primary/30">
                           {task.dayOfWeek}
@@ -195,7 +195,7 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
 
       {totalCount === 0 && (
         <Card className="border-2 border-border/50 bg-card/60 p-8 text-center">
-          <p className="text-muted-foreground">
+          <p className="text-foreground/70 dark:text-muted-foreground">
             Suas tarefas semanais serão geradas assim que você tiver exames analisados.
           </p>
         </Card>
