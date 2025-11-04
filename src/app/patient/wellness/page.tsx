@@ -1,7 +1,7 @@
 import { getPatientById } from "@/lib/db-adapter";
 import { notFound, redirect } from "next/navigation";
 import WellnessReminders from "@/components/patient/wellness-reminders";
-import { FileText, Dumbbell, BrainCircuit, HeartPulse, AlertTriangle, Sparkles, Calendar, ChefHat } from "lucide-react";
+import { FileText, Dumbbell, BrainCircuit, HeartPulse, AlertTriangle, Sparkles, Calendar, ChefHat, Apple } from "lucide-react"; // Import Apple and Brain
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import AudioPlayback from "@/components/patient/audio-playback";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -121,27 +121,27 @@ export default async function WellnessPlanPage() {
     const planSections = [
         {
             title: "Plano Alimentar",
-            icon: <FileText className="h-6 w-6 text-primary" />,
+            icon: <FileText className="h-6 w-6 text-green-500" />, // Changed icon color
             content: wellnessPlan.dietaryPlan,
-            border: "border-primary/30",
-            iconBg: "bg-primary/10 dark:bg-primary/20",
-            titleColor: "text-primary"
+            border: "border-green-500/30", // Changed border color
+            iconBg: "bg-gradient-to-br from-green-500 to-emerald-600", // Changed icon background
+            titleColor: "bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent" // Changed title color
         },
         {
             title: "Plano de Exercícios",
-            icon: <Dumbbell className="h-6 w-6 text-accent" />,
+            icon: <Dumbbell className="h-6 w-6 text-white" />, // Changed icon color
             content: wellnessPlan.exercisePlan,
-            border: "border-accent/30",
-            iconBg: "bg-accent/10 dark:bg-accent/20",
-            titleColor: "text-accent"
+            border: "border-orange-500/30", // Changed border color
+            iconBg: "bg-gradient-to-br from-orange-500 to-red-600", // Changed icon background
+            titleColor: "bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent" // Changed title color
         },
         {
             title: "Bem-Estar Mental",
-            icon: <BrainCircuit className="h-6 w-6 text-primary" />,
+            icon: <BrainCircuit className="h-6 w-6 text-white" />, // Changed icon color
             content: wellnessPlan.mentalWellnessPlan,
-            border: "border-primary/30",
-            iconBg: "bg-primary/10 dark:bg-primary/20",
-            titleColor: "text-primary"
+            border: "border-purple-500/30", // Changed border color
+            iconBg: "bg-gradient-to-br from-purple-500 to-pink-600", // Changed icon background
+            titleColor: "bg-gradient-to-r from-purple-500 to-pink-600 bg-clip-text text-transparent" // Changed title color
         },
     ];
 
@@ -206,20 +206,20 @@ export default async function WellnessPlanPage() {
                                         <div className="grid md:grid-cols-2 gap-4">
                                             <div>
                                                 <p className="text-sm font-semibold text-accent mb-1">☀️ Café da Manhã</p>
-                                                <p className="text-sm text-black dark:text-foreground">{dayPlan.breakfast}</p>
+                                                <p className="text-sm text-black dark:text-muted-foreground leading-relaxed">{dayPlan.breakfast}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm font-semibold text-accent mb-1">🍽️ Almoço</p>
-                                                <p className="text-sm text-black dark:text-foreground">{dayPlan.lunch}</p>
+                                                <p className="text-sm text-black dark:text-muted-foreground leading-relaxed">{dayPlan.lunch}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm font-semibold text-accent mb-1">🌙 Jantar</p>
-                                                <p className="text-sm text-black dark:text-foreground">{dayPlan.dinner}</p>
+                                                <p className="text-sm text-black dark:text-muted-foreground leading-relaxed">{dayPlan.dinner}</p>
                                             </div>
                                             {dayPlan.snacks && (
                                                 <div>
                                                     <p className="text-sm font-semibold text-accent mb-1">🍎 Lanches</p>
-                                                    <p className="text-sm text-black dark:text-foreground">{dayPlan.snacks}</p>
+                                                    <p className="text-sm text-black dark:text-muted-foreground leading-relaxed">{dayPlan.snacks}</p>
                                                 </div>
                                             )}
                                         </div>
