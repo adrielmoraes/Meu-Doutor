@@ -23,15 +23,15 @@ const RenderSuggestions = ({ suggestions }: { suggestions: string }) => {
         if (line.trim().startsWith('- **') && line.trim().endsWith('**')) {
           const title = line.replace(/- \*\*/g, '').replace(/\*\*:/g, '').replace(/\*\*/g, '');
           return (
-            <h4 key={index} className="font-semibold text-base text-amber-200 mt-4 first:mt-0 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            <h4 key={index} className="font-semibold text-base text-primary dark:text-amber-200 mt-4 first:mt-0 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary dark:bg-amber-400"></span>
               {title}
             </h4>
           );
         }
         // Render other lines as list items
         return (
-          <p key={index} className="pl-6 text-slate-300 leading-relaxed text-sm border-l-2 border-amber-500/30">
+          <p key={index} className="pl-6 text-card-foreground dark:text-slate-300 leading-relaxed text-sm border-l-2 border-primary/30 dark:border-amber-500/30">
             {line.replace(/^-/, '').trim()}
           </p>
         );
@@ -154,34 +154,34 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                     <AudioPlayback textToSpeak={textForMainAudio} />
 
                     {/* Diagnóstico Preliminar Card */}
-                    <div className="rounded-lg border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 p-6 backdrop-blur-sm">
+                    <div className="rounded-lg border border-primary/30 bg-primary/5 dark:bg-gradient-to-br dark:from-cyan-500/10 dark:to-blue-500/10 p-6 backdrop-blur-sm">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 rounded-lg bg-cyan-500/20">
-                          <BotMessageSquare className="h-5 w-5 text-cyan-400" />
+                        <div className="p-2 rounded-lg bg-primary/20">
+                          <BotMessageSquare className="h-5 w-5 text-primary" />
                         </div>
-                        <h3 className="font-semibold text-lg text-cyan-100">Diagnóstico Preliminar da IA</h3>
+                        <h3 className="font-semibold text-lg text-card-foreground">Diagnóstico Preliminar da IA</h3>
                       </div>
-                      <p className="text-xl text-cyan-300 font-bold leading-relaxed">{examData.preliminaryDiagnosis}</p>
+                      <p className="text-xl text-primary dark:text-cyan-300 font-bold leading-relaxed">{examData.preliminaryDiagnosis}</p>
                     </div>
 
                     {/* Explicação Detalhada Card */}
-                    <div className="rounded-lg border border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-6 backdrop-blur-sm">
+                    <div className="rounded-lg border border-accent/30 bg-accent/5 dark:bg-gradient-to-br dark:from-blue-500/10 dark:to-purple-500/10 p-6 backdrop-blur-sm">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 rounded-lg bg-blue-500/20">
-                          <FileText className="h-5 w-5 text-blue-400" />
+                        <div className="p-2 rounded-lg bg-accent/20">
+                          <FileText className="h-5 w-5 text-accent dark:text-blue-400" />
                         </div>
-                        <h3 className="font-semibold text-lg text-blue-100">Explicação Detalhada</h3>
+                        <h3 className="font-semibold text-lg text-card-foreground">Explicação Detalhada</h3>
                       </div>
-                      <p className="text-slate-200 whitespace-pre-wrap leading-relaxed">{examData.explanation}</p>
+                      <p className="text-card-foreground dark:text-slate-200 whitespace-pre-wrap leading-relaxed">{examData.explanation}</p>
                     </div>
 
                     {/* Sugestões e Próximos Passos Card */}
-                    <div className="rounded-lg border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/10 p-6 backdrop-blur-sm">
+                    <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 dark:bg-gradient-to-br dark:from-amber-500/10 dark:to-orange-500/10 p-6 backdrop-blur-sm">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 rounded-lg bg-amber-500/20">
-                          <Lightbulb className="h-5 w-5 text-amber-400" />
+                          <Lightbulb className="h-5 w-5 text-amber-500" />
                         </div>
-                        <h3 className="font-semibold text-lg text-amber-100">Sugestões e Próximos Passos</h3>
+                        <h3 className="font-semibold text-lg text-card-foreground dark:text-amber-100">Sugestões e Próximos Passos</h3>
                       </div>
                       <AudioPlayback textToSpeak={examData.suggestions || ""}/>
                       <div className="mt-3">

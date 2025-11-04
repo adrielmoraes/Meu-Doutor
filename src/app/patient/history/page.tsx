@@ -109,7 +109,7 @@ export default async function ExamHistoryPage() {
   return (
       <div className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Histórico de Exames
           </h1>
           <p className="text-muted-foreground">
@@ -154,17 +154,17 @@ export default async function ExamHistoryPage() {
                 );
                 
                 return (
-                  <Card key={category} className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 border-cyan-500/20 backdrop-blur-sm">
+                  <Card key={category} className="bg-card/60 dark:bg-gradient-to-br dark:from-gray-900/50 dark:to-gray-800/50 border-border backdrop-blur-sm">
                     <CardHeader>
                       <div className="flex items-center gap-3">
                         <div className={`p-3 rounded-lg bg-gradient-to-br ${config.color}`}>
                           {config.icon}
                         </div>
                         <div className="flex-1">
-                          <CardTitle className="text-2xl bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                          <CardTitle className="text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                             {category}
                           </CardTitle>
-                          <CardDescription className="text-gray-400">
+                          <CardDescription className="text-muted-foreground">
                             {sortedExams.length} {sortedExams.length === 1 ? 'exame realizado' : 'exames realizados'}
                           </CardDescription>
                         </div>
@@ -173,18 +173,18 @@ export default async function ExamHistoryPage() {
                     <div className="px-6 pb-6">
                       <div className="relative space-y-6">
                         {/* Timeline Line */}
-                        <div className="absolute left-7 top-4 bottom-4 w-0.5 bg-gradient-to-b from-cyan-500/50 via-blue-500/50 to-transparent" />
+                        <div className="absolute left-7 top-4 bottom-4 w-0.5 bg-gradient-to-b from-primary/50 via-accent/50 to-transparent" />
                         
                         {sortedExams.map((exam, index) => (
                           <div key={exam.id} className="relative pl-16">
                             {/* Timeline Dot */}
-                            <div className={`absolute left-5 top-2 w-4 h-4 rounded-full bg-gradient-to-br ${config.color} border-2 border-gray-900`} />
+                            <div className={`absolute left-5 top-2 w-4 h-4 rounded-full bg-gradient-to-br ${config.color} border-2 border-background`} />
                             
-                            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50 hover:border-cyan-500/50 transition-all">
+                            <div className="bg-card/70 dark:bg-gray-800/50 rounded-lg p-4 border border-border hover:border-primary/50 transition-all">
                               <div className="flex justify-between items-start mb-3">
                                 <div>
-                                  <h4 className="font-semibold text-white">{exam.type}</h4>
-                                  <p className="text-sm text-gray-400">
+                                  <h4 className="font-semibold text-card-foreground">{exam.type}</h4>
+                                  <p className="text-sm text-muted-foreground">
                                     {new Date(exam.date).toLocaleDateString('pt-BR', { 
                                       day: '2-digit', 
                                       month: 'long', 
@@ -205,25 +205,25 @@ export default async function ExamHistoryPage() {
                               
                               {/* Valores Reais do Exame */}
                               {exam.results && exam.results.length > 0 && (
-                                <div className="mt-3 p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
-                                  <h5 className="text-xs font-semibold text-cyan-400 mb-2 flex items-center gap-2">
+                                <div className="mt-3 p-3 bg-primary/10 border border-primary/30 rounded-lg">
+                                  <h5 className="text-xs font-semibold text-primary mb-2 flex items-center gap-2">
                                     <FileText className="h-3 w-3" />
                                     Valores do Exame
                                   </h5>
                                   <div className="space-y-1.5">
                                     {exam.results.map((result, idx) => (
-                                      <div key={idx} className="grid grid-cols-3 gap-3 p-2 bg-gray-900/50 rounded border border-gray-700/50">
+                                      <div key={idx} className="grid grid-cols-3 gap-3 p-2 bg-muted/50 dark:bg-gray-900/50 rounded border border-border">
                                         <div>
-                                          <p className="text-xs font-medium text-gray-400">Parâmetro</p>
-                                          <p className="text-sm font-semibold text-white">{result.name}</p>
+                                          <p className="text-xs font-medium text-muted-foreground">Parâmetro</p>
+                                          <p className="text-sm font-semibold text-card-foreground">{result.name}</p>
                                         </div>
                                         <div>
-                                          <p className="text-xs font-medium text-gray-400">Valor</p>
-                                          <p className="text-sm font-bold text-cyan-400">{result.value}</p>
+                                          <p className="text-xs font-medium text-muted-foreground">Valor</p>
+                                          <p className="text-sm font-bold text-primary">{result.value}</p>
                                         </div>
                                         <div>
-                                          <p className="text-xs font-medium text-gray-400">Referência</p>
-                                          <p className="text-sm font-medium text-gray-300">{result.reference}</p>
+                                          <p className="text-xs font-medium text-muted-foreground">Referência</p>
+                                          <p className="text-sm font-medium text-card-foreground">{result.reference}</p>
                                         </div>
                                       </div>
                                     ))}
@@ -231,11 +231,11 @@ export default async function ExamHistoryPage() {
                                 </div>
                               )}
                               
-                              <div className="mt-3 p-3 bg-gray-900/30 rounded border border-gray-700/30">
-                                <p className="text-xs text-gray-500 mb-1">
+                              <div className="mt-3 p-3 bg-muted/50 rounded border border-border">
+                                <p className="text-xs text-muted-foreground mb-1">
                                   {exam.status === 'Validado' ? 'Diagnóstico Final' : 'Análise Preliminar'}
                                 </p>
-                                <p className="text-sm text-gray-300 line-clamp-3">
+                                <p className="text-sm text-card-foreground line-clamp-3">
                                   {exam.status === 'Validado' && exam.finalExplanation 
                                     ? exam.finalExplanation 
                                     : exam.preliminaryDiagnosis}
@@ -244,7 +244,7 @@ export default async function ExamHistoryPage() {
                               
                               <Link 
                                 href={`/patient/history/${exam.id}`}
-                                className="mt-3 inline-flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+                                className="mt-3 inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
                               >
                                 Ver detalhes completos
                                 <ChevronRight className="h-4 w-4" />
