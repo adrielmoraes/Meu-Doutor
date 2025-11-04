@@ -59,25 +59,25 @@ export function ExamTimelineChart({ exams, examType, color, icon }: ExamTimeline
   }
 
   return (
-    <Card className="bg-card/80 backdrop-blur-sm border-border">
+    <Card className="bg-card/80 backdrop-blur-sm border-2 border-border/60">
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg bg-gradient-to-br ${color}`}>
+          <div className={`p-2 sm:p-2 rounded-lg bg-gradient-to-br ${color}`}>
             {icon}
           </div>
           <div className="flex-1">
-            <CardTitle className="text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <CardTitle className="text-lg sm:text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               {examType}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
               {sortedExams.length} {sortedExams.length === 1 ? 'exame realizado' : 'exames realizados'}
             </CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 sm:p-6">
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+          <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
             <defs>
               <linearGradient id={`gradient-${examType}`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={color.includes('cyan') ? '#06b6d4' : color.includes('purple') ? '#a855f7' : '#3b82f6'} stopOpacity={0.8}/>
@@ -107,12 +107,12 @@ export function ExamTimelineChart({ exams, examType, color, icon }: ExamTimeline
           </LineChart>
         </ResponsiveContainer>
         
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-3 sm:mt-4 flex flex-wrap gap-1.5 sm:gap-2">
           {sortedExams.map((exam) => (
             <Badge 
               key={exam.id} 
               variant={exam.status === 'Validado' ? 'default' : 'secondary'}
-              className="text-xs"
+              className="text-xs px-2 py-0.5"
             >
               {format(new Date(exam.date), 'dd/MMM', { locale: ptBR })}
             </Badge>

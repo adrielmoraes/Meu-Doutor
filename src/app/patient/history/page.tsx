@@ -140,10 +140,10 @@ export default async function ExamHistoryPage() {
            </div>
         ) : hasExams ? (
           <Tabs defaultValue="timeline" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
-              <TabsTrigger value="timeline">Linha do Tempo</TabsTrigger>
-              <TabsTrigger value="charts">Gráficos de Evolução</TabsTrigger>
-              <TabsTrigger value="list">Lista Completa</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 mb-6 sm:mb-8">
+              <TabsTrigger value="timeline" className="text-xs sm:text-sm">Linha do Tempo</TabsTrigger>
+              <TabsTrigger value="charts" className="text-xs sm:text-sm">Gráficos</TabsTrigger>
+              <TabsTrigger value="list" className="text-xs sm:text-sm">Lista</TabsTrigger>
             </TabsList>
             
             <TabsContent value="timeline" className="space-y-8">
@@ -154,37 +154,37 @@ export default async function ExamHistoryPage() {
                 );
                 
                 return (
-                  <Card key={category} className="bg-card/80 backdrop-blur-sm">
+                  <Card key={category} className="bg-card/80 backdrop-blur-sm border-2 border-border/60">
                     <CardHeader>
                       <div className="flex items-center gap-3">
-                        <div className={`p-3 rounded-lg bg-gradient-to-br ${config.color}`}>
+                        <div className={`p-2 sm:p-3 rounded-lg bg-gradient-to-br ${config.color}`}>
                           {config.icon}
                         </div>
                         <div className="flex-1">
-                          <CardTitle className="text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                          <CardTitle className="text-xl sm:text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                             {category}
                           </CardTitle>
-                          <CardDescription>
+                          <CardDescription className="text-xs sm:text-sm">
                             {sortedExams.length} {sortedExams.length === 1 ? 'exame realizado' : 'exames realizados'}
                           </CardDescription>
                         </div>
                       </div>
                     </CardHeader>
-                    <div className="px-6 pb-6">
+                    <div className="px-3 sm:px-6 pb-6">
                       <div className="relative space-y-6">
                         {/* Timeline Line */}
-                        <div className="absolute left-7 top-4 bottom-4 w-0.5 bg-gradient-to-b from-primary/50 via-accent/50 to-transparent" />
+                        <div className="absolute left-3 sm:left-7 top-4 bottom-4 w-0.5 bg-gradient-to-b from-primary/50 via-accent/50 to-transparent" />
                         
                         {sortedExams.map((exam, index) => (
-                          <div key={exam.id} className="relative pl-16">
+                          <div key={exam.id} className="relative pl-8 sm:pl-16">
                             {/* Timeline Dot */}
-                            <div className={`absolute left-5 top-2 w-4 h-4 rounded-full bg-gradient-to-br ${config.color} border-2 border-background`} />
+                            <div className={`absolute left-1 sm:left-5 top-2 w-4 h-4 rounded-full bg-gradient-to-br ${config.color} border-2 border-background`} />
                             
-                            <div className="bg-card rounded-lg p-4 border border-border hover:border-primary/50 transition-all">
-                              <div className="flex justify-between items-start mb-3">
-                                <div>
-                                  <h4 className="font-semibold text-foreground">{exam.type}</h4>
-                                  <p className="text-sm text-muted-foreground">
+                            <div className="bg-card rounded-lg p-3 sm:p-4 border-2 border-border hover:border-primary/50 transition-all">
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-foreground text-sm sm:text-base">{exam.type}</h4>
+                                  <p className="text-xs sm:text-sm text-muted-foreground">
                                     {new Date(exam.date).toLocaleDateString('pt-BR', { 
                                       day: '2-digit', 
                                       month: 'long', 
@@ -192,11 +192,11 @@ export default async function ExamHistoryPage() {
                                     })}
                                   </p>
                                 </div>
-                                <div className="text-right">
-                                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                                <div className="flex-shrink-0">
+                                  <span className={`inline-block px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
                                     exam.status === 'Validado' 
-                                      ? 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400 border border-green-500/30 dark:border-green-500/50' 
-                                      : 'bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400 border border-yellow-500/30 dark:border-yellow-500/50'
+                                      ? 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400 border-2 border-green-500/40 dark:border-green-500/60' 
+                                      : 'bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400 border-2 border-yellow-500/40 dark:border-yellow-500/60'
                                   }`}>
                                     {exam.status}
                                   </span>
@@ -205,25 +205,25 @@ export default async function ExamHistoryPage() {
                               
                               {/* Valores Reais do Exame */}
                               {exam.results && exam.results.length > 0 && (
-                                <div className="mt-3 p-3 bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-lg">
+                                <div className="mt-3 p-2 sm:p-3 bg-primary/5 dark:bg-primary/10 border-2 border-primary/30 dark:border-primary/40 rounded-lg">
                                   <h5 className="text-xs font-semibold text-primary mb-2 flex items-center gap-2">
                                     <FileText className="h-3 w-3" />
                                     Valores do Exame
                                   </h5>
-                                  <div className="space-y-1.5">
+                                  <div className="space-y-2">
                                     {exam.results.map((result, idx) => (
-                                      <div key={idx} className="grid grid-cols-3 gap-3 p-2 bg-muted/50 rounded border border-border">
-                                        <div>
+                                      <div key={idx} className="flex flex-col sm:grid sm:grid-cols-3 gap-2 sm:gap-3 p-2 bg-muted/50 rounded border-2 border-border">
+                                        <div className="min-w-0">
                                           <p className="text-xs font-medium text-muted-foreground">Parâmetro</p>
-                                          <p className="text-sm font-semibold text-foreground">{result.name}</p>
+                                          <p className="text-xs sm:text-sm font-semibold text-foreground break-words">{result.name}</p>
                                         </div>
-                                        <div>
+                                        <div className="min-w-0">
                                           <p className="text-xs font-medium text-muted-foreground">Valor</p>
-                                          <p className="text-sm font-bold text-primary">{result.value}</p>
+                                          <p className="text-xs sm:text-sm font-bold text-primary break-words">{result.value}</p>
                                         </div>
-                                        <div>
+                                        <div className="min-w-0">
                                           <p className="text-xs font-medium text-muted-foreground">Referência</p>
-                                          <p className="text-sm font-medium text-foreground">{result.reference}</p>
+                                          <p className="text-xs sm:text-sm font-medium text-foreground break-words">{result.reference}</p>
                                         </div>
                                       </div>
                                     ))}
@@ -231,11 +231,11 @@ export default async function ExamHistoryPage() {
                                 </div>
                               )}
                               
-                              <div className="mt-3 p-3 bg-muted/50 rounded border border-border">
+                              <div className="mt-3 p-2 sm:p-3 bg-muted/50 rounded border-2 border-border">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   {exam.status === 'Validado' ? 'Diagnóstico Final' : 'Análise Preliminar'}
                                 </p>
-                                <p className="text-sm text-foreground line-clamp-3">
+                                <p className="text-xs sm:text-sm text-foreground line-clamp-3">
                                   {exam.status === 'Validado' && exam.finalExplanation 
                                     ? exam.finalExplanation 
                                     : exam.preliminaryDiagnosis}
@@ -244,10 +244,10 @@ export default async function ExamHistoryPage() {
                               
                               <Link 
                                 href={`/patient/history/${exam.id}`}
-                                className="mt-3 inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                                className="mt-3 inline-flex items-center gap-2 text-xs sm:text-sm text-primary hover:text-primary/80 transition-colors font-medium"
                               >
                                 Ver detalhes completos
-                                <ChevronRight className="h-4 w-4" />
+                                <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                               </Link>
                             </div>
                           </div>
@@ -276,19 +276,19 @@ export default async function ExamHistoryPage() {
 
             <TabsContent value="list" className="space-y-4">
               {exams.map((exam) => (
-                <Card key={exam.id} className="bg-card border-border transition-all hover:shadow-md hover:border-primary flex items-center pr-4">
+                <Card key={exam.id} className="bg-card border-2 border-border transition-all hover:shadow-md hover:border-primary flex items-center pr-2 sm:pr-4">
                     <Link href={`/patient/history/${exam.id}`} className="flex-grow">
-                        <CardHeader className="flex flex-row items-center justify-between p-4">
-                            <div className="flex items-center gap-4">
+                        <CardHeader className="flex flex-row items-center justify-between p-3 sm:p-4">
+                            <div className="flex items-center gap-3 sm:gap-4">
                                 {getIconForExam(exam)}
                                 <div>
-                                    <CardTitle className="text-lg text-foreground">{exam.type}</CardTitle>
-                                    <CardDescription>{new Date(exam.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</CardDescription>
+                                    <CardTitle className="text-sm sm:text-lg text-foreground">{exam.type}</CardTitle>
+                                    <CardDescription className="text-xs sm:text-sm">{new Date(exam.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</CardDescription>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-4">
-                            <p className="text-sm text-muted-foreground hidden md:block">{exam.result}</p>
-                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                            <div className="flex items-center gap-2 sm:gap-4">
+                            <p className="text-xs sm:text-sm text-muted-foreground hidden md:block">{exam.result}</p>
+                            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                             </div>
                         </CardHeader>
                     </Link>
@@ -298,10 +298,10 @@ export default async function ExamHistoryPage() {
             </TabsContent>
           </Tabs>
         ) : (
-          <Card className="bg-card border-border">
+          <Card className="bg-card border-2 border-border">
             <CardHeader>
-                <CardTitle className="text-foreground">Nenhum exame encontrado</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-foreground text-base sm:text-xl">Nenhum exame encontrado</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
                 Você ainda não enviou nenhum exame para análise. Comece fazendo o upload na página principal.
                 </CardDescription>
             </CardHeader>
