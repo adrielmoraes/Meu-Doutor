@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Label, LabelList } from 'recharts';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Exam } from '@/types';
@@ -71,6 +71,27 @@ export function ExamTimelineChart({ exams, examType, color, icon }: ExamTimeline
     return grouped;
   }, [sortedExams]);
 
+  const CustomLabel = ({ x, y, value, index, data }: any) => {
+    if (data && data[index]) {
+      return (
+        <g>
+          <text
+            x={x}
+            y={y - 10}
+            fill="hsl(var(--foreground))"
+            textAnchor="middle"
+            fontSize={11}
+            fontWeight="600"
+            className="select-none"
+          >
+            {data[index].valueStr}
+          </text>
+        </g>
+      );
+    }
+    return null;
+  };
+
   const CustomTooltip = ({ active, payload, paramName }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -137,8 +158,8 @@ export function ExamTimelineChart({ exams, examType, color, icon }: ExamTimeline
                   {chartData.length} {chartData.length === 1 ? 'medição' : 'medições'}
                 </p>
                 
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                <ResponsiveContainer width="100%" height={280}>
+                  <LineChart data={chartData} margin={{ top: 25, right: 10, left: 10, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" opacity={0.3} />
                     <XAxis 
                       dataKey="date" 
@@ -164,6 +185,7 @@ export function ExamTimelineChart({ exams, examType, color, icon }: ExamTimeline
                       strokeWidth={2.5}
                       dot={{ fill: paramColor, r: 5, strokeWidth: 2, stroke: '#fff' }}
                       activeDot={{ r: 7, fill: paramColor }}
+                      label={(props) => <CustomLabel {...props} data={chartData} />}
                     />
                   </LineChart>
                 </ResponsiveContainer>
