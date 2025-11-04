@@ -146,7 +146,7 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
                 <div className={`p-2 rounded-lg bg-gradient-to-br ${config.gradient}`}>
                   <CategoryIcon className="w-5 h-5 text-white" />
                 </div>
-                <h4 className="text-lg font-semibold text-foreground/60 dark:text-foreground">
+                <h4 className={`text-lg font-semibold bg-gradient-to-r ${config.gradient} bg-clip-text text-transparent`}>
                   {config.label}
                 </h4>
                 <span className="ml-auto text-sm text-foreground/70 dark:text-muted-foreground">
