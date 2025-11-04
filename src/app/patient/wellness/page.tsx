@@ -1,4 +1,3 @@
-
 import { getPatientById } from "@/lib/db-adapter";
 import { notFound, redirect } from "next/navigation";
 import WellnessReminders from "@/components/patient/wellness-reminders";
@@ -57,47 +56,47 @@ export default async function WellnessPlanPage() {
             <div className="container mx-auto p-4 sm:p-6 lg:p-8">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                        <HeartPulse className="h-8 w-8 text-primary/60 dark:text-primary" /> 
+                        <HeartPulse className="h-8 w-8 text-primary/60 dark:text-primary" />
                         Meu Plano de Bem-Estar Personalizado
                     </h1>
-                    <p className="text-foreground/70 dark:text-muted-foreground mt-2">
+                    <p className="text-black dark:text-muted-foreground mt-2">
                         Gerado pela IA Nutricionista para ajudar você a alcançar seus objetivos de saúde.
                     </p>
                 </div>
 
                 <Card className="bg-card/80 backdrop-blur-xl">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-primary/60 dark:text-primary">
-                            <Sparkles className="h-6 w-6" />
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <Sparkles className="h-6 w-6 text-primary" />
                             Plano de Bem-Estar em Preparo
                         </CardTitle>
-                        <CardDescription className="text-foreground/70 dark:text-muted-foreground">
+                        <CardDescription className="text-black dark:text-muted-foreground">
                             Seu plano personalizado será criado automaticamente
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <p className="text-foreground/60 dark:text-foreground leading-relaxed">
-                            Seu plano de bem-estar personalizado será gerado automaticamente pela nossa <span className="text-primary/60 dark:text-primary font-semibold">IA Nutricionista</span> assim que você fizer o upload de seus primeiros exames.
+                        <p className="text-black dark:text-foreground leading-relaxed">
+                            Seu plano de bem-estar personalizado será gerado automaticamente pela nossa <span className="text-primary font-semibold">IA Nutricionista</span> assim que você fizer o upload de seus primeiros exames.
                         </p>
-                        <p className="text-foreground/60 dark:text-foreground leading-relaxed">
+                        <p className="text-black dark:text-foreground leading-relaxed">
                             A IA analisará todos os seus resultados de exames e criará um plano completo incluindo:
                         </p>
                         <ul className="space-y-2 ml-6">
-                            <li className="text-foreground/60 dark:text-foreground flex items-start gap-2">
-                                <span className="text-primary/60 dark:text-primary mt-1">•</span>
-                                <span><strong className="text-primary/60 dark:text-primary">Plano Alimentar</strong> personalizado com base nos seus exames</span>
+                            <li className="text-black dark:text-foreground flex items-start gap-2">
+                                <span className="text-primary mt-1">•</span>
+                                <span><strong className="text-primary">Plano Alimentar</strong> personalizado com base nos seus exames</span>
                             </li>
-                            <li className="text-foreground/60 dark:text-foreground flex items-start gap-2">
-                                <span className="text-accent/60 dark:text-accent mt-1">•</span>
-                                <span><strong className="text-accent/60 dark:text-accent">Plano de Exercícios</strong> adequado à sua condição</span>
+                            <li className="text-black dark:text-foreground flex items-start gap-2">
+                                <span className="text-accent mt-1">•</span>
+                                <span><strong className="text-accent">Plano de Exercícios</strong> adequado à sua condição</span>
                             </li>
-                            <li className="text-foreground/60 dark:text-foreground flex items-start gap-2">
-                                <span className="text-primary/60 dark:text-primary mt-1">•</span>
-                                <span><strong className="text-primary/60 dark:text-primary">Bem-Estar Mental</strong> com técnicas de relaxamento</span>
+                            <li className="text-black dark:text-foreground flex items-start gap-2">
+                                <span className="text-primary mt-1">•</span>
+                                <span><strong className="text-primary">Bem-Estar Mental</strong> com técnicas de relaxamento</span>
                             </li>
-                            <li className="text-foreground/60 dark:text-foreground flex items-start gap-2">
-                                <span className="text-accent/60 dark:text-accent mt-1">•</span>
-                                <span><strong className="text-accent/60 dark:text-accent">Lembretes Diários</strong> para manter sua saúde em dia</span>
+                            <li className="text-black dark:text-foreground flex items-start gap-2">
+                                <span className="text-accent mt-1">•</span>
+                                <span><strong className="text-accent">Lembretes Diários</strong> para manter sua saúde em dia</span>
                             </li>
                         </ul>
                         <div className="mt-6 pt-6 border-t border-border">
@@ -109,10 +108,10 @@ export default async function WellnessPlanPage() {
         );
     }
 
-    const lastUpdated = wellnessPlan.lastUpdated 
-        ? new Date(wellnessPlan.lastUpdated).toLocaleDateString('pt-BR', { 
-            day: '2-digit', 
-            month: 'long', 
+    const lastUpdated = wellnessPlan.lastUpdated
+        ? new Date(wellnessPlan.lastUpdated).toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: 'long',
             year: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
@@ -122,24 +121,27 @@ export default async function WellnessPlanPage() {
     const planSections = [
         {
             title: "Plano Alimentar",
-            icon: <FileText className="h-6 w-6 text-primary/60 dark:text-primary" />,
+            icon: <FileText className="h-6 w-6 text-primary" />,
             content: wellnessPlan.dietaryPlan,
             border: "border-primary/30",
             iconBg: "bg-primary/10 dark:bg-primary/20",
+            titleColor: "text-primary"
         },
         {
             title: "Plano de Exercícios",
-            icon: <Dumbbell className="h-6 w-6 text-accent/60 dark:text-accent" />,
+            icon: <Dumbbell className="h-6 w-6 text-accent" />,
             content: wellnessPlan.exercisePlan,
             border: "border-accent/30",
             iconBg: "bg-accent/10 dark:bg-accent/20",
+            titleColor: "text-accent"
         },
         {
             title: "Bem-Estar Mental",
-            icon: <BrainCircuit className="h-6 w-6 text-primary/60 dark:text-primary" />,
+            icon: <BrainCircuit className="h-6 w-6 text-primary" />,
             content: wellnessPlan.mentalWellnessPlan,
             border: "border-primary/30",
             iconBg: "bg-primary/10 dark:bg-primary/20",
+            titleColor: "text-primary"
         },
     ];
 
@@ -149,13 +151,13 @@ export default async function WellnessPlanPage() {
                 <div className="flex items-start justify-between">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                            <HeartPulse className="h-8 w-8 text-primary/60 dark:text-primary" /> 
+                            <HeartPulse className="h-8 w-8 text-primary/60 dark:text-primary" />
                             Meu Plano de Bem-Estar Personalizado
                         </h1>
-                        <p className="text-foreground/70 dark:text-muted-foreground mt-2">
+                        <p className="text-black dark:text-muted-foreground mt-2">
                             Gerado pela IA Nutricionista com base nos seus exames
                         </p>
-                        <div className="flex items-center gap-2 mt-3 text-sm text-foreground/70 dark:text-muted-foreground">
+                        <div className="flex items-center gap-2 mt-3 text-sm text-black dark:text-muted-foreground">
                             <Calendar className="h-4 w-4" />
                             <span>Última atualização: {lastUpdated}</span>
                         </div>
@@ -167,7 +169,7 @@ export default async function WellnessPlanPage() {
             <div className="grid gap-6 md:grid-cols-3">
                  <div className="md:col-span-2 space-y-6">
                     {planSections.map(section => (
-                        <div 
+                        <div
                             key={section.title}
                             className={`rounded-lg border ${section.border} bg-card/80 p-6 backdrop-blur-sm`}
                         >
@@ -175,9 +177,9 @@ export default async function WellnessPlanPage() {
                                 <div className={`p-2 rounded-lg ${section.iconBg}`}>
                                     {section.icon}
                                 </div>
-                                <h3 className="font-semibold text-xl text-foreground/60 dark:text-foreground">{section.title}</h3>
+                                <h3 className={`font-semibold text-xl ${section.titleColor}`}>{section.title}</h3>
                             </div>
-                            <p className="whitespace-pre-wrap leading-relaxed text-foreground/60 dark:text-foreground mb-4">
+                            <p className="whitespace-pre-wrap leading-relaxed text-black dark:text-foreground mb-4">
                                 {section.content}
                             </p>
                             <AudioPlayback textToSpeak={section.content} />
@@ -200,24 +202,24 @@ export default async function WellnessPlanPage() {
                             <div className="space-y-6">
                                 {wellnessPlan.weeklyMealPlan.map((dayPlan) => (
                                     <div key={dayPlan.day} className="border-b border-border last:border-0 pb-6 last:pb-0">
-                                        <h3 className="font-bold text-lg mb-3 text-primary/60 dark:text-primary">{dayPlan.day}</h3>
+                                        <h3 className="font-bold text-lg mb-3 text-primary">{dayPlan.day}</h3>
                                         <div className="grid md:grid-cols-2 gap-4">
                                             <div>
-                                                <p className="text-sm font-semibold text-accent/60 dark:text-accent mb-1">☀️ Café da Manhã</p>
-                                                <p className="text-sm text-foreground/60 dark:text-foreground">{dayPlan.breakfast}</p>
+                                                <p className="text-sm font-semibold text-accent mb-1">☀️ Café da Manhã</p>
+                                                <p className="text-sm text-black dark:text-foreground">{dayPlan.breakfast}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-semibold text-accent/60 dark:text-accent mb-1">🍽️ Almoço</p>
-                                                <p className="text-sm text-foreground/60 dark:text-foreground">{dayPlan.lunch}</p>
+                                                <p className="text-sm font-semibold text-accent mb-1">🍽️ Almoço</p>
+                                                <p className="text-sm text-black dark:text-foreground">{dayPlan.lunch}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-semibold text-accent/60 dark:text-accent mb-1">🌙 Jantar</p>
-                                                <p className="text-sm text-foreground/60 dark:text-foreground">{dayPlan.dinner}</p>
+                                                <p className="text-sm font-semibold text-accent mb-1">🌙 Jantar</p>
+                                                <p className="text-sm text-black dark:text-foreground">{dayPlan.dinner}</p>
                                             </div>
                                             {dayPlan.snacks && (
                                                 <div>
-                                                    <p className="text-sm font-semibold text-accent/60 dark:text-accent mb-1">🍎 Lanches</p>
-                                                    <p className="text-sm text-foreground/60 dark:text-foreground">{dayPlan.snacks}</p>
+                                                    <p className="text-sm font-semibold text-accent mb-1">🍎 Lanches</p>
+                                                    <p className="text-sm text-black dark:text-foreground">{dayPlan.snacks}</p>
                                                 </div>
                                             )}
                                         </div>
@@ -233,9 +235,9 @@ export default async function WellnessPlanPage() {
                 <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                     Tarefas da Semana
                 </h2>
-                <WeeklyTasksSection 
-                    patientId={patient.id} 
-                    tasks={wellnessPlan.weeklyTasks || []} 
+                <WeeklyTasksSection
+                    patientId={patient.id}
+                    tasks={wellnessPlan.weeklyTasks || []}
                 />
             </div>
         </div>
