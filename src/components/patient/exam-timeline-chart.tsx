@@ -97,8 +97,8 @@ export function ExamTimelineChart({ exams, examType, color, icon }: ExamTimeline
       const data = payload[0].payload;
       return (
         <div className="bg-background/95 backdrop-blur-sm border-2 border-primary/30 rounded-lg p-3 shadow-xl">
-          <p className="text-foreground font-semibold text-sm mb-1">{data.fullDate}</p>
-          <p className="text-primary font-bold text-base">
+          <p className="text-foreground/60 dark:text-foreground font-semibold text-sm mb-1">{data.fullDate}</p>
+          <p className="text-primary/60 dark:text-primary font-bold text-base">
             {data.valueStr}
           </p>
           <p className="text-foreground/70 dark:text-muted-foreground text-xs mt-1">
@@ -151,7 +151,7 @@ export function ExamTimelineChart({ exams, examType, color, icon }: ExamTimeline
             
             return (
               <div key={paramName} className="border-2 border-border/40 rounded-lg p-3 sm:p-4 bg-muted/20">
-                <h4 className="text-sm sm:text-base font-semibold text-foreground mb-1">
+                <h4 className="text-sm sm:text-base font-semibold text-foreground/60 dark:text-foreground mb-1">
                   {paramName}
                 </h4>
                 <p className="text-xs text-foreground/70 dark:text-muted-foreground mb-3">

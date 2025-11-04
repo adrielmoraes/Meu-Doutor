@@ -63,14 +63,14 @@ const chartConfig = {
 
 const getStatusColor = (value: number, type: 'hr' | 'bp') => {
     if (type === 'hr') {
-        if (value < 60 || value > 100) return 'text-red-600 dark:text-red-400';
-        if (value > 90) return 'text-amber-600 dark:text-amber-400';
-        return 'text-green-600 dark:text-green-400';
+        if (value < 60 || value > 100) return 'text-red-700 dark:text-red-400';
+        if (value > 90) return 'text-amber-700 dark:text-amber-400';
+        return 'text-green-700 dark:text-green-400';
     }
     // For BP, we simplify and just check systolic
-    if (value > 140) return 'text-red-600 dark:text-red-400';
-    if (value > 130) return 'text-amber-600 dark:text-amber-400';
-    return 'text-green-600 dark:text-green-400';
+    if (value > 140) return 'text-red-700 dark:text-red-400';
+    if (value > 130) return 'text-amber-700 dark:text-amber-400';
+    return 'text-green-700 dark:text-green-400';
 }
 
 export default function LiveMonitoringClient() {
@@ -206,7 +206,7 @@ export default function LiveMonitoringClient() {
                 <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                         <span>Controle de Conexão</span>
-                        {connectionStatus === 'connected' && <span className="text-sm font-medium flex items-center gap-2 text-green-600 dark:text-green-400"><BluetoothConnected className="h-4 w-4" />Conectado a {bluetoothDevice?.name}</span>}
+                        {connectionStatus === 'connected' && <span className="text-sm font-medium flex items-center gap-2 text-green-700 dark:text-green-400"><BluetoothConnected className="h-4 w-4" />Conectado a {bluetoothDevice?.name}</span>}
                     </CardTitle>
                     <CardDescription>Use o botão abaixo para conectar ou desconectar seu monitor cardíaco via Bluetooth.</CardDescription>
                 </CardHeader>
@@ -307,8 +307,8 @@ export default function LiveMonitoringClient() {
                     
                     {analysisResult && (
                         <div className="mt-6 p-4 border border-border rounded-lg bg-muted/50">
-                            <h4 className="font-semibold mb-2 text-foreground">Resumo da Análise:</h4>
-                            <p className="text-foreground whitespace-pre-wrap leading-relaxed mb-4">
+                            <h4 className="font-semibold mb-2 text-foreground/60 dark:text-foreground">Resumo da Análise:</h4>
+                            <p className="text-foreground/60 dark:text-foreground whitespace-pre-wrap leading-relaxed mb-4">
                                 {analysisResult.summary}
                             </p>
                             <AudioPlayback 

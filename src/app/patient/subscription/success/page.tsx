@@ -25,22 +25,22 @@ function SubscriptionSuccessContent() {
         <CardHeader className="text-center space-y-4 pb-8">
           <div className="flex justify-center">
             <div className="rounded-full bg-green-500/20 p-6">
-              <CheckCircle2 className="h-16 w-16 text-green-600 dark:text-green-400" />
+              <CheckCircle2 className="h-16 w-16 text-green-700 dark:text-green-400" />
             </div>
           </div>
-          <CardTitle className="text-3xl text-foreground">
+          <CardTitle className="text-3xl text-foreground/60 dark:text-foreground">
             Assinatura Ativada com Sucesso!
           </CardTitle>
         </CardHeader>
         
         <CardContent className="space-y-6 text-center">
-          <p className="text-muted-foreground text-lg">
+          <p className="text-foreground/70 dark:text-muted-foreground text-lg">
             Parabéns! Sua assinatura está ativa e você já pode aproveitar todos os benefícios da plataforma MediAI.
           </p>
           
           <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-6 space-y-3">
-            <p className="text-green-600 dark:text-green-400 font-semibold">O que você pode fazer agora:</p>
-            <ul className="text-muted-foreground text-sm space-y-2 text-left">
+            <p className="text-green-700 dark:text-green-400 font-semibold">O que você pode fazer agora:</p>
+            <ul className="text-foreground/70 dark:text-muted-foreground text-sm space-y-2 text-left">
               <li>✓ Realizar consultas ilimitadas com IA</li>
               <li>✓ Analisar seus exames com tecnologia avançada</li>
               <li>✓ Acessar seu chatbot médico 24/7</li>
@@ -60,13 +60,13 @@ function SubscriptionSuccessContent() {
             <Button
               onClick={() => router.push('/patient/subscription')}
               variant="outline"
-              className="flex-1 border-border text-foreground hover:bg-muted"
+              className="flex-1 border-border text-foreground/60 dark:text-foreground hover:bg-muted"
             >
               Ver Detalhes da Assinatura
             </Button>
           </div>
 
-          <p className="text-muted-foreground text-xs pt-4">
+          <p className="text-foreground/70 dark:text-muted-foreground text-xs pt-4">
             Você receberá um email de confirmação com todos os detalhes da sua assinatura.
           </p>
         </CardContent>

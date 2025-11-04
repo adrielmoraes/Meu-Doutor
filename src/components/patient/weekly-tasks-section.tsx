@@ -146,7 +146,7 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
                 <div className={`p-2 rounded-lg bg-gradient-to-br ${config.gradient}`}>
                   <CategoryIcon className="w-5 h-5 text-white" />
                 </div>
-                <h4 className="text-lg font-semibold text-foreground">
+                <h4 className="text-lg font-semibold text-foreground/60 dark:text-foreground">
                   {config.label}
                 </h4>
                 <span className="ml-auto text-sm text-foreground/70 dark:text-muted-foreground">
@@ -173,7 +173,7 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
                       <label
                         htmlFor={task.id}
                         className={`block font-medium cursor-pointer ${
-                          task.completed ? 'line-through text-foreground/70 dark:text-muted-foreground' : 'text-foreground'
+                          task.completed ? 'line-through text-foreground/70 dark:text-muted-foreground' : 'text-foreground/60 dark:text-foreground'
                         }`}
                       >
                         {task.title}
