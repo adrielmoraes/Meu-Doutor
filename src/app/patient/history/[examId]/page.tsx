@@ -23,15 +23,15 @@ const RenderSuggestions = ({ suggestions }: { suggestions: string }) => {
         if (line.trim().startsWith('- **') && line.trim().endsWith('**')) {
           const title = line.replace(/- \*\*/g, '').replace(/\*\*:/g, '').replace(/\*\*/g, '');
           return (
-            <h4 key={index} className="font-semibold text-base text-primary dark:text-amber-200 mt-4 first:mt-0 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary dark:bg-amber-400"></span>
+            <h4 key={index} className="font-semibold text-base text-amber-700 dark:text-amber-200 mt-4 first:mt-0 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-600 dark:bg-amber-400"></span>
               {title}
             </h4>
           );
         }
         // Render other lines as list items
         return (
-          <p key={index} className="pl-6 text-card-foreground dark:text-slate-300 leading-relaxed text-sm border-l-2 border-primary/30 dark:border-amber-500/30">
+          <p key={index} className="pl-6 text-foreground dark:text-slate-300 leading-relaxed text-sm border-l-2 border-amber-600/40 dark:border-amber-500/30">
             {line.replace(/^-/, '').trim()}
           </p>
         );
@@ -112,11 +112,11 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-2xl flex items-center gap-2">
-                    {isExamValidated ? <CheckCircle className="h-6 w-6 text-green-600" /> : <BotMessageSquare className="h-6 w-6 text-primary" />}
+                  <CardTitle className="text-2xl flex items-center gap-2 text-foreground">
+                    {isExamValidated ? <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-500" /> : <BotMessageSquare className="h-6 w-6 text-primary dark:text-cyan-400" />}
                     {isExamValidated ? "Diagnóstico Final Validado pelo Médico" : "Análise Preliminar do Exame pela IA"}
                   </CardTitle>
-                  <CardDescription>{examData.type} - {examDate}</CardDescription>
+                  <CardDescription className="text-foreground/70 dark:text-muted-foreground">{examData.type} - {examDate}</CardDescription>
                 </div>
                  <PrintButton />
               </div>
@@ -131,13 +131,13 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                     preGeneratedAudioUri={examData.finalExplanationAudioUri} 
                   />
                   <div>
-                    <h3 className="font-semibold text-lg">Diagnóstico Validado</h3>
-                    <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{examData.doctorNotes}</p>
+                    <h3 className="font-semibold text-lg text-foreground">Diagnóstico Validado</h3>
+                    <p className="text-foreground dark:text-slate-300 whitespace-pre-wrap leading-relaxed">{examData.doctorNotes}</p>
                   </div>
                   {examData.finalExplanation && (
                     <div>
-                      <h3 className="font-semibold text-lg mt-4">Explicação e Próximos Passos</h3>
-                      <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{examData.finalExplanation}</p>
+                      <h3 className="font-semibold text-lg mt-4 text-foreground">Explicação e Próximos Passos</h3>
+                      <p className="text-foreground dark:text-slate-300 whitespace-pre-wrap leading-relaxed">{examData.finalExplanation}</p>
                     </div>
                   )}
                    <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
@@ -156,10 +156,10 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                     {/* Diagnóstico Preliminar Card */}
                     <div className="rounded-lg border border-primary/30 bg-primary/5 dark:bg-gradient-to-br dark:from-cyan-500/10 dark:to-blue-500/10 p-6 backdrop-blur-sm">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 rounded-lg bg-primary/20">
-                          <BotMessageSquare className="h-5 w-5 text-primary" />
+                        <div className="p-2 rounded-lg bg-primary/20 dark:bg-primary/30">
+                          <BotMessageSquare className="h-5 w-5 text-primary dark:text-cyan-400" />
                         </div>
-                        <h3 className="font-semibold text-lg text-card-foreground">Diagnóstico Preliminar da IA</h3>
+                        <h3 className="font-semibold text-lg text-foreground dark:text-slate-200">Diagnóstico Preliminar da IA</h3>
                       </div>
                       <p className="text-xl text-primary dark:text-cyan-300 font-bold leading-relaxed">{examData.preliminaryDiagnosis}</p>
                     </div>
@@ -167,21 +167,21 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                     {/* Explicação Detalhada Card */}
                     <div className="rounded-lg border border-accent/30 bg-accent/5 dark:bg-gradient-to-br dark:from-blue-500/10 dark:to-purple-500/10 p-6 backdrop-blur-sm">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 rounded-lg bg-accent/20">
+                        <div className="p-2 rounded-lg bg-accent/20 dark:bg-accent/30">
                           <FileText className="h-5 w-5 text-accent dark:text-blue-400" />
                         </div>
-                        <h3 className="font-semibold text-lg text-card-foreground">Explicação Detalhada</h3>
+                        <h3 className="font-semibold text-lg text-foreground dark:text-slate-200">Explicação Detalhada</h3>
                       </div>
-                      <p className="text-card-foreground dark:text-slate-200 whitespace-pre-wrap leading-relaxed">{examData.explanation}</p>
+                      <p className="text-foreground dark:text-slate-200 whitespace-pre-wrap leading-relaxed">{examData.explanation}</p>
                     </div>
 
                     {/* Sugestões e Próximos Passos Card */}
                     <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 dark:bg-gradient-to-br dark:from-amber-500/10 dark:to-orange-500/10 p-6 backdrop-blur-sm">
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-amber-500/20">
-                          <Lightbulb className="h-5 w-5 text-amber-500" />
+                        <div className="p-2 rounded-lg bg-amber-500/20 dark:bg-amber-500/30">
+                          <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                         </div>
-                        <h3 className="font-semibold text-lg text-card-foreground dark:text-amber-100">Sugestões e Próximos Passos</h3>
+                        <h3 className="font-semibold text-lg text-foreground dark:text-amber-100">Sugestões e Próximos Passos</h3>
                       </div>
                       <AudioPlayback textToSpeak={examData.suggestions || ""}/>
                       <div className="mt-3">
@@ -211,23 +211,23 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Resultados do Exame</CardTitle>
+              <CardTitle className="text-foreground">Resultados do Exame</CardTitle>
             </CardHeader>
             <CardContent>
              {examData.results && examData.results.length > 0 ? (
                 <ul className="space-y-2">
                   {examData.results.map(res => (
                     <li key={res.name} className="flex justify-between border-b pb-2">
-                      <span className="text-sm font-medium">{res.name}</span>
+                      <span className="text-sm font-medium text-foreground">{res.name}</span>
                       <div className="text-right">
-                        <p className="text-sm font-semibold">{res.value}</p>
-                        <p className="text-xs text-muted-foreground">Ref: {res.reference}</p>
+                        <p className="text-sm font-semibold text-foreground">{res.value}</p>
+                        <p className="text-xs text-foreground/70 dark:text-muted-foreground">Ref: {res.reference}</p>
                       </div>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-muted-foreground">Nenhum resultado detalhado disponível para este exame.</p>
+                <p className="text-sm text-foreground/70 dark:text-muted-foreground">Nenhum resultado detalhado disponível para este exame.</p>
               )}
             </CardContent>
           </Card>
