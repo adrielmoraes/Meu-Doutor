@@ -195,34 +195,34 @@ export default function SubscriptionPage() {
   }
 
   return (
-    <div className="min-h-screen p-8 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen p-8 bg-gradient-to-br from-pink-50 via-pink-100 to-pink-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent">
             Escolha Seu Plano
           </h1>
-          <p className="text-black dark:text-white text-lg max-w-2xl mx-auto">
+          <p className="text-gray-800 dark:text-white text-lg max-w-2xl mx-auto">
             Tenha acesso completo à melhor plataforma de saúde com IA do Brasil
           </p>
         </div>
 
         {/* Current Subscription Status */}
         {subscriptionStatus?.hasActiveSubscription && (
-          <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20">
+          <Card className="bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-500/10 dark:to-emerald-500/10 border-green-500/40 dark:border-green-500/20">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-400" />
+              <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
+                <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
                 Assinatura Ativa
               </CardTitle>
               <CardDescription>
                 {subscriptionStatus.subscription?.cancelAtPeriodEnd ? (
-                  <span className="text-orange-400">
+                  <span className="text-orange-600 dark:text-orange-400">
                     Sua assinatura será cancelada em{' '}
                     {new Date(subscriptionStatus.subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}
                   </span>
                 ) : (
-                  <span className="text-green-400">
+                  <span className="text-green-700 dark:text-green-400">
                     Renovação automática em{' '}
                     {new Date(subscriptionStatus.subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}
                   </span>
@@ -256,25 +256,25 @@ export default function SubscriptionPage() {
           {plans.map((plan) => (
             <Card
               key={plan.id}
-              className={`relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 border ${
-                plan.popular ? 'border-cyan-500/50 shadow-lg shadow-cyan-500/20' : 'border-slate-700/50'
+              className={`relative bg-white dark:bg-gradient-to-br dark:from-slate-800/50 dark:to-slate-900/50 border ${
+                plan.popular ? 'border-pink-500 dark:border-cyan-500/50 shadow-lg shadow-pink-500/20 dark:shadow-cyan-500/20' : 'border-gray-300 dark:border-slate-700/50'
               } transition-all hover:scale-105`}
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-4 py-1">
+                  <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 dark:from-cyan-500 dark:to-blue-500 text-white px-4 py-1">
                     {plan.isTrial ? '🎁 Grátis por 7 dias' : 'Mais Popular'}
                   </Badge>
                 </div>
               )}
 
               <CardHeader className="text-center space-y-2 pt-8">
-                <CardTitle className="text-2xl text-white">{plan.name}</CardTitle>
+                <CardTitle className="text-2xl text-gray-900 dark:text-white">{plan.name}</CardTitle>
                 <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-5xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                  <span className="text-5xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent">
                     R$ {(plan.price / 100).toFixed(2)}
                   </span>
-                  <span className="text-black dark:text-white">/{plan.interval}</span>
+                  <span className="text-gray-700 dark:text-white">/{plan.interval}</span>
                 </div>
               </CardHeader>
 
@@ -282,8 +282,8 @@ export default function SubscriptionPage() {
                 <ul className="space-y-3">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                      <span className="text-black dark:text-white text-sm">{feature}</span>
+                      <Check className="h-5 w-5 text-pink-600 dark:text-cyan-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-800 dark:text-white text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -293,8 +293,8 @@ export default function SubscriptionPage() {
                   disabled={loading === plan.id || subscriptionStatus?.hasActiveSubscription}
                   className={`w-full ${
                     plan.popular
-                      ? 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600'
-                      : 'bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500'
+                      ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 dark:from-cyan-500 dark:to-blue-500 dark:hover:from-cyan-600 dark:hover:to-blue-600'
+                      : 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 dark:from-slate-700 dark:to-slate-600 dark:hover:from-slate-600 dark:hover:to-slate-500'
                   }`}
                 >
                   {loading === plan.id ? (
@@ -320,13 +320,13 @@ export default function SubscriptionPage() {
         </div>
 
         {/* Footer Info */}
-        <Card className="bg-gradient-to-br from-slate-800/30 to-slate-900/30 border-slate-700/30">
+        <Card className="bg-white dark:bg-gradient-to-br dark:from-slate-800/30 dark:to-slate-900/30 border-gray-300 dark:border-slate-700/30">
           <CardContent className="p-6 text-center space-y-2">
-            <p className="text-black dark:text-white text-sm">
+            <p className="text-gray-700 dark:text-white text-sm">
               <Calendar className="h-4 w-4 inline mr-2" />
               Cancele a qualquer momento • Sem taxas ocultas • Suporte 24/7
             </p>
-            <p className="text-black dark:text-white text-xs">
+            <p className="text-gray-600 dark:text-white text-xs">
               Pagamentos processados de forma segura pelo Stripe
             </p>
           </CardContent>
