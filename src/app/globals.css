@@ -5,17 +5,17 @@
 @layer base {
   :root { /* Light theme - Rosa vibrante #f774c0 */
     --background: 325 85% 95%; /* Rosa claro base (#f774c0 clarinho) */
-    --foreground: 325 30% 20%; /* Texto escuro rosado */
+    --foreground: 0 0% 0%; /* Texto preto */
     --card: 325 60% 97%; /* Rosa muito claro para cards */
-    --card-foreground: 325 30% 20%;
+    --card-foreground: 0 0% 0%; /* Texto preto em cards */
     --popover: 325 70% 98%;
-    --popover-foreground: 325 30% 20%;
+    --popover-foreground: 0 0% 0%; /* Texto preto em popovers */
     --primary: 325 89% 71%; /* Rosa vibrante #f774c0 */
     --primary-foreground: 0 0% 100%;
     --secondary: 325 70% 92%; /* Rosa claro */
-    --secondary-foreground: 325 30% 25%;
+    --secondary-foreground: 0 0% 0%; /* Texto preto */
     --muted: 325 50% 93%;
-    --muted-foreground: 325 20% 40%;
+    --muted-foreground: 0 0% 0%; /* Texto preto para muted */
     --accent: 320 85% 65%; /* Rosa intenso para destaques */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 70% 50%; /* Vermelho para ações destrutivas */
@@ -33,11 +33,11 @@
     --chart-5: 335 90% 73%;
 
     --sidebar-background: 325 60% 97%;
-    --sidebar-foreground: 325 30% 20%;
+    --sidebar-foreground: 0 0% 0%; /* Texto preto na sidebar */
     --sidebar-primary: 325 89% 71%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 325 70% 92%;
-    --sidebar-accent-foreground: 325 30% 25%;
+    --sidebar-accent-foreground: 0 0% 0%; /* Texto preto */
     --sidebar-border: 325 40% 88%;
     --sidebar-ring: 325 89% 71%;
   }
