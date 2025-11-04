@@ -192,19 +192,19 @@ function SpecialistCard({ finding }: { finding: SpecialistFinding }) {
                   <Icon className={`h-5 w-5 ${config.color}`} />
                 </div>
                 <div className="text-left">
-                  <h4 className="font-semibold text-base text-slate-200">{finding.specialist}</h4>
+                  <h4 className="font-semibold text-base text-foreground dark:text-slate-200">{finding.specialist}</h4>
                   <div className="flex items-center gap-2 mt-1">
                     <SeverityIcon className={`h-4 w-4 ${severityInfo.color}`} />
-                    <span className={`text-sm ${severityInfo.color}`}>
+                    <span className={`text-sm font-medium ${severityInfo.color}`}>
                       {severityInfo.label}
                     </span>
                   </div>
                 </div>
               </div>
               {isOpen ? (
-                <ChevronUp className="h-5 w-5 text-slate-400" />
+                <ChevronUp className="h-5 w-5 text-foreground/60 dark:text-slate-400" />
               ) : (
-                <ChevronDown className="h-5 w-5 text-slate-400" />
+                <ChevronDown className="h-5 w-5 text-foreground/60 dark:text-slate-400" />
               )}
             </div>
           </CardContent>
@@ -216,9 +216,9 @@ function SpecialistCard({ finding }: { finding: SpecialistFinding }) {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-1 h-4 bg-cyan-500 rounded-full"></div>
-                <h5 className="font-semibold text-sm text-cyan-300">Achados Clínicos</h5>
+                <h5 className="font-semibold text-sm text-cyan-600 dark:text-cyan-300">Achados Clínicos</h5>
               </div>
-              <p className="text-sm text-slate-300 leading-relaxed pl-4 border-l-2 border-cyan-500/30">
+              <p className="text-sm text-foreground dark:text-slate-300 leading-relaxed pl-4 border-l-2 border-cyan-500/30">
                 {finding.findings}
               </p>
             </div>
@@ -227,9 +227,9 @@ function SpecialistCard({ finding }: { finding: SpecialistFinding }) {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-1 h-4 bg-amber-500 rounded-full"></div>
-                <h5 className="font-semibold text-sm text-amber-300">Recomendações</h5>
+                <h5 className="font-semibold text-sm text-amber-600 dark:text-amber-300">Recomendações</h5>
               </div>
-              <p className="text-sm text-slate-300 leading-relaxed pl-4 border-l-2 border-amber-500/30">
+              <p className="text-sm text-foreground dark:text-slate-300 leading-relaxed pl-4 border-l-2 border-amber-500/30">
                 {finding.recommendations}
               </p>
             </div>
@@ -280,7 +280,7 @@ export default function SpecialistFindingsDisplay({ findings }: SpecialistFindin
                 className={`${config.bgColor} ${config.borderColor} border backdrop-blur-sm px-3 py-1.5`}
               >
                 <Icon className={`h-3.5 w-3.5 ${config.color} mr-1.5`} />
-                <span className="text-slate-200 text-xs">{specialty}</span>
+                <span className="text-foreground dark:text-slate-200 text-xs font-medium">{specialty}</span>
               </Badge>
             );
           })}
