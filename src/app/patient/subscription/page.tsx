@@ -291,10 +291,10 @@ export default function SubscriptionPage() {
                 <Button
                   onClick={() => handleSubscribe(plan.id, plan.stripePriceId)}
                   disabled={loading === plan.id || subscriptionStatus?.hasActiveSubscription}
-                  className={`w-full ${
+                  className={`w-full text-white ${
                     plan.popular
                       ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 dark:from-cyan-500 dark:to-blue-500 dark:hover:from-cyan-600 dark:hover:to-blue-600'
-                      : 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 dark:from-slate-700 dark:to-slate-600 dark:hover:from-slate-600 dark:hover:to-slate-500'
+                      : 'bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 dark:from-slate-700 dark:to-slate-600 dark:hover:from-slate-600 dark:hover:to-slate-500'
                   }`}
                 >
                   {loading === plan.id ? (
