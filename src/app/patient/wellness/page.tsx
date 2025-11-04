@@ -65,37 +65,37 @@ export default async function WellnessPlanPage() {
                     </p>
                 </div>
 
-                <Card className="bg-card/80 dark:bg-gradient-to-br dark:from-slate-800/80 dark:to-slate-900/80 backdrop-blur-xl border-border">
+                <Card className="bg-card/80 backdrop-blur-xl">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-primary">
                             <Sparkles className="h-6 w-6" />
                             Plano de Bem-Estar em Preparo
                         </CardTitle>
-                        <CardDescription className="text-muted-foreground">
+                        <CardDescription>
                             Seu plano personalizado será criado automaticamente
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <p className="text-card-foreground leading-relaxed">
+                        <p className="text-foreground leading-relaxed">
                             Seu plano de bem-estar personalizado será gerado automaticamente pela nossa <span className="text-primary font-semibold">IA Nutricionista</span> assim que você fizer o upload de seus primeiros exames.
                         </p>
-                        <p className="text-card-foreground leading-relaxed">
+                        <p className="text-foreground leading-relaxed">
                             A IA analisará todos os seus resultados de exames e criará um plano completo incluindo:
                         </p>
                         <ul className="space-y-2 ml-6">
-                            <li className="text-card-foreground flex items-start gap-2">
+                            <li className="text-foreground flex items-start gap-2">
                                 <span className="text-primary mt-1">•</span>
                                 <span><strong className="text-primary">Plano Alimentar</strong> personalizado com base nos seus exames</span>
                             </li>
-                            <li className="text-card-foreground flex items-start gap-2">
+                            <li className="text-foreground flex items-start gap-2">
                                 <span className="text-accent mt-1">•</span>
                                 <span><strong className="text-accent">Plano de Exercícios</strong> adequado à sua condição</span>
                             </li>
-                            <li className="text-card-foreground flex items-start gap-2">
+                            <li className="text-foreground flex items-start gap-2">
                                 <span className="text-primary mt-1">•</span>
                                 <span><strong className="text-primary">Bem-Estar Mental</strong> com técnicas de relaxamento</span>
                             </li>
-                            <li className="text-card-foreground flex items-start gap-2">
+                            <li className="text-foreground flex items-start gap-2">
                                 <span className="text-accent mt-1">•</span>
                                 <span><strong className="text-accent">Lembretes Diários</strong> para manter sua saúde em dia</span>
                             </li>
@@ -122,27 +122,24 @@ export default async function WellnessPlanPage() {
     const planSections = [
         {
             title: "Plano Alimentar",
-            icon: <FileText className="h-6 w-6 text-cyan-400" />,
+            icon: <FileText className="h-6 w-6 text-primary" />,
             content: wellnessPlan.dietaryPlan,
-            gradient: "from-cyan-500/10 to-blue-500/10",
-            border: "border-cyan-500/30",
-            iconBg: "bg-cyan-500/20",
+            border: "border-primary/30",
+            iconBg: "bg-primary/10 dark:bg-primary/20",
         },
         {
             title: "Plano de Exercícios",
-            icon: <Dumbbell className="h-6 w-6 text-blue-400" />,
+            icon: <Dumbbell className="h-6 w-6 text-accent" />,
             content: wellnessPlan.exercisePlan,
-            gradient: "from-blue-500/10 to-purple-500/10",
-            border: "border-blue-500/30",
-            iconBg: "bg-blue-500/20",
+            border: "border-accent/30",
+            iconBg: "bg-accent/10 dark:bg-accent/20",
         },
         {
             title: "Bem-Estar Mental",
-            icon: <BrainCircuit className="h-6 w-6 text-purple-400" />,
+            icon: <BrainCircuit className="h-6 w-6 text-primary" />,
             content: wellnessPlan.mentalWellnessPlan,
-            gradient: "from-purple-500/10 to-pink-500/10",
-            border: "border-purple-500/30",
-            iconBg: "bg-purple-500/20",
+            border: "border-primary/30",
+            iconBg: "bg-primary/10 dark:bg-primary/20",
         },
     ];
 
@@ -172,15 +169,15 @@ export default async function WellnessPlanPage() {
                     {planSections.map(section => (
                         <div 
                             key={section.title}
-                            className={`rounded-lg border ${section.border} bg-card/50 dark:bg-gradient-to-br dark:${section.gradient} p-6 backdrop-blur-sm`}
+                            className={`rounded-lg border ${section.border} bg-card/80 p-6 backdrop-blur-sm`}
                         >
                             <div className="flex items-center gap-3 mb-4">
                                 <div className={`p-2 rounded-lg ${section.iconBg}`}>
                                     {section.icon}
                                 </div>
-                                <h3 className="font-semibold text-xl text-card-foreground">{section.title}</h3>
+                                <h3 className="font-semibold text-xl text-foreground">{section.title}</h3>
                             </div>
-                            <p className="whitespace-pre-wrap leading-relaxed text-card-foreground dark:text-slate-200 mb-4">
+                            <p className="whitespace-pre-wrap leading-relaxed text-foreground mb-4">
                                 {section.content}
                             </p>
                             <AudioPlayback textToSpeak={section.content} />
@@ -198,7 +195,7 @@ export default async function WellnessPlanPage() {
                         <ChefHat className="h-7 w-7 text-primary" />
                         Plano Semanal de Refeições
                     </h2>
-                    <Card className="bg-card/50 dark:bg-gradient-to-br dark:from-slate-800/50 dark:to-slate-900/50 backdrop-blur-xl border-border">
+                    <Card className="bg-card/80 backdrop-blur-xl">
                         <CardContent className="p-6">
                             <div className="space-y-6">
                                 {wellnessPlan.weeklyMealPlan.map((dayPlan) => (
@@ -207,20 +204,20 @@ export default async function WellnessPlanPage() {
                                         <div className="grid md:grid-cols-2 gap-4">
                                             <div>
                                                 <p className="text-sm font-semibold text-accent mb-1">☀️ Café da Manhã</p>
-                                                <p className="text-sm text-muted-foreground">{dayPlan.breakfast}</p>
+                                                <p className="text-sm text-foreground">{dayPlan.breakfast}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm font-semibold text-accent mb-1">🍽️ Almoço</p>
-                                                <p className="text-sm text-muted-foreground">{dayPlan.lunch}</p>
+                                                <p className="text-sm text-foreground">{dayPlan.lunch}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm font-semibold text-accent mb-1">🌙 Jantar</p>
-                                                <p className="text-sm text-muted-foreground">{dayPlan.dinner}</p>
+                                                <p className="text-sm text-foreground">{dayPlan.dinner}</p>
                                             </div>
                                             {dayPlan.snacks && (
                                                 <div>
                                                     <p className="text-sm font-semibold text-accent mb-1">🍎 Lanches</p>
-                                                    <p className="text-sm text-muted-foreground">{dayPlan.snacks}</p>
+                                                    <p className="text-sm text-foreground">{dayPlan.snacks}</p>
                                                 </div>
                                             )}
                                         </div>

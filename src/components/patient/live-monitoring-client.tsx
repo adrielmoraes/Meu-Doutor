@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { HeartPulse, Gauge, Bot, Loader2, Bluetooth, BluetoothConnected, BluetoothOff } from 'lucide-react';
@@ -11,6 +11,36 @@ import { summarizeVitals } from '@/ai/flows/summarize-vitals-flow';
 import AudioPlayback from './audio-playback';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
+
+// Web Bluetooth API types
+interface BluetoothRemoteGATTServer {
+  connected: boolean;
+  connect(): Promise<BluetoothRemoteGATTServer>;
+  disconnect(): void;
+  getPrimaryService(service: string): Promise<any>;
+}
+
+interface BluetoothDevice {
+  id: string;
+  name?: string;
+  gatt?: BluetoothRemoteGATTServer;
+  addEventListener(type: string, listener: EventListener): void;
+}
+
+interface Navigator {
+  bluetooth?: {
+    requestDevice(options: RequestDeviceOptions): Promise<BluetoothDevice>;
+  };
+}
+
+interface RequestDeviceOptions {
+  filters?: BluetoothLEScanFilter[];
+  optionalServices?: string[];
+}
+
+interface BluetoothLEScanFilter {
+  services?: string[];
+}
 
 
 const MAX_DATA_POINTS = 30; // Show last 30 seconds of data
@@ -33,14 +63,14 @@ const chartConfig = {
 
 const getStatusColor = (value: number, type: 'hr' | 'bp') => {
     if (type === 'hr') {
-        if (value < 60 || value > 100) return 'text-red-500';
-        if (value > 90) return 'text-amber-500';
-        return 'text-green-500';
+        if (value < 60 || value > 100) return 'text-red-600 dark:text-red-400';
+        if (value > 90) return 'text-amber-600 dark:text-amber-400';
+        return 'text-green-600 dark:text-green-400';
     }
     // For BP, we simplify and just check systolic
-    if (value > 140) return 'text-red-500';
-    if (value > 130) return 'text-amber-500';
-    return 'text-green-500';
+    if (value > 140) return 'text-red-600 dark:text-red-400';
+    if (value > 130) return 'text-amber-600 dark:text-amber-400';
+    return 'text-green-600 dark:text-green-400';
 }
 
 export default function LiveMonitoringClient() {
@@ -66,12 +96,13 @@ export default function LiveMonitoringClient() {
         setCurrentVitals(prev => ({...prev, hr: heartRate }));
         setVitalsData(currentData => {
              const now = new Date();
+             const lastVitals = currentData.length > 0 ? currentData[currentData.length - 1] : { systolic: 0, diastolic: 0 };
              const newDataPoint = {
                  time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
                  hr: heartRate,
                  // BP data is not available from standard heart rate service, so we keep it static for now
-                 systolic: prev => prev.systolic, 
-                 diastolic: prev => prev.diastolic,
+                 systolic: lastVitals.systolic, 
+                 diastolic: lastVitals.diastolic,
              };
              const updatedData = [...currentData, newDataPoint];
              return updatedData.length > MAX_DATA_POINTS ? updatedData.slice(1) : updatedData;
@@ -88,7 +119,8 @@ export default function LiveMonitoringClient() {
     }, [bluetoothDevice, toast]);
 
     const connectToDevice = async () => {
-        if (!navigator.bluetooth) {
+        const nav = navigator as Navigator;
+        if (!nav.bluetooth) {
             toast({ variant: 'destructive', title: 'Bluetooth não suportado', description: 'Seu navegador não suporta a Web Bluetooth API.' });
             setConnectionStatus('error');
             return;
@@ -96,7 +128,7 @@ export default function LiveMonitoringClient() {
 
         setConnectionStatus('connecting');
         try {
-            const device = await navigator.bluetooth.requestDevice({
+            const device = await nav.bluetooth.requestDevice({
                 filters: [{ services: ['heart_rate'] }],
                 optionalServices: ['battery_service']
             });
@@ -174,7 +206,7 @@ export default function LiveMonitoringClient() {
                 <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                         <span>Controle de Conexão</span>
-                        {connectionStatus === 'connected' && <span className="text-sm font-medium flex items-center gap-2 text-green-600"><BluetoothConnected className="h-4 w-4" />Conectado a {bluetoothDevice?.name}</span>}
+                        {connectionStatus === 'connected' && <span className="text-sm font-medium flex items-center gap-2 text-green-600 dark:text-green-400"><BluetoothConnected className="h-4 w-4" />Conectado a {bluetoothDevice?.name}</span>}
                     </CardTitle>
                     <CardDescription>Use o botão abaixo para conectar ou desconectar seu monitor cardíaco via Bluetooth.</CardDescription>
                 </CardHeader>
@@ -274,9 +306,9 @@ export default function LiveMonitoringClient() {
                     </Button>
                     
                     {analysisResult && (
-                        <div className="mt-6 p-4 border rounded-lg bg-muted/50">
-                            <h4 className="font-semibold mb-2">Resumo da Análise:</h4>
-                            <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed mb-4">
+                        <div className="mt-6 p-4 border border-border rounded-lg bg-muted/50">
+                            <h4 className="font-semibold mb-2 text-foreground">Resumo da Análise:</h4>
+                            <p className="text-foreground whitespace-pre-wrap leading-relaxed mb-4">
                                 {analysisResult.summary}
                             </p>
                             <AudioPlayback 

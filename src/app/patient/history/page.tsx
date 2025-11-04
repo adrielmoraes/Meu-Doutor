@@ -154,7 +154,7 @@ export default async function ExamHistoryPage() {
                 );
                 
                 return (
-                  <Card key={category} className="bg-card/60 dark:bg-gradient-to-br dark:from-gray-900/50 dark:to-gray-800/50 border-border backdrop-blur-sm">
+                  <Card key={category} className="bg-card/80 backdrop-blur-sm">
                     <CardHeader>
                       <div className="flex items-center gap-3">
                         <div className={`p-3 rounded-lg bg-gradient-to-br ${config.color}`}>
@@ -164,7 +164,7 @@ export default async function ExamHistoryPage() {
                           <CardTitle className="text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                             {category}
                           </CardTitle>
-                          <CardDescription className="text-muted-foreground">
+                          <CardDescription>
                             {sortedExams.length} {sortedExams.length === 1 ? 'exame realizado' : 'exames realizados'}
                           </CardDescription>
                         </div>
@@ -180,10 +180,10 @@ export default async function ExamHistoryPage() {
                             {/* Timeline Dot */}
                             <div className={`absolute left-5 top-2 w-4 h-4 rounded-full bg-gradient-to-br ${config.color} border-2 border-background`} />
                             
-                            <div className="bg-card/70 dark:bg-gray-800/50 rounded-lg p-4 border border-border hover:border-primary/50 transition-all">
+                            <div className="bg-card rounded-lg p-4 border border-border hover:border-primary/50 transition-all">
                               <div className="flex justify-between items-start mb-3">
                                 <div>
-                                  <h4 className="font-semibold text-card-foreground">{exam.type}</h4>
+                                  <h4 className="font-semibold text-foreground">{exam.type}</h4>
                                   <p className="text-sm text-muted-foreground">
                                     {new Date(exam.date).toLocaleDateString('pt-BR', { 
                                       day: '2-digit', 
@@ -195,8 +195,8 @@ export default async function ExamHistoryPage() {
                                 <div className="text-right">
                                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
                                     exam.status === 'Validado' 
-                                      ? 'bg-green-500/20 text-green-400 border border-green-500/50' 
-                                      : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50'
+                                      ? 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400 border border-green-500/30 dark:border-green-500/50' 
+                                      : 'bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400 border border-yellow-500/30 dark:border-yellow-500/50'
                                   }`}>
                                     {exam.status}
                                   </span>
@@ -205,17 +205,17 @@ export default async function ExamHistoryPage() {
                               
                               {/* Valores Reais do Exame */}
                               {exam.results && exam.results.length > 0 && (
-                                <div className="mt-3 p-3 bg-primary/10 border border-primary/30 rounded-lg">
+                                <div className="mt-3 p-3 bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-lg">
                                   <h5 className="text-xs font-semibold text-primary mb-2 flex items-center gap-2">
                                     <FileText className="h-3 w-3" />
                                     Valores do Exame
                                   </h5>
                                   <div className="space-y-1.5">
                                     {exam.results.map((result, idx) => (
-                                      <div key={idx} className="grid grid-cols-3 gap-3 p-2 bg-muted/50 dark:bg-gray-900/50 rounded border border-border">
+                                      <div key={idx} className="grid grid-cols-3 gap-3 p-2 bg-muted/50 rounded border border-border">
                                         <div>
                                           <p className="text-xs font-medium text-muted-foreground">Parâmetro</p>
-                                          <p className="text-sm font-semibold text-card-foreground">{result.name}</p>
+                                          <p className="text-sm font-semibold text-foreground">{result.name}</p>
                                         </div>
                                         <div>
                                           <p className="text-xs font-medium text-muted-foreground">Valor</p>
@@ -223,7 +223,7 @@ export default async function ExamHistoryPage() {
                                         </div>
                                         <div>
                                           <p className="text-xs font-medium text-muted-foreground">Referência</p>
-                                          <p className="text-sm font-medium text-card-foreground">{result.reference}</p>
+                                          <p className="text-sm font-medium text-foreground">{result.reference}</p>
                                         </div>
                                       </div>
                                     ))}
@@ -235,7 +235,7 @@ export default async function ExamHistoryPage() {
                                 <p className="text-xs text-muted-foreground mb-1">
                                   {exam.status === 'Validado' ? 'Diagnóstico Final' : 'Análise Preliminar'}
                                 </p>
-                                <p className="text-sm text-card-foreground line-clamp-3">
+                                <p className="text-sm text-foreground line-clamp-3">
                                   {exam.status === 'Validado' && exam.finalExplanation 
                                     ? exam.finalExplanation 
                                     : exam.preliminaryDiagnosis}
