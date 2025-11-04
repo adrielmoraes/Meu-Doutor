@@ -86,7 +86,7 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
       toast({
         title: "Parabéns! 🎉",
         description: "Tarefa concluída com sucesso!",
-        className: "bg-green-100 border-green-200 text-green-800",
+        className: "bg-green-100 dark:bg-green-900 border-green-200 dark:border-green-700 text-green-800 dark:text-green-100",
       });
     }
   };
