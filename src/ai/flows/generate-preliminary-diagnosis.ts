@@ -547,23 +547,61 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
       };
     }
 
-    // Step 2: Call the selected specialist agents in parallel.
-    const specialistPromises = specialistsToCall.map(specialistKey => {
+    // Step 2: Call the selected specialist agents in parallel WITH VALIDATION.
+    console.log(`[Orchestrator] 🎯 Delegando análise para ${specialistsToCall.length} especialistas...`);
+    
+    const specialistPromises = specialistsToCall.map(async specialistKey => {
       const agent = specialistAgents[specialistKey];
-      return agent(input).then(report => ({
+      const specialistName = specialistKey.charAt(0).toUpperCase() + specialistKey.slice(1);
+      
+      console.log(`[Orchestrator] 📞 Chamando ${specialistName}...`);
+      
+      // Chama o especialista
+      const report = await agent(input);
+      
+      // VALIDAÇÃO: Envia resposta para o agente validador
+      const {validateSpecialistResponse} = await import('./validator-agent');
+      const validationResult = await validateSpecialistResponse(
+        specialistName,
+        input,
+        report,
+        agent
+      );
+
+      if (!validationResult.validated) {
+        console.error(`[Orchestrator] ⚠️ ${specialistName} falhou na validação: ${validationResult.error}`);
+        // Ainda inclui o relatório, mas marca como não validado
+        return {
+          specialist: specialistKey,
+          findings: report.findings + `\n\n[ATENÇÃO: Esta análise não passou na validação completa. Motivo: ${validationResult.error}]`,
+          clinicalAssessment: report.clinicalAssessment,
+          recommendations: report.recommendations,
+          suggestedMedications: report.suggestedMedications,
+          treatmentPlan: report.treatmentPlan,
+          monitoringProtocol: report.monitoringProtocol,
+          contraindications: report.contraindications,
+          relevantMetrics: report.relevantMetrics,
+        };
+      }
+
+      console.log(`[Orchestrator] ✅ ${specialistName} - análise validada e aprovada`);
+      
+      return {
         specialist: specialistKey,
-        findings: report.findings,
-        clinicalAssessment: report.clinicalAssessment,
-        recommendations: report.recommendations,
-        suggestedMedications: report.suggestedMedications,
-        treatmentPlan: report.treatmentPlan,
-        monitoringProtocol: report.monitoringProtocol,
-        contraindications: report.contraindications,
-        relevantMetrics: report.relevantMetrics,
-      }));
+        findings: validationResult.response.findings,
+        clinicalAssessment: validationResult.response.clinicalAssessment,
+        recommendations: validationResult.response.recommendations,
+        suggestedMedications: validationResult.response.suggestedMedications,
+        treatmentPlan: validationResult.response.treatmentPlan,
+        monitoringProtocol: validationResult.response.monitoringProtocol,
+        contraindications: validationResult.response.contraindications,
+        relevantMetrics: validationResult.response.relevantMetrics,
+      };
     });
 
     const specialistReports = await Promise.all(specialistPromises);
+    
+    console.log(`[Orchestrator] ✅ Todas as ${specialistReports.length} análises foram validadas e coletadas`);
     
     // Step 3: Synthesize the reports into a final diagnosis.
     const synthesisResult = await synthesisPrompt({
