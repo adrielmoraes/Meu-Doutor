@@ -103,6 +103,29 @@ const specialistAgents = {
   'Dr. André (Urologista)': urologistAgent,
   'Dra. Sofia (Psiquiatra)': psychiatristAgent,
 };
+import { rheumatologistAgent } from './rheumatologist-agent';
+import { nephrologistAgent } from './nephrologist-agent';
+
+const specialistAgents = {
+  cardiologist: cardiologistAgent,
+  endocrinologist: endocrinologistAgent,
+  neurologist: neurologistAgent,
+  pulmonologist: pulmonologistAgent,
+  gastroenterologist: gastroenterologistAgent,
+  dermatologist: dermatologistAgent,
+  ophthalmologist: ophthalmologistAgent,
+  orthopedist: orthopedistAgent,
+  urologist: urologistAgent,
+  gynecologist: gynecologistAgent,
+  pediatrician: pediatricianAgent,
+  otolaryngologist: otolaryngologistAgent,
+  radiologist: radiologistAgent,
+  psychiatrist: psychiatristAgent,
+  nutritionist: nutritionistAgent,
+  rheumatologist: rheumatologistAgent,
+  nephrologist: nephrologistAgent,
+} as const;
+
 type Specialist = keyof typeof specialistAgents;
 
 const triagePrompt = ai.definePrompt({

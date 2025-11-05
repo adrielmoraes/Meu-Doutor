@@ -300,7 +300,18 @@ const endocrinologistAgentFlow = ai.defineFlow(
       outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        console.log('[Endocrinologist Agent] Iniciando análise endocrinológica...');
+        console.log('[Endocrinologist Agent] Dados do exame:', input.examResults?.substring(0, 100) + '...');
+        
+        const startTime = Date.now();
         const {output} = await specialistPrompt(input);
+        const duration = Date.now() - startTime;
+        
+        console.log('[Endocrinologist Agent] ✅ Análise concluída em', duration, 'ms');
+        console.log('[Endocrinologist Agent] Avaliação:', output?.clinicalAssessment);
+        console.log('[Endocrinologist Agent] Plano de tratamento definido:', !!output?.treatmentPlan);
+        console.log('[Endocrinologist Agent] Protocolo de monitoramento definido:', !!output?.monitoringProtocol);
+        
         return output!;
     }
 );

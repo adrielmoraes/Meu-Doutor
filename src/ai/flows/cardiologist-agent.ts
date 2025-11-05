@@ -195,7 +195,19 @@ const cardiologistAgentFlow = ai.defineFlow(
       outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        console.log('[Cardiologist Agent] Iniciando análise cardiológica...');
+        console.log('[Cardiologist Agent] Tamanho dos dados do exame:', input.examResults?.length || 0);
+        console.log('[Cardiologist Agent] Tamanho do histórico do paciente:', input.patientHistory?.length || 0);
+        
+        const startTime = Date.now();
         const {output} = await specialistPrompt(input);
+        const duration = Date.now() - startTime;
+        
+        console.log('[Cardiologist Agent] ✅ Análise concluída em', duration, 'ms');
+        console.log('[Cardiologist Agent] Avaliação clínica:', output?.clinicalAssessment);
+        console.log('[Cardiologist Agent] Número de métricas relevantes:', output?.relevantMetrics?.length || 0);
+        console.log('[Cardiologist Agent] Medicamentos sugeridos:', output?.suggestedMedications?.length || 0);
+        
         return output!;
     }
 );
