@@ -256,9 +256,9 @@ export default function SubscriptionPage() {
           {plans.map((plan) => {
             // Definir cores específicas para cada plano no tema escuro
             const darkCardColors = {
-              trial: 'dark:from-cyan-900/40 dark:to-blue-900/40 dark:border-cyan-400/60 dark:shadow-cyan-400/40',
-              basico: 'dark:from-green-900/40 dark:to-emerald-900/40 dark:border-green-400/60 dark:shadow-green-400/30',
-              premium: 'dark:from-purple-900/40 dark:to-pink-900/40 dark:border-purple-400/60 dark:shadow-purple-400/40'
+              trial: 'dark:from-cyan-950/80 dark:to-blue-950/80 dark:border-cyan-500/70 dark:shadow-cyan-500/30',
+              basico: 'dark:from-green-950/80 dark:to-emerald-950/80 dark:border-green-500/70 dark:shadow-green-500/30',
+              premium: 'dark:from-purple-950/80 dark:to-pink-950/80 dark:border-purple-500/70 dark:shadow-purple-500/30'
             };
             
             const cardColor = darkCardColors[plan.id as keyof typeof darkCardColors] || 'dark:from-slate-800/90 dark:to-slate-900/90 dark:border-slate-600/70';
@@ -267,7 +267,7 @@ export default function SubscriptionPage() {
             <Card
               key={plan.id}
               className={`relative bg-white dark:bg-gradient-to-br backdrop-blur-xl border ${cardColor} ${
-                plan.popular ? 'border-pink-500 shadow-lg shadow-pink-500/20' : 'border-gray-300'
+                plan.popular ? 'border-pink-500 shadow-lg shadow-pink-500/20 dark:border-cyan-500 dark:shadow-cyan-500/30' : 'border-gray-300 dark:border-slate-600'
               } transition-all hover:scale-105`}
             >
               {plan.popular && (
@@ -283,12 +283,18 @@ export default function SubscriptionPage() {
               )}
 
               <CardHeader className="text-center space-y-2 pt-8">
-                <CardTitle className="text-2xl text-gray-900 dark:text-slate-100">{plan.name}</CardTitle>
+                <CardTitle className="text-2xl text-gray-900 dark:text-white font-bold">{plan.name}</CardTitle>
                 <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-5xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 dark:from-cyan-300 dark:to-blue-300 bg-clip-text text-transparent">
+                  <span className={`text-5xl font-bold ${
+                    plan.id === 'trial' 
+                      ? 'bg-gradient-to-r from-pink-600 to-purple-600 dark:from-cyan-400 dark:to-blue-400'
+                      : plan.id === 'basico'
+                      ? 'bg-gradient-to-r from-pink-600 to-purple-600 dark:from-green-400 dark:to-emerald-400'
+                      : 'bg-gradient-to-r from-pink-600 to-purple-600 dark:from-purple-400 dark:to-pink-400'
+                  } bg-clip-text text-transparent`}>
                     R$ {(plan.price / 100).toFixed(2)}
                   </span>
-                  <span className="text-gray-700 dark:text-slate-200">/{plan.interval}</span>
+                  <span className="text-gray-700 dark:text-slate-100 font-medium">/{plan.interval}</span>
                 </div>
               </CardHeader>
 
@@ -296,8 +302,14 @@ export default function SubscriptionPage() {
                 <ul className="space-y-3">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-pink-600 dark:text-cyan-300 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-800 dark:text-slate-200 text-sm">{feature}</span>
+                      <Check className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
+                        plan.id === 'trial'
+                          ? 'text-pink-600 dark:text-cyan-400'
+                          : plan.id === 'basico'
+                          ? 'text-pink-600 dark:text-green-400'
+                          : 'text-pink-600 dark:text-purple-400'
+                      }`} />
+                      <span className="text-gray-800 dark:text-slate-100 text-sm font-medium">{feature}</span>
                     </li>
                   ))}
                 </ul>
