@@ -256,25 +256,25 @@ export default function SubscriptionPage() {
           {plans.map((plan) => (
             <Card
               key={plan.id}
-              className={`relative bg-white dark:bg-gradient-to-br dark:from-slate-800/80 dark:to-slate-900/80 backdrop-blur-xl border ${
-                plan.popular ? 'border-pink-500 dark:border-cyan-500/60 shadow-lg shadow-pink-500/20 dark:shadow-cyan-500/30' : 'border-gray-300 dark:border-slate-700/60'
+              className={`relative bg-white dark:bg-gradient-to-br dark:from-slate-800/90 dark:to-slate-900/90 backdrop-blur-xl border ${
+                plan.popular ? 'border-pink-500 dark:border-cyan-400/80 shadow-lg shadow-pink-500/20 dark:shadow-cyan-400/50' : 'border-gray-300 dark:border-slate-600/70'
               } transition-all hover:scale-105`}
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 dark:from-cyan-500 dark:to-blue-500 text-white px-4 py-1 shadow-lg">
+                  <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 dark:from-cyan-400 dark:to-blue-400 text-white px-4 py-1 shadow-lg dark:shadow-cyan-400/50">
                     {plan.isTrial ? '🎁 Grátis por 7 dias' : 'Mais Popular'}
                   </Badge>
                 </div>
               )}
 
               <CardHeader className="text-center space-y-2 pt-8">
-                <CardTitle className="text-2xl text-gray-900 dark:text-white">{plan.name}</CardTitle>
+                <CardTitle className="text-2xl text-gray-900 dark:text-slate-100">{plan.name}</CardTitle>
                 <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-5xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent">
+                  <span className="text-5xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 dark:from-cyan-300 dark:to-blue-300 bg-clip-text text-transparent">
                     R$ {(plan.price / 100).toFixed(2)}
                   </span>
-                  <span className="text-gray-700 dark:text-slate-300">/{plan.interval}</span>
+                  <span className="text-gray-700 dark:text-slate-200">/{plan.interval}</span>
                 </div>
               </CardHeader>
 
@@ -282,8 +282,8 @@ export default function SubscriptionPage() {
                 <ul className="space-y-3">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-pink-600 dark:text-cyan-400 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-800 dark:text-slate-300 text-sm">{feature}</span>
+                      <Check className="h-5 w-5 text-pink-600 dark:text-cyan-300 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-800 dark:text-slate-200 text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -320,13 +320,13 @@ export default function SubscriptionPage() {
         </div>
 
         {/* Footer Info */}
-        <Card className="bg-white dark:bg-gradient-to-br dark:from-slate-800/50 dark:to-slate-900/50 border-gray-300 dark:border-slate-700/50">
+        <Card className="bg-white dark:bg-gradient-to-br dark:from-slate-800/80 dark:to-slate-900/80 border-gray-300 dark:border-slate-600/70">
           <CardContent className="p-6 text-center space-y-2">
-            <p className="text-gray-700 dark:text-slate-300 text-sm">
-              <Calendar className="h-4 w-4 inline mr-2 text-pink-600 dark:text-cyan-400" />
+            <p className="text-gray-700 dark:text-slate-200 text-sm">
+              <Calendar className="h-4 w-4 inline mr-2 text-pink-600 dark:text-cyan-300" />
               Cancele a qualquer momento • Sem taxas ocultas • Suporte 24/7
             </p>
-            <p className="text-gray-600 dark:text-slate-400 text-xs">
+            <p className="text-gray-600 dark:text-slate-300 text-xs">
               Pagamentos processados de forma segura pelo Stripe
             </p>
           </CardContent>
