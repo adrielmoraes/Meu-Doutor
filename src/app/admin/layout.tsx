@@ -23,7 +23,7 @@ export default async function AdminLayout({
   return (
     <div className="flex h-screen bg-slate-950">
       <AdminSidebar admin={admin} />
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto lg:ml-0">
         {children}
       </main>
     </div>
