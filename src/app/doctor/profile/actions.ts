@@ -3,7 +3,7 @@
 
 import { getSession } from '@/lib/session';
 import { revalidateTag } from 'next/cache';
-import { updatePatient, updateDoctor } from '@/lib/db-adapter';
+import { updateDoctor } from '@/lib/db-adapter';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 
@@ -32,19 +32,30 @@ export async function uploadAvatarAction(formData: FormData): Promise<{ success:
             return { success: false, message: "Arquivo muito grande. Tamanho máximo: 2MB." };
         }
 
+        // Validação de tipo MIME do arquivo
+        const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg', 'image/webp'];
+        if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+            return { success: false, message: "Tipo de arquivo não permitido. Use apenas JPEG, PNG, GIF ou WebP." };
+        }
+
         const fileBuffer = Buffer.from(await file.arrayBuffer());
         
-        // Validação server-side do tipo real do arquivo usando magic bytes
-        const { fileTypeFromBuffer } = await import('file-type');
-        const detectedType = await fileTypeFromBuffer(fileBuffer);
-        
-        const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
-        if (!detectedType || !ALLOWED_MIME_TYPES.includes(detectedType.mime)) {
-            return { success: false, message: "Tipo de arquivo não permitido. Use apenas JPEG, PNG ou GIF." };
+        // Validação adicional usando magic bytes se file-type estiver disponível
+        try {
+            const { fileTypeFromBuffer } = await import('file-type');
+            const detectedType = await fileTypeFromBuffer(fileBuffer);
+            
+            if (detectedType && !ALLOWED_MIME_TYPES.includes(detectedType.mime)) {
+                return { success: false, message: "Tipo de arquivo detectado não é válido." };
+            }
+        } catch (importError) {
+            // Se file-type não estiver disponível, continue com a validação básica
+            console.log('[UploadAction] file-type não disponível, usando validação básica');
         }
         
-        // Usar a extensão detectada pelo servidor (não confiável do cliente)
-        const safeExtension = detectedType.ext;
+        // Gerar nome de arquivo seguro
+        const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+        const safeExtension = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension) ? extension : 'jpg';
         const fileName = `${userId}-${Date.now()}.${safeExtension}`;
         
         // Criar diretório se não existir
