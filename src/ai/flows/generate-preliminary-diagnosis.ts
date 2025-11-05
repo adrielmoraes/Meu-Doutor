@@ -547,9 +547,20 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     outputSchema: GeneratePreliminaryDiagnosisOutputSchema,
   },
   async input => {
+    console.log(`\n╔════════════════════════════════════════════════════════╗`);
+    console.log(`║  🏥 SISTEMA DE ANÁLISE MULTI-ESPECIALISTA INICIADO   ║`);
+    console.log(`╚════════════════════════════════════════════════════════╝\n`);
+    
     // Step 1: Triage to decide which specialists to call.
+    console.log(`[Triagem] 🎯 Analisando dados do exame para selecionar especialistas...`);
+    console.log(`[Triagem] Dados do exame: ${input.examResults.substring(0, 200)}...`);
+    
     const triageResult = await triagePrompt(input);
     const specialistsToCall = triageResult.output?.specialists || [];
+    
+    console.log(`\n[Triagem] ✅ Triagem concluída`);
+    console.log(`[Triagem] Raciocínio: ${triageResult.output?.reasoning || 'N/A'}`);
+    console.log(`[Triagem] Especialistas selecionados: ${specialistsToCall.length}`);
 
     if (specialistsToCall.length === 0) {
       return {
@@ -560,66 +571,122 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     }
 
     // Step 2: Call the selected specialist agents in parallel WITH VALIDATION.
-    console.log(`[Orchestrator] 🎯 Delegando análise para ${specialistsToCall.length} especialistas...`);
+    console.log(`\n========================================`);
+    console.log(`[Orchestrator] 🎯 INICIANDO ANÁLISE MULTI-ESPECIALISTA`);
+    console.log(`[Orchestrator] Total de especialistas selecionados: ${specialistsToCall.length}`);
+    console.log(`[Orchestrator] Especialistas: ${specialistsToCall.join(', ')}`);
+    console.log(`========================================\n`);
     
-    const specialistPromises = specialistsToCall.map(async specialistKey => {
+    const specialistPromises = specialistsToCall.map(async (specialistKey, index) => {
       const agent = specialistAgents[specialistKey];
       const specialistName = specialistKey.charAt(0).toUpperCase() + specialistKey.slice(1);
       
-      console.log(`[Orchestrator] 📞 Chamando ${specialistName}...`);
+      console.log(`\n--- [Especialista ${index + 1}/${specialistsToCall.length}] ---`);
+      console.log(`[${specialistName}] 🩺 Iniciando análise...`);
+      console.log(`[${specialistName}] 📊 Dados do exame recebidos: ${input.examResults.substring(0, 150)}...`);
       
-      // Chama o especialista
-      const report = await agent(input);
+      const startTime = Date.now();
       
-      // VALIDAÇÃO: Envia resposta para o agente validador
-      const {validateSpecialistResponse} = await import('./validator-agent');
-      const validationResult = await validateSpecialistResponse(
-        specialistName,
-        input,
-        report,
-        agent
-      );
+      try {
+        // Chama o especialista
+        console.log(`[${specialistName}] 🧠 Processando análise especializada...`);
+        const report = await agent(input);
+        
+        const analysisTime = ((Date.now() - startTime) / 1000).toFixed(2);
+        console.log(`[${specialistName}] ⏱️ Análise concluída em ${analysisTime}s`);
+        
+        // Log dos achados principais
+        console.log(`[${specialistName}] 📋 Achados principais:`);
+        console.log(`  - Gravidade: ${report.clinicalAssessment}`);
+        console.log(`  - Achados: ${report.findings.substring(0, 200)}...`);
+        
+        if (report.suggestedMedications && report.suggestedMedications.length > 0) {
+          console.log(`  - Medicamentos sugeridos: ${report.suggestedMedications.length}`);
+          report.suggestedMedications.forEach((med, i) => {
+            console.log(`    ${i + 1}. ${med.medication} - ${med.dosage}`);
+          });
+        }
+        
+        if (report.relevantMetrics && report.relevantMetrics.length > 0) {
+          console.log(`  - Métricas relevantes: ${report.relevantMetrics.length}`);
+          report.relevantMetrics.forEach((metric, i) => {
+            console.log(`    ${i + 1}. ${metric.metric}: ${metric.value} (${metric.status})`);
+          });
+        }
+        
+        // VALIDAÇÃO: Envia resposta para o agente validador
+        console.log(`[${specialistName}] 🔍 Enviando para validação...`);
+        const {validateSpecialistResponse} = await import('./validator-agent');
+        const validationResult = await validateSpecialistResponse(
+          specialistName,
+          input,
+          report,
+          agent
+        );
 
-      if (!validationResult.validated) {
-        console.error(`[Orchestrator] ⚠️ ${specialistName} falhou na validação: ${validationResult.error}`);
-        // Ainda inclui o relatório, mas marca como não validado
+        if (!validationResult.validated) {
+          console.error(`[${specialistName}] ❌ FALHA NA VALIDAÇÃO`);
+          console.error(`[${specialistName}] Motivo: ${validationResult.error}`);
+          console.error(`[${specialistName}] A análise será incluída com marcação de aviso`);
+          
+          // Ainda inclui o relatório, mas marca como não validado
+          return {
+            specialist: specialistKey,
+            findings: report.findings + `\n\n[ATENÇÃO: Esta análise não passou na validação completa. Motivo: ${validationResult.error}]`,
+            clinicalAssessment: report.clinicalAssessment,
+            recommendations: report.recommendations,
+            suggestedMedications: report.suggestedMedications,
+            treatmentPlan: report.treatmentPlan,
+            monitoringProtocol: report.monitoringProtocol,
+            contraindications: report.contraindications,
+            relevantMetrics: report.relevantMetrics,
+          };
+        }
+
+        console.log(`[${specialistName}] ✅ VALIDAÇÃO APROVADA`);
+        console.log(`[${specialistName}] Status: Análise completa e validada`);
+        console.log(`--- [Fim ${specialistName}] ---\n`);
+        
         return {
           specialist: specialistKey,
-          findings: report.findings + `\n\n[ATENÇÃO: Esta análise não passou na validação completa. Motivo: ${validationResult.error}]`,
-          clinicalAssessment: report.clinicalAssessment,
-          recommendations: report.recommendations,
-          suggestedMedications: report.suggestedMedications,
-          treatmentPlan: report.treatmentPlan,
-          monitoringProtocol: report.monitoringProtocol,
-          contraindications: report.contraindications,
-          relevantMetrics: report.relevantMetrics,
+          findings: validationResult.response.findings,
+          clinicalAssessment: validationResult.response.clinicalAssessment,
+          recommendations: validationResult.response.recommendations,
+          suggestedMedications: validationResult.response.suggestedMedications,
+          treatmentPlan: validationResult.response.treatmentPlan,
+          monitoringProtocol: validationResult.response.monitoringProtocol,
+          contraindications: validationResult.response.contraindications,
+          relevantMetrics: validationResult.response.relevantMetrics,
         };
+      } catch (error) {
+        console.error(`[${specialistName}] 💥 ERRO DURANTE ANÁLISE:`, error);
+        throw error;
       }
-
-      console.log(`[Orchestrator] ✅ ${specialistName} - análise validada e aprovada`);
-      
-      return {
-        specialist: specialistKey,
-        findings: validationResult.response.findings,
-        clinicalAssessment: validationResult.response.clinicalAssessment,
-        recommendations: validationResult.response.recommendations,
-        suggestedMedications: validationResult.response.suggestedMedications,
-        treatmentPlan: validationResult.response.treatmentPlan,
-        monitoringProtocol: validationResult.response.monitoringProtocol,
-        contraindications: validationResult.response.contraindications,
-        relevantMetrics: validationResult.response.relevantMetrics,
-      };
     });
 
     const specialistReports = await Promise.all(specialistPromises);
     
-    console.log(`[Orchestrator] ✅ Todas as ${specialistReports.length} análises foram validadas e coletadas`);
+    console.log(`\n========================================`);
+    console.log(`[Orchestrator] ✅ ANÁLISE MULTI-ESPECIALISTA CONCLUÍDA`);
+    console.log(`[Orchestrator] Total de relatórios coletados: ${specialistReports.length}`);
+    console.log(`========================================\n`);
     
     // Step 3: Synthesize the reports into a final diagnosis.
+    console.log(`\n[Síntese] 📊 Iniciando integração de todos os relatórios...`);
+    console.log(`[Síntese] Consolidando ${specialistReports.length} relatórios especializados`);
+    
     const synthesisResult = await synthesisPrompt({
       ...input,
       specialistReports,
     });
+
+    console.log(`[Síntese] ✅ Síntese concluída`);
+    console.log(`[Síntese] Diagnóstico preliminar: ${synthesisResult.output!.synthesis.substring(0, 150)}...`);
+    console.log(`[Síntese] Sugestões geradas: ${synthesisResult.output!.suggestions.substring(0, 150)}...`);
+    
+    console.log(`\n╔════════════════════════════════════════════════════════╗`);
+    console.log(`║  ✅ ANÁLISE MULTI-ESPECIALISTA FINALIZADA COM SUCESSO ║`);
+    console.log(`╚════════════════════════════════════════════════════════╝\n`);
 
     return {
         synthesis: synthesisResult.output!.synthesis,
