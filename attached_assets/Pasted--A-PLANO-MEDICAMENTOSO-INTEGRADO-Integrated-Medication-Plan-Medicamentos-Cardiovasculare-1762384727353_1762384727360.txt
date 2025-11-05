@@ -1,0 +1,93 @@
+{
+
+"A. PLANO MEDICAMENTOSO INTEGRADO (Integrated Medication Plan)": {
+
+"Medicamentos Cardiovasculares": {
+
+"Estatina (a considerar após estratificação de risco)": "Atorvastatina 20-40mg 1x/dia VO à noite (se indicado após avaliação de risco cardiovascular e falha nas modificações do estilo de vida) - alvo LDL <100mg/dL"
+
+},
+
+"Suplementação": "Nenhum recomendado com base nas informações fornecidas.",
+
+"Medicamentos Conforme Necessário": "Nenhum recomendado com base nas informações fornecidas.",
+
+"IMPORTANT - Medication Coordination": {
+
+"Check for interactions": "Monitorar potenciais interações medicamentosas se outros medicamentos forem prescritos.",
+
+"Adjust dosages": "Ajustar doses se houver insuficiência renal ou hepática.",
+
+"Flag potential drug-drug interactions": "Considerar interações medicamentosas com outros medicamentos que o paciente possa estar tomando.",
+
+"Note timing considerations": "Administrar estatina à noite para melhor eficácia."
+
+}
+
+},
+
+"B. EXAMES COMPLEMENTARES PRIORIZADOS (Prioritized Diagnostic Tests)": {
+
+"Imediatos (próximas 24-48h)": "Nenhum.",
+
+"Urgentes (próxima semana)": "Perfil lipídico completo (repetição para confirmação), avaliação da glicemia em jejum e hemoglobina glicada (HbA1c) para descartar diabetes, avaliação da função tireoidiana (TSH). Justificativa: Avaliar fatores de risco adicionais.",
+
+"Eletivos (próximo mês)": "Eletrocardiograma (ECG) de repouso. Justificativa: Rastreamento de doença cardiovascular."
+
+},
+
+"C. ENCAMINHAMENTOS ESPECIALIZADOS (Specialist Referrals)": "Encaminhar ao cardiologista se a estratificação de risco cardiovascular indicar alto risco ou se houver sintomas cardiovasculares. Urgência: Depende da estratificação de risco e sintomas. Razão: Avaliação e manejo especializado do risco cardiovascular.",
+
+"D. MODIFICAÇÕES DE ESTILO DE VIDA (Lifestyle Modifications)": {
+
+"Dieta": "Dieta DASH (rica em frutas, vegetais, grãos integrais e laticínios com baixo teor de gordura) e restrição de sódio. Evitar gorduras saturadas e trans.",
+
+"Exercício": "Exercício aeróbico regular (pelo menos 150 minutos por semana de atividade moderada ou 75 minutos de atividade vigorosa).",
+
+"Peso": "Manter um peso saudável (IMC < 25 kg/m²). Perder 5-10% do peso atual se estiver acima do peso.",
+
+"Tabagismo": "Cessação do tabagismo (se aplicável).",
+
+"Álcool": "Limitar o consumo de álcool.",
+
+"Estresse": "Gerenciamento do estresse (técnicas de relaxamento, meditação, ioga).",
+
+"Sono": "Manter uma boa higiene do sono (7-8 horas de sono por noite)."
+
+},
+
+"E. PROTOCOLO DE MONITORAMENTO (Monitoring Protocol)": {
+
+"Parâmetros a Monitorar": "Perfil lipídico, pressão arterial, glicemia em jejum, HbA1c (se indicado), peso.",
+
+"Frequência de Consultas": "Retorno em 3-6 meses para reavaliação e ajuste do plano de tratamento.",
+
+"Exames de Controle": "Repetir perfil lipídico em 6-12 meses. Repetir glicemia em jejum e HbA1c conforme necessidade.",
+
+"Sinais de Alerta": "Dor torácica, falta de ar, palpitações, inchaço nas pernas, tonturas."
+
+},
+
+"F. TIMELINE TERAPÊUTICO (Treatment Timeline)": {
+
+"Semana 1-2": "Iniciar modificações no estilo de vida.",
+
+"Mês 1": "Primeira reavaliação, resultados dos exames complementares.",
+
+"Mês 3": "Avaliar resposta terapêutica (perfil lipídico).",
+
+"Mês 6": "Reavaliação completa, ajustes conforme necessário."
+
+},
+
+"G. PROGNÓSTICO (Prognosis)": {
+
+"Expected outcomes with treatment": "Redução do risco cardiovascular a longo prazo através da manutenção de níveis saudáveis de colesterol LDL e adoção de um estilo de vida saudável.",
+
+"Potential complications if untreated": "Aumento do risco de doença cardiovascular, incluindo infarto do miocárdio e acidente vascular cerebral.",
+
+"Long-term management plan": "Acompanhamento regular com o médico para monitoramento do risco cardiovascular e ajuste do plano de tratamento conforme necessário."
+
+}
+
+}
