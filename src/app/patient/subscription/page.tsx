@@ -253,16 +253,30 @@ export default function SubscriptionPage() {
 
         {/* Plans Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {plans.map((plan) => (
+          {plans.map((plan) => {
+            // Definir cores específicas para cada plano no tema escuro
+            const darkCardColors = {
+              trial: 'dark:from-cyan-900/40 dark:to-blue-900/40 dark:border-cyan-400/60 dark:shadow-cyan-400/40',
+              basico: 'dark:from-green-900/40 dark:to-emerald-900/40 dark:border-green-400/60 dark:shadow-green-400/30',
+              premium: 'dark:from-purple-900/40 dark:to-pink-900/40 dark:border-purple-400/60 dark:shadow-purple-400/40'
+            };
+            
+            const cardColor = darkCardColors[plan.id as keyof typeof darkCardColors] || 'dark:from-slate-800/90 dark:to-slate-900/90 dark:border-slate-600/70';
+            
+            return (
             <Card
               key={plan.id}
-              className={`relative bg-white dark:bg-gradient-to-br dark:from-slate-800/90 dark:to-slate-900/90 backdrop-blur-xl border ${
-                plan.popular ? 'border-pink-500 dark:border-cyan-400/80 shadow-lg shadow-pink-500/20 dark:shadow-cyan-400/50' : 'border-gray-300 dark:border-slate-600/70'
+              className={`relative bg-white dark:bg-gradient-to-br backdrop-blur-xl border ${cardColor} ${
+                plan.popular ? 'border-pink-500 shadow-lg shadow-pink-500/20' : 'border-gray-300'
               } transition-all hover:scale-105`}
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 dark:from-cyan-400 dark:to-blue-400 text-white px-4 py-1 shadow-lg dark:shadow-cyan-400/50">
+                  <Badge className={`bg-gradient-to-r text-white px-4 py-1 shadow-lg ${
+                    plan.id === 'trial' 
+                      ? 'from-pink-500 to-purple-500 dark:from-cyan-400 dark:to-blue-400 dark:shadow-cyan-400/50'
+                      : 'from-pink-500 to-purple-500 dark:from-purple-400 dark:to-pink-400 dark:shadow-purple-400/50'
+                  }`}>
                     {plan.isTrial ? '🎁 Grátis por 7 dias' : 'Mais Popular'}
                   </Badge>
                 </div>
@@ -292,9 +306,11 @@ export default function SubscriptionPage() {
                   onClick={() => handleSubscribe(plan.id, plan.stripePriceId)}
                   disabled={loading === plan.id || subscriptionStatus?.hasActiveSubscription}
                   className={`w-full text-white ${
-                    plan.popular
+                    plan.id === 'trial'
                       ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 dark:from-cyan-500 dark:to-blue-500 dark:hover:from-cyan-600 dark:hover:to-blue-600'
-                      : 'bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 dark:from-slate-700 dark:to-slate-600 dark:hover:from-slate-600 dark:hover:to-slate-500'
+                      : plan.id === 'basico'
+                      ? 'bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 dark:from-green-500 dark:to-emerald-500 dark:hover:from-green-600 dark:hover:to-emerald-600'
+                      : 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 dark:from-purple-500 dark:to-pink-500 dark:hover:from-purple-600 dark:hover:to-pink-600'
                   }`}
                 >
                   {loading === plan.id ? (
@@ -316,7 +332,8 @@ export default function SubscriptionPage() {
                 </Button>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
 
         {/* Footer Info */}
