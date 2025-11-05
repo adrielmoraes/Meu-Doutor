@@ -202,14 +202,14 @@ export default function SubscriptionPage() {
           <h1 className="text-5xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent">
             Escolha Seu Plano
           </h1>
-          <p className="text-gray-800 dark:text-white text-lg max-w-2xl mx-auto">
+          <p className="text-gray-800 dark:text-slate-300 text-lg max-w-2xl mx-auto">
             Tenha acesso completo à melhor plataforma de saúde com IA do Brasil
           </p>
         </div>
 
         {/* Current Subscription Status */}
         {subscriptionStatus?.hasActiveSubscription && (
-          <Card className="bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-500/10 dark:to-emerald-500/10 border-green-500/40 dark:border-green-500/20">
+          <Card className="bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-500/20 dark:to-emerald-500/20 border-green-500/40 dark:border-green-500/40">
             <CardHeader>
               <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
                 <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -217,12 +217,12 @@ export default function SubscriptionPage() {
               </CardTitle>
               <CardDescription>
                 {subscriptionStatus.subscription?.cancelAtPeriodEnd ? (
-                  <span className="text-orange-600 dark:text-orange-400">
+                  <span className="text-orange-700 dark:text-orange-300">
                     Sua assinatura será cancelada em{' '}
                     {new Date(subscriptionStatus.subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}
                   </span>
                 ) : (
-                  <span className="text-green-700 dark:text-green-400">
+                  <span className="text-green-700 dark:text-green-300">
                     Renovação automática em{' '}
                     {new Date(subscriptionStatus.subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}
                   </span>
@@ -256,13 +256,13 @@ export default function SubscriptionPage() {
           {plans.map((plan) => (
             <Card
               key={plan.id}
-              className={`relative bg-white dark:bg-gradient-to-br dark:from-slate-800/50 dark:to-slate-900/50 border ${
-                plan.popular ? 'border-pink-500 dark:border-cyan-500/50 shadow-lg shadow-pink-500/20 dark:shadow-cyan-500/20' : 'border-gray-300 dark:border-slate-700/50'
+              className={`relative bg-white dark:bg-gradient-to-br dark:from-slate-800/80 dark:to-slate-900/80 backdrop-blur-xl border ${
+                plan.popular ? 'border-pink-500 dark:border-cyan-500/60 shadow-lg shadow-pink-500/20 dark:shadow-cyan-500/30' : 'border-gray-300 dark:border-slate-700/60'
               } transition-all hover:scale-105`}
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 dark:from-cyan-500 dark:to-blue-500 text-white px-4 py-1">
+                  <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 dark:from-cyan-500 dark:to-blue-500 text-white px-4 py-1 shadow-lg">
                     {plan.isTrial ? '🎁 Grátis por 7 dias' : 'Mais Popular'}
                   </Badge>
                 </div>
@@ -274,7 +274,7 @@ export default function SubscriptionPage() {
                   <span className="text-5xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent">
                     R$ {(plan.price / 100).toFixed(2)}
                   </span>
-                  <span className="text-gray-700 dark:text-white">/{plan.interval}</span>
+                  <span className="text-gray-700 dark:text-slate-300">/{plan.interval}</span>
                 </div>
               </CardHeader>
 
@@ -283,7 +283,7 @@ export default function SubscriptionPage() {
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-3">
                       <Check className="h-5 w-5 text-pink-600 dark:text-cyan-400 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-800 dark:text-white text-sm">{feature}</span>
+                      <span className="text-gray-800 dark:text-slate-300 text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -320,13 +320,13 @@ export default function SubscriptionPage() {
         </div>
 
         {/* Footer Info */}
-        <Card className="bg-white dark:bg-gradient-to-br dark:from-slate-800/30 dark:to-slate-900/30 border-gray-300 dark:border-slate-700/30">
+        <Card className="bg-white dark:bg-gradient-to-br dark:from-slate-800/50 dark:to-slate-900/50 border-gray-300 dark:border-slate-700/50">
           <CardContent className="p-6 text-center space-y-2">
-            <p className="text-gray-700 dark:text-white text-sm">
-              <Calendar className="h-4 w-4 inline mr-2" />
+            <p className="text-gray-700 dark:text-slate-300 text-sm">
+              <Calendar className="h-4 w-4 inline mr-2 text-pink-600 dark:text-cyan-400" />
               Cancele a qualquer momento • Sem taxas ocultas • Suporte 24/7
             </p>
-            <p className="text-gray-600 dark:text-white text-xs">
+            <p className="text-gray-600 dark:text-slate-400 text-xs">
               Pagamentos processados de forma segura pelo Stripe
             </p>
           </CardContent>
