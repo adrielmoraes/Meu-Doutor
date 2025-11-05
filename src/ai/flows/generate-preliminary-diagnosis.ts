@@ -523,8 +523,20 @@ Project expected timeline:
 
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
+
+**CRITICAL FORMATTING RULES:**
+- "synthesis": Must be a PLAIN TEXT string with proper formatting (use \n for line breaks, - for bullets)
+- "suggestions": Must be a PLAIN TEXT string with proper formatting (use \n for line breaks, - for bullets, ** for bold sections)
+- DO NOT return nested JSON objects or arrays inside these fields
+- Format sections with clear headings using **Section Name:** followed by content
+- Use bullet points with "- " prefix for lists
+- Use double line breaks (\n\n) to separate major sections
+
 Example structure:
-{"synthesis": "Comprehensive integrated analysis with all sections A-E in Portuguese", "suggestions": "Ultra-detailed recommendations with all sections A-G in Portuguese"}`,
+{
+  "synthesis": "**A. Resumo Executivo:**\n- Diagnóstico primário: Hipercolesterolemia\n- Gravidade: Moderada\n\n**B. Achados Principais por Sistema:**\n...",
+  "suggestions": "**A. PLANO MEDICAMENTOSO INTEGRADO:**\n\n**Medicamentos Cardiovasculares:**\n- Atorvastatina 40mg 1x/dia VO à noite (hipolipemiante - alvo LDL <70mg/dL)\n\n**B. EXAMES COMPLEMENTARES PRIORIZADOS:**\n\n**Urgentes (próxima semana):**\n- Perfil lipídico completo (justificativa: confirmar diagnóstico)\n..."
+}`,
 });
 
 

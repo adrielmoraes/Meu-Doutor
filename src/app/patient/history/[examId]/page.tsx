@@ -19,22 +19,56 @@ const RenderSuggestions = ({ suggestions }: { suggestions: string }) => {
   return (
     <div className="space-y-3">
       {lines.map((line, index) => {
-        // Check if the line is a main heading (e.g., "- **Medicação:**")
-        if (line.trim().startsWith('- **') && line.trim().endsWith('**')) {
-          const title = line.replace(/- \*\*/g, '').replace(/\*\*:/g, '').replace(/\*\*/g, '');
+        const trimmed = line.trim();
+        
+        // Main section heading (e.g., "**A. PLANO MEDICAMENTOSO:**")
+        if (trimmed.startsWith('**') && trimmed.includes(':**')) {
+          const title = trimmed.replace(/\*\*/g, '').replace(/:/g, '');
           return (
-            <h4 key={index} className="font-semibold text-base text-amber-700 dark:text-amber-200 mt-4 first:mt-0 flex items-center gap-2">
+            <h3 key={index} className="font-bold text-lg text-amber-600 dark:text-amber-300 mt-6 first:mt-0 border-b border-amber-500/30 pb-2">
+              {title}
+            </h3>
+          );
+        }
+        
+        // Sub-heading (e.g., "**Medicamentos Cardiovasculares:**")
+        if (trimmed.startsWith('**') && trimmed.endsWith(':**')) {
+          const title = trimmed.replace(/\*\*/g, '').replace(/:/g, '');
+          return (
+            <h4 key={index} className="font-semibold text-base text-amber-700 dark:text-amber-200 mt-4 flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-600 dark:bg-amber-400"></span>
               {title}
             </h4>
           );
         }
-        // Render other lines as list items
-        return (
-          <p key={index} className="pl-6 text-foreground dark:text-slate-300 leading-relaxed text-sm border-l-2 border-amber-600/40 dark:border-amber-500/30">
-            {line.replace(/^-/, '').trim()}
-          </p>
-        );
+        
+        // Bullet point (starts with "- ")
+        if (trimmed.startsWith('- ')) {
+          const content = trimmed.substring(2);
+          // Check if content has bold parts
+          const parts = content.split(/(\*\*[^*]+\*\*)/g);
+          return (
+            <p key={index} className="pl-6 text-foreground dark:text-slate-300 leading-relaxed text-sm border-l-2 border-amber-600/40 dark:border-amber-500/30">
+              {parts.map((part, i) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                  return <strong key={i} className="font-semibold text-amber-700 dark:text-amber-200">{part.slice(2, -2)}</strong>;
+                }
+                return <span key={i}>{part}</span>;
+              })}
+            </p>
+          );
+        }
+        
+        // Regular paragraph
+        if (trimmed.length > 0) {
+          return (
+            <p key={index} className="text-foreground dark:text-slate-300 leading-relaxed text-sm">
+              {trimmed}
+            </p>
+          );
+        }
+        
+        return null;
       })}
     </div>
   );
@@ -161,7 +195,9 @@ export default async function ExamDetailPage({ params }: { params: { examId: str
                         </div>
                         <h3 className="font-semibold text-lg text-foreground dark:text-slate-200">Diagnóstico Preliminar da IA</h3>
                       </div>
-                      <p className="text-xl text-primary dark:text-cyan-300 font-bold leading-relaxed">{examData.preliminaryDiagnosis}</p>
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <RenderSuggestions suggestions={examData.preliminaryDiagnosis} />
+                      </div>
                     </div>
 
                     {/* Explicação Detalhada Card */}
