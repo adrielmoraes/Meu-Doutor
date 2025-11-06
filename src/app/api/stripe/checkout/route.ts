@@ -79,10 +79,10 @@ export async function POST(req: NextRequest) {
       customerId = customer.id;
     }
 
-    // Construir base URL de forma segura
-    const replitDomain = process.env.REPLIT_DEV_DOMAIN;
+    // Construir base URL de forma segura - priorizar domínio customizado
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
-                    (replitDomain ? `https://${replitDomain}` : `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`);
+                    process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 
+                    `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
     
     // Para trial, criar subscription direta sem checkout (sem necessidade de cartão)
     if (planId === 'trial') {
