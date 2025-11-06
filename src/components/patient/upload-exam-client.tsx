@@ -128,12 +128,25 @@ export default function UploadExamClient() {
     }
     setIsAnalyzing(true);
     
-    // Mostrar mensagem inicial de análise
+    // Mensagem inicial elegante com efeito
     toast({
-        title: "Análise Iniciada",
-        description: "Seu exame está sendo analisado. Aguarde um momento até concluirmos a análise...",
-        duration: 5000,
+        title: "🔬 Iniciando Análise Médica",
+        description: "Nossa equipe de especialistas em IA está examinando seus documentos com atenção e cuidado...",
+        duration: 3000,
+        className: "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-lg animate-in slide-in-from-top-5",
     });
+    
+    // Mensagem de progresso após 3 segundos
+    setTimeout(() => {
+        if (isAnalyzing) {
+            toast({
+                title: "🧠 Análise em Andamento",
+                description: "Estamos processando seus exames com tecnologia de ponta. Isso pode levar alguns instantes...",
+                duration: 4000,
+                className: "bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 shadow-lg animate-in slide-in-from-right-5",
+            });
+        }
+    }, 3000);
     
     try {
         const documentsToAnalyze = stagedFiles.map(sf => ({
@@ -152,26 +165,27 @@ export default function UploadExamClient() {
             throw new Error(saveResult.message || "Failed to save exam and get ID.");
         }
 
-        // Mostrar mensagem de sucesso
+        // Mensagem de sucesso elegante
         toast({
-            title: "✅ Análise Concluída com Sucesso!",
-            description: "Seu exame foi analisado com sucesso. Você será redirecionado para a próxima tela...",
-            className: "bg-green-100 border-green-200 text-green-800",
-            duration: 3000,
+            title: "✨ Análise Concluída!",
+            description: "Seus exames foram analisados com sucesso! Preparando seus resultados detalhados...",
+            duration: 2500,
+            className: "bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 shadow-xl animate-in zoom-in-95",
         });
 
-        // Aguardar 1.5 segundos antes de redirecionar para o usuário ler a mensagem
+        // Aguardar 2 segundos antes de redirecionar
         setTimeout(() => {
             router.push(`/patient/history/${saveResult.examId}`);
             router.refresh();
-        }, 1500);
+        }, 2000);
 
     } catch (error) {
         console.error("Analysis failed:", error);
         toast({
           variant: "destructive",
-          title: "Erro na Análise",
-          description: "Não foi possível analisar os exames. Tente novamente.",
+          title: "⚠️ Erro na Análise",
+          description: "Não foi possível concluir a análise. Por favor, tente novamente em alguns instantes.",
+          className: "animate-in shake",
         });
     } finally {
         setIsAnalyzing(false);
@@ -275,11 +289,22 @@ export default function UploadExamClient() {
         </div>
 
         {/* Submit Button */}
-        <Button onClick={handleAnalyze} disabled={isAnalyzing || stagedFiles.length === 0} size="lg" className="w-full">
+        <Button 
+            onClick={handleAnalyze} 
+            disabled={isAnalyzing || stagedFiles.length === 0} 
+            size="lg" 
+            className={`w-full transition-all duration-300 ${isAnalyzing ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-pulse' : ''}`}
+        >
             {isAnalyzing ? (
-                <><Loader2 className="mr-2 animate-spin" /> Analisando Exames...</>
+                <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" /> 
+                    <span className="font-semibold">Analisando seus exames com IA...</span>
+                </>
             ) : (
-                <><Send className="mr-2" /> Enviar para Análise ({stagedFiles.length})</>
+                <>
+                    <Send className="mr-2 h-5 w-5" /> 
+                    <span className="font-semibold">Enviar para Análise Inteligente ({stagedFiles.length})</span>
+                </>
             )}
         </Button>
 
