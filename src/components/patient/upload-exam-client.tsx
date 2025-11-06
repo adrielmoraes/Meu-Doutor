@@ -132,21 +132,21 @@ export default function UploadExamClient() {
     toast({
         title: "🔬 Iniciando Análise Médica",
         description: "Nossa equipe de especialistas em IA está examinando seus documentos com atenção e cuidado...",
-        duration: 3000,
-        className: "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-lg animate-in slide-in-from-top-5",
+        duration: 6000,
+        className: "bg-gradient-to-r from-blue-100 to-indigo-100 border-blue-400 shadow-xl animate-in slide-in-from-top-5 text-blue-900 font-semibold",
     });
     
-    // Mensagem de progresso após 3 segundos
+    // Mensagem de progresso após 6 segundos
     setTimeout(() => {
         if (isAnalyzing) {
             toast({
                 title: "🧠 Análise em Andamento",
                 description: "Estamos processando seus exames com tecnologia de ponta. Isso pode levar alguns instantes...",
-                duration: 4000,
-                className: "bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 shadow-lg animate-in slide-in-from-right-5",
+                duration: 8000,
+                className: "bg-gradient-to-r from-purple-100 to-pink-100 border-purple-400 shadow-xl animate-in slide-in-from-right-5 text-purple-900 font-semibold",
             });
         }
-    }, 3000);
+    }, 6000);
     
     try {
         const documentsToAnalyze = stagedFiles.map(sf => ({
@@ -169,15 +169,15 @@ export default function UploadExamClient() {
         toast({
             title: "✨ Análise Concluída!",
             description: "Seus exames foram analisados com sucesso! Preparando seus resultados detalhados...",
-            duration: 2500,
-            className: "bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 shadow-xl animate-in zoom-in-95",
+            duration: 3500,
+            className: "bg-gradient-to-r from-green-100 to-emerald-100 border-green-400 shadow-xl animate-in zoom-in-95 text-green-900 font-semibold",
         });
 
-        // Aguardar 2 segundos antes de redirecionar
+        // Aguardar 3 segundos antes de redirecionar
         setTimeout(() => {
             router.push(`/patient/history/${saveResult.examId}`);
             router.refresh();
-        }, 2000);
+        }, 3000);
 
     } catch (error) {
         console.error("Analysis failed:", error);
@@ -185,7 +185,8 @@ export default function UploadExamClient() {
           variant: "destructive",
           title: "⚠️ Erro na Análise",
           description: "Não foi possível concluir a análise. Por favor, tente novamente em alguns instantes.",
-          className: "animate-in shake",
+          duration: 5000,
+          className: "bg-red-100 border-red-400 text-red-900 font-semibold animate-in shake",
         });
     } finally {
         setIsAnalyzing(false);
