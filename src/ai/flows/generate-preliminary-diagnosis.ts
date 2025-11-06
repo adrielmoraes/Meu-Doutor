@@ -52,15 +52,15 @@ const SpecialistFindingSchema = z.object({
     justification: z.string(),
   })).optional().describe("Medications suggested by this specialist with dosages and justification"),
   treatmentPlan: z.object({
-    primaryTreatment: z.string(),
+    primaryTreatment: z.string().optional(),
     supportiveCare: z.string().optional(),
     lifestyleModifications: z.string().optional(),
-    expectedOutcome: z.string(),
+    expectedOutcome: z.string().optional(),
   }).optional().describe("Treatment plan from this specialist"),
   monitoringProtocol: z.object({
-    parameters: z.string(),
-    frequency: z.string(),
-    warningSignals: z.string(),
+    parameters: z.string().optional(),
+    frequency: z.string().optional(),
+    warningSignals: z.string().optional(),
   }).optional().describe("Monitoring protocol recommended by this specialist"),
   contraindications: z.array(z.string()).optional().describe("Contraindications noted by this specialist"),
   relevantMetrics: z.array(z.object({
