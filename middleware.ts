@@ -65,11 +65,48 @@ export async function middleware(request: NextRequest) {
   
   const replitUserId = request.headers.get('x-replit-user-id');
   const replitUserName = request.headers.get('x-replit-user-name');
+  
+  // Verificar também a sessão JWT dos cookies
+  const sessionCookie = request.cookies.get('session')?.value;
 
   const isPatientRoute = protectedPatientRoutes.some(prefix => pathname.startsWith(prefix));
   const isDoctorRoute = protectedDoctorRoutes.some(prefix => pathname.startsWith(prefix));
+  const isPublicRoute = publicRoutes.includes(pathname);
   
-  if (!replitUserId && (isPatientRoute || isDoctorRoute)) {
+  // Se não tem Replit Auth, verificar sessão JWT
+  if (!replitUserId && sessionCookie) {
+    try {
+      const { decrypt } = await import('@/lib/session');
+      const session = await decrypt(sessionCookie);
+      
+      if (session && session.role) {
+        // Redirecionar da página inicial para o dashboard apropriado
+        if (pathname === '/') {
+          const dashboardUrl = session.role === 'patient' ? '/patient/dashboard' : '/doctor';
+          const response = NextResponse.redirect(new URL(dashboardUrl, request.url));
+          return addSecurityHeaders(response);
+        }
+        
+        // Verificar acesso a rotas protegidas baseado na role da sessão
+        if (isPatientRoute && session.role !== 'patient') {
+          const response = NextResponse.redirect(new URL('/login', request.url));
+          return addSecurityHeaders(response);
+        }
+        if (isDoctorRoute && session.role !== 'doctor') {
+          const response = NextResponse.redirect(new URL('/login', request.url));
+          return addSecurityHeaders(response);
+        }
+        
+        // Sessão válida, permitir acesso
+        const response = NextResponse.next();
+        return addSecurityHeaders(response);
+      }
+    } catch (e) {
+      console.error('[Middleware] Erro ao verificar sessão JWT:', e);
+    }
+  }
+  
+  if (!replitUserId && !sessionCookie && (isPatientRoute || isDoctorRoute)) {
     const response = NextResponse.redirect(new URL('/login', request.url));
     return addSecurityHeaders(response);
   }
@@ -87,6 +124,13 @@ export async function middleware(request: NextRequest) {
     }
 
     const role = userMapping[0]?.role;
+
+    // Redirecionar usuário autenticado da página inicial para o dashboard apropriado
+    if (pathname === '/' && role) {
+      const dashboardUrl = role === 'patient' ? '/patient/dashboard' : '/doctor';
+      const response = NextResponse.redirect(new URL(dashboardUrl, request.url));
+      return addSecurityHeaders(response);
+    }
 
     if (isPatientRoute && role !== 'patient') {
       const response = NextResponse.redirect(new URL('/login', request.url));
