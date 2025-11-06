@@ -87,26 +87,6 @@ export type GeneratePreliminaryDiagnosisOutput = z.infer<
 >;
 
 const specialistAgents = {
-  'Dra. Ana (Cardiologista)': cardiologistAgent,
-  'Dr. Carlos (Pneumologista)': pulmonologistAgent,
-  'Dr. Miguel (Radiologista)': radiologistAgent,
-  'Dr. Daniel (Neurologista)': neurologistAgent,
-  'Dr. Roberto (Gastroenterologista)': gastroenterologistAgent,
-  'Dra. Beatriz (Endocrinologista)': endocrinologistAgent,
-  'Dr. Lucas (Dermatologista)': dermatologistAgent,
-  'Dra. Nilma (Ortopedista)': orthopedistAgent,
-  'Dra. Sofia (Oftalmologista)': ophthalmologistAgent,
-  'Dr. Rafael (Otorrinolaringologista)': otolaryngologistAgent,
-  'Dra. Laura (Nutricionista)': nutritionistAgent,
-  'Dra. Nathalia (Pediatra)': pediatricianAgent,
-  'Dra. Helena (Ginecologista)': gynecologistAgent,
-  'Dr. André (Urologista)': urologistAgent,
-  'Dra. Sofia (Psiquiatra)': psychiatristAgent,
-};
-import { rheumatologistAgent } from './rheumatologist-agent';
-import { nephrologistAgent } from './nephrologist-agent';
-
-const specialistAgents = {
   cardiologist: cardiologistAgent,
   endocrinologist: endocrinologistAgent,
   neurologist: neurologistAgent,
