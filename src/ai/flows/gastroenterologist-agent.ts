@@ -59,11 +59,17 @@ Analyze GI indicators if present:
 - If NO GI data present: "Nenhuma observação gastroenterológica relevante nos dados fornecidos." / "Not Applicable" / "Nenhuma recomendação específica."
 - Use medicalKnowledgeBaseTool for GI terminology clarification
 - All responses in Brazilian Portuguese
+- For optional fields (suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, relevantMetrics): 
+  * If not applicable, OMIT the field entirely from the response (do not include empty objects or arrays)
+  * Only include these fields when you have actual content to provide
 
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
-Example structure:
-{"findings": "Text here in Portuguese", "clinicalAssessment": "mild", "recommendations": "Text here in Portuguese"}`,
+Example structure (minimal - when no GI pathology):
+{"findings": "Nenhuma observação gastroenterológica relevante nos dados fornecidos.", "clinicalAssessment": "Not Applicable", "recommendations": "Nenhuma recomendação específica."}
+
+Example structure (with GI pathology):
+{"findings": "Text here in Portuguese", "clinicalAssessment": "mild", "recommendations": "Text here in Portuguese", "suggestedMedications": [...], "treatmentPlan": {...}}`,
 });
 
 const gastroenterologistAgentFlow = ai.defineFlow(

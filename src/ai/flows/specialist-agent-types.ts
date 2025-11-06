@@ -29,15 +29,15 @@ export const SpecialistAgentOutputSchema = z.object({
     justification: z.string().describe("Justificativa clínica para prescrição deste medicamento"),
   })).optional().describe("Lista de medicamentos sugeridos com dosagens específicas. Deixe vazio se não houver indicação de medicação."),
   treatmentPlan: z.object({
-    primaryTreatment: z.string().describe("Tratamento principal recomendado (farmacológico ou não-farmacológico)"),
+    primaryTreatment: z.string().optional().describe("Tratamento principal recomendado (farmacológico ou não-farmacológico)"),
     supportiveCare: z.string().optional().describe("Medidas de suporte e cuidados complementares"),
     lifestyleModifications: z.string().optional().describe("Modificações de estilo de vida específicas"),
-    expectedOutcome: z.string().describe("Prognóstico esperado com o tratamento proposto"),
+    expectedOutcome: z.string().optional().describe("Prognóstico esperado com o tratamento proposto"),
   }).optional().describe("Plano de tratamento detalhado. Deixe vazio se não for aplicável."),
   monitoringProtocol: z.object({
-    parameters: z.string().describe("Parâmetros a serem monitorados (ex: pressão arterial, glicemia, função renal)"),
-    frequency: z.string().describe("Frequência do monitoramento (ex: 'semanal', 'mensal', 'a cada 3 meses')"),
-    warningSignals: z.string().describe("Sinais de alerta que requerem atenção médica imediata"),
+    parameters: z.string().optional().describe("Parâmetros a serem monitorados (ex: pressão arterial, glicemia, função renal)"),
+    frequency: z.string().optional().describe("Frequência do monitoramento (ex: 'semanal', 'mensal', 'a cada 3 meses')"),
+    warningSignals: z.string().optional().describe("Sinais de alerta que requerem atenção médica imediata"),
   }).optional().describe("Protocolo de monitoramento pós-tratamento"),
   contraindications: z.array(z.string()).optional().describe("Lista de contraindicações importantes relacionadas aos tratamentos sugeridos"),
   relevantMetrics: z.array(z.object({
