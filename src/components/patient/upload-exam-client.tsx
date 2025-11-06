@@ -127,6 +127,14 @@ export default function UploadExamClient() {
         return;
     }
     setIsAnalyzing(true);
+    
+    // Mostrar mensagem inicial de análise
+    toast({
+        title: "Análise Iniciada",
+        description: "Seu exame está sendo analisado. Aguarde um momento até concluirmos a análise...",
+        duration: 5000,
+    });
+    
     try {
         const documentsToAnalyze = stagedFiles.map(sf => ({
             examDataUri: sf.dataUri,
@@ -144,14 +152,19 @@ export default function UploadExamClient() {
             throw new Error(saveResult.message || "Failed to save exam and get ID.");
         }
 
+        // Mostrar mensagem de sucesso
         toast({
-            title: "Análise Concluída",
-            description: "Seus exames foram analisados. Redirecionando...",
-            className: "bg-green-100 border-green-200 text-green-800"
+            title: "✅ Análise Concluída com Sucesso!",
+            description: "Seu exame foi analisado com sucesso. Você será redirecionado para a próxima tela...",
+            className: "bg-green-100 border-green-200 text-green-800",
+            duration: 3000,
         });
 
-        router.push(`/patient/history/${saveResult.examId}`);
-        router.refresh();
+        // Aguardar 1.5 segundos antes de redirecionar para o usuário ler a mensagem
+        setTimeout(() => {
+            router.push(`/patient/history/${saveResult.examId}`);
+            router.refresh();
+        }, 1500);
 
     } catch (error) {
         console.error("Analysis failed:", error);
