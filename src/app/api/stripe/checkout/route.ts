@@ -80,9 +80,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Construir base URL de forma segura
-    const replitDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
+    const replitDomain = process.env.REPLIT_DEV_DOMAIN;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
-                    (replitDomain ? `https://${replitDomain}` : 'http://localhost:5000');
+                    (replitDomain ? `https://${replitDomain}` : `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`);
     
     // Para trial, criar subscription direta sem checkout (sem necessidade de cartão)
     if (planId === 'trial') {
