@@ -105,19 +105,21 @@ You received a detailed nutritionist's analysis of the patient's exam results.
 6. **Tarefas Semanais (weeklyTasks):**
    - Create 7-10 specific, achievable tasks for the week
    - Distribute tasks across categories: 'nutrition', 'exercise', 'mental', 'general'
+   - **IMPORTANT**: DO NOT create tasks to prepare recipes - recipes are shown separately
    - Each task must have:
      * **id**: Use format "task-1", "task-2", etc (sequential numbering)
      * **category**: Choose from 'nutrition', 'exercise', 'mental', 'general'
-     * **title**: Clear, action-oriented title (e.g., "Caminhar 30 minutos", "Preparar refeições saudáveis")
+     * **title**: Clear, action-oriented title (e.g., "Caminhar 30 minutos", "Beber 2L de água")
      * **description**: Brief explanation of the task
-     * **dayOfWeek**: (Optional) Suggest a day like "Segunda", "Quarta", "Sexta" or leave empty
+     * **dayOfWeek**: (Optional) ONE SINGLE DAY like "Segunda-feira" or "Domingo" or leave empty - NEVER use multiple days separated by |
      * **completed**: Always set to false (patient will mark as done)
      * **completedAt**: Leave empty
    - Make tasks specific, measurable, and achievable
    - Balance tasks across the week
+   - For nutrition category, focus on habits, NOT recipe preparation (e.g., "Planejar refeições", "Fazer lista de compras")
    - Examples:
      * {id: "task-1", category: "nutrition", title: "Planejar cardápio da semana", description: "Reserve 20 minutos para planejar refeições balanceadas", dayOfWeek: "Domingo", completed: false}
-     * {id: "task-2", category: "exercise", title: "Caminhar 30 minutos", description: "Caminhada leve ao ar livre ou esteira", dayOfWeek: "Segunda", completed: false}
+     * {id: "task-2", category: "exercise", title: "Caminhar 30 minutos", description: "Caminhada leve ao ar livre ou esteira", dayOfWeek: "Segunda-feira", completed: false}
      * {id: "task-3", category: "mental", title: "Meditação guiada", description: "10 minutos de meditação ou respiração profunda", dayOfWeek: "Quarta", completed: false}
 
 **Guidelines:**
@@ -243,27 +245,14 @@ ${nutritionistAnalysis.recommendations}
         }
       }
 
-      // Convert recipes to tasks automatically
-      const recipeTasks = output.weeklyRecipes.map((recipe, index) => ({
-        id: `recipe-task-${index + 1}`,
-        category: 'nutrition' as const,
-        title: `Preparar: ${recipe.title}`,
-        description: `Receita de ${recipe.mealType.replace('-', ' ')} para ${recipe.dayOfWeek}`,
-        dayOfWeek: recipe.dayOfWeek,
-        completed: false,
-        completedAt: undefined,
-      }));
-
-      // Combine AI-generated tasks with recipe tasks
-      const allTasks = [...output.weeklyTasks, ...recipeTasks];
-
+      // Don't convert recipes to tasks - they are separate entities
       const wellnessPlanData = {
         dietaryPlan: output.dietaryPlan,
         exercisePlan: output.exercisePlan,
         mentalWellnessPlan: output.mentalWellnessPlan,
         dailyReminders: output.dailyReminders,
         weeklyRecipes: output.weeklyRecipes,
-        weeklyTasks: allTasks,
+        weeklyTasks: output.weeklyTasks,
         lastUpdated: new Date().toISOString(),
       };
 

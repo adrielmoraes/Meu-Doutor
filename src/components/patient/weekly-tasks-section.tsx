@@ -179,9 +179,9 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
                         {task.title}
                       </label>
                       <p className="text-sm text-foreground/70 dark:text-muted-foreground">{task.description}</p>
-                      {task.dayOfWeek && (
+                      {task.dayOfWeek && task.dayOfWeek.trim() && (
                         <span className="inline-block mt-1 text-xs px-2 py-1 rounded bg-primary/10 text-primary border-2 border-primary/30">
-                          {task.dayOfWeek}
+                          {task.dayOfWeek.split('|')[0].trim()}
                         </span>
                       )}
                     </div>
