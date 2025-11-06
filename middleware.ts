@@ -80,8 +80,8 @@ export async function middleware(request: NextRequest) {
       const session = await decrypt(sessionCookie);
       
       if (session && session.role) {
-        // Redirecionar da página inicial para o dashboard apropriado
-        if (pathname === '/') {
+        // SEMPRE redirecionar da página inicial para o dashboard apropriado
+        if (pathname === '/' || pathname === '/login' || pathname === '/register') {
           const dashboardUrl = session.role === 'patient' ? '/patient/dashboard' : '/doctor';
           const response = NextResponse.redirect(new URL(dashboardUrl, request.url));
           return addSecurityHeaders(response);
@@ -97,7 +97,7 @@ export async function middleware(request: NextRequest) {
           return addSecurityHeaders(response);
         }
         
-        // Sessão válida, permitir acesso
+        // Sessão válida, permitir acesso a outras rotas
         const response = NextResponse.next();
         return addSecurityHeaders(response);
       }
@@ -125,8 +125,8 @@ export async function middleware(request: NextRequest) {
 
     const role = userMapping[0]?.role;
 
-    // Redirecionar usuário autenticado da página inicial para o dashboard apropriado
-    if (pathname === '/' && role) {
+    // SEMPRE redirecionar usuário autenticado da página inicial/login para o dashboard apropriado
+    if ((pathname === '/' || pathname === '/login' || pathname === '/register') && role) {
       const dashboardUrl = role === 'patient' ? '/patient/dashboard' : '/doctor';
       const response = NextResponse.redirect(new URL(dashboardUrl, request.url));
       return addSecurityHeaders(response);

@@ -1,10 +1,35 @@
+'use client';
+
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/header";
 import Link from "next/link";
 import { Stethoscope, ShieldCheck, Zap, ArrowRight, Sparkles, Lock, Brain, Activity, HeartPulse, Check, Upload, Video, MessageSquare, Star, CheckCircle2, Clock, Users } from "lucide-react";
 import MediAILogo from "@/components/layout/mediai-logo";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LandingPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Verificar se usuário está autenticado
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/session', { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.session && data.session.role) {
+            // Usuário autenticado, redirecionar para dashboard
+            const dashboardUrl = data.session.role === 'patient' ? '/patient/dashboard' : '/doctor';
+            router.replace(dashboardUrl);
+          }
+        }
+      } catch (e) {
+        // Ignorar erros, deixar usuário na landing page
+      }
+    }
+    checkAuth();
+  }, [router]);
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white overflow-x-hidden">
       <Header />
