@@ -29,6 +29,8 @@ import {pediatricianAgent} from './pediatrician-agent';
 import { gynecologistAgent } from './gynecologist-agent';
 import { urologistAgent } from './urologist-agent';
 import { psychiatristAgent } from './psychiatrist-agent';
+import { rheumatologistAgent } from './rheumatologist-agent';
+import { nephrologistAgent } from './nephrologist-agent';
 
 // Define Schemas centrally
 const GeneratePreliminaryDiagnosisInputSchema = SpecialistAgentInputSchema;
