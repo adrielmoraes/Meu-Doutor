@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { saveExamAnalysisAction } from "./actions";
@@ -23,6 +22,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { SessionPayload } from "@/lib/session";
 import { getSessionOnClient } from "@/lib/session";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 
 type StagedFile = {
   id: string;
@@ -38,7 +39,8 @@ export default function UploadExamClient() {
   const [isAnalyzing, setIsAnalyzing] =useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  
+  const [limitInfo, setLimitInfo] = useState<any>(null); // State to store limit info
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -47,6 +49,14 @@ export default function UploadExamClient() {
 
   useEffect(() => {
     getSessionOnClient().then(setSession);
+  }, []);
+
+  // Verificar limite ao carregar
+  useEffect(() => {
+    fetch('/api/check-limit?resource=examAnalysis')
+      .then(res => res.json())
+      .then(data => setLimitInfo(data))
+      .catch(console.error);
   }, []);
 
 
@@ -116,8 +126,14 @@ export default function UploadExamClient() {
   const removeFile = (id: string) => {
     setStagedFiles(prev => prev.filter(f => f.id !== id));
   };
-  
+
   const handleAnalyze = async () => {
+    // Verificar limite antes de prosseguir
+    if (limitInfo && !limitInfo.allowed) {
+      toast({ variant: 'destructive', title: 'Limite Atingido', description: limitInfo.message || 'Você atingiu o limite de análises para o seu plano.' });
+      return;
+    }
+
     if (stagedFiles.length === 0) {
         toast({ variant: 'destructive', title: 'Nenhum arquivo', description: 'Por favor, adicione pelo menos um arquivo ou foto para analisar.' });
         return;
@@ -127,7 +143,7 @@ export default function UploadExamClient() {
         return;
     }
     setIsAnalyzing(true);
-    
+
     // Mensagem inicial elegante com efeito
     toast({
         title: "🔬 Iniciando Análise Médica",
@@ -135,7 +151,7 @@ export default function UploadExamClient() {
         duration: 6000,
         className: "bg-gradient-to-r from-blue-100 to-indigo-100 border-blue-400 shadow-xl animate-in slide-in-from-top-5 text-blue-900 font-semibold",
     });
-    
+
     // Mensagem de progresso após 6 segundos
     setTimeout(() => {
         if (isAnalyzing) {
@@ -147,7 +163,7 @@ export default function UploadExamClient() {
             });
         }
     }, 6000);
-    
+
     try {
         const documentsToAnalyze = stagedFiles.map(sf => ({
             examDataUri: sf.dataUri,
@@ -215,13 +231,13 @@ export default function UploadExamClient() {
             Adicionar Arquivo (PDF, Imagem)
           </Button>
           <input type="file" ref={fileInputRef} onChange={handleFileChange} multiple accept=".pdf,.jpg,.jpeg,.png" className="hidden" />
-          
+
           <Button onClick={startCamera} className="flex-1 py-6 text-base sm:py-4" size="lg" variant="secondary">
             <Camera className="mr-2" />
             Usar Câmera
           </Button>
         </div>
-        
+
         {/* Staged Files List */}
         <div className="space-y-3 min-h-24">
             <h3 className="text-lg font-medium text-muted-foreground">Exames na Fila para Análise:</h3>
@@ -233,7 +249,7 @@ export default function UploadExamClient() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {stagedFiles.map(sf => (
                     <Card key={sf.id} className="relative group overflow-hidden">
-                    
+
                     {/* Scanning Animation Overlay */}
                     {isAnalyzing && (
                         <>
@@ -251,7 +267,7 @@ export default function UploadExamClient() {
                             <div className="absolute inset-0 bg-gradient-to-b from-red-500/10 via-transparent to-red-500/10 z-[4] pointer-events-none animate-pulse" />
                         </>
                     )}
-                    
+
                     <div className="absolute top-1 right-1 z-10">
                          <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -289,21 +305,54 @@ export default function UploadExamClient() {
             )}
         </div>
 
+        {/* Indicador de Limite */}
+        {limitInfo && (
+          <Card className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600">
+            <CardHeader>
+              <CardTitle className="text-lg text-gray-900 dark:text-white">
+                Limite de Análises - Plano {limitInfo.planId}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-700 dark:text-slate-300">
+                  {limitInfo.current} de {limitInfo.limit === Infinity ? '∞' : limitInfo.limit} análises usadas
+                </span>
+                <span className="text-gray-700 dark:text-slate-300">
+                  {limitInfo.limit === Infinity ? '100' : Math.round(((limitInfo.limit - limitInfo.current) / limitInfo.limit) * 100)}% disponível
+                </span>
+              </div>
+              <Progress
+                value={limitInfo.limit === Infinity ? 0 : (limitInfo.current / limitInfo.limit) * 100}
+                className="h-2"
+              />
+              {!limitInfo.allowed && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {limitInfo.message}. Faça upgrade para continuar analisando exames!
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Submit Button */}
-        <Button 
-            onClick={handleAnalyze} 
-            disabled={isAnalyzing || stagedFiles.length === 0} 
-            size="lg" 
+        <Button
+            onClick={handleAnalyze}
+            disabled={isAnalyzing || stagedFiles.length === 0 || (limitInfo && !limitInfo.allowed)} // Disable if limit is reached
+            size="lg"
             className={`w-full transition-all duration-300 ${isAnalyzing ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-pulse' : ''}`}
         >
             {isAnalyzing ? (
                 <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" /> 
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     <span className="font-semibold">Analisando seus exames com IA...</span>
                 </>
             ) : (
                 <>
-                    <Send className="mr-2 h-5 w-5" /> 
+                    <Send className="mr-2 h-5 w-5" />
                     <span className="font-semibold">Enviar para Análise Inteligente ({stagedFiles.length})</span>
                 </>
             )}
