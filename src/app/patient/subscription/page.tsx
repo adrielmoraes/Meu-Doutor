@@ -105,12 +105,6 @@ export default function SubscriptionPage() {
     }
   };
 
-  const getCurrentPlanName = () => {
-    const planId = subscriptionStatus?.subscription?.planId;
-    const plan = plans.find(p => p.id === planId);
-    return plan?.name || 'Premium';
-  };
-
   const handleSubscribe = async (planId: string, stripePriceId: string) => {
     setLoading(planId);
     
@@ -147,15 +141,9 @@ export default function SubscriptionPage() {
   };
 
   const handleCancelSubscription = async () => {
-    const confirmed = confirm(
-      '⚠️ Cancelar Assinatura?\n\n' +
-      'Sua assinatura será cancelada ao final do período atual.\n' +
-      'Você manterá acesso completo até: ' + 
-      new Date(subscriptionStatus.subscription.currentPeriodEnd).toLocaleDateString('pt-BR') + '\n\n' +
-      'Deseja continuar?'
-    );
-    
-    if (!confirmed) return;
+    if (!confirm('Tem certeza que deseja cancelar sua assinatura? Você ainda terá acesso até o final do período atual.')) {
+      return;
+    }
 
     try {
       const res = await fetch('/api/stripe/cancel-subscription', {
@@ -165,29 +153,19 @@ export default function SubscriptionPage() {
       const data = await res.json();
 
       if (data.error) {
-        alert('❌ Erro: ' + data.error);
+        alert(data.error);
         return;
       }
 
-      alert('✅ ' + data.message);
+      alert(data.message);
       fetchSubscriptionStatus();
     } catch (error) {
       console.error('Erro ao cancelar assinatura:', error);
-      alert('❌ Erro ao cancelar assinatura. Tente novamente.');
+      alert('Erro ao cancelar assinatura. Tente novamente.');
     }
   };
 
   const handleResumeSubscription = async () => {
-    const confirmed = confirm(
-      '✅ Reativar Assinatura?\n\n' +
-      'Sua assinatura voltará a renovar automaticamente.\n' +
-      'Próxima cobrança: ' + 
-      new Date(subscriptionStatus.subscription.currentPeriodEnd).toLocaleDateString('pt-BR') + '\n\n' +
-      'Deseja continuar?'
-    );
-    
-    if (!confirmed) return;
-
     try {
       const res = await fetch('/api/stripe/resume-subscription', {
         method: 'POST',
@@ -196,15 +174,15 @@ export default function SubscriptionPage() {
       const data = await res.json();
 
       if (data.error) {
-        alert('❌ Erro: ' + data.error);
+        alert(data.error);
         return;
       }
 
-      alert('✅ ' + data.message);
+      alert(data.message);
       fetchSubscriptionStatus();
     } catch (error) {
       console.error('Erro ao reativar assinatura:', error);
-      alert('❌ Erro ao reativar assinatura. Tente novamente.');
+      alert('Erro ao reativar assinatura. Tente novamente.');
     }
   };
 
@@ -231,89 +209,44 @@ export default function SubscriptionPage() {
 
         {/* Current Subscription Status */}
         {subscriptionStatus?.hasActiveSubscription && (
-          <Card className="bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-500/20 dark:to-emerald-500/20 border-green-500/40 dark:border-green-500/40 shadow-xl">
+          <Card className="bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-500/20 dark:to-emerald-500/20 border-green-500/40 dark:border-green-500/40">
             <CardHeader>
-              <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2 text-2xl">
-                <Check className="h-6 w-6 text-green-600 dark:text-green-400" />
-                Minha Assinatura Atual
+              <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
+                <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+                Assinatura Ativa
               </CardTitle>
-              <CardDescription className="text-base">
-                Gerencie sua assinatura e veja detalhes do seu plano
+              <CardDescription>
+                {subscriptionStatus.subscription?.cancelAtPeriodEnd ? (
+                  <span className="text-orange-700 dark:text-orange-300">
+                    Sua assinatura será cancelada em{' '}
+                    {new Date(subscriptionStatus.subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}
+                  </span>
+                ) : (
+                  <span className="text-green-700 dark:text-green-300">
+                    Renovação automática em{' '}
+                    {new Date(subscriptionStatus.subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}
+                  </span>
+                )}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Plano Atual */}
-              <div className="bg-white/50 dark:bg-slate-800/50 p-4 rounded-lg border border-green-200 dark:border-green-600/30">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600 dark:text-slate-300">Plano Ativo:</span>
-                  <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1">
-                    {getCurrentPlanName()}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600 dark:text-slate-300">Status:</span>
-                  <span className={`text-sm font-semibold ${
-                    subscriptionStatus.subscription?.cancelAtPeriodEnd 
-                      ? 'text-orange-600 dark:text-orange-400' 
-                      : 'text-green-600 dark:text-green-400'
-                  }`}>
-                    {subscriptionStatus.subscription?.cancelAtPeriodEnd ? '⚠️ Cancelamento Agendado' : '✓ Ativa'}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600 dark:text-slate-300">
-                    {subscriptionStatus.subscription?.cancelAtPeriodEnd ? 'Válida até:' : 'Renovação:'}
-                  </span>
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                    {new Date(subscriptionStatus.subscription.currentPeriodEnd).toLocaleDateString('pt-BR', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric'
-                    })}
-                  </span>
-                </div>
-              </div>
-
-              {/* Descrição do Status */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-600/30">
-                <p className="text-sm text-blue-800 dark:text-blue-200">
-                  {subscriptionStatus.subscription?.cancelAtPeriodEnd ? (
-                    <>
-                      <span className="font-semibold">Sua assinatura será cancelada</span> em{' '}
-                      {new Date(subscriptionStatus.subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}.
-                      Você ainda terá acesso completo até essa data.
-                    </>
-                  ) : (
-                    <>
-                      <span className="font-semibold">Renovação automática</span> em{' '}
-                      {new Date(subscriptionStatus.subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}.
-                      Seu cartão será cobrado automaticamente.
-                    </>
-                  )}
-                </p>
-              </div>
-
-              {/* Botões de Ação */}
-              <div className="flex gap-3 pt-2">
-                {subscriptionStatus.subscription?.cancelAtPeriodEnd ? (
-                  <Button
-                    onClick={handleResumeSubscription}
-                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg"
-                  >
-                    <Check className="h-4 w-4 mr-2" />
-                    Reativar Assinatura
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={handleCancelSubscription}
-                    variant="destructive"
-                    className="flex-1 shadow-lg"
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Cancelar Assinatura
-                  </Button>
-                )}
-              </div>
+            <CardContent className="flex gap-3">
+              {subscriptionStatus.subscription?.cancelAtPeriodEnd ? (
+                <Button
+                  onClick={handleResumeSubscription}
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  Reativar Assinatura
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleCancelSubscription}
+                  variant="destructive"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancelar Assinatura
+                </Button>
+              )}
             </CardContent>
           </Card>
         )}
