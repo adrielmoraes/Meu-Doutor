@@ -1,4 +1,3 @@
-
 'use server';
 
 import { addPatientWithAuth, getPatientByEmail, getPatientByCpf } from '@/lib/db-adapter';
@@ -34,7 +33,7 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       message: 'Erro de validação. Por favor, corrija os campos destacados.',
     };
   }
-  
+
   const { fullName, birthDate, email, password, ...rest } = validatedFields.data;
 
   try {
@@ -87,19 +86,65 @@ export async function createPatientAction(prevState: any, formData: FormData) {
                     (process.env.REPLIT_DOMAINS?.split(',')[0] 
                       ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` 
                       : 'http://localhost:5000');
-    
+
     const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}&type=patient`;
-    
+
     await sendVerificationEmail({
       to: email,
       name: fullName,
       verificationUrl,
     });
 
+    // Ativar automaticamente o plano Trial de 7 dias grátis
+    try {
+      const stripe = (await import('@/lib/stripe')).stripe;
+      const { upsertSubscription } = await import('@/lib/subscription-adapter');
+
+      // Criar customer no Stripe
+      const customer = await stripe.customers.create({
+        email,
+        name,
+        metadata: { patientId },
+      });
+
+      const trialEndDate = new Date();
+      trialEndDate.setDate(trialEndDate.getDate() + 7);
+      const trialEndTimestamp = Math.floor(trialEndDate.getTime() / 1000);
+
+      // Criar subscription com trial gratuito
+      const subscription = await stripe.subscriptions.create({
+        customer: customer.id,
+        items: [{ price: process.env.NEXT_PUBLIC_STRIPE_TRIAL_PRICE_ID }],
+        trial_end: trialEndTimestamp,
+        cancel_at: trialEndTimestamp,
+        metadata: {
+          patientId,
+          planId: 'trial',
+          stripePriceId: process.env.NEXT_PUBLIC_STRIPE_TRIAL_PRICE_ID,
+        },
+      });
+
+      // Salvar subscription no banco
+      await upsertSubscription({
+        patientId,
+        planId: 'trial',
+        stripeSubscriptionId: subscription.id,
+        stripeCustomerId: customer.id,
+        status: 'trialing',
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      });
+
+      console.log(`[Cadastro] Plano Trial ativado para ${email}`);
+    } catch (stripeError: any) {
+      console.error('[Cadastro] Erro ao ativar Trial automático:', stripeError);
+      // Não bloquear o cadastro se falhar a ativação do trial
+    }
+
     revalidatePath('/doctor/patients');
     return {
       ...prevState,
-      message: 'Cadastro realizado com sucesso! Verifique seu email para ativar sua conta.',
+      message: 'Cadastro realizado com sucesso! Você ganhou 7 dias grátis de acesso Premium. Verifique seu email para ativar sua conta.',
       errors: null,
       success: true,
     };
