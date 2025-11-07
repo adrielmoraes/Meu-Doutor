@@ -215,15 +215,22 @@ export default function SubscriptionPage() {
                 <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
                 Assinatura Ativa
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="space-y-2">
+                {subscriptionStatus.subscription?.planName && (
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 text-white dark:text-gray-900 text-base px-4 py-1">
+                      Plano Atual: {subscriptionStatus.subscription.planName}
+                    </Badge>
+                  </div>
+                )}
                 {subscriptionStatus.subscription?.cancelAtPeriodEnd ? (
-                  <span className="text-orange-700 dark:text-orange-300">
-                    Sua assinatura será cancelada em{' '}
+                  <span className="text-orange-700 dark:text-orange-300 block mt-2">
+                    ⚠️ Sua assinatura será cancelada em{' '}
                     {new Date(subscriptionStatus.subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}
                   </span>
                 ) : (
-                  <span className="text-green-700 dark:text-green-300">
-                    Renovação automática em{' '}
+                  <span className="text-green-700 dark:text-green-300 block mt-2">
+                    ✅ Renovação automática em{' '}
                     {new Date(subscriptionStatus.subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}
                   </span>
                 )}

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSubscriptionByPatientId } from '@/lib/subscription-adapter';
+import { getSubscriptionByPatientId, getSubscriptionPlanById } from '@/lib/subscription-adapter';
 import { getSession } from '@/lib/session';
 
 export async function GET(req: NextRequest) {
@@ -24,6 +24,15 @@ export async function GET(req: NextRequest) {
 
     const hasActiveSubscription = subscription.status === 'active' || subscription.status === 'trialing';
 
+    // Buscar informações do plano
+    let planName = 'Plano Desconhecido';
+    if (subscription.planId) {
+      const plan = await getSubscriptionPlanById(subscription.planId);
+      if (plan) {
+        planName = plan.name;
+      }
+    }
+
     return NextResponse.json({ 
       hasActiveSubscription,
       subscription: {
@@ -31,6 +40,7 @@ export async function GET(req: NextRequest) {
         status: subscription.status,
         currentPeriodEnd: subscription.currentPeriodEnd,
         cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+        planName: planName,
       }
     });
   } catch (error: any) {
