@@ -423,7 +423,7 @@ export default function LandingPage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                 <Button asChild size="lg" className="h-14 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold text-lg px-10 rounded-xl shadow-2xl shadow-cyan-500/30 transition-all duration-300 transform hover:scale-105">
-                  <Link href="/register/patient">
+                  <Link href="/register">
                     Começar Teste Grátis
                   </Link>
                 </Button>
