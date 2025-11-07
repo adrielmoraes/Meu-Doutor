@@ -9,6 +9,24 @@ import { nutritionistAgent } from './nutritionist-agent';
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
+const RecipeSchema = z.object({
+    title: z.string().describe("Nome da receita"),
+    ingredients: z.array(z.string()).describe("Lista de ingredientes com quantidades"),
+    instructions: z.string().describe("Modo de preparo passo a passo"),
+    prepTime: z.string().describe("Tempo de preparo (ex: '20 minutos')"),
+});
+
+const MealPrepSuggestionSchema = z.object({
+    day: z.string().describe("Day of the week in Portuguese (e.g., Segunda-feira)."),
+    breakfast: z.string().describe("Brief breakfast description."),
+    breakfastRecipe: RecipeSchema.optional().describe("Receita detalhada do café da manhã"),
+    lunch: z.string().describe("Brief lunch description."),
+    lunchRecipe: RecipeSchema.optional().describe("Receita detalhada do almoço"),
+    dinner: z.string().describe("Brief dinner description."),
+    dinnerRecipe: RecipeSchema.optional().describe("Receita detalhada do jantar"),
+    snacks: z.string().optional().describe("Optional healthy snack suggestions.")
+});
+
 const GenerateWellnessPlanFromExamsOutputSchema = z.object({
   dietaryPlan: z.string().describe("Detailed, actionable dietary plan based on exam findings"),
   exercisePlan: z.string().describe("Safe exercise plan suitable for patient's condition"),
@@ -18,14 +36,7 @@ const GenerateWellnessPlanFromExamsOutputSchema = z.object({
     title: z.string(),
     description: z.string(),
   })).describe("3-4 actionable daily reminders"),
-  weeklyRecipes: z.array(z.object({
-    id: z.string().describe("Unique ID for the recipe (use format: recipe-1, recipe-2, etc)"),
-    title: z.string().describe("Nome atrativo da receita"),
-    mealType: z.enum(['cafe-da-manha', 'almoco', 'jantar', 'lanche']),
-    ingredients: z.array(z.string()).describe("Lista de ingredientes com quantidades"),
-    instructions: z.string().describe("Modo de preparo passo a passo"),
-    dayOfWeek: z.string().describe("Dia da semana sugerido (Segunda-feira, Terça-feira, etc)"),
-  })).describe("7 receitas saudáveis, uma para cada dia da semana"),
+  weeklyMealPlan: z.array(MealPrepSuggestionSchema).describe("7 detailed meal suggestions, one for each day of the week"),
   weeklyTasks: z.array(z.object({
     id: z.string().describe("Unique ID for the task (use format: task-1, task-2, etc)"),
     category: z.enum(['nutrition', 'exercise', 'mental', 'general']),
@@ -39,7 +50,7 @@ const GenerateWellnessPlanFromExamsOutputSchema = z.object({
 
 const wellnessPlanSynthesisPrompt = ai.definePrompt({
   name: 'wellnessPlanSynthesisPrompt',
-  input: { 
+  input: {
     schema: z.object({
       nutritionistReport: z.string(),
       patientHistory: z.string(),
@@ -83,24 +94,50 @@ You received a detailed nutritionist's analysis of the patient's exam results.
      * Use 'Dumbbell' for exercise/movement reminders
    - Make them specific and encouraging
 
-5. **Receitas Semanais (weeklyRecipes):**
-   - Create EXACTLY 7 healthy recipes, one for each day of the week
-   - Each recipe must be tailored to the patient's medical conditions and exam results
-   - Each recipe must have:
-     * **id**: Use format "recipe-1", "recipe-2", etc (sequential numbering)
-     * **title**: Nome atrativo e apetitoso da receita em português
-     * **mealType**: Choose from 'cafe-da-manha', 'almoco', 'jantar', 'lanche'
-     * **ingredients**: Array with 5-8 ingredients with quantities (e.g., ["2 xícaras de aveia", "1 banana madura", "200ml de leite desnatado"])
-     * **instructions**: Detailed step-by-step preparation in a single string, using line breaks for each step
-     * **dayOfWeek**: Must be one of "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"
-   - Ensure recipes are:
-     * Nutritionally balanced and therapeutic for their conditions
-     * Easy to prepare (20-40 minutes maximum)
-     * Use accessible, affordable ingredients
-     * Include variety (different proteins, grains, vegetables)
-     * Follow dietary restrictions from exam results
-   - Example:
-     * {id: "recipe-1", title: "Mingau de Aveia com Frutas", mealType: "cafe-da-manha", ingredients: ["1 xícara de aveia em flocos", "2 xícaras de leite desnatado", "1 banana", "1 colher de mel", "Canela a gosto"], instructions: "1. Aqueça o leite em fogo médio\n2. Adicione a aveia e mexa constantemente\n3. Cozinhe por 5-7 minutos até engrossar\n4. Desligue o fogo e adicione mel e canela\n5. Sirva com rodelas de banana por cima", dayOfWeek: "Segunda-feira"}
+5. **Plano Semanal de Refeições (weeklyMealPlan):**
+   - Crie um plano para 7 dias (Segunda a Domingo)
+   - Para cada dia, forneça:
+     * **Descrição breve** da refeição (breakfast, lunch, dinner)
+     * **Receita detalhada** com ingredientes e modo de preparo (breakfastRecipe, lunchRecipe, dinnerRecipe)
+     * Lanches saudáveis (opcional)
+   - Seja criativo mas prático - use alimentos acessíveis
+   - Varie as opções ao longo da semana
+   - Baseie-se nas recomendações nutricionais fornecidas
+
+**Exemplo de estrutura para um dia:**
+\`\`\`json
+{
+  "day": "Segunda-feira",
+  "breakfast": "Mingau de aveia com frutas",
+  "breakfastRecipe": {
+    "title": "Mingau de Aveia com Banana e Mel",
+    "ingredients": [
+      "1 xícara de aveia em flocos",
+      "2 xícaras de leite desnatado",
+      "1 banana madura",
+      "1 colher de sopa de mel",
+      "Canela em pó a gosto"
+    ],
+    "instructions": "1. Aqueça o leite em fogo médio\\n2. Adicione a aveia e mexa constantemente por 5-7 minutos\\n3. Quando engrossar, desligue o fogo\\n4. Adicione mel e canela\\n5. Sirva com rodelas de banana por cima",
+    "prepTime": "15 minutos"
+  },
+  "lunch": "Frango grelhado com arroz integral e salada",
+  "lunchRecipe": {
+    "title": "Frango Grelhado com Legumes",
+    "ingredients": [
+      "120g de peito de frango",
+      "4 colheres de arroz integral cozido",
+      "2 colheres de feijão",
+      "Alface, tomate, cenoura ralada",
+      "Azeite extravirgem e limão"
+    ],
+    "instructions": "1. Tempere o frango com sal, alho e limão\\n2. Grelhe por 8-10 minutos de cada lado\\n3. Monte o prato com arroz, feijão e salada\\n4. Regue a salada com azeite e limão",
+    "prepTime": "25 minutos"
+  },
+  "dinner": "Salmão com batata doce",
+  "snacks": "1 maçã + 10 amêndoas"
+}
+\`\`\`
 
 6. **Tarefas Semanais (weeklyTasks):**
    - Create 7-10 specific, achievable tasks for the week
@@ -141,7 +178,7 @@ Return ONLY valid JSON matching the schema. No markdown, no extra text.`,
 export async function regeneratePatientWellnessPlan(patientId: string): Promise<void> {
   try {
     console.log(`[Wellness Plan Update] Starting for patient ${patientId}`);
-    
+
     // 1. Get patient data
     const patient = await getPatientById(patientId);
     if (!patient) {
@@ -209,8 +246,8 @@ ${nutritionistAnalysis.recommendations}
     }
 
     console.log(`[Wellness Plan Update] AI Output received:`, JSON.stringify({
-      hasRecipes: !!output.weeklyRecipes,
-      recipeCount: output.weeklyRecipes?.length || 0,
+      hasRecipes: !!output.weeklyMealPlan,
+      recipeCount: output.weeklyMealPlan?.length || 0,
       taskCount: output.weeklyTasks?.length || 0,
       reminderCount: output.dailyReminders?.length || 0
     }));
@@ -227,12 +264,27 @@ ${nutritionistAnalysis.recommendations}
         }
       }
 
-      // Validate weekly recipes before saving
-      for (const recipe of output.weeklyRecipes) {
-        const validMealTypes = ['cafe-da-manha', 'almoco', 'jantar', 'lanche'];
-        if (!validMealTypes.includes(recipe.mealType)) {
-          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid mealType "${recipe.mealType}" in recipe "${recipe.title}". Must be one of: ${validMealTypes.join(', ')}`);
-          throw new Error(`Invalid recipe mealType: ${recipe.mealType}. Must be one of: ${validMealTypes.join(', ')}`);
+      // Validate weekly meal plan before saving
+      for (const meal of output.weeklyMealPlan) {
+        if (meal.breakfastRecipe && meal.breakfastRecipe.prepTime.toLowerCase().includes('minute')) {
+          // Continue if prepTime is valid
+        } else if (meal.breakfastRecipe) {
+          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid prepTime format "${meal.breakfastRecipe.prepTime}" in recipe "${meal.breakfastRecipe.title}" for day ${meal.day}. Expected format like '20 minutos'.`);
+          throw new Error(`Invalid prepTime format in recipe: ${meal.breakfastRecipe.prepTime}`);
+        }
+
+        if (meal.lunchRecipe && meal.lunchRecipe.prepTime.toLowerCase().includes('minute')) {
+          // Continue if prepTime is valid
+        } else if (meal.lunchRecipe) {
+          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid prepTime format "${meal.lunchRecipe.prepTime}" in recipe "${meal.lunchRecipe.title}" for day ${meal.day}. Expected format like '20 minutos'.`);
+          throw new Error(`Invalid prepTime format in recipe: ${meal.lunchRecipe.prepTime}`);
+        }
+
+        if (meal.dinnerRecipe && meal.dinnerRecipe.prepTime.toLowerCase().includes('minute')) {
+          // Continue if prepTime is valid
+        } else if (meal.dinnerRecipe) {
+          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid prepTime format "${meal.dinnerRecipe.prepTime}" in recipe "${meal.dinnerRecipe.title}" for day ${meal.day}. Expected format like '20 minutos'.`);
+          throw new Error(`Invalid prepTime format in recipe: ${meal.dinnerRecipe.prepTime}`);
         }
       }
 
@@ -245,20 +297,19 @@ ${nutritionistAnalysis.recommendations}
         }
       }
 
-      // Don't convert recipes to tasks - they are separate entities
       const wellnessPlanData = {
         dietaryPlan: output.dietaryPlan,
         exercisePlan: output.exercisePlan,
         mentalWellnessPlan: output.mentalWellnessPlan,
         dailyReminders: output.dailyReminders,
-        weeklyRecipes: output.weeklyRecipes,
+        weeklyMealPlan: output.weeklyMealPlan, // Use the new field name
         weeklyTasks: output.weeklyTasks,
         lastUpdated: new Date().toISOString(),
       };
 
       await updatePatientWellnessPlan(patientId, wellnessPlanData);
       console.log(`[Wellness Plan Update] ✅ Successfully updated wellness plan for patient ${patientId}`);
-      console.log(`[Wellness Plan Update] Plan includes ${output.dailyReminders.length} daily reminders, ${output.weeklyRecipes.length} recipes, and ${allTasks.length} weekly tasks`);
+      console.log(`[Wellness Plan Update] Plan includes ${output.dailyReminders.length} daily reminders, ${output.weeklyMealPlan.length} meal suggestions, and ${output.weeklyTasks.length} weekly tasks`);
     } catch (validationError: any) {
       console.error(`[Wellness Plan Update] ❌ VALIDATION FAILED for patient ${patientId}:`, validationError.message);
       console.error(`[Wellness Plan Update] AI Output that failed validation:`, JSON.stringify(output, null, 2));

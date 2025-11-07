@@ -197,37 +197,110 @@ export default async function WellnessPlanPage() {
                         <ChefHat className="h-7 w-7 text-primary/60 dark:text-primary" />
                         Plano Semanal de Refeições
                     </h2>
-                    <Card className="bg-card/80 backdrop-blur-xl">
-                        <CardContent className="p-6">
-                            <div className="space-y-6">
-                                {wellnessPlan.weeklyMealPlan.map((dayPlan) => (
-                                    <div key={dayPlan.day} className="border-b border-border last:border-0 pb-6 last:pb-0">
-                                        <h3 className="font-bold text-lg mb-3 text-primary">{dayPlan.day}</h3>
-                                        <div className="grid md:grid-cols-2 gap-4">
-                                            <div>
-                                                <p className="text-sm font-semibold text-accent mb-1">☀️ Café da Manhã</p>
-                                                <p className="text-sm text-black dark:text-muted-foreground leading-relaxed">{dayPlan.breakfast}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-semibold text-accent mb-1">🍽️ Almoço</p>
-                                                <p className="text-sm text-black dark:text-muted-foreground leading-relaxed">{dayPlan.lunch}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-semibold text-accent mb-1">🌙 Jantar</p>
-                                                <p className="text-sm text-black dark:text-muted-foreground leading-relaxed">{dayPlan.dinner}</p>
-                                            </div>
-                                            {dayPlan.snacks && (
-                                                <div>
-                                                    <p className="text-sm font-semibold text-accent mb-1">🍎 Lanches</p>
-                                                    <p className="text-sm text-black dark:text-muted-foreground leading-relaxed">{dayPlan.snacks}</p>
+                    <div className="space-y-6">
+                        {wellnessPlan.weeklyMealPlan.map((dayPlan) => (
+                            <Card key={dayPlan.day} className="bg-card/80 backdrop-blur-xl border-2 border-primary/20">
+                                <CardHeader>
+                                    <CardTitle className="text-xl text-primary">{dayPlan.day}</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                    {/* Café da Manhã */}
+                                    <div className="p-4 bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/30 rounded-lg">
+                                        <p className="text-sm font-semibold text-amber-600 dark:text-amber-400 mb-2 flex items-center gap-2">
+                                            ☀️ Café da Manhã
+                                        </p>
+                                        <p className="text-sm text-foreground mb-3">{dayPlan.breakfast}</p>
+                                        {dayPlan.breakfastRecipe && (
+                                            <div className="mt-3 p-3 bg-card/50 rounded border border-amber-500/20">
+                                                <h4 className="font-semibold text-sm mb-2 text-amber-700 dark:text-amber-300">
+                                                    📖 {dayPlan.breakfastRecipe.title}
+                                                </h4>
+                                                <p className="text-xs text-muted-foreground mb-2">⏱️ {dayPlan.breakfastRecipe.prepTime}</p>
+                                                <div className="mb-2">
+                                                    <p className="text-xs font-semibold mb-1">Ingredientes:</p>
+                                                    <ul className="text-xs text-muted-foreground space-y-1 ml-4">
+                                                        {dayPlan.breakfastRecipe.ingredients.map((ing, idx) => (
+                                                            <li key={idx}>• {ing}</li>
+                                                        ))}
+                                                    </ul>
                                                 </div>
-                                            )}
-                                        </div>
+                                                <div>
+                                                    <p className="text-xs font-semibold mb-1">Modo de Preparo:</p>
+                                                    <p className="text-xs text-muted-foreground whitespace-pre-line">{dayPlan.breakfastRecipe.instructions}</p>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
+
+                                    {/* Almoço */}
+                                    <div className="p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-2 border-green-500/30 rounded-lg">
+                                        <p className="text-sm font-semibold text-green-600 dark:text-green-400 mb-2 flex items-center gap-2">
+                                            🍽️ Almoço
+                                        </p>
+                                        <p className="text-sm text-foreground mb-3">{dayPlan.lunch}</p>
+                                        {dayPlan.lunchRecipe && (
+                                            <div className="mt-3 p-3 bg-card/50 rounded border border-green-500/20">
+                                                <h4 className="font-semibold text-sm mb-2 text-green-700 dark:text-green-300">
+                                                    📖 {dayPlan.lunchRecipe.title}
+                                                </h4>
+                                                <p className="text-xs text-muted-foreground mb-2">⏱️ {dayPlan.lunchRecipe.prepTime}</p>
+                                                <div className="mb-2">
+                                                    <p className="text-xs font-semibold mb-1">Ingredientes:</p>
+                                                    <ul className="text-xs text-muted-foreground space-y-1 ml-4">
+                                                        {dayPlan.lunchRecipe.ingredients.map((ing, idx) => (
+                                                            <li key={idx}>• {ing}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-semibold mb-1">Modo de Preparo:</p>
+                                                    <p className="text-xs text-muted-foreground whitespace-pre-line">{dayPlan.lunchRecipe.instructions}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Jantar */}
+                                    <div className="p-4 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-2 border-blue-500/30 rounded-lg">
+                                        <p className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2 flex items-center gap-2">
+                                            🌙 Jantar
+                                        </p>
+                                        <p className="text-sm text-foreground mb-3">{dayPlan.dinner}</p>
+                                        {dayPlan.dinnerRecipe && (
+                                            <div className="mt-3 p-3 bg-card/50 rounded border border-blue-500/20">
+                                                <h4 className="font-semibold text-sm mb-2 text-blue-700 dark:text-blue-300">
+                                                    📖 {dayPlan.dinnerRecipe.title}
+                                                </h4>
+                                                <p className="text-xs text-muted-foreground mb-2">⏱️ {dayPlan.dinnerRecipe.prepTime}</p>
+                                                <div className="mb-2">
+                                                    <p className="text-xs font-semibold mb-1">Ingredientes:</p>
+                                                    <ul className="text-xs text-muted-foreground space-y-1 ml-4">
+                                                        {dayPlan.dinnerRecipe.ingredients.map((ing, idx) => (
+                                                            <li key={idx}>• {ing}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-semibold mb-1">Modo de Preparo:</p>
+                                                    <p className="text-xs text-muted-foreground whitespace-pre-line">{dayPlan.dinnerRecipe.instructions}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Lanches */}
+                                    {dayPlan.snacks && (
+                                        <div className="p-4 bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-500/30 rounded-lg">
+                                            <p className="text-sm font-semibold text-purple-600 dark:text-purple-400 mb-2 flex items-center gap-2">
+                                                🍎 Lanches
+                                            </p>
+                                            <p className="text-sm text-foreground">{dayPlan.snacks}</p>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
                 </div>
             )}
 

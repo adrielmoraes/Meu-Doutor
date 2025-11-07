@@ -1,5 +1,3 @@
-
-
 export type Patient = {
   id: string;
   name: string;
@@ -15,7 +13,7 @@ export type Patient = {
   state: string;
   lastVisit: string;
   // This top-level status can represent if the patient has any pending exams.
-  status: 'Requer Validação' | 'Validado'; 
+  status: 'Requer Validação' | 'Validado';
   priority?: 'Urgente' | 'Alta' | 'Normal';
   avatar: string;
   avatarHint: string;
@@ -41,8 +39,11 @@ export type Patient = {
     weeklyMealPlan?: Array<{
       day: string;
       breakfast: string;
+      breakfastRecipe?: Recipe;
       lunch: string;
+      lunchRecipe?: Recipe;
       dinner: string;
+      dinnerRecipe?: Recipe;
       snacks?: string;
     }>;
     hydrationPlan?: string;
@@ -243,3 +244,21 @@ export type PatientUsageStats = {
         chat: number; // tokens
     };
 };
+
+export interface Recipe {
+  title: string;
+  ingredients: string[];
+  instructions: string;
+  prepTime: string;
+}
+
+export interface MealPlanDay {
+  day: string;
+  breakfast: string;
+  breakfastRecipe?: Recipe;
+  lunch: string;
+  lunchRecipe?: Recipe;
+  dinner: string;
+  dinnerRecipe?: Recipe;
+  snacks?: string;
+}
