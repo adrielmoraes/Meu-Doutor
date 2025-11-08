@@ -4,8 +4,7 @@ import { addExamToPatient, updatePatient, addAppointment, deleteExam, trackUsage
 import { revalidatePath } from "next/cache";
 import type { Appointment, Exam } from "@/types";
 import { regeneratePatientWellnessPlan } from "@/ai/flows/update-wellness-plan";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getSession } from "@/lib/session";
 
 interface ExamAnalysisData {
     preliminaryDiagnosis: string;
@@ -97,7 +96,7 @@ export async function deleteExamAction(patientId: string, examId: string) {
 }
 
 export async function addExamAction(patientId: string, examData: Omit<Exam, 'id'>): Promise<{ success: boolean; examId?: string; error?: string }> {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   if (!session?.userId) {
     return { success: false, error: 'Usuário não autenticado' };
   }
