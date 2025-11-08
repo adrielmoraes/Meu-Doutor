@@ -1,3 +1,4 @@
+
 'use server';
 
 import { addExamToPatient, updatePatient, addAppointment, deleteExam, trackUsage } from "@/lib/db-adapter";
@@ -96,29 +97,29 @@ export async function deleteExamAction(patientId: string, examId: string) {
 }
 
 export async function addExamAction(patientId: string, examData: Omit<Exam, 'id'>): Promise<{ success: boolean; examId?: string; error?: string }> {
-  const session = await getSession();
-  if (!session?.userId) {
-    return { success: false, error: 'Usuário não autenticado' };
-  }
-
-  try {
-    const examId = await addExamToPatient(patientId, examData);
-
-    // Se houve um erro ao adicionar o exame, lança uma exceção para ser capturada pelo catch
-    if (!examId) {
-      throw new Error('Falha ao adicionar o exame ao paciente');
+    const session = await getSession();
+    if (!session?.userId) {
+        return { success: false, error: 'Usuário não autenticado' };
     }
 
-    // Registrar uso do recurso
-    const { trackResourceUsage } = await import('@/lib/subscription-limits');
-    await trackResourceUsage(session.userId, 'exam_analysis', {
-      resourceName: examData.type,
-    });
+    try {
+        const examId = await addExamToPatient(patientId, examData);
 
-    revalidatePath('/patient/history');
-    return { success: true, examId };
-  } catch (error: any) {
-    console.error('Erro ao adicionar exame:', error);
-    return { success: false, error: error.message };
-  }
+        // Se houve um erro ao adicionar o exame, lança uma exceção para ser capturada pelo catch
+        if (!examId) {
+            throw new Error('Falha ao adicionar o exame ao paciente');
+        }
+
+        // Registrar uso do recurso
+        const { trackResourceUsage } = await import('@/lib/subscription-limits');
+        await trackResourceUsage(session.userId, 'exam_analysis', {
+            resourceName: examData.type,
+        });
+
+        revalidatePath('/patient/history');
+        return { success: true, examId };
+    } catch (error: any) {
+        console.error('Erro ao adicionar exame:', error);
+        return { success: false, error: error.message };
+    }
 }
