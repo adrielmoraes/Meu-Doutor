@@ -107,7 +107,7 @@ export default function MediAILogo({ className, showText = true, size = 'md' }: 
           )}
           style={{ color: '#f774c0' }}
         >
-          Medi<span className="font-extrabold">AI</span>
+          edi<span className="font-extrabold">.AI</span>
         </span>
       )}
     </div>
