@@ -11,10 +11,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, Settings, LayoutDashboard, Heart, Stethoscope, CreditCard } from 'lucide-react';
+import { User, LogOut, Settings, LayoutDashboard, Heart, Stethoscope, CreditCard, FileText, Phone, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { logoutAction } from '@/lib/logout-action';
 import { useRouter } from 'next/navigation';
+import { Progress } from '@/components/ui/progress';
 
 interface UserProfileMenuProps {
   userId: string;
@@ -28,9 +29,31 @@ interface UserData {
   avatarHint?: string;
 }
 
+interface UsageSummaryData {
+  planId: string;
+  planName: string;
+  examAnalysis: {
+    current: number;
+    limit: number | typeof Infinity;
+    percentage: number;
+  };
+  aiConsultation: {
+    current: number;
+    limit: number | typeof Infinity;
+    percentage: number;
+  };
+  doctorConsultation: {
+    current: number;
+    limit: number | typeof Infinity;
+    percentage: number;
+  };
+}
+
 export default function UserProfileMenu({ userId, role }: UserProfileMenuProps) {
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [usageData, setUsageData] = useState<UsageSummaryData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [usageLoading, setUsageLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -48,7 +71,26 @@ export default function UserProfileMenu({ userId, role }: UserProfileMenuProps) 
       }
     };
 
+    const fetchUsageData = async () => {
+      if (role === 'patient') {
+        try {
+          const response = await fetch('/api/check-limit');
+          if (response.ok) {
+            const data = await response.json();
+            setUsageData(data);
+          }
+        } catch (error) {
+          console.error('Failed to fetch usage data:', error);
+        } finally {
+          setUsageLoading(false);
+        }
+      } else {
+        setUsageLoading(false);
+      }
+    };
+
     fetchUserData();
+    fetchUsageData();
   }, [userId, role]);
 
   const handleLogout = async () => {
@@ -117,6 +159,81 @@ export default function UserProfileMenu({ userId, role }: UserProfileMenuProps) 
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-cyan-500/20" />
+        
+        {/* Usage Summary for Patients */}
+        {role === 'patient' && usageData && (
+          <>
+            <div className="px-2 py-3 space-y-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-cyan-300">Uso do Plano {usageData.planName}</span>
+                <Link href="/patient/subscription">
+                  <Button variant="ghost" size="sm" className="h-6 text-xs text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10">
+                    Upgrade
+                  </Button>
+                </Link>
+              </div>
+              
+              {/* Exam Analysis */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <FileText className="h-3 w-3 text-cyan-400" />
+                    <span className="text-slate-300">Exames</span>
+                  </div>
+                  <span className="text-slate-100 font-medium">
+                    {usageData.examAnalysis.current} / {usageData.examAnalysis.limit === Infinity ? '∞' : usageData.examAnalysis.limit}
+                  </span>
+                </div>
+                {usageData.examAnalysis.limit !== Infinity && (
+                  <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-300 ${
+                        usageData.examAnalysis.percentage >= 90 ? 'bg-red-500' :
+                        usageData.examAnalysis.percentage >= 70 ? 'bg-orange-500' : 'bg-green-500'
+                      }`}
+                      style={{ width: `${Math.min(usageData.examAnalysis.percentage, 100)}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* AI Consultation */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <Phone className="h-3 w-3 text-cyan-400" />
+                    <span className="text-slate-300">IA (min)</span>
+                  </div>
+                  <span className="text-slate-100 font-medium">
+                    {usageData.aiConsultation.current} / {usageData.aiConsultation.limit === Infinity ? '∞' : usageData.aiConsultation.limit}
+                  </span>
+                </div>
+                {usageData.aiConsultation.limit !== Infinity && (
+                  <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-300 ${
+                        usageData.aiConsultation.percentage >= 90 ? 'bg-red-500' :
+                        usageData.aiConsultation.percentage >= 70 ? 'bg-orange-500' : 'bg-green-500'
+                      }`}
+                      style={{ width: `${Math.min(usageData.aiConsultation.percentage, 100)}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            <DropdownMenuSeparator className="bg-cyan-500/20" />
+          </>
+        )}
+        
+        {role === 'patient' && usageLoading && (
+          <>
+            <div className="px-2 py-3 flex items-center justify-center">
+              <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />
+            </div>
+            <DropdownMenuSeparator className="bg-cyan-500/20" />
+          </>
+        )}
+        
         <DropdownMenuItem asChild className="cursor-pointer hover:bg-cyan-500/10 focus:bg-cyan-500/10">
           <Link href={role === 'patient' ? '/patient/dashboard' : role === 'doctor' ? '/doctor' : '/admin'} className="flex items-center gap-2">
             <LayoutDashboard className="h-4 w-4 text-cyan-400" />

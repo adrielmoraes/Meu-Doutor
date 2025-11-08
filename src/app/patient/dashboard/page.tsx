@@ -9,7 +9,6 @@ import { db } from '../../../../server/storage';
 import { appointments } from '../../../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { Suspense } from 'react';
-import UsageSummary from '@/components/patient/usage-summary';
 
 interface DashboardData {
     patient: Patient | null;
@@ -78,18 +77,13 @@ export default async function PatientDashboardPage() {
                </Alert>
            </div>
         ) : (
-            <div className="space-y-6">
-              <Suspense fallback={<div>Carregando...</div>}>
-                <UsageSummary />
-              </Suspense>
-              <Suspense fallback={<div>Carregando...</div>}>
-                <PatientDashboardImproved 
-                  patient={patient} 
-                  examCount={examCount}
-                  upcomingAppointments={upcomingAppointments}
-                />
-              </Suspense>
-            </div>
+            <Suspense fallback={<div>Carregando...</div>}>
+              <PatientDashboardImproved 
+                patient={patient} 
+                examCount={examCount}
+                upcomingAppointments={upcomingAppointments}
+              />
+            </Suspense>
         )}
     </>
   );
