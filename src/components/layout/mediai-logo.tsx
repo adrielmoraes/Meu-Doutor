@@ -43,61 +43,59 @@ export default function MediAILogo({ className, showText = true, size = 'md' }: 
           </filter>
         </defs>
         
-        {/* Outer Circle - Health Shield */}
-        <circle 
-          cx="50" 
-          cy="50" 
-          r="45" 
-          stroke="url(#logo-gradient-fixed)" 
-          strokeWidth="3" 
-          fill="none"
-          className="animate-pulse"
-          style={{ animationDuration: '3s' }}
-        />
-        
-        {/* Medical Cross */}
+        {/* Heart Shape - Main Logo */}
         <g filter="url(#glow)">
-          <rect 
-            x="45" 
-            y="25" 
-            width="10" 
-            height="50" 
-            rx="2"
+          <path
+            d="M50 85C50 85 15 65 15 40C15 30 20 20 30 20C37 20 43 25 50 32C57 25 63 20 70 20C80 20 85 30 85 40C85 65 50 85 50 85Z"
             fill="url(#logo-gradient-fixed)"
-          />
-          <rect 
-            x="25" 
-            y="45" 
-            width="50" 
-            height="10" 
-            rx="2"
-            fill="url(#logo-gradient-fixed)"
+            className="animate-pulse"
+            style={{ animationDuration: '3s' }}
           />
         </g>
         
-        {/* AI Brain Nodes */}
+        {/* Medical Cross inside Heart */}
+        <g filter="url(#glow)" opacity="0.9">
+          <rect 
+            x="47" 
+            y="35" 
+            width="6" 
+            height="30" 
+            rx="1.5"
+            fill="white"
+          />
+          <rect 
+            x="35" 
+            y="47" 
+            width="30" 
+            height="6" 
+            rx="1.5"
+            fill="white"
+          />
+        </g>
+        
+        {/* AI Brain Nodes - Positioned around heart */}
         <g opacity="0.8">
           {/* Top nodes */}
-          <circle cx="35" cy="30" r="3" fill="#f774c0" className="animate-pulse" style={{ animationDelay: '0s', animationDuration: '2s' }} />
-          <circle cx="65" cy="30" r="3" fill="#e85fb8" className="animate-pulse" style={{ animationDelay: '0.3s', animationDuration: '2s' }} />
+          <circle cx="35" cy="28" r="2.5" fill="#ffffff" className="animate-pulse" style={{ animationDelay: '0s', animationDuration: '2s' }} />
+          <circle cx="65" cy="28" r="2.5" fill="#ffffff" className="animate-pulse" style={{ animationDelay: '0.3s', animationDuration: '2s' }} />
           
           {/* Middle nodes */}
-          <circle cx="30" cy="50" r="3" fill="#d94aaf" className="animate-pulse" style={{ animationDelay: '0.6s', animationDuration: '2s' }} />
-          <circle cx="70" cy="50" r="3" fill="#f774c0" className="animate-pulse" style={{ animationDelay: '0.9s', animationDuration: '2s' }} />
+          <circle cx="25" cy="45" r="2.5" fill="#ffffff" className="animate-pulse" style={{ animationDelay: '0.6s', animationDuration: '2s' }} />
+          <circle cx="75" cy="45" r="2.5" fill="#ffffff" className="animate-pulse" style={{ animationDelay: '0.9s', animationDuration: '2s' }} />
           
           {/* Bottom nodes */}
-          <circle cx="35" cy="70" r="3" fill="#e85fb8" className="animate-pulse" style={{ animationDelay: '1.2s', animationDuration: '2s' }} />
-          <circle cx="65" cy="70" r="3" fill="#d94aaf" className="animate-pulse" style={{ animationDelay: '1.5s', animationDuration: '2s' }} />
+          <circle cx="40" cy="70" r="2.5" fill="#ffffff" className="animate-pulse" style={{ animationDelay: '1.2s', animationDuration: '2s' }} />
+          <circle cx="60" cy="70" r="2.5" fill="#ffffff" className="animate-pulse" style={{ animationDelay: '1.5s', animationDuration: '2s' }} />
         </g>
         
         {/* Connection lines (Neural Network) */}
-        <g opacity="0.3" stroke="url(#logo-gradient-fixed)" strokeWidth="1">
-          <line x1="35" y1="30" x2="50" y2="40" />
-          <line x1="65" y1="30" x2="50" y2="40" />
-          <line x1="30" y1="50" x2="50" y2="50" />
-          <line x1="70" y1="50" x2="50" y2="50" />
-          <line x1="35" y1="70" x2="50" y2="60" />
-          <line x1="65" y1="70" x2="50" y2="60" />
+        <g opacity="0.25" stroke="white" strokeWidth="1.5">
+          <line x1="35" y1="28" x2="47" y2="40" />
+          <line x1="65" y1="28" x2="53" y2="40" />
+          <line x1="25" y1="45" x2="40" y2="50" />
+          <line x1="75" y1="45" x2="60" y2="50" />
+          <line x1="40" y1="70" x2="47" y2="60" />
+          <line x1="60" y1="70" x2="53" y2="60" />
         </g>
       </svg>
       
