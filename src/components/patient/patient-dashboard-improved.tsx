@@ -9,7 +9,7 @@ import { PatientHeader } from './patient-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-
+import { MediAILogo } from "./medi-ai-logo"; // Assuming MediAILogo is in a component file
 
 
 
@@ -138,9 +138,11 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
       <div className="relative z-10 p-4 sm:p-6 lg:p-8">
         {/* Welcome Section */}
         <div className="mb-8 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm text-primary font-medium">Portal do Paciente</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-sm">
+            <Sparkles className="h-4 w-4 text-cyan-400" />
+            <span className="text-sm text-cyan-300 font-medium">
+              Portal do Paciente
+            </span>
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
@@ -224,9 +226,9 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
               >
                 <source src="/ai-assistant-video.mp4" type="video/mp4" />
               </video>
-              
+
               <div className="absolute inset-0 bg-gradient-to-br from-purple-900/40 via-pink-900/40 to-purple-900/40" />
-              
+
               <CardContent className="p-6 md:p-8 lg:p-10 relative z-10">
                 <div className="flex flex-col items-start gap-3 md:gap-4">
                   <div className="flex items-center gap-2 md:gap-3 mb-1">

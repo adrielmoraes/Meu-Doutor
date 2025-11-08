@@ -22,14 +22,15 @@ export default function MediAILogo({
   const currentSize = sizes[size];
 
   return (
-    <div className={cn("flex items-center -gap-0 group", className)}>
+    <div className={cn("flex items-center gap-1 group", className)}>
       <svg
         width={currentSize.icon}
         height={currentSize.icon}
         viewBox="0 0 100 100"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="transition-all duration-300 group-hover:scale-110"
+        className="transition-all duration-300 group-hover:scale-110 flex-shrink-0"
+        style={{ minWidth: currentSize.icon, minHeight: currentSize.icon }}
       >
         <defs>
           <linearGradient
