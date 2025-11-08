@@ -5,6 +5,7 @@ import { Users, Calendar, History, Sparkles, Activity, TrendingUp, Clock } from 
 import Link from "next/link";
 import { OnlineStatusToggle } from "@/components/doctor/online-status-toggle";
 import type { Doctor } from "@/types";
+import MediAILogo from "@/components/layout/mediai-logo";
 
 interface DoctorDashboardImprovedProps {
   doctor: Doctor;
@@ -13,11 +14,11 @@ interface DoctorDashboardImprovedProps {
   completedConsultations: number;
 }
 
-export default function DoctorDashboardImproved({ 
-  doctor, 
-  totalPatients, 
+export default function DoctorDashboardImproved({
+  doctor,
+  totalPatients,
   upcomingAppointments,
-  completedConsultations 
+  completedConsultations
 }: DoctorDashboardImprovedProps) {
 
     const stats = [
@@ -87,22 +88,26 @@ export default function DoctorDashboardImproved({
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
       <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
-      
+
       <div className="relative z-10 p-8">
         {/* Header */}
         <div className="mb-12 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-sm">
-            <Sparkles className="h-4 w-4 text-cyan-400" />
-            <span className="text-sm text-cyan-300 font-medium">Portal do Médico</span>
+          <div className="flex items-center justify-between">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-sm">
+              <Sparkles className="h-4 w-4 text-cyan-400" />
+              <span className="text-sm text-cyan-300 font-medium">Portal do Médico</span>
+            </div>
+            <MediAILogo className="h-12 w-auto" />
           </div>
-          
+
+
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
             Bem-vindo, Dr. {doctor.name.split(' ')[0]}
           </h1>
           <p className="text-lg text-blue-200/70">
             Gerencie seus pacientes, agenda e histórico de forma eficiente.
           </p>
-          
+
           {/* Status Online/Offline Toggle */}
           <div className="max-w-md">
             <OnlineStatusToggle initialStatus={doctor.online || false} doctorName={doctor.name} />
@@ -118,7 +123,7 @@ export default function DoctorDashboardImproved({
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-100 transition-opacity`}></div>
-              
+
               <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-blue-200/80">
                   {stat.title}
@@ -136,7 +141,7 @@ export default function DoctorDashboardImproved({
             </Card>
           ))}
         </div>
-        
+
         {/* Navigation Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {navigationCards.map(card => (
@@ -145,7 +150,7 @@ export default function DoctorDashboardImproved({
               className={`group relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border ${card.borderColor} ${card.hoverBorder} transition-all duration-300 hover:shadow-2xl ${card.hoverShadow} overflow-hidden transform hover:scale-105`}
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity`}></div>
-              
+
               <Link href={card.href} className="block h-full relative">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-xl font-bold text-cyan-300">

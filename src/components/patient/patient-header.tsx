@@ -1,6 +1,6 @@
 'use client';
 
-import { Menu, LogOut, User, Mail, Phone, MapPin, Activity, CreditCard } from 'lucide-react';
+import { Menu, LogOut, User, Mail, Phone, MapPin, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -16,6 +16,7 @@ import type { Patient } from '@/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ThemeToggle } from '@/components/theme-toggle';
+import MediAILogo from '@/components/layout/mediai-logo';
 
 interface PatientHeaderProps {
   patient: Patient;
@@ -47,9 +48,7 @@ export function PatientHeader({ patient }: PatientHeaderProps) {
         <div className="flex h-16 items-center justify-between">
           {/* Logo/Brand */}
           <Link href="/patient/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <Activity className="h-5 w-5 text-primary-foreground" />
-            </div>
+            <MediAILogo className="h-8 w-8" />
             <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hidden sm:block">
               MediAI
             </span>
@@ -58,7 +57,7 @@ export function PatientHeader({ patient }: PatientHeaderProps) {
           {/* Theme Toggle and User Menu */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            
+
             <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
