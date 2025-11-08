@@ -1,0 +1,58 @@
+08:47:27.417 Running build in Washington, D.C., USA (East) – iad1
+08:47:27.417 Build machine configuration: 2 cores, 8 GB
+08:47:27.548 Cloning github.com/adrielmoraes/Meu-Doutor (Branch: main, Commit: e15d9c3)
+08:47:30.730 Cloning completed: 3.182s
+08:47:30.821 Found .vercelignore
+08:47:30.832 Removed 49 ignored files defined in .vercelignore
+08:47:30.832   /.replit
+08:47:30.832   /.vscode/settings.json
+08:47:30.832   /ADMIN_ACCESS.md
+08:47:30.832   /ADMIN_NOTIFICATIONS_GUIDE.md
+08:47:30.833   /ADMIN_SETTINGS_GUIDE.md
+08:47:30.833   /attached_assets/content-1760651114897.md
+08:47:30.833   /attached_assets/content-1760651211382.md
+08:47:30.833   /attached_assets/content-1760651260830.md
+08:47:30.833   /attached_assets/content-1760651411236.md
+08:47:30.833   /attached_assets/content-1760651452120.md
+08:47:30.921 Restored build cache from previous deployment (3cFE5u7uGwg4SJpxgaSr8eC8ifpF)
+08:47:31.051 Running "git diff --quiet HEAD^ HEAD ./"
+08:47:32.037 Running "vercel build"
+08:47:32.417 Vercel CLI 48.9.0
+08:47:32.782 Running "install" command: `npm install`...
+08:47:36.824 
+08:47:36.824 up to date, audited 1255 packages in 4s
+08:47:36.824 
+08:47:36.825 148 packages are looking for funding
+08:47:36.825   run `npm fund` for details
+08:47:36.880 
+08:47:36.880 9 vulnerabilities (2 low, 6 moderate, 1 high)
+08:47:36.881 
+08:47:36.881 To address issues that do not require attention, run:
+08:47:36.881   npm audit fix
+08:47:36.881 
+08:47:36.882 To address all issues (including breaking changes), run:
+08:47:36.882   npm audit fix --force
+08:47:36.882 
+08:47:36.882 Run `npm audit` for details.
+08:47:36.915 Detected Next.js version: 15.3.3
+08:47:36.916 Running "npm run build"
+08:47:37.027 
+08:47:37.027 > nextn@0.1.0 build
+08:47:37.027 > next build
+08:47:37.028 
+08:47:38.016    ▲ Next.js 15.3.3
+08:47:38.017 
+08:47:38.047    Creating an optimized production build ...
+08:47:58.267 Failed to compile.
+08:47:58.267 
+08:47:58.267 ./src/components/patient/actions.ts
+08:47:58.267 Module not found: Can't resolve '@/app/api/auth/[...nextauth]/route'
+08:47:58.267 
+08:47:58.267 https://nextjs.org/docs/messages/module-not-found
+08:47:58.267 
+08:47:58.267 Import trace for requested module:
+08:47:58.267 ./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fvercel%2Fpath0%2Fsrc%2Fcomponents%2Fpatient%2Factions.ts%22%2C%5B%7B%22id%22%3A%2240ef56113d8898c72556cb95fc8435dde8f70e50bf%22%2C%22exportedName%22%3A%22createAppointmentAction%22%7D%2C%7B%22id%22%3A%226012e9f6629f62fde8ae6bf4e7b7855482985a2bdf%22%2C%22exportedName%22%3A%22addExamAction%22%7D%2C%7B%22id%22%3A%226077f997cb4c858235184fae75812aaa3e76cf4c89%22%2C%22exportedName%22%3A%22saveConversationHistoryAction%22%7D%2C%7B%22id%22%3A%2260ec81a91613ae55982fb2b5a99dada0c38b97aaca%22%2C%22exportedName%22%3A%22deleteExamAction%22%7D%2C%7B%22id%22%3A%2260ef794638ffebea28d56d934200d9372bc5232851%22%2C%22exportedName%22%3A%22saveExamAnalysisAction%22%7D%5D%5D%5D&__client_imported__=true!
+08:47:58.267 
+08:47:58.270 
+08:47:58.271 > Build failed because of webpack errors
+08:47:58.305 Error: Command "npm run build" exited with 1
