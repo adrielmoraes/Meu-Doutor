@@ -22,7 +22,7 @@ export default function MediAILogo({
   const currentSize = sizes[size];
 
   return (
-    <div className={cn("flex items-center gap-0.1 group", className)}>
+    <div className={cn("flex items-center gap-0 group", className)}>
       <svg
         width={currentSize.icon}
         height={currentSize.icon}
