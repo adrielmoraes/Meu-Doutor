@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { saveExamAnalysisAction } from "./actions";
 import { analyzeMedicalExam } from "@/ai/flows/analyze-medical-exam";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileUp, Camera, X, Loader2, Send } from "lucide-react";
+import { FileUp, Camera, X, Loader2, Send, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import {
   AlertDialog,
