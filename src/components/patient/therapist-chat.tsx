@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { AudioMessage } from './audio-message';
+import MediAILogo from '@/components/layout/mediai-logo';
 
 type Message = {
   id: string;
@@ -259,11 +260,7 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
               <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
           </Link>
-          <Avatar className="h-8 w-8 md:h-10 md:w-10 shrink-0">
-            <AvatarFallback className="bg-gradient-to-br from-pink-400 to-pink-600 dark:from-primary dark:to-primary/80 text-white text-xs md:text-sm">
-              TA
-            </AvatarFallback>
-          </Avatar>
+          <MediAILogo size="md" showText={true} className="shrink-0" />
           <div className="flex-1 min-w-0">
             <h2 className="text-sm md:text-lg font-semibold text-foreground truncate">Terapeuta IA</h2>
             <p className="text-xs md:text-sm text-muted-foreground truncate">Assistente pessoal de saúde</p>
