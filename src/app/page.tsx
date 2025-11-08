@@ -1,9 +1,27 @@
-'use client';
+"use client";
 
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/header";
 import Link from "next/link";
-import { Stethoscope, ShieldCheck, Zap, ArrowRight, Sparkles, Lock, Brain, Activity, HeartPulse, Check, Upload, Video, MessageSquare, Star, CheckCircle2, Clock, Users } from "lucide-react";
+import {
+  Stethoscope,
+  ShieldCheck,
+  Zap,
+  ArrowRight,
+  Sparkles,
+  Lock,
+  Brain,
+  Activity,
+  HeartPulse,
+  Check,
+  Upload,
+  Video,
+  MessageSquare,
+  Star,
+  CheckCircle2,
+  Clock,
+  Users,
+} from "lucide-react";
 import MediAILogo from "@/components/layout/mediai-logo";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -15,12 +33,15 @@ export default function LandingPage() {
     // Verificar se usuário está autenticado
     async function checkAuth() {
       try {
-        const res = await fetch('/api/session', { credentials: 'include' });
+        const res = await fetch("/api/session", { credentials: "include" });
         if (res.ok) {
           const data = await res.json();
           if (data.session && data.session.role) {
             // Usuário autenticado, redirecionar para dashboard
-            const dashboardUrl = data.session.role === 'patient' ? '/patient/dashboard' : '/doctor';
+            const dashboardUrl =
+              data.session.role === "patient"
+                ? "/patient/dashboard"
+                : "/doctor";
             router.replace(dashboardUrl);
           }
         }
@@ -52,12 +73,18 @@ export default function LandingPage() {
                 </h1>
 
                 <p className="max-w-[700px] text-lg md:text-xl text-blue-100/80 leading-relaxed">
-                  Diagnósticos instantâneos com IA, consultas em tempo real e monitoramento personalizado. Sua saúde revolucionada pela inteligência artificial.
+                  Diagnósticos instantâneos com IA, consultas em tempo real e
+                  monitoramento personalizado. Sua saúde revolucionada pela
+                  inteligência artificial.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Button asChild size="lg" className="h-14 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold text-lg px-8 rounded-xl shadow-2xl shadow-cyan-500/20 transition-all duration-300 transform hover:scale-105 hover:shadow-cyan-500/40">
-                    <Link href="/register/patient" className="flex items-center gap-2">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="h-14 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold text-lg px-8 rounded-xl shadow-2xl shadow-cyan-500/20 transition-all duration-300 transform hover:scale-105 hover:shadow-cyan-500/40"
+                  >
+                    <Link href="/register" className="flex items-center gap-2">
                       Começar Agora
                       <ArrowRight className="h-5 w-5" />
                     </Link>
@@ -68,14 +95,20 @@ export default function LandingPage() {
                 <div className="flex flex-wrap gap-8 pt-8">
                   <div className="space-y-1">
                     <div className="text-3xl font-bold text-cyan-400">45+</div>
-                    <div className="text-sm text-blue-200/70">Especialistas IA</div>
+                    <div className="text-sm text-blue-200/70">
+                      Especialistas IA
+                    </div>
                   </div>
                   <div className="space-y-1">
                     <div className="text-3xl font-bold text-cyan-400">24/7</div>
-                    <div className="text-sm text-blue-200/70">Disponibilidade</div>
+                    <div className="text-sm text-blue-200/70">
+                      Disponibilidade
+                    </div>
                   </div>
                   <div className="space-y-1">
-                    <div className="text-3xl font-bold text-cyan-400">99.9%</div>
+                    <div className="text-3xl font-bold text-cyan-400">
+                      99.9%
+                    </div>
                     <div className="text-sm text-blue-200/70">Precisão</div>
                   </div>
                 </div>
@@ -88,8 +121,12 @@ export default function LandingPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-2xl p-6 border border-cyan-500/20">
                       <Brain className="h-12 w-12 text-cyan-400 mb-4" />
-                      <h3 className="font-bold text-lg mb-2">IA Conversacional</h3>
-                      <p className="text-sm text-blue-200/70">Converse naturalmente com nossos agentes especializados</p>
+                      <h3 className="font-bold text-lg mb-2">
+                        IA Conversacional
+                      </h3>
+                      <p className="text-sm text-blue-200/70">
+                        Converse naturalmente com nossos agentes especializados
+                      </p>
                     </div>
                     <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl p-6 border border-purple-500/20">
                       <Activity className="h-10 w-10 text-purple-400 mb-3" />
@@ -116,7 +153,8 @@ export default function LandingPage() {
                 Recursos Revolucionários
               </h2>
               <p className="text-lg text-blue-200/70 max-w-3xl mx-auto">
-                Tecnologia de ponta para transformar completamente sua experiência de saúde
+                Tecnologia de ponta para transformar completamente sua
+                experiência de saúde
               </p>
             </div>
 
@@ -128,9 +166,12 @@ export default function LandingPage() {
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
                     <Zap className="h-7 w-7 text-cyan-400" />
                   </div>
-                  <h3 className="text-2xl font-bold">Diagnóstico Instantâneo</h3>
+                  <h3 className="text-2xl font-bold">
+                    Diagnóstico Instantâneo
+                  </h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    Upload de exames com análise por mais de 45 especialistas IA em segundos. Resultados detalhados em linguagem clara.
+                    Upload de exames com análise por mais de 45 especialistas IA
+                    em segundos. Resultados detalhados em linguagem clara.
                   </p>
                 </div>
               </div>
@@ -143,7 +184,8 @@ export default function LandingPage() {
                   </div>
                   <h3 className="text-2xl font-bold">Consultas ao Vivo</h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    Converse por voz e vídeo com IA médica avançada. Conexão direta com médicos reais quando necessário.
+                    Converse por voz e vídeo com IA médica avançada. Conexão
+                    direta com médicos reais quando necessário.
                   </p>
                 </div>
               </div>
@@ -156,7 +198,8 @@ export default function LandingPage() {
                   </div>
                   <h3 className="text-2xl font-bold">100% Seguro</h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    Criptografia end-to-end, conformidade LGPD e proteção total dos seus dados médicos sensíveis.
+                    Criptografia end-to-end, conformidade LGPD e proteção total
+                    dos seus dados médicos sensíveis.
                   </p>
                 </div>
               </div>
@@ -169,7 +212,9 @@ export default function LandingPage() {
                   </div>
                   <h3 className="text-2xl font-bold">45+ Especialistas IA</h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    Cardiologia, neurologia, dermatologia e mais de 40 outras especialidades. Cada especialista analisa seu caso em paralelo.
+                    Cardiologia, neurologia, dermatologia e mais de 40 outras
+                    especialidades. Cada especialista analisa seu caso em
+                    paralelo.
                   </p>
                 </div>
               </div>
@@ -182,7 +227,8 @@ export default function LandingPage() {
                   </div>
                   <h3 className="text-2xl font-bold">Monitoramento Contínuo</h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    Acompanhamento personalizado da sua saúde com alertas inteligentes e recomendações proativas.
+                    Acompanhamento personalizado da sua saúde com alertas
+                    inteligentes e recomendações proativas.
                   </p>
                 </div>
               </div>
@@ -193,9 +239,12 @@ export default function LandingPage() {
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-500/20 to-rose-500/20 flex items-center justify-center">
                     <HeartPulse className="h-7 w-7 text-pink-400" />
                   </div>
-                  <h3 className="text-2xl font-bold">Bem-Estar Personalizado</h3>
+                  <h3 className="text-2xl font-bold">
+                    Bem-Estar Personalizado
+                  </h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    Recomendações de nutrição, exercícios e lifestyle baseadas em IA para seu perfil único.
+                    Recomendações de nutrição, exercícios e lifestyle baseadas
+                    em IA para seu perfil único.
                   </p>
                 </div>
               </div>
@@ -228,7 +277,8 @@ export default function LandingPage() {
                   </div>
                   <h3 className="text-2xl font-bold mb-4">Envie seus Exames</h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    Upload de documentos médicos, exames de sangue, imagens ou relatórios. Suporte para PDF, JPG, PNG.
+                    Upload de documentos médicos, exames de sangue, imagens ou
+                    relatórios. Suporte para PDF, JPG, PNG.
                   </p>
                 </div>
               </div>
@@ -241,9 +291,12 @@ export default function LandingPage() {
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mb-6">
                     <Brain className="h-7 w-7 text-purple-400" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4">IA Analisa em Paralelo</h3>
+                  <h3 className="text-2xl font-bold mb-4">
+                    IA Analisa em Paralelo
+                  </h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    Mais de 45 especialistas IA examinam simultaneamente: cardiologista, neurologista, dermatologista e muito mais.
+                    Mais de 45 especialistas IA examinam simultaneamente:
+                    cardiologista, neurologista, dermatologista e muito mais.
                   </p>
                 </div>
               </div>
@@ -258,7 +311,8 @@ export default function LandingPage() {
                   </div>
                   <h3 className="text-2xl font-bold mb-4">Consulta ao Vivo</h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    Converse com IA médica por voz e vídeo. Receba diagnóstico detalhado e plano de tratamento personalizado.
+                    Converse com IA médica por voz e vídeo. Receba diagnóstico
+                    detalhado e plano de tratamento personalizado.
                   </p>
                 </div>
               </div>
@@ -269,7 +323,9 @@ export default function LandingPage() {
               <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-3xl p-8 border border-cyan-500/20 shadow-2xl">
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-semibold text-cyan-400">CONSULTA AO VIVO</span>
+                  <span className="text-sm font-semibold text-cyan-400">
+                    CONSULTA AO VIVO
+                  </span>
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
@@ -278,7 +334,9 @@ export default function LandingPage() {
                     </div>
                     <div className="flex-1 bg-cyan-500/10 rounded-2xl rounded-tl-none p-4 border border-cyan-500/20">
                       <p className="text-sm text-blue-100">
-                        Olá! Sou a Dra. Sofia, sua assistente médica IA. Analisei seus exames e identifiquei alguns pontos importantes para discutirmos...
+                        Olá! Sou a Dra. Sofia, sua assistente médica IA.
+                        Analisei seus exames e identifiquei alguns pontos
+                        importantes para discutirmos...
                       </p>
                     </div>
                   </div>
@@ -305,7 +363,9 @@ export default function LandingPage() {
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star key={star} className="h-6 w-6 fill-current" />
                 ))}
-                <span className="ml-2 text-blue-200/70 text-lg">4.9/5 de 2.500+ avaliações</span>
+                <span className="ml-2 text-blue-200/70 text-lg">
+                  4.9/5 de 2.500+ avaliações
+                </span>
               </div>
             </div>
 
@@ -317,15 +377,21 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <p className="text-blue-100 mb-6 leading-relaxed">
-                  "Incrível! Recebi meu diagnóstico preliminar em minutos. A análise foi tão detalhada que meu médico ficou impressionado. Economizei semanas de espera."
+                  "Incrível! Recebi meu diagnóstico preliminar em minutos. A
+                  análise foi tão detalhada que meu médico ficou impressionado.
+                  Economizei semanas de espera."
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-lg font-bold">
                     MC
                   </div>
                   <div>
-                    <div className="font-semibold text-cyan-300">Maria Clara</div>
-                    <div className="text-sm text-blue-200/60">Paciente desde Jan 2025</div>
+                    <div className="font-semibold text-cyan-300">
+                      Maria Clara
+                    </div>
+                    <div className="text-sm text-blue-200/60">
+                      Paciente desde Jan 2025
+                    </div>
                   </div>
                 </div>
               </div>
@@ -337,15 +403,21 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <p className="text-blue-100 mb-6 leading-relaxed">
-                  "A consulta por vídeo com a IA é surpreendentemente natural. Tirei todas minhas dúvidas e recebi um plano de bem-estar personalizado. Simplesmente fantástico!"
+                  "A consulta por vídeo com a IA é surpreendentemente natural.
+                  Tirei todas minhas dúvidas e recebi um plano de bem-estar
+                  personalizado. Simplesmente fantástico!"
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-lg font-bold">
                     RS
                   </div>
                   <div>
-                    <div className="font-semibold text-purple-300">Roberto Silva</div>
-                    <div className="text-sm text-blue-200/60">Paciente desde Dez 2024</div>
+                    <div className="font-semibold text-purple-300">
+                      Roberto Silva
+                    </div>
+                    <div className="text-sm text-blue-200/60">
+                      Paciente desde Dez 2024
+                    </div>
                   </div>
                 </div>
               </div>
@@ -357,15 +429,21 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <p className="text-blue-100 mb-6 leading-relaxed">
-                  "Como médica, fiquei impressionada com a profundidade da análise. É uma ferramenta poderosa para triagem e segunda opinião. Recomendo fortemente!"
+                  "Como médica, fiquei impressionada com a profundidade da
+                  análise. É uma ferramenta poderosa para triagem e segunda
+                  opinião. Recomendo fortemente!"
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-lg font-bold">
                     AP
                   </div>
                   <div>
-                    <div className="font-semibold text-emerald-300">Dra. Ana Paula</div>
-                    <div className="text-sm text-blue-200/60">Cardiologista</div>
+                    <div className="font-semibold text-emerald-300">
+                      Dra. Ana Paula
+                    </div>
+                    <div className="text-sm text-blue-200/60">
+                      Cardiologista
+                    </div>
                   </div>
                 </div>
               </div>
@@ -384,25 +462,33 @@ export default function LandingPage() {
                 <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
                   2.5K+
                 </div>
-                <div className="text-blue-200/70 font-medium">Pacientes Ativos</div>
+                <div className="text-blue-200/70 font-medium">
+                  Pacientes Ativos
+                </div>
               </div>
               <div className="text-center space-y-2">
                 <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                   10K+
                 </div>
-                <div className="text-blue-200/70 font-medium">Exames Analisados</div>
+                <div className="text-blue-200/70 font-medium">
+                  Exames Analisados
+                </div>
               </div>
               <div className="text-center space-y-2">
                 <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
                   99.9%
                 </div>
-                <div className="text-blue-200/70 font-medium">Taxa de Satisfação</div>
+                <div className="text-blue-200/70 font-medium">
+                  Taxa de Satisfação
+                </div>
               </div>
               <div className="text-center space-y-2">
                 <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
                   24/7
                 </div>
-                <div className="text-blue-200/70 font-medium">Disponibilidade</div>
+                <div className="text-blue-200/70 font-medium">
+                  Disponibilidade
+                </div>
               </div>
             </div>
           </div>
@@ -419,18 +505,24 @@ export default function LandingPage() {
                 Experimente Gratuitamente por 7 Dias
               </h2>
               <p className="text-xl text-blue-200/70">
-                Teste todos os recursos premium sem compromisso. Cancele quando quiser.
+                Teste todos os recursos premium sem compromisso. Cancele quando
+                quiser.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                <Button asChild size="lg" className="h-14 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold text-lg px-10 rounded-xl shadow-2xl shadow-cyan-500/30 transition-all duration-300 transform hover:scale-105">
-                  <Link href="/register">
-                    Começar Teste Grátis
-                  </Link>
+                <Button
+                  asChild
+                  size="lg"
+                  className="h-14 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold text-lg px-10 rounded-xl shadow-2xl shadow-cyan-500/30 transition-all duration-300 transform hover:scale-105"
+                >
+                  <Link href="/register">Começar Teste Grátis</Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="h-14 border-2 border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/10 font-semibold text-lg px-10 rounded-xl backdrop-blur-sm">
-                  <Link href="/pricing">
-                    Ver Planos e Preços
-                  </Link>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="h-14 border-2 border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/10 font-semibold text-lg px-10 rounded-xl backdrop-blur-sm"
+                >
+                  <Link href="/pricing">Ver Planos e Preços</Link>
                 </Button>
               </div>
             </div>
@@ -450,27 +542,72 @@ export default function LandingPage() {
             <div className="space-y-4">
               <h4 className="font-semibold text-cyan-400">Produto</h4>
               <ul className="space-y-2 text-sm text-blue-200/70">
-                <li><Link href="/pricing" className="hover:text-cyan-300 transition-colors">Preços</Link></li>
-                <li><Link href="#features" className="hover:text-cyan-300 transition-colors">Recursos</Link></li>
+                <li>
+                  <Link
+                    href="/pricing"
+                    className="hover:text-cyan-300 transition-colors"
+                  >
+                    Preços
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="#features"
+                    className="hover:text-cyan-300 transition-colors"
+                  >
+                    Recursos
+                  </Link>
+                </li>
               </ul>
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold text-cyan-400">Empresa</h4>
               <ul className="space-y-2 text-sm text-blue-200/70">
-                <li><Link href="/sobre" className="hover:text-cyan-300 transition-colors">Sobre</Link></li>
-                <li><Link href="/contato" className="hover:text-cyan-300 transition-colors">Contato</Link></li>
+                <li>
+                  <Link
+                    href="/sobre"
+                    className="hover:text-cyan-300 transition-colors"
+                  >
+                    Sobre
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/contato"
+                    className="hover:text-cyan-300 transition-colors"
+                  >
+                    Contato
+                  </Link>
+                </li>
               </ul>
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold text-cyan-400">Legal</h4>
               <ul className="space-y-2 text-sm text-blue-200/70">
-                <li><Link href="/privacidade" className="hover:text-cyan-300 transition-colors">Privacidade</Link></li>
-                <li><Link href="/termos" className="hover:text-cyan-300 transition-colors">Termos</Link></li>
+                <li>
+                  <Link
+                    href="/privacidade"
+                    className="hover:text-cyan-300 transition-colors"
+                  >
+                    Privacidade
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/termos"
+                    className="hover:text-cyan-300 transition-colors"
+                  >
+                    Termos
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
           <div className="pt-8 border-t border-cyan-500/10 text-center text-sm text-blue-200/50">
-            <p>&copy; {new Date().getFullYear()} MediAI. Todos os direitos reservados.</p>
+            <p>
+              &copy; {new Date().getFullYear()} MediAI. Todos os direitos
+              reservados.
+            </p>
           </div>
         </div>
       </footer>
