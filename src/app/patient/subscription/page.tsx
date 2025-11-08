@@ -323,7 +323,10 @@ export default function SubscriptionPage() {
 
                 <Button
                   onClick={() => handleSubscribe(plan.id, plan.stripePriceId)}
-                  disabled={loading === plan.id || subscriptionStatus?.hasActiveSubscription}
+                  disabled={
+                    loading === plan.id || 
+                    (subscriptionStatus?.subscription?.planId === plan.id && subscriptionStatus?.hasActiveSubscription)
+                  }
                   className={`w-full text-white ${
                     plan.id === 'trial'
                       ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 dark:from-cyan-500 dark:to-blue-500 dark:hover:from-cyan-600 dark:hover:to-blue-600'
@@ -337,10 +340,15 @@ export default function SubscriptionPage() {
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Processando...
                     </>
-                  ) : subscriptionStatus?.hasActiveSubscription ? (
+                  ) : subscriptionStatus?.subscription?.planId === plan.id && subscriptionStatus?.hasActiveSubscription ? (
                     <>
                       <Check className="h-4 w-4 mr-2" />
-                      Assinado
+                      Plano Atual
+                    </>
+                  ) : subscriptionStatus?.hasActiveSubscription ? (
+                    <>
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Migrar para este Plano
                     </>
                   ) : (
                     <>

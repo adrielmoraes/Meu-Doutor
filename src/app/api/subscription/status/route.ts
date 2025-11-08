@@ -37,6 +37,7 @@ export async function GET(req: NextRequest) {
       hasActiveSubscription,
       subscription: {
         id: subscription.id,
+        planId: subscription.planId,
         status: subscription.status,
         currentPeriodEnd: subscription.currentPeriodEnd,
         cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
