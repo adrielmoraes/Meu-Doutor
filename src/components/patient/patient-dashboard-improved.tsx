@@ -1,6 +1,6 @@
 'use client';
 
-import { FileClock, UserPlus, HeartPulse, Video, Activity, User, Upload, Brain, Calendar, TrendingUp, Award, Sparkles, MessageCircle, LayoutDashboard, FileText, Heart, Users } from "lucide-react";
+import { FileClock, UserPlus, HeartPulse, Video, Activity, User, Upload, Brain, Calendar, TrendingUp, Award, Sparkles, MessageCircle, LayoutDashboard, FileText, Heart, Users, Apple, Dumbbell, BrainCircuit } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import type { Patient } from "@/types";
@@ -273,9 +273,28 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                 Acompanhe todos os seus exames e laudos de forma organizada e acessível.
               </p>
             </div>
-            {/* Placeholder for Exam History */}
-            <Card className="p-8">
-              <p className="text-center text-foreground/80 dark:text-muted-foreground">Seu histórico de exames será exibido aqui.</p>
+            <Card className="bg-card/80 backdrop-blur-sm border-2 border-border">
+              <CardContent className="p-8 text-center space-y-4">
+                <FileClock className="h-16 w-16 text-amber-400 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-foreground dark:text-card-foreground">Acesse seus exames</h3>
+                <p className="text-foreground/80 dark:text-muted-foreground max-w-md mx-auto">
+                  Visualize todos os exames que você enviou, suas análises da IA e acompanhe a evolução dos seus resultados ao longo do tempo.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+                  <Link href="/patient/history">
+                    <Button size="lg" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90">
+                      <FileText className="mr-2 h-5 w-5" />
+                      Ver Histórico Completo
+                    </Button>
+                  </Link>
+                  <Link href="/patient/upload-exam">
+                    <Button size="lg" variant="outline">
+                      <Upload className="mr-2 h-5 w-5" />
+                      Enviar Novo Exame
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
             </Card>
           </TabsContent>
 
@@ -289,9 +308,38 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                 Descubra recomendações personalizadas para otimizar sua saúde e qualidade de vida.
               </p>
             </div>
-            {/* Placeholder for Wellness Plan */}
-            <Card className="p-8">
-              <p className="text-center text-foreground/80 dark:text-muted-foreground">Seu plano de bem-estar será exibido aqui.</p>
+            <Card className="bg-card/80 backdrop-blur-sm border-2 border-border">
+              <CardContent className="p-8 text-center space-y-4">
+                <HeartPulse className="h-16 w-16 text-pink-400 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-foreground dark:text-card-foreground">Plano Personalizado de Saúde</h3>
+                <p className="text-foreground/80 dark:text-muted-foreground max-w-md mx-auto">
+                  Acesse seu plano de bem-estar criado pela IA Nutricionista com base nos seus exames. Inclui plano alimentar, exercícios, bem-estar mental e muito mais.
+                </p>
+                <div className="grid grid-cols-2 gap-3 max-w-md mx-auto mt-4">
+                  <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                    <Apple className="h-6 w-6 text-green-500 mx-auto mb-1" />
+                    <p className="text-xs font-medium">Alimentação</p>
+                  </div>
+                  <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                    <Dumbbell className="h-6 w-6 text-orange-500 mx-auto mb-1" />
+                    <p className="text-xs font-medium">Exercícios</p>
+                  </div>
+                  <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                    <BrainCircuit className="h-6 w-6 text-purple-500 mx-auto mb-1" />
+                    <p className="text-xs font-medium">Saúde Mental</p>
+                  </div>
+                  <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                    <Calendar className="h-6 w-6 text-blue-500 mx-auto mb-1" />
+                    <p className="text-xs font-medium">Rotina Semanal</p>
+                  </div>
+                </div>
+                <Link href="/patient/wellness" className="inline-block mt-6">
+                  <Button size="lg" className="bg-gradient-to-r from-pink-500 to-rose-500 hover:opacity-90">
+                    <HeartPulse className="mr-2 h-5 w-5" />
+                    Ver Meu Plano Completo
+                  </Button>
+                </Link>
+              </CardContent>
             </Card>
           </TabsContent>
 
@@ -305,9 +353,22 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                 Visualize suas consultas futuras e passadas. Agende novos atendimentos com facilidade.
               </p>
             </div>
-            {/* Placeholder for Appointments */}
-            <Card className="p-8">
-              <p className="text-center text-foreground/80 dark:text-muted-foreground">Suas consultas serão exibidas aqui.</p>
+            <Card className="bg-card/80 backdrop-blur-sm border-2 border-border">
+              <CardContent className="p-8 text-center space-y-4">
+                <Calendar className="h-16 w-16 text-purple-400 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-foreground dark:text-card-foreground">Gerencie suas consultas</h3>
+                <p className="text-foreground/80 dark:text-muted-foreground max-w-md mx-auto">
+                  {upcomingAppointments > 0 
+                    ? `Você tem ${upcomingAppointments} ${upcomingAppointments === 1 ? 'consulta agendada' : 'consultas agendadas'}.`
+                    : 'Você ainda não tem consultas agendadas. Conecte-se com nossos médicos especialistas!'}
+                </p>
+                <Link href="/patient/doctors" className="inline-block mt-6">
+                  <Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90">
+                    <UserPlus className="mr-2 h-5 w-5" />
+                    Agendar Consulta com Médico
+                  </Button>
+                </Link>
+              </CardContent>
             </Card>
           </TabsContent>
 
@@ -321,9 +382,30 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                 Conecte-se com profissionais qualificados em diversas especialidades.
               </p>
             </div>
-            {/* Placeholder for Doctors */}
-            <Card className="p-8">
-              <p className="text-center text-foreground/80 dark:text-muted-foreground">Nossos médicos parceiros serão listados aqui.</p>
+            <Card className="bg-card/80 backdrop-blur-sm border-2 border-border">
+              <CardContent className="p-8 text-center space-y-4">
+                <Users className="h-16 w-16 text-indigo-400 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-foreground dark:text-card-foreground">Rede de Especialistas</h3>
+                <p className="text-foreground/80 dark:text-muted-foreground max-w-md mx-auto">
+                  Conecte-se com médicos humanos da nossa rede para validar diagnósticos, tirar dúvidas e agendar consultas por vídeo.
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center mt-4 max-w-md mx-auto">
+                  <Badge variant="outline">Cardiologia</Badge>
+                  <Badge variant="outline">Dermatologia</Badge>
+                  <Badge variant="outline">Endocrinologia</Badge>
+                  <Badge variant="outline">Ginecologia</Badge>
+                  <Badge variant="outline">Neurologia</Badge>
+                  <Badge variant="outline">Ortopedia</Badge>
+                  <Badge variant="outline">Pediatria</Badge>
+                  <Badge variant="outline">+10 especialidades</Badge>
+                </div>
+                <Link href="/patient/doctors" className="inline-block mt-6">
+                  <Button size="lg" className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:opacity-90">
+                    <Users className="mr-2 h-5 w-5" />
+                    Ver Médicos Disponíveis
+                  </Button>
+                </Link>
+              </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
