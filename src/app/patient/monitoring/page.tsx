@@ -5,12 +5,13 @@ import { Activity } from "lucide-react";
 export default function LiveMonitoringPage() {
 
     return (
-        <div className="container mx-auto p-4 sm:p-6 lg:p-8 flex flex-col items-center">
-             <div className="mb-8 text-center">
-                <h1 className="text-3xl font-bold tracking-tight flex items-center justify-center gap-2">
-                   <Activity className="h-8 w-8 text-primary" /> Monitoramento de Sinais Vitais
+        <div className="container mx-auto px-3 py-4 sm:p-6 lg:p-8 flex flex-col items-center">
+             <div className="mb-4 sm:mb-6 lg:mb-8 text-center w-full">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight flex items-center justify-center gap-2 flex-wrap">
+                   <Activity className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-primary" /> 
+                   <span>Monitoramento de Sinais Vitais</span>
                 </h1>
-                <p className="text-foreground/70 dark:text-muted-foreground mt-2 max-w-2xl">
+                <p className="text-xs sm:text-sm text-foreground/70 dark:text-muted-foreground mt-2 max-w-2xl mx-auto px-2">
                     Esta é uma simulação de alta fidelidade que demonstra como os dados de um wearable (relógio, cinta, etc.) seriam exibidos em tempo real.
                 </p>
             </div>
