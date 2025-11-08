@@ -1,3 +1,4 @@
+
 'use client';
 
 import { cn } from "@/lib/utils";
@@ -18,7 +19,7 @@ export default function MediAILogo({ className, showText = true, size = 'md' }: 
   const currentSize = sizes[size];
 
   return (
-    <div className={cn("flex items-center gap-2 group", className)}>
+    <div className={cn("flex items-center gap-3 group", className)}>
       <svg 
         width={currentSize.icon} 
         height={currentSize.icon} 
@@ -28,10 +29,10 @@ export default function MediAILogo({ className, showText = true, size = 'md' }: 
         className="transition-all duration-300 group-hover:scale-110"
       >
         <defs>
-          <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#EF4444" />
-            <stop offset="50%" stopColor="#EC4899" />
-            <stop offset="100%" stopColor="#8B5CF6" />
+          <linearGradient id="logo-gradient-fixed" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f774c0" />
+            <stop offset="50%" stopColor="#e85fb8" />
+            <stop offset="100%" stopColor="#d94aaf" />
           </linearGradient>
           <filter id="glow">
             <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
@@ -47,7 +48,7 @@ export default function MediAILogo({ className, showText = true, size = 'md' }: 
           cx="50" 
           cy="50" 
           r="45" 
-          stroke="url(#logo-gradient)" 
+          stroke="url(#logo-gradient-fixed)" 
           strokeWidth="3" 
           fill="none"
           className="animate-pulse"
@@ -62,7 +63,7 @@ export default function MediAILogo({ className, showText = true, size = 'md' }: 
             width="10" 
             height="50" 
             rx="2"
-            fill="url(#logo-gradient)"
+            fill="url(#logo-gradient-fixed)"
           />
           <rect 
             x="25" 
@@ -70,27 +71,27 @@ export default function MediAILogo({ className, showText = true, size = 'md' }: 
             width="50" 
             height="10" 
             rx="2"
-            fill="url(#logo-gradient)"
+            fill="url(#logo-gradient-fixed)"
           />
         </g>
         
         {/* AI Brain Nodes */}
         <g opacity="0.8">
           {/* Top nodes */}
-          <circle cx="35" cy="30" r="3" fill="#EF4444" className="animate-pulse" style={{ animationDelay: '0s', animationDuration: '2s' }} />
-          <circle cx="65" cy="30" r="3" fill="#EC4899" className="animate-pulse" style={{ animationDelay: '0.3s', animationDuration: '2s' }} />
+          <circle cx="35" cy="30" r="3" fill="#f774c0" className="animate-pulse" style={{ animationDelay: '0s', animationDuration: '2s' }} />
+          <circle cx="65" cy="30" r="3" fill="#e85fb8" className="animate-pulse" style={{ animationDelay: '0.3s', animationDuration: '2s' }} />
           
           {/* Middle nodes */}
-          <circle cx="30" cy="50" r="3" fill="#8B5CF6" className="animate-pulse" style={{ animationDelay: '0.6s', animationDuration: '2s' }} />
-          <circle cx="70" cy="50" r="3" fill="#EF4444" className="animate-pulse" style={{ animationDelay: '0.9s', animationDuration: '2s' }} />
+          <circle cx="30" cy="50" r="3" fill="#d94aaf" className="animate-pulse" style={{ animationDelay: '0.6s', animationDuration: '2s' }} />
+          <circle cx="70" cy="50" r="3" fill="#f774c0" className="animate-pulse" style={{ animationDelay: '0.9s', animationDuration: '2s' }} />
           
           {/* Bottom nodes */}
-          <circle cx="35" cy="70" r="3" fill="#EC4899" className="animate-pulse" style={{ animationDelay: '1.2s', animationDuration: '2s' }} />
-          <circle cx="65" cy="70" r="3" fill="#8B5CF6" className="animate-pulse" style={{ animationDelay: '1.5s', animationDuration: '2s' }} />
+          <circle cx="35" cy="70" r="3" fill="#e85fb8" className="animate-pulse" style={{ animationDelay: '1.2s', animationDuration: '2s' }} />
+          <circle cx="65" cy="70" r="3" fill="#d94aaf" className="animate-pulse" style={{ animationDelay: '1.5s', animationDuration: '2s' }} />
         </g>
         
         {/* Connection lines (Neural Network) */}
-        <g opacity="0.3" stroke="url(#logo-gradient)" strokeWidth="1">
+        <g opacity="0.3" stroke="url(#logo-gradient-fixed)" strokeWidth="1">
           <line x1="35" y1="30" x2="50" y2="40" />
           <line x1="65" y1="30" x2="50" y2="40" />
           <line x1="30" y1="50" x2="50" y2="50" />
@@ -101,10 +102,13 @@ export default function MediAILogo({ className, showText = true, size = 'md' }: 
       </svg>
       
       {showText && (
-        <span className={cn(
-          currentSize.text,
-          "font-bold tracking-tight bg-gradient-to-r from-red-400 via-pink-400 to-purple-400 bg-clip-text text-transparent group-hover:from-red-300 group-hover:via-pink-300 group-hover:to-purple-300 transition-all"
-        )}>
+        <span 
+          className={cn(
+            currentSize.text,
+            "font-['Poppins',sans-serif] font-bold tracking-tight transition-all"
+          )}
+          style={{ color: '#f774c0' }}
+        >
           Medi<span className="font-extrabold">AI</span>
         </span>
       )}
