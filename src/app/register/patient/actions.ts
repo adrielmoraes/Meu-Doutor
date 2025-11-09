@@ -8,6 +8,8 @@ import bcrypt from 'bcrypt';
 import { generateVerificationToken, getTokenExpiry, sendVerificationEmail } from '@/lib/email-service';
 import type { Patient } from '@/types';
 
+console.log('📝 [PATIENT-REGISTER] Módulo de registro de paciente carregado');
+
 const PatientSchema = z.object({
   fullName: z.string().min(3, { message: "O nome completo é obrigatório." }),
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),

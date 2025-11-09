@@ -16,7 +16,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx seed.ts",
-    "test:email": "tsx scripts/test-email-verification.ts"
+    "test:email": "tsx scripts/test-email-verification.ts",
+    "diagnose:email": "tsx scripts/diagnose-email-verification.ts"
   },
   "dependencies": {
     "@daily-co/daily-js": "^0.85.0",

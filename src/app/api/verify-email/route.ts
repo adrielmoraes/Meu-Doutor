@@ -10,10 +10,12 @@ export async function GET(request: NextRequest) {
     const token = searchParams.get('token');
     const type = searchParams.get('type') as 'patient' | 'doctor';
 
-    console.log('🔍 Verificando email:', { token: token?.substring(0, 10) + '...', type });
+    console.log('🔍 [VERIFY-EMAIL] Iniciando verificação');
+    console.log('🔍 [VERIFY-EMAIL] Token recebido:', token);
+    console.log('🔍 [VERIFY-EMAIL] Tipo:', type);
 
     if (!token || !type) {
-      console.error('❌ Token ou tipo ausente');
+      console.error('❌ [VERIFY-EMAIL] Token ou tipo ausente');
       return NextResponse.json({ 
         success: false, 
         error: 'missing_params',
@@ -21,68 +23,101 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Buscar o token no banco - SEM filtro de expiração primeiro
+    // Buscar o token no banco baseado no tipo especificado
     let tokenRecord: any = null;
     let userEmail: string | null = null;
 
-    console.log('🔍 Buscando token no banco de dados...');
+    console.log(`🔍 [VERIFY-EMAIL] Buscando token em ${type}s...`);
 
-    // Primeiro, tentar encontrar o token em patients (sem verificar expiração)
-    const patientResult = await db
-      .select()
-      .from(patients)
-      .where(eq(patients.verificationToken, token))
-      .limit(1);
+    if (type === 'patient') {
+      const patientResult = await db
+        .select()
+        .from(patients)
+        .where(eq(patients.verificationToken, token))
+        .limit(1);
 
-    if (patientResult.length > 0) {
-      tokenRecord = {
-        identifier: patientResult[0].email,
-        expires: patientResult[0].tokenExpiry,
-        type: 'patient',
-        emailVerified: patientResult[0].emailVerified,
-        id: patientResult[0].id
-      };
-      userEmail = patientResult[0].email;
-      console.log('✅ Token encontrado em pacientes:', { email: userEmail, emailVerified: patientResult[0].emailVerified });
-    } else {
-      // Se não encontrado em patients, tentar doctors
+      console.log('🔍 [VERIFY-EMAIL] Resultado busca patients:', {
+        found: patientResult.length > 0,
+        count: patientResult.length
+      });
+
+      if (patientResult.length > 0) {
+        const patient = patientResult[0];
+        tokenRecord = {
+          identifier: patient.email,
+          expires: patient.tokenExpiry,
+          type: 'patient',
+          emailVerified: patient.emailVerified,
+          id: patient.id
+        };
+        userEmail = patient.email;
+        console.log('✅ [VERIFY-EMAIL] Token encontrado em pacientes:', {
+          id: patient.id,
+          email: userEmail,
+          emailVerified: patient.emailVerified,
+          tokenExpiry: patient.tokenExpiry,
+          hasToken: !!patient.verificationToken
+        });
+      }
+    } else if (type === 'doctor') {
       const doctorResult = await db
         .select()
         .from(doctors)
         .where(eq(doctors.verificationToken, token))
         .limit(1);
       
+      console.log('🔍 [VERIFY-EMAIL] Resultado busca doctors:', {
+        found: doctorResult.length > 0,
+        count: doctorResult.length
+      });
+
       if (doctorResult.length > 0) {
+        const doctor = doctorResult[0];
         tokenRecord = {
-          identifier: doctorResult[0].email,
-          expires: doctorResult[0].tokenExpiry,
+          identifier: doctor.email,
+          expires: doctor.tokenExpiry,
           type: 'doctor',
-          emailVerified: doctorResult[0].emailVerified,
-          id: doctorResult[0].id
+          emailVerified: doctor.emailVerified,
+          id: doctor.id
         };
-        userEmail = doctorResult[0].email;
-        console.log('✅ Token encontrado em médicos:', { email: userEmail, emailVerified: doctorResult[0].emailVerified });
+        userEmail = doctor.email;
+        console.log('✅ [VERIFY-EMAIL] Token encontrado em médicos:', {
+          id: doctor.id,
+          email: userEmail,
+          emailVerified: doctor.emailVerified,
+          tokenExpiry: doctor.tokenExpiry,
+          hasToken: !!doctor.verificationToken
+        });
       }
     }
 
     if (!tokenRecord) {
-      console.error('❌ Token não encontrado no banco de dados - pode ter sido já utilizado e removido');
+      console.error('❌ [VERIFY-EMAIL] Token não encontrado no banco de dados');
+      console.error('❌ [VERIFY-EMAIL] Token buscado:', token);
+      console.error('❌ [VERIFY-EMAIL] Tipo:', type);
+      
       return NextResponse.json({ 
         success: false, 
         error: 'invalid',
-        message: 'Token de verificação inválido ou já foi utilizado. Se você já verificou seu email, faça login normalmente.' 
+        message: 'Token de verificação inválido ou já utilizado. Se você já verificou seu email, faça login normalmente.' 
       }, { status: 404 });
     }
 
+    console.log('✅ [VERIFY-EMAIL] Token encontrado, verificando status...');
+
     // Verificar se já foi verificado
     if (tokenRecord.emailVerified) {
-      console.log('✅ Email já verificado anteriormente para:', tokenRecord.identifier);
+      console.log('⚠️ [VERIFY-EMAIL] Email já verificado anteriormente:', tokenRecord.identifier);
       
       // Limpar o token mesmo que já verificado
       if (tokenRecord.type === 'patient') {
-        await db.update(patients).set({ verificationToken: null, tokenExpiry: null }).where(eq(patients.id, tokenRecord.id));
+        await db.update(patients)
+          .set({ verificationToken: null, tokenExpiry: null })
+          .where(eq(patients.id, tokenRecord.id));
       } else if (tokenRecord.type === 'doctor') {
-        await db.update(doctors).set({ verificationToken: null, tokenExpiry: null }).where(eq(doctors.id, tokenRecord.id));
+        await db.update(doctors)
+          .set({ verificationToken: null, tokenExpiry: null })
+          .where(eq(doctors.id, tokenRecord.id));
       }
       
       return NextResponse.json({ 
@@ -92,17 +127,27 @@ export async function GET(request: NextRequest) {
     }
 
     // Verificar expiração
-    if (!tokenRecord.expires || new Date(tokenRecord.expires) < new Date()) {
-      console.error('❌ Token expirado:', {
-        expires: tokenRecord.expires,
-        now: new Date().toISOString()
-      });
+    const now = new Date();
+    const expiryDate = tokenRecord.expires ? new Date(tokenRecord.expires) : null;
+    
+    console.log('🕐 [VERIFY-EMAIL] Verificando expiração:', {
+      now: now.toISOString(),
+      expires: expiryDate?.toISOString(),
+      isExpired: expiryDate ? expiryDate < now : true
+    });
+
+    if (!expiryDate || expiryDate < now) {
+      console.error('❌ [VERIFY-EMAIL] Token expirado');
 
       // Deletar token expirado
       if (tokenRecord.type === 'patient') {
-        await db.update(patients).set({ verificationToken: null, tokenExpiry: null }).where(eq(patients.id, tokenRecord.id));
+        await db.update(patients)
+          .set({ verificationToken: null, tokenExpiry: null })
+          .where(eq(patients.id, tokenRecord.id));
       } else if (tokenRecord.type === 'doctor') {
-        await db.update(doctors).set({ verificationToken: null, tokenExpiry: null }).where(eq(doctors.id, tokenRecord.id));
+        await db.update(doctors)
+          .set({ verificationToken: null, tokenExpiry: null })
+          .where(eq(doctors.id, tokenRecord.id));
       }
 
       return NextResponse.json({ 
@@ -114,7 +159,7 @@ export async function GET(request: NextRequest) {
 
     // Verificar tipo
     if (tokenRecord.type !== type) {
-      console.error('❌ Tipo incorreto:', {
+      console.error('❌ [VERIFY-EMAIL] Tipo incorreto:', {
         expected: type,
         actual: tokenRecord.type
       });
@@ -127,11 +172,11 @@ export async function GET(request: NextRequest) {
 
     const email = tokenRecord.identifier;
     const userId = tokenRecord.id;
-    console.log('✅ Verificando usuário:', email);
+    console.log('✅ [VERIFY-EMAIL] Tudo OK, verificando usuário:', email);
 
     // Atualizar usuário baseado no tipo
     if (type === 'patient') {
-      await db
+      const result = await db
         .update(patients)
         .set({ 
           emailVerified: true, 
@@ -140,9 +185,9 @@ export async function GET(request: NextRequest) {
           updatedAt: new Date() 
         })
         .where(eq(patients.id, userId));
-      console.log('✅ Paciente verificado com sucesso:', userId);
+      console.log('✅ [VERIFY-EMAIL] Paciente verificado com sucesso:', userId);
     } else if (type === 'doctor') {
-      await db
+      const result = await db
         .update(doctors)
         .set({ 
           emailVerified: true, 
@@ -151,17 +196,18 @@ export async function GET(request: NextRequest) {
           updatedAt: new Date() 
         })
         .where(eq(doctors.id, userId));
-      console.log('✅ Médico verificado com sucesso:', userId);
+      console.log('✅ [VERIFY-EMAIL] Médico verificado com sucesso:', userId);
     }
 
-    console.log('🗑️ Token limpo após verificação');
+    console.log('🎉 [VERIFY-EMAIL] Verificação concluída com sucesso!');
 
     return NextResponse.json({ 
       success: true,
       message: 'Email verificado com sucesso! Redirecionando para login...' 
     });
   } catch (error) {
-    console.error('❌ Erro na verificação de email:', error);
+    console.error('❌ [VERIFY-EMAIL] Erro crítico:', error);
+    console.error('❌ [VERIFY-EMAIL] Stack:', error instanceof Error ? error.stack : 'N/A');
     return NextResponse.json({ 
       success: false, 
       error: 'server_error',
