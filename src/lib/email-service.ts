@@ -29,6 +29,9 @@ export function getTokenExpiry(): Date {
 
 export async function sendVerificationEmail(data: VerificationEmailData): Promise<boolean> {
   try {
+    console.log('[Email] 📧 Enviando email de verificação para:', data.to);
+    console.log('[Email] 🔗 URL de verificação:', data.verificationUrl);
+    
     // Tentar usar integração Resend do Replit primeiro
     try {
       const { getUncachableResendClient } = await import('./resend-client');
