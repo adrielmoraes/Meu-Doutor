@@ -36,9 +36,9 @@ async function testResendEmail() {
                 </tr>
                 <tr>
                   <td style="padding: 40px;">
-                    <h2 style="margin: 0 0 20px 0; color: #1a202c; font-size: 24px; font-weight: 600;">🧪 Email de Teste</h2>
+                    <h2 style="margin: 0 0 20px 0; color: #1a202c; font-size: 24px; font-weight: 600;">🎉 Resend Configurado!</h2>
                     <p style="margin: 0 0 20px 0; color: #4a5568; font-size: 16px; line-height: 1.6;">
-                      <strong>Parabéns!</strong> O sistema de envio de emails via Resend está funcionando perfeitamente! 🎉
+                      <strong>Parabéns!</strong> O sistema de envio de emails via Resend está funcionando perfeitamente com o domínio <strong>sejafelizsempre.com</strong>! 🚀
                     </p>
                     <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 20px; margin: 20px 0; border-radius: 8px;">
                       <p style="margin: 0; color: #065f46; font-size: 14px;">
@@ -48,7 +48,10 @@ async function testResendEmail() {
                         ⏰ <strong>Data/Hora:</strong> ${new Date().toLocaleString('pt-BR')}
                       </p>
                       <p style="margin: 10px 0 0 0; color: #065f46; font-size: 14px;">
-                        📧 <strong>Remetente:</strong> ${fromEmail || 'MediAI'}
+                        📧 <strong>Remetente:</strong> ${fromEmail}
+                      </p>
+                      <p style="margin: 10px 0 0 0; color: #065f46; font-size: 14px;">
+                        🌐 <strong>Domínio:</strong> sejafelizsempre.com
                       </p>
                     </div>
                     <p style="margin: 20px 0 0 0; color: #718096; font-size: 14px; line-height: 1.6;">
@@ -62,7 +65,7 @@ async function testResendEmail() {
                       © ${new Date().getFullYear()} MediAI. Todos os direitos reservados.
                     </p>
                     <p style="margin: 10px 0 0 0; color: #a0aec0; font-size: 12px;">
-                      Saúde inteligente, ao alcance de todos.
+                      Enviado via sejafelizsempre.com
                     </p>
                   </td>
                 </tr>
@@ -76,9 +79,9 @@ async function testResendEmail() {
 
     // 4. Enviar email
     const result = await client.emails.send({
-      from: fromEmail || 'MediAI <noreply@mediai.com>',
+      from: fromEmail,
       to: [testEmail],
-      subject: '🧪 Teste de Email - MediAI Resend',
+      subject: '🎉 Resend Configurado - MediAI via sejafelizsempre.com',
       html: htmlContent,
     });
 
@@ -96,8 +99,9 @@ async function testResendEmail() {
 
     console.log('\n🔍 Possíveis soluções:');
     console.log('1. Verifique se a integração Resend está configurada no Replit');
-    console.log('2. Confirme que o domínio de envio está verificado no Resend');
-    console.log('3. Verifique se as variáveis de ambiente estão corretas');
+    console.log('2. Configure o email remetente como: noreply@sejafelizsempre.com');
+    console.log('3. Confirme que o domínio sejafelizsempre.com está verificado no Resend');
+    console.log('4. Verifique os registros DNS (SPF, DKIM, DMARC) no painel do Resend');
   }
 }
 
