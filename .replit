@@ -8,8 +8,7 @@ channel = "stable-25_05"
 
 [deployment]
 deploymentTarget = "vm"
-run = ["sh", "-c", "bash start-production.sh"]
-build = ["npm", "run", "build"]
+run = ["sh", "-c", "cd livekit-agent && python run-agent.py"]
 
 [workflows]
 runButton = "Backend LiveKit Agent"
