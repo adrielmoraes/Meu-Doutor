@@ -12,7 +12,7 @@ run = ["sh", "-c", "bash start-production.sh"]
 build = ["npm", "run", "build"]
 
 [workflows]
-runButton = "MediAI Avatar Agent"
+runButton = "Backend LiveKit Agent"
 
 [[workflows.workflow]]
 name = "Start Game"
@@ -39,6 +39,15 @@ outputType = "console"
 
 [[workflows.workflow]]
 name = "LiveKit Agent (Backend)"
+author = 44034514
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd livekit-agent && python run-agent.py"
+
+[[workflows.workflow]]
+name = "Backend LiveKit Agent"
 author = 44034514
 mode = "sequential"
 
