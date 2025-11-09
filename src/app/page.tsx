@@ -30,26 +30,29 @@ export default function LandingPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Verificar se usuário está autenticado
-    async function checkAuth() {
-      try {
-        const res = await fetch("/api/session", { credentials: "include" });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.session && data.session.role) {
-            // Usuário autenticado, redirecionar para dashboard
-            const dashboardUrl =
-              data.session.role === "patient"
-                ? "/patient/dashboard"
-                : "/doctor";
-            router.replace(dashboardUrl);
+    // Verificar se usuário está autenticado (apenas no cliente)
+    // Otimizado para não bloquear o health check do servidor
+    if (typeof window !== 'undefined') {
+      async function checkAuth() {
+        try {
+          const res = await fetch("/api/session", { credentials: "include" });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.session && data.session.role) {
+              // Usuário autenticado, redirecionar para dashboard
+              const dashboardUrl =
+                data.session.role === "patient"
+                  ? "/patient/dashboard"
+                  : "/doctor";
+              router.replace(dashboardUrl);
+            }
           }
+        } catch (e) {
+          // Ignorar erros, deixar usuário na landing page
         }
-      } catch (e) {
-        // Ignorar erros, deixar usuário na landing page
       }
+      checkAuth();
     }
-    checkAuth();
   }, [router]);
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white overflow-x-hidden">

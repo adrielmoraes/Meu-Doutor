@@ -8,7 +8,7 @@ channel = "stable-25_05"
 
 [deployment]
 deploymentTarget = "vm"
-run = ["bash", "start-production.sh"]
+run = ["sh", "-c", "bash start-production.sh"]
 build = ["npm", "run", "build"]
 
 [workflows]
@@ -36,6 +36,15 @@ args = "cd livekit-agent && python run-agent.py"
 
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow]]
+name = "LiveKit Agent (Backend)"
+author = 44034514
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd livekit-agent && python run-agent.py"
 
 [[ports]]
 localPort = 5000
