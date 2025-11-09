@@ -11,33 +11,58 @@ function VerifyEmailContent() {
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorType, setErrorType] = useState<string>('');
+  const [message, setMessage] = useState<string>('');
 
   useEffect(() => {
-    const success = searchParams.get('success');
-    const error = searchParams.get('error');
-    const type = searchParams.get('type');
+    const verifyEmail = async () => {
+      const token = searchParams.get('token');
+      const type = searchParams.get('type');
 
-    console.log('📧 Página de verificação:', { success, error, type });
+      console.log('📧 Iniciando verificação:', { token: token?.substring(0, 10), type });
 
-    if (success === 'true') {
-      setStatus('success');
-      // Redirecionar após 3 segundos
-      setTimeout(() => {
-        if (type === 'patient') {
-          router.push('/login?verified=true');
-        } else if (type === 'doctor') {
-          router.push('/login?verified=true');
+      if (!token || !type) {
+        setStatus('error');
+        setErrorType('missing_params');
+        return;
+      }
+
+      try {
+        // Chamar a API de verificação
+        const response = await fetch(`/api/verify-email?token=${token}&type=${type}`, {
+          method: 'GET',
+        });
+
+        const data = await response.json();
+
+        console.log('📬 Resposta da API:', data);
+
+        if (data.success) {
+          setStatus('success');
+          setMessage(data.message || 'Email verificado com sucesso!');
+          
+          // Redirecionar após 3 segundos
+          setTimeout(() => {
+            router.push('/login?verified=true');
+          }, 3000);
         } else {
-          router.push('/login');
+          setStatus('error');
+          setErrorType(data.error || 'unknown');
+          setMessage(data.message || 'Erro ao verificar email');
         }
-      }, 3000);
-    } else if (error) {
-      setStatus('error');
-      setErrorType(error);
-    }
+      } catch (error) {
+        console.error('❌ Erro na verificação:', error);
+        setStatus('error');
+        setErrorType('network_error');
+        setMessage('Erro de conexão. Tente novamente.');
+      }
+    };
+
+    verifyEmail();
   }, [searchParams, router]);
 
   const getErrorMessage = () => {
+    if (message) return message;
+    
     switch (errorType) {
       case 'missing_params':
         return 'Link de verificação incompleto. Verifique se copiou o link completo do email.';
@@ -49,6 +74,8 @@ function VerifyEmailContent() {
         return 'Usuário não encontrado. Entre em contato com o suporte.';
       case 'server_error':
         return 'Erro no servidor. Tente novamente mais tarde.';
+      case 'network_error':
+        return 'Erro de conexão. Verifique sua internet e tente novamente.';
       default:
         return 'Token inválido ou expirado';
     }
@@ -81,7 +108,7 @@ function VerifyEmailContent() {
             Email Verificado com Sucesso!
           </h2>
           <p className="text-gray-600 dark:text-gray-300 mb-6">
-            Seu email foi verificado. Você será redirecionado para o login em alguns segundos...
+            {message || 'Seu email foi verificado. Você será redirecionado para o login em alguns segundos...'}
           </p>
           <Button
             onClick={() => router.push('/login?verified=true')}

@@ -12,14 +12,13 @@ export async function GET(request: NextRequest) {
 
     console.log('🔍 Verificando email:', { token: token?.substring(0, 10) + '...', type });
 
-    // Usar a URL do frontend (Vercel)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sejafelizsempre.com';
-
     if (!token || !type) {
       console.error('❌ Token ou tipo ausente');
-      return NextResponse.redirect(
-        `${baseUrl}/verify-email?error=missing_params`
-      );
+      return NextResponse.json({ 
+        success: false, 
+        error: 'missing_params',
+        message: 'Token ou tipo de usuário ausente' 
+      }, { status: 400 });
     }
 
     // Buscar o token no banco
@@ -69,9 +68,11 @@ export async function GET(request: NextRequest) {
 
     if (!tokenRecord) {
       console.error('❌ Token não encontrado no banco de dados');
-      return NextResponse.redirect(
-        `${baseUrl}/verify-email?error=invalid`
-      );
+      return NextResponse.json({ 
+        success: false, 
+        error: 'invalid',
+        message: 'Token de verificação inválido ou já utilizado' 
+      }, { status: 404 });
     }
 
     // Verificar expiração
@@ -88,9 +89,11 @@ export async function GET(request: NextRequest) {
         await db.update(doctors).set({ verificationToken: null, tokenExpiry: null }).where(eq(doctors.email, tokenRecord.identifier));
       }
 
-      return NextResponse.redirect(
-        `${baseUrl}/verify-email?error=expired`
-      );
+      return NextResponse.json({ 
+        success: false, 
+        error: 'expired',
+        message: 'Token de verificação expirado. Faça login novamente para receber um novo link.' 
+      }, { status: 410 });
     }
 
     // Verificar tipo
@@ -99,9 +102,11 @@ export async function GET(request: NextRequest) {
         expected: type,
         actual: tokenRecord.type
       });
-      return NextResponse.redirect(
-        `${baseUrl}/verify-email?error=invalid`
-      );
+      return NextResponse.json({ 
+        success: false, 
+        error: 'invalid',
+        message: 'Tipo de usuário não corresponde ao token' 
+      }, { status: 400 });
     }
 
     const email = tokenRecord.identifier;
@@ -112,17 +117,20 @@ export async function GET(request: NextRequest) {
       const patient = await db.select().from(patients).where(eq(patients.email, email)).limit(1);
       if (patient.length === 0) {
         console.error('❌ Paciente não encontrado:', email);
-        return NextResponse.redirect(
-          `${baseUrl}/verify-email?error=user_not_found`
-        );
+        return NextResponse.json({ 
+          success: false, 
+          error: 'user_not_found',
+          message: 'Usuário não encontrado' 
+        }, { status: 404 });
       }
       
       // Verificar se já foi verificado
       if(patient[0].emailVerified) {
         console.log('✅ Email já verificado anteriormente para:', email);
-        return NextResponse.redirect(
-          `${baseUrl}/verify-email?success=true&type=${type}&message=already_verified`
-        );
+        return NextResponse.json({ 
+          success: true,
+          message: 'Email já verificado anteriormente. Você pode fazer login.' 
+        });
       }
 
       await db
@@ -134,17 +142,20 @@ export async function GET(request: NextRequest) {
       const doctor = await db.select().from(doctors).where(eq(doctors.email, email)).limit(1);
       if (doctor.length === 0) {
         console.error('❌ Médico não encontrado:', email);
-        return NextResponse.redirect(
-          `${baseUrl}/verify-email?error=user_not_found`
-        );
+        return NextResponse.json({ 
+          success: false, 
+          error: 'user_not_found',
+          message: 'Usuário não encontrado' 
+        }, { status: 404 });
       }
       
       // Verificar se já foi verificado
       if(doctor[0].emailVerified) {
         console.log('✅ Email já verificado anteriormente para:', email);
-        return NextResponse.redirect(
-          `${baseUrl}/verify-email?success=true&type=${type}&message=already_verified`
-        );
+        return NextResponse.json({ 
+          success: true,
+          message: 'Email já verificado anteriormente. Você pode fazer login.' 
+        });
       }
 
       await db
@@ -156,15 +167,16 @@ export async function GET(request: NextRequest) {
 
     console.log('🗑️ Token limpo após verificação');
 
-    // Redirecionar para página de sucesso
-    return NextResponse.redirect(
-      `${baseUrl}/verify-email?success=true&type=${type}`
-    );
+    return NextResponse.json({ 
+      success: true,
+      message: 'Email verificado com sucesso! Redirecionando...' 
+    });
   } catch (error) {
     console.error('❌ Erro na verificação de email:', error);
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sejafelizsempre.com';
-    return NextResponse.redirect(
-      `${baseUrl}/verify-email?error=server_error`
-    );
+    return NextResponse.json({ 
+      success: false, 
+      error: 'server_error',
+      message: 'Erro no servidor. Tente novamente mais tarde.' 
+    }, { status: 500 });
   }
 }
