@@ -7,32 +7,65 @@ export async function POST(request: NextRequest) {
   try {
     const { token, type } = await request.json();
 
+    console.log('[Verificação Email] Iniciando verificação...');
+    console.log('[Verificação Email] Token recebido:', token?.substring(0, 16) + '...');
+    console.log('[Verificação Email] Tipo:', type);
+
     if (!token || !type) {
+      console.error('[Verificação Email] ❌ Parâmetros faltando');
       return NextResponse.json(
         { error: 'Token e tipo são obrigatórios' },
         { status: 400 }
       );
     }
 
+    const now = new Date();
+    console.log('[Verificação Email] Data atual:', now.toISOString());
+
     if (type === 'patient') {
-      const result = await db
+      console.log('[Verificação Email] Buscando paciente com token...');
+      
+      // Primeiro, buscar qualquer paciente com este token (sem verificar expiração)
+      const allResults = await db
         .select()
         .from(patients)
-        .where(
-          and(
-            eq(patients.verificationToken, token),
-            gt(patients.tokenExpiry, new Date())
-          )
-        )
+        .where(eq(patients.verificationToken, token))
         .limit(1);
 
-      if (!result[0]) {
+      if (!allResults[0]) {
+        console.error('[Verificação Email] ❌ Token não encontrado no banco de dados');
         return NextResponse.json(
-          { error: 'Token inválido ou expirado' },
+          { error: 'Token inválido. Por favor, solicite um novo email de verificação.' },
           { status: 400 }
         );
       }
 
+      console.log('[Verificação Email] Token encontrado para:', allResults[0].email);
+      console.log('[Verificação Email] Token expira em:', allResults[0].tokenExpiry?.toISOString());
+      console.log('[Verificação Email] Email já verificado?', allResults[0].emailVerified);
+
+      // Verificar se o email já foi verificado
+      if (allResults[0].emailVerified) {
+        console.log('[Verificação Email] ✅ Email já estava verificado anteriormente');
+        return NextResponse.json({ 
+          success: true,
+          message: 'Email já verificado anteriormente' 
+        });
+      }
+
+      // Verificar expiração
+      if (allResults[0].tokenExpiry && allResults[0].tokenExpiry <= now) {
+        console.error('[Verificação Email] ❌ Token expirado');
+        console.error('[Verificação Email] Expirou em:', allResults[0].tokenExpiry.toISOString());
+        console.error('[Verificação Email] Data atual:', now.toISOString());
+        return NextResponse.json(
+          { error: 'Token expirado. Por favor, solicite um novo email de verificação.' },
+          { status: 400 }
+        );
+      }
+
+      // Atualizar paciente
+      console.log('[Verificação Email] Atualizando paciente...');
       await db
         .update(patients)
         .set({
@@ -41,28 +74,55 @@ export async function POST(request: NextRequest) {
           tokenExpiry: null,
           updatedAt: new Date(),
         })
-        .where(eq(patients.id, result[0].id));
+        .where(eq(patients.id, allResults[0].id));
 
+      console.log('[Verificação Email] ✅ Paciente verificado com sucesso!');
       return NextResponse.json({ success: true });
+
     } else if (type === 'doctor') {
-      const result = await db
+      console.log('[Verificação Email] Buscando médico com token...');
+      
+      // Primeiro, buscar qualquer médico com este token (sem verificar expiração)
+      const allResults = await db
         .select()
         .from(doctors)
-        .where(
-          and(
-            eq(doctors.verificationToken, token),
-            gt(doctors.tokenExpiry, new Date())
-          )
-        )
+        .where(eq(doctors.verificationToken, token))
         .limit(1);
 
-      if (!result[0]) {
+      if (!allResults[0]) {
+        console.error('[Verificação Email] ❌ Token não encontrado no banco de dados');
         return NextResponse.json(
-          { error: 'Token inválido ou expirado' },
+          { error: 'Token inválido. Por favor, solicite um novo email de verificação.' },
           { status: 400 }
         );
       }
 
+      console.log('[Verificação Email] Token encontrado para:', allResults[0].email);
+      console.log('[Verificação Email] Token expira em:', allResults[0].tokenExpiry?.toISOString());
+      console.log('[Verificação Email] Email já verificado?', allResults[0].emailVerified);
+
+      // Verificar se o email já foi verificado
+      if (allResults[0].emailVerified) {
+        console.log('[Verificação Email] ✅ Email já estava verificado anteriormente');
+        return NextResponse.json({ 
+          success: true,
+          message: 'Email já verificado anteriormente' 
+        });
+      }
+
+      // Verificar expiração
+      if (allResults[0].tokenExpiry && allResults[0].tokenExpiry <= now) {
+        console.error('[Verificação Email] ❌ Token expirado');
+        console.error('[Verificação Email] Expirou em:', allResults[0].tokenExpiry.toISOString());
+        console.error('[Verificação Email] Data atual:', now.toISOString());
+        return NextResponse.json(
+          { error: 'Token expirado. Por favor, solicite um novo email de verificação.' },
+          { status: 400 }
+        );
+      }
+
+      // Atualizar médico
+      console.log('[Verificação Email] Atualizando médico...');
       await db
         .update(doctors)
         .set({
@@ -71,19 +131,22 @@ export async function POST(request: NextRequest) {
           tokenExpiry: null,
           updatedAt: new Date(),
         })
-        .where(eq(doctors.id, result[0].id));
+        .where(eq(doctors.id, allResults[0].id));
 
+      console.log('[Verificação Email] ✅ Médico verificado com sucesso!');
       return NextResponse.json({ success: true });
+
     } else {
+      console.error('[Verificação Email] ❌ Tipo inválido:', type);
       return NextResponse.json(
         { error: 'Tipo inválido' },
         { status: 400 }
       );
     }
   } catch (error) {
-    console.error('Erro ao verificar email:', error);
+    console.error('[Verificação Email] ❌ Erro crítico:', error);
     return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { error: 'Erro interno do servidor. Por favor, tente novamente.' },
       { status: 500 }
     );
   }

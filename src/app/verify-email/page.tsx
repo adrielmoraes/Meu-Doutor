@@ -29,6 +29,10 @@ function VerifyEmailContent() {
 
   const verifyEmail = async (token: string, type: string) => {
     try {
+      console.log('[Verificação UI] Enviando requisição...');
+      console.log('[Verificação UI] Token:', token?.substring(0, 16) + '...');
+      console.log('[Verificação UI] Tipo:', type);
+
       const response = await fetch('/api/verify-email', {
         method: 'POST',
         headers: {
@@ -38,17 +42,25 @@ function VerifyEmailContent() {
       });
 
       const data = await response.json();
+      console.log('[Verificação UI] Resposta recebida:', data);
 
       if (response.ok) {
         setStatus('success');
-        setMessage('Email verificado com sucesso! Você já pode fazer login.');
+        if (data.message) {
+          setMessage(data.message);
+        } else {
+          setMessage('Email verificado com sucesso! Você já pode fazer login.');
+        }
       } else {
         setStatus('error');
-        setMessage(data.error || 'Erro ao verificar email.');
+        const errorMessage = data.error || 'Erro ao verificar email.';
+        setMessage(errorMessage);
+        console.error('[Verificação UI] Erro:', errorMessage);
       }
     } catch (error) {
+      console.error('[Verificação UI] Erro de conexão:', error);
       setStatus('error');
-      setMessage('Erro ao conectar com o servidor.');
+      setMessage('Erro ao conectar com o servidor. Por favor, verifique sua conexão.');
     }
   };
 
