@@ -28,28 +28,50 @@ export function getTokenExpiry(): Date {
 }
 
 export async function sendVerificationEmail(data: VerificationEmailData): Promise<boolean> {
-  const resendApiKey = process.env.RESEND_API_KEY;
-  const sendgridApiKey = process.env.SENDGRID_API_KEY;
-  
   try {
-    if (resendApiKey) {
-      return await sendViaResend(data, resendApiKey);
-    } else if (sendgridApiKey) {
-      return await sendViaSendGrid(data, sendgridApiKey);
-    } else {
-      console.warn('Nenhum serviço de email configurado. Email de verificação não enviado.');
-      console.log('Configure RESEND_API_KEY ou SENDGRID_API_KEY para enviar emails.');
-      console.log(`Email que seria enviado para: ${data.to}`);
-      console.log(`Link de verificação: ${data.verificationUrl}`);
+    // Tentar usar integração Resend do Replit primeiro
+    try {
+      const { getUncachableResendClient } = await import('./resend-client');
+      const { client, fromEmail } = await getUncachableResendClient();
+      
+      const result = await client.emails.send({
+        from: fromEmail || 'MediAI <noreply@mediai.com>',
+        to: [data.to],
+        subject: 'Confirme seu email - MediAI',
+        html: getEmailTemplate(data.name, data.verificationUrl),
+      });
+
+      console.log('[Email] ✅ Email enviado com sucesso via Resend:', result.data?.id);
+      return true;
+    } catch (resendError: any) {
+      console.warn('[Email] Integração Resend não disponível, tentando fallback:', resendError.message);
+      
+      // Fallback: tentar com RESEND_API_KEY direta
+      const resendApiKey = process.env.RESEND_API_KEY;
+      if (resendApiKey) {
+        return await sendViaResendFallback(data, resendApiKey);
+      }
+      
+      // Fallback: SendGrid
+      const sendgridApiKey = process.env.SENDGRID_API_KEY;
+      if (sendgridApiKey) {
+        return await sendViaSendGrid(data, sendgridApiKey);
+      }
+      
+      // Nenhum serviço configurado
+      console.error('[Email] ❌ Nenhum serviço de email configurado!');
+      console.log('[Email] Configure a integração Resend no Replit ou adicione RESEND_API_KEY');
+      console.log(`[Email] Email que deveria ser enviado para: ${data.to}`);
+      console.log(`[Email] Link de verificação: ${data.verificationUrl}`);
       return false;
     }
   } catch (error) {
-    console.error('Erro ao enviar email de verificação:', error);
+    console.error('[Email] ❌ Erro crítico ao enviar email:', error);
     return false;
   }
 }
 
-async function sendViaResend(data: VerificationEmailData, apiKey: string): Promise<boolean> {
+async function sendViaResendFallback(data: VerificationEmailData, apiKey: string): Promise<boolean> {
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -66,10 +88,11 @@ async function sendViaResend(data: VerificationEmailData, apiKey: string): Promi
 
   if (!response.ok) {
     const error = await response.text();
-    console.error('Erro ao enviar via Resend:', error);
+    console.error('[Email] Erro ao enviar via Resend (fallback):', error);
     return false;
   }
 
+  console.log('[Email] ✅ Email enviado via Resend (fallback)');
   return true;
 }
 

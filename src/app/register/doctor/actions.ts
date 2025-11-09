@@ -81,11 +81,21 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
     
     const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}&type=doctor`;
     
-    await sendVerificationEmail({
+    console.log('[Cadastro Médico] Enviando email de verificação...');
+    console.log('[Cadastro Médico] Para:', email);
+    console.log('[Cadastro Médico] URL de verificação:', verificationUrl);
+    
+    const emailSent = await sendVerificationEmail({
       to: email,
       name: fullName,
       verificationUrl,
     });
+
+    if (!emailSent) {
+      console.warn('[Cadastro Médico] ⚠️ Email de verificação não foi enviado, mas cadastro prosseguiu');
+    } else {
+      console.log('[Cadastro Médico] ✅ Email de verificação enviado com sucesso');
+    }
 
     revalidatePath('/doctor/patients');
     return {

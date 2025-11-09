@@ -89,11 +89,21 @@ export async function createPatientAction(prevState: any, formData: FormData) {
 
     const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}&type=patient`;
 
-    await sendVerificationEmail({
+    console.log('[Cadastro Paciente] Enviando email de verificação...');
+    console.log('[Cadastro Paciente] Para:', email);
+    console.log('[Cadastro Paciente] URL de verificação:', verificationUrl);
+    
+    const emailSent = await sendVerificationEmail({
       to: email,
       name: fullName,
       verificationUrl,
     });
+
+    if (!emailSent) {
+      console.warn('[Cadastro Paciente] ⚠️ Email de verificação não foi enviado, mas cadastro prosseguiu');
+    } else {
+      console.log('[Cadastro Paciente] ✅ Email de verificação enviado com sucesso');
+    }
 
     // Ativar automaticamente o plano Trial de 7 dias grátis
     try {
