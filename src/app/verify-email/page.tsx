@@ -67,9 +67,9 @@ function VerifyEmailContent() {
       case 'missing_params':
         return 'Link de verificação incompleto. Verifique se copiou o link completo do email.';
       case 'invalid':
-        return 'Token de verificação inválido. O link pode ter sido usado anteriormente.';
+        return 'Token de verificação inválido ou já utilizado. Se você já verificou seu email anteriormente, pode fazer login normalmente.';
       case 'expired':
-        return 'Token de verificação expirado. Solicite um novo email de verificação.';
+        return 'Token de verificação expirado. Faça login novamente para receber um novo link.';
       case 'user_not_found':
         return 'Usuário não encontrado. Entre em contato com o suporte.';
       case 'server_error':
@@ -77,7 +77,7 @@ function VerifyEmailContent() {
       case 'network_error':
         return 'Erro de conexão. Verifique sua internet e tente novamente.';
       default:
-        return 'Token inválido ou expirado';
+        return 'Token inválido ou expirado. Tente fazer login novamente.';
     }
   };
 
