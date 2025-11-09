@@ -3,151 +3,182 @@ import { db } from '../../../../server/storage';
 import { patients, doctors } from '../../../../shared/schema';
 import { eq, and, gt } from 'drizzle-orm';
 
-export async function POST(request: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const { token, type } = await request.json();
+    const { searchParams } = new URL(request.url);
+    const token = searchParams.get('token');
+    const type = searchParams.get('type') as 'patient' | 'doctor';
 
-    console.log('[Verificação Email] Iniciando verificação...');
-    console.log('[Verificação Email] Token recebido:', token?.substring(0, 16) + '...');
-    console.log('[Verificação Email] Tipo:', type);
+    console.log('🔍 Verificando email:', { token: token?.substring(0, 10) + '...', type });
 
     if (!token || !type) {
-      console.error('[Verificação Email] ❌ Parâmetros faltando');
-      return NextResponse.json(
-        { error: 'Token e tipo são obrigatórios' },
-        { status: 400 }
+      console.error('❌ Token ou tipo ausente');
+      // Assuming there's a base URL or domain to redirect to
+      // For demonstration, using a placeholder. In a real app, this would be configured.
+      const baseUrl = request.url.split('/verify-email')[0]; // Basic way to get base URL
+      return NextResponse.redirect(
+        new URL(`${baseUrl}/verify-email?error=missing_params`, request.url)
       );
     }
 
-    const now = new Date();
-    console.log('[Verificação Email] Data atual:', now.toISOString());
+    // Buscar o token no banco
+    // This part needs to be adapted based on how your db adapter works.
+    // The original code directly queried 'patients' or 'doctors'.
+    // The new code implies a helper function `db.getVerificationToken`.
+    // For this example, let's assume a direct query mimicking the original structure for now,
+    // but ideally, this should use the provided `db` from the snippet.
 
-    if (type === 'patient') {
-      console.log('[Verificação Email] Buscando paciente com token...');
-      
-      // Primeiro, buscar qualquer paciente com este token (sem verificar expiração)
-      const allResults = await db
-        .select()
-        .from(patients)
-        .where(eq(patients.verificationToken, token))
-        .limit(1);
+    let tokenRecord: any = null;
+    let userEmail: string | null = null;
 
-      if (!allResults[0]) {
-        console.error('[Verificação Email] ❌ Token não encontrado no banco de dados');
-        return NextResponse.json(
-          { error: 'Token inválido. Por favor, solicite um novo email de verificação.' },
-          { status: 400 }
-        );
-      }
+    // First, try to find the token in patients
+    const patientResult = await db
+      .select()
+      .from(patients)
+      .where(and(eq(patients.verificationToken, token), gt(patients.tokenExpiry, new Date())))
+      .limit(1);
 
-      console.log('[Verificação Email] Token encontrado para:', allResults[0].email);
-      console.log('[Verificação Email] Token expira em:', allResults[0].tokenExpiry?.toISOString());
-      console.log('[Verificação Email] Email já verificado?', allResults[0].emailVerified);
-
-      // Verificar se o email já foi verificado
-      if (allResults[0].emailVerified) {
-        console.log('[Verificação Email] ✅ Email já estava verificado anteriormente');
-        return NextResponse.json({ 
-          success: true,
-          message: 'Email já verificado anteriormente' 
-        });
-      }
-
-      // Verificar expiração
-      if (allResults[0].tokenExpiry && allResults[0].tokenExpiry <= now) {
-        console.error('[Verificação Email] ❌ Token expirado');
-        console.error('[Verificação Email] Expirou em:', allResults[0].tokenExpiry.toISOString());
-        console.error('[Verificação Email] Data atual:', now.toISOString());
-        return NextResponse.json(
-          { error: 'Token expirado. Por favor, solicite um novo email de verificação.' },
-          { status: 400 }
-        );
-      }
-
-      // Atualizar paciente
-      console.log('[Verificação Email] Atualizando paciente...');
-      await db
-        .update(patients)
-        .set({
-          emailVerified: true,
-          verificationToken: null,
-          tokenExpiry: null,
-          updatedAt: new Date(),
-        })
-        .where(eq(patients.id, allResults[0].id));
-
-      console.log('[Verificação Email] ✅ Paciente verificado com sucesso!');
-      return NextResponse.json({ success: true });
-
-    } else if (type === 'doctor') {
-      console.log('[Verificação Email] Buscando médico com token...');
-      
-      // Primeiro, buscar qualquer médico com este token (sem verificar expiração)
-      const allResults = await db
+    if (patientResult.length > 0) {
+      tokenRecord = {
+        identifier: patientResult[0].email,
+        expires: patientResult[0].tokenExpiry,
+        type: 'patient',
+        emailVerified: patientResult[0].emailVerified
+      };
+      userEmail = patientResult[0].email;
+    } else {
+      // If not found in patients, try doctors
+      const doctorResult = await db
         .select()
         .from(doctors)
-        .where(eq(doctors.verificationToken, token))
+        .where(and(eq(doctors.verificationToken, token), gt(doctors.tokenExpiry, new Date())))
         .limit(1);
-
-      if (!allResults[0]) {
-        console.error('[Verificação Email] ❌ Token não encontrado no banco de dados');
-        return NextResponse.json(
-          { error: 'Token inválido. Por favor, solicite um novo email de verificação.' },
-          { status: 400 }
-        );
+      
+      if (doctorResult.length > 0) {
+        tokenRecord = {
+          identifier: doctorResult[0].email,
+          expires: doctorResult[0].tokenExpiry,
+          type: 'doctor',
+          emailVerified: doctorResult[0].emailVerified
+        };
+        userEmail = doctorResult[0].email;
       }
+    }
 
-      console.log('[Verificação Email] Token encontrado para:', allResults[0].email);
-      console.log('[Verificação Email] Token expira em:', allResults[0].tokenExpiry?.toISOString());
-      console.log('[Verificação Email] Email já verificado?', allResults[0].emailVerified);
 
-      // Verificar se o email já foi verificado
-      if (allResults[0].emailVerified) {
-        console.log('[Verificação Email] ✅ Email já estava verificado anteriormente');
-        return NextResponse.json({ 
-          success: true,
-          message: 'Email já verificado anteriormente' 
-        });
-      }
+    console.log('📋 Token encontrado:', {
+      exists: !!tokenRecord,
+      expired: tokenRecord ? new Date(tokenRecord.expires) < new Date() : null,
+      type: tokenRecord?.type,
+      email: tokenRecord?.identifier
+    });
 
-      // Verificar expiração
-      if (allResults[0].tokenExpiry && allResults[0].tokenExpiry <= now) {
-        console.error('[Verificação Email] ❌ Token expirado');
-        console.error('[Verificação Email] Expirou em:', allResults[0].tokenExpiry.toISOString());
-        console.error('[Verificação Email] Data atual:', now.toISOString());
-        return NextResponse.json(
-          { error: 'Token expirado. Por favor, solicite um novo email de verificação.' },
-          { status: 400 }
-        );
-      }
-
-      // Atualizar médico
-      console.log('[Verificação Email] Atualizando médico...');
-      await db
-        .update(doctors)
-        .set({
-          emailVerified: true,
-          verificationToken: null,
-          tokenExpiry: null,
-          updatedAt: new Date(),
-        })
-        .where(eq(doctors.id, allResults[0].id));
-
-      console.log('[Verificação Email] ✅ Médico verificado com sucesso!');
-      return NextResponse.json({ success: true });
-
-    } else {
-      console.error('[Verificação Email] ❌ Tipo inválido:', type);
-      return NextResponse.json(
-        { error: 'Tipo inválido' },
-        { status: 400 }
+    if (!tokenRecord) {
+      console.error('❌ Token não encontrado no banco de dados');
+      const baseUrl = request.url.split('/verify-email')[0];
+      return NextResponse.redirect(
+        new URL(`${baseUrl}/verify-email?error=invalid`, request.url)
       );
     }
+
+    // Verificar expiração (already handled by gt in where clause, but good for explicit logging)
+    if (new Date(tokenRecord.expires) < new Date()) {
+      console.error('❌ Token expirado:', {
+        expires: tokenRecord.expires,
+        now: new Date().toISOString()
+      });
+
+      // Deletar token expirado - This logic needs to be adapted to the original schema
+      if (tokenRecord.type === 'patient') {
+        await db.update(patients).set({ verificationToken: null, tokenExpiry: null }).where(eq(patients.email, tokenRecord.identifier));
+      } else if (tokenRecord.type === 'doctor') {
+        await db.update(doctors).set({ verificationToken: null, tokenExpiry: null }).where(eq(doctors.email, tokenRecord.identifier));
+      }
+
+      const baseUrl = request.url.split('/verify-email')[0];
+      return NextResponse.redirect(
+        new URL(`${baseUrl}/verify-email?error=expired`, request.url)
+      );
+    }
+
+    // Verificar tipo
+    if (tokenRecord.type !== type) {
+      console.error('❌ Tipo incorreto:', {
+        expected: type,
+        actual: tokenRecord.type
+      });
+      const baseUrl = request.url.split('/verify-email')[0];
+      return NextResponse.redirect(
+        new URL(`${baseUrl}/verify-email?error=invalid`, request.url)
+      );
+    }
+
+    const email = tokenRecord.identifier;
+    console.log('✅ Verificando usuário:', email);
+
+    // Atualizar usuário baseado no tipo
+    if (type === 'patient') {
+      // Ensure patient exists and is not already verified (though token check implicitly handles this if tokens are unique per verification)
+      const patient = await db.select().from(patients).where(eq(patients.email, email)).limit(1);
+      if (patient.length === 0) {
+        console.error('❌ Paciente não encontrado:', email);
+        const baseUrl = request.url.split('/verify-email')[0];
+        return NextResponse.redirect(
+          new URL(`${baseUrl}/verify-email?error=user_not_found`, request.url)
+        );
+      }
+      // Check if already verified to avoid unnecessary update and log
+      if(patient[0].emailVerified) {
+        console.log('✅ Email já verificado anteriormente para:', email);
+        const baseUrl = request.url.split('/verify-email')[0];
+        return NextResponse.redirect(
+          new URL(`${baseUrl}/verify-email?success=true&type=${type}&message=already_verified`, request.url)
+        );
+      }
+
+      await db
+        .update(patients)
+        .set({ emailVerified: true, verificationToken: null, tokenExpiry: null, updatedAt: new Date() })
+        .where(eq(patients.id, patient[0].id));
+      console.log('✅ Paciente verificado:', patient[0].id);
+    } else if (type === 'doctor') {
+      const doctor = await db.select().from(doctors).where(eq(doctors.email, email)).limit(1);
+      if (doctor.length === 0) {
+        console.error('❌ Médico não encontrado:', email);
+        const baseUrl = request.url.split('/verify-email')[0];
+        return NextResponse.redirect(
+          new URL(`${baseUrl}/verify-email?error=user_not_found`, request.url)
+        );
+      }
+      // Check if already verified
+      if(doctor[0].emailVerified) {
+        console.log('✅ Email já verificado anteriormente para:', email);
+        const baseUrl = request.url.split('/verify-email')[0];
+        return NextResponse.redirect(
+          new URL(`${baseUrl}/verify-email?success=true&type=${type}&message=already_verified`, request.url)
+        );
+      }
+
+      await db
+        .update(doctors)
+        .set({ emailVerified: true, verificationToken: null, tokenExpiry: null, updatedAt: new Date() })
+        .where(eq(doctors.id, doctor[0].id));
+      console.log('✅ Médico verificado:', doctor[0].id);
+    }
+
+    // Deletar token usado - handled by setting to null above. If a separate token table was used, deletion would happen here.
+    console.log('🗑️ Token limpo após verificação');
+
+    // Redirecionar para página de sucesso
+    const baseUrl = request.url.split('/verify-email')[0];
+    return NextResponse.redirect(
+      new URL(`${baseUrl}/verify-email?success=true&type=${type}`, request.url)
+    );
   } catch (error) {
-    console.error('[Verificação Email] ❌ Erro crítico:', error);
-    return NextResponse.json(
-      { error: 'Erro interno do servidor. Por favor, tente novamente.' },
-      { status: 500 }
+    console.error('❌ Erro na verificação de email:', error);
+    const baseUrl = request.url.split('/verify-email')[0];
+    return NextResponse.redirect(
+      new URL(`${baseUrl}/verify-email?error=server_error`, request.url)
     );
   }
 }

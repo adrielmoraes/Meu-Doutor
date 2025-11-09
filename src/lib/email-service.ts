@@ -33,7 +33,7 @@ export async function sendVerificationEmail(data: VerificationEmailData): Promis
     try {
       const { getUncachableResendClient } = await import('./resend-client');
       const { client, fromEmail } = await getUncachableResendClient();
-      
+
       const result = await client.emails.send({
         from: fromEmail || 'MediAI <noreply@mediai.com>',
         to: [data.to],
@@ -45,19 +45,19 @@ export async function sendVerificationEmail(data: VerificationEmailData): Promis
       return true;
     } catch (resendError: any) {
       console.warn('[Email] Integração Resend não disponível, tentando fallback:', resendError.message);
-      
+
       // Fallback: tentar com RESEND_API_KEY direta
       const resendApiKey = process.env.RESEND_API_KEY;
       if (resendApiKey) {
         return await sendViaResendFallback(data, resendApiKey);
       }
-      
+
       // Fallback: SendGrid
       const sendgridApiKey = process.env.SENDGRID_API_KEY;
       if (sendgridApiKey) {
         return await sendViaSendGrid(data, sendgridApiKey);
       }
-      
+
       // Nenhum serviço configurado
       console.error('[Email] ❌ Nenhum serviço de email configurado!');
       console.log('[Email] Configure a integração Resend no Replit ou adicione RESEND_API_KEY');
