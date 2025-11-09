@@ -117,6 +117,15 @@ export default function LoginPage() {
             
             <SubmitButton />
           </form>
+          
+          <div className="mt-4 text-center">
+            <a 
+              href="/forgot-password" 
+              className="text-sm text-cyan-400 hover:text-cyan-300 underline"
+            >
+              Esqueci minha senha
+            </a>
+          </div>
         </CardContent>
       </Card>
     </div>

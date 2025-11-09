@@ -79,7 +79,9 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       gender: rest.gender,
       city: rest.city,
       state: rest.state.toUpperCase(),
-    } as Omit<Patient, 'id'>, hashedPassword, verificationToken, tokenExpiry);
+      verificationToken: verificationToken,
+      tokenExpiry: tokenExpiry,
+    } as Omit<Patient, 'id'>, hashedPassword);
 
     // Enviar email de verificação
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
@@ -92,7 +94,7 @@ export async function createPatientAction(prevState: any, formData: FormData) {
     console.log('[Cadastro Paciente] Enviando email de verificação...');
     console.log('[Cadastro Paciente] Para:', email);
     console.log('[Cadastro Paciente] URL de verificação:', verificationUrl);
-    
+
     const emailSent = await sendVerificationEmail({
       to: email,
       name: fullName,
@@ -113,7 +115,7 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       // Criar customer no Stripe
       const customer = await stripe.customers.create({
         email,
-        name,
+        name: fullName, // Corrigido para usar fullName
         metadata: { patientId },
       });
 

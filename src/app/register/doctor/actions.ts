@@ -1,4 +1,3 @@
-
 'use server';
 
 import { addDoctorWithAuth, getDoctorByEmail, getDoctorByCrm } from '@/lib/db-adapter';
@@ -27,7 +26,7 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
       message: 'Erro de validação. Por favor, corrija os campos destacados.',
     };
   }
-  
+
   const { fullName, email, password, specialty, crm, city, state } = validatedFields.data;
 
   try {
@@ -74,17 +73,17 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
     } as Omit<Doctor, 'id'>, hashedPassword, verificationToken, tokenExpiry);
 
     // Enviar email de verificação
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
-                    (process.env.REPLIT_DOMAINS?.split(',')[0] 
-                      ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` 
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ||
+                    (process.env.REPLIT_DOMAINS?.split(',')[0]
+                      ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
                       : 'http://localhost:5000');
-    
+
     const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}&type=doctor`;
-    
+
     console.log('[Cadastro Médico] Enviando email de verificação...');
     console.log('[Cadastro Médico] Para:', email);
     console.log('[Cadastro Médico] URL de verificação:', verificationUrl);
-    
+
     const emailSent = await sendVerificationEmail({
       to: email,
       name: fullName,
