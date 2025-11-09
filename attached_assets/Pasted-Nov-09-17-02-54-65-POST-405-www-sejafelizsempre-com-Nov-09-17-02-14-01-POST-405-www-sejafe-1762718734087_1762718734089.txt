@@ -1,0 +1,216 @@
+Nov 09 17:02:54.65
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 17:02:14.01
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 17:01:22.32
+GET
+200
+mediai-41k6rrwc6-mediais-projects-8a1ba519.vercel.app
+/
+Nov 09 17:00:19.89
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 17:00:18.07
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 17:00:14.60
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 17:00:14.01
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 17:00:14.00
+GET
+200
+www.sejafelizsempre.com
+/verify-email
+Nov 09 17:00:11.90
+GET
+200
+www.sejafelizsempre.com
+/verify-email
+Nov 09 16:59:48.88
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 16:59:47.72
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 16:59:47.18
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 16:59:45.14
+GET
+200
+www.sejafelizsempre.com
+/login
+Nov 09 16:59:44.54
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 16:59:43.43
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 16:59:42.88
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 16:59:42.81
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 16:59:42.81
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 16:59:42.81
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 16:59:42.64
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 16:59:42.58
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 16:59:42.53
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 16:59:41.63
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 16:59:39.37
+POST
+200
+www.sejafelizsempre.com
+/register/patient
+10
+⚠ Unsupported metadata viewport is configured in metadata export in /register/patient. Please move it to viewport export instead. Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+Nov 09 16:58:49.66
+GET
+200
+www.sejafelizsempre.com
+/register/patient
+Nov 09 16:58:46.23
+GET
+200
+www.sejafelizsempre.com
+/login
+Nov 09 16:58:46.11
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 16:58:32.53
+POST
+405
+www.sejafelizsempre.com
+/
+Nov 09 16:58:27.07
+POST
+405
+www.sejafelizsempre.com
+/
+INVALID_REQUEST_METHOD: This Request was not made with an accepted method
+Nov 09 16:58:25.96
+GET
+200
+www.sejafelizsempre.com
+/verify-email
+Nov 09 16:58:06.41
+GET
+200
+mediai-41k6rrwc6-mediais-projects-8a1ba519.vercel.app
+/login
+Nov 09 16:58:06.41
+GET
+200
+mediai-41k6rrwc6-mediais-projects-8a1ba519.vercel.app
+/register
+Nov 09 16:58:06.41
+GET
+200
+mediai-41k6rrwc6-mediais-projects-8a1ba519.vercel.app
+/register
+Nov 09 16:58:06.33
+GET
+200
+mediai-41k6rrwc6-mediais-projects-8a1ba519.vercel.app
+/login
+Nov 09 16:58:06.33
+POST
+---
+mediai-41k6rrwc6-mediais-projects-8a1ba519.vercel.app
+/
+3
+[Session Debug] getSession - decryptedSession: Falha na descriptografia ou cookie ausente
+Nov 09 16:58:06.33
+GET
+404
+mediai-41k6rrwc6-mediais-projects-8a1ba519.vercel.app
+/api/session
+3
+[Session Debug] getSession - decryptedSession: Falha na descriptografia ou cookie ausente
+Nov 09 16:58:06.31
+POST
+---
+mediai-41k6rrwc6-mediais-projects-8a1ba519.vercel.app
+/
+3
+[Session Debug] getSession - decryptedSession: Falha na descriptografia ou cookie ausente
+Nov 09 16:58:06.31
+GET
+404
+mediai-41k6rrwc6-mediais-projects-8a1ba519.vercel.app
+/api/session
+3
+[Session Debug] getSession - decryptedSession: Falha na descriptografia ou cookie ausente
+Nov 09 16:58:05.13
+GET
+200
+mediai-41k6rrwc6-mediais-projects-8a1ba519.vercel.app
+/
+Nov 09 16:58:05.13
+GET
+200
+mediai-41k6rrwc6-mediais-projects-8a1ba519.vercel.app
+/
+Nov 09 16:58:04.71
+GET
+200
+mediai-41k6rrwc6-mediais-projects-8a1ba519.vercel.app
+/
