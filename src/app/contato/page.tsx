@@ -204,12 +204,8 @@ export default function ContatoPage() {
                         <p className="text-blue-100/70 mb-2">
                           Para dúvidas gerais e suporte:
                         </p>
-                        <a href="mailto:contato@mediai.com.br" className="text-cyan-400 hover:text-cyan-300 transition-colors">
-                          contato@mediai.com.br
-                        </a>
-                        <br />
-                        <a href="mailto:suporte@mediai.com.br" className="text-cyan-400 hover:text-cyan-300 transition-colors">
-                          suporte@mediai.com.br
+                        <a href="mailto:contato@sejafelizsempre.com" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+                          contato@sejafelizsempre.com
                         </a>
                       </div>
                     </div>
@@ -296,8 +292,8 @@ export default function ContatoPage() {
                   <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6">
                     <p className="text-blue-100 mb-2">
                       <strong className="text-cyan-300">Email do DPO:</strong>{" "}
-                      <a href="mailto:dpo@mediai.com.br" className="text-cyan-400 hover:text-cyan-300 transition-colors">
-                        dpo@mediai.com.br
+                      <a href="mailto:dpo@sejafelizsempre.com" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+                        dpo@sejafelizsempre.com
                       </a>
                     </p>
                     <p className="text-sm text-blue-200/60 mt-4">

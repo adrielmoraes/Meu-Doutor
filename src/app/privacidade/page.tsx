@@ -414,7 +414,7 @@ export default function PrivacidadePage() {
                         Para exercer qualquer destes direitos, entre em contato com nosso DPO:
                       </p>
                       <ul className="list-disc list-inside space-y-1 text-blue-100/80 ml-4">
-                        <li>Email: <a href="mailto:dpo@mediai.com.br" className="text-cyan-400 hover:text-cyan-300">dpo@mediai.com.br</a></li>
+                        <li>Email: <a href="mailto:dpo@sejafelizsempre.com" className="text-cyan-400 hover:text-cyan-300">dpo@sejafelizsempre.com</a></li>
                         <li>Através das configurações da sua conta na plataforma</li>
                         <li>Responderemos em até <strong>15 dias úteis</strong></li>
                       </ul>
