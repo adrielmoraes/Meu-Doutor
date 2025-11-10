@@ -42,7 +42,7 @@ export const patients = pgTable('patients', {
     exercisePlan: string;
     mentalWellnessPlan: string;
     dailyReminders: Array<{
-      icon: 'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell';
+      icon: 'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell' | 'Apple' | 'Heart' | 'Sun' | 'Moon' | 'Activity' | 'Utensils' | 'Brain' | 'Smile' | 'Wind' | 'Leaf';
       title: string;
       description: string;
     }>;

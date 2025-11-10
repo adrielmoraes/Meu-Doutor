@@ -9,12 +9,24 @@ async function testDatabaseWithUser() {
   console.log('🧪 Iniciando teste do banco de dados com usuário fictício...\n');
   
   const testId = crypto.randomUUID();
-  const testEmail = `teste.ficticio.${Date.now()}@exemplo.com`;
+  const timestamp = Date.now();
+  const testEmail = `teste.ficticio.${timestamp}@exemplo.com`;
+  const testCpf = `999.${timestamp.toString().slice(-8, -5)}.${timestamp.toString().slice(-5, -2)}-${timestamp.toString().slice(-2)}`; // CPF único baseado no timestamp
   const testPassword = 'Senha@123';
   
   try {
+    // 0. Limpar dados antigos de teste se existirem
+    console.log('🧹 Limpando possíveis dados antigos de teste...');
+    try {
+      await db.delete(patients).where(eq(patients.cpf, '000.000.000-00'));
+      console.log('✅ Dados antigos limpos\n');
+    } catch (cleanError) {
+      console.log('ℹ️  Nenhum dado antigo encontrado\n');
+    }
+    
     // 1. Criar usuário fictício
     console.log('📝 Criando usuário fictício...');
+    console.log(`   CPF único gerado: ${testCpf}`);
     const hashedPassword = await bcrypt.hash(testPassword, 10);
     
     const [newPatient] = await db.insert(patients).values({
@@ -23,12 +35,18 @@ async function testDatabaseWithUser() {
       age: 35,
       email: testEmail,
       phone: '(11) 99999-9999',
-      cpf: '000.000.000-00',
+      cpf: testCpf,
       birthDate: '1990-01-01',
       gender: 'Masculino',
       city: 'São Paulo',
       state: 'SP',
-      avatar: '👨',
+      avatar: 'https://placehold.co/128x128.png',
+      avatarHint: 'person portrait',
+      lastVisit: new Date().toLocaleDateString('pt-BR'),
+      status: 'Validado',
+      conversationHistory: '',
+      reportedSymptoms: '',
+      examResults: '',
       emailVerified: true,
     }).returning();
     
@@ -37,7 +55,7 @@ async function testDatabaseWithUser() {
     // 2. Criar autenticação
     console.log('🔐 Criando credenciais de autenticação...');
     await db.insert(patientAuth).values({
-      patientId: newPatient.id,
+      id: newPatient.id,  // Corrigido: é 'id' não 'patientId'
       password: hashedPassword,
     });
     
@@ -61,7 +79,7 @@ async function testDatabaseWithUser() {
     // 4. Verificar autenticação
     console.log('🔐 Verificando autenticação...');
     const auth = await db.query.patientAuth.findFirst({
-      where: eq(patientAuth.patientId, savedPatient.id),
+      where: eq(patientAuth.id, savedPatient.id),  // Corrigido: é 'id' não 'patientId'
     });
     
     if (!auth) {
@@ -77,7 +95,7 @@ async function testDatabaseWithUser() {
     
     // 5. Limpar dados de teste
     console.log('🧹 Limpando dados de teste...');
-    await db.delete(patientAuth).where(eq(patientAuth.patientId, savedPatient.id));
+    await db.delete(patientAuth).where(eq(patientAuth.id, savedPatient.id));  // Corrigido: é 'id' não 'patientId'
     await db.delete(patients).where(eq(patients.id, savedPatient.id));
     console.log('✅ Dados de teste removidos\n');
     

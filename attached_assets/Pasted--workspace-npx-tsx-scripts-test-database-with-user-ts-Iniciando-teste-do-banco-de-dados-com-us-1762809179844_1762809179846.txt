@@ -1,0 +1,53 @@
+~/workspace$ npx tsx scripts/test-database-with-user.ts
+🧪 Iniciando teste do banco de dados com usuário fictício...
+
+📝 Criando usuário fictício...
+
+❌ ERRO durante o teste: DrizzleQueryError: Failed query: insert into "patients" ("id", "name", "age", "birth_date", "cpf", "phone", "email", "email_verified", "verification_token", "token_expiry", "city", "state", "last_visit", "status", "priority", "avatar", "avatar_hint", "gender", "conversation_history", "reported_symptoms", "exam_results", "doctor_notes", "preventive_alerts", "health_goals", "final_explanation", "final_explanation_audio_uri", "wellness_plan", "created_at", "updated_at") values ($1, $2, $3, $4, $5, $6, $7, $8, default, default, $9, $10, default, default, default, $11, default, $12, default, default, default, default, default, default, default, default, default, default, default) returning "id", "name", "age", "birth_date", "cpf", "phone", "email", "email_verified", "verification_token", "token_expiry", "city", "state", "last_visit", "status", "priority", "avatar", "avatar_hint", "gender", "conversation_history", "reported_symptoms", "exam_results", "doctor_notes", "preventive_alerts", "health_goals", "final_explanation", "final_explanation_audio_uri", "wellness_plan", "created_at", "updated_at"
+params: a6fa6b16-952d-41bd-90b3-7441dca795d8,João Teste Fictício,35,1990-01-01,000.000.000-00,(11) 99999-9999,teste.ficticio.1762808928442@exemplo.com,true,São Paulo,SP,👨,Masculino
+    at NeonHttpPreparedQuery.queryWithCache (/home/runner/workspace/node_modules/src/pg-core/session.ts:73:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonHttpPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-http/session.ts:83:18)
+    at async testDatabaseWithUser (/home/runner/workspace/scripts/test-database-with-user.ts:20:26) {
+  query: 'insert into "patients" ("id", "name", "age", "birth_date", "cpf", "phone", "email", "email_verified", "verification_token", "token_expiry", "city", "state", "last_visit", "status", "priority", "avatar", "avatar_hint", "gender", "conversation_history", "reported_symptoms", "exam_results", "doctor_notes", "preventive_alerts", "health_goals", "final_explanation", "final_explanation_audio_uri", "wellness_plan", "created_at", "updated_at") values ($1, $2, $3, $4, $5, $6, $7, $8, default, default, $9, $10, default, default, default, $11, default, $12, default, default, default, default, default, default, default, default, default, default, default) returning "id", "name", "age", "birth_date", "cpf", "phone", "email", "email_verified", "verification_token", "token_expiry", "city", "state", "last_visit", "status", "priority", "avatar", "avatar_hint", "gender", "conversation_history", "reported_symptoms", "exam_results", "doctor_notes", "preventive_alerts", "health_goals", "final_explanation", "final_explanation_audio_uri", "wellness_plan", "created_at", "updated_at"',
+  params: [
+    'a6fa6b16-952d-41bd-90b3-7441dca795d8',
+    'João Teste Fictício',
+    35,
+    '1990-01-01',
+    '000.000.000-00',
+    '(11) 99999-9999',
+    'teste.ficticio.1762808928442@exemplo.com',
+    true,
+    'São Paulo',
+    'SP',
+    '👨',
+    'Masculino'
+  ],
+  cause: NeonDbError: duplicate key value violates unique constraint "patients_cpf_unique"
+      at mr.execute (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:1300:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at async <anonymous> (/home/runner/workspace/node_modules/src/neon-http/session.ts:84:11)
+      at async NeonHttpPreparedQuery.queryWithCache (/home/runner/workspace/node_modules/src/pg-core/session.ts:71:12)
+      at async NeonHttpPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-http/session.ts:83:18)
+      at async testDatabaseWithUser (/home/runner/workspace/scripts/test-database-with-user.ts:20:26) {
+    severity: 'ERROR',
+    code: '23505',
+    detail: 'Key (cpf)=(000.000.000-00) already exists.',
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: 'public',
+    table: 'patients',
+    column: undefined,
+    dataType: undefined,
+    constraint: 'patients_cpf_unique',
+    file: 'nbtinsert.c',
+    line: '667',
+    routine: '_bt_check_unique',
+    sourceError: undefined
+  }
+}
+~/workspace$ 

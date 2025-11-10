@@ -75,8 +75,9 @@ export async function addDoctorWithAuth(
     tokenExpiry: tokenExpiry
   });
 
-  await db.transaction(async (tx) => {
-    await tx.insert(doctors).values({
+  try {
+    // Inserir médico
+    await db.insert(doctors).values({
       id: doctorId,
       ...doctor,
       verificationToken: verificationToken || null,
@@ -86,16 +87,25 @@ export async function addDoctorWithAuth(
       updatedAt: new Date(),
     });
 
-    await tx.insert(doctorAuth).values({
+    // Inserir autenticação
+    await db.insert(doctorAuth).values({
       id: doctorId,
       password,
       createdAt: new Date(),
     });
-  });
 
-  console.log('[DB] ✅ Médico salvo com sucesso:', doctorId);
-
-  return doctorId;
+    console.log('[DB] ✅ Médico salvo com sucesso:', doctorId);
+    return doctorId;
+  } catch (error) {
+    // Em caso de erro, tentar limpar o médico criado
+    console.error('[DB] ❌ Erro ao salvar médico, fazendo rollback manual:', error);
+    try {
+      await db.delete(doctors).where(eq(doctors.id, doctorId));
+    } catch (cleanupError) {
+      console.error('[DB] ❌ Erro ao fazer cleanup:', cleanupError);
+    }
+    throw error;
+  }
 }
 
 export async function updateDoctor(id: string, data: Partial<Doctor>): Promise<void> {
@@ -179,8 +189,9 @@ export async function addPatientWithAuth(
     tokenExpiry: tokenExpiry
   });
 
-  await db.transaction(async (tx) => {
-    await tx.insert(patients).values({
+  try {
+    // Inserir paciente
+    await db.insert(patients).values({
       id: patientId,
       ...patient,
       verificationToken: verificationToken || null,
@@ -190,16 +201,25 @@ export async function addPatientWithAuth(
       updatedAt: new Date(),
     });
 
-    await tx.insert(patientAuth).values({
+    // Inserir autenticação
+    await db.insert(patientAuth).values({
       id: patientId,
       password,
       createdAt: new Date(),
     });
-  });
 
-  console.log('[DB] ✅ Paciente salvo com sucesso:', patientId);
-
-  return patientId;
+    console.log('[DB] ✅ Paciente salvo com sucesso:', patientId);
+    return patientId;
+  } catch (error) {
+    // Em caso de erro, tentar limpar o paciente criado
+    console.error('[DB] ❌ Erro ao salvar paciente, fazendo rollback manual:', error);
+    try {
+      await db.delete(patients).where(eq(patients.id, patientId));
+    } catch (cleanupError) {
+      console.error('[DB] ❌ Erro ao fazer cleanup:', cleanupError);
+    }
+    throw error;
+  }
 }
 
 export async function getExamsByPatientId(patientId: string): Promise<Exam[]> {
@@ -273,9 +293,18 @@ export async function updatePatientWellnessPlan(
     exercisePlan: string;
     mentalWellnessPlan: string;
     dailyReminders: Array<{
-      icon: 'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell';
+      icon: 'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell' | 'Apple' | 'Heart' | 'Sun' | 'Moon' | 'Activity' | 'Utensils' | 'Brain' | 'Smile' | 'Wind' | 'Leaf';
       title: string;
       description: string;
+    }>;
+    weeklyTasks: Array<{
+      id: string;
+      category: 'nutrition' | 'exercise' | 'mental' | 'general';
+      title: string;
+      description: string;
+      dayOfWeek?: string;
+      completed: boolean;
+      completedAt?: string;
     }>;
     lastUpdated: string;
   }
