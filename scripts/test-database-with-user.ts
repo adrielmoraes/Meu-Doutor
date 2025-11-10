@@ -3,10 +3,12 @@ import { db } from '../server/storage';
 import { patients, patientAuth } from '../shared/schema';
 import bcrypt from 'bcrypt';
 import { eq } from 'drizzle-orm';
+import crypto from 'crypto';
 
 async function testDatabaseWithUser() {
   console.log('🧪 Iniciando teste do banco de dados com usuário fictício...\n');
   
+  const testId = crypto.randomUUID();
   const testEmail = `teste.ficticio.${Date.now()}@exemplo.com`;
   const testPassword = 'Senha@123';
   
@@ -16,7 +18,9 @@ async function testDatabaseWithUser() {
     const hashedPassword = await bcrypt.hash(testPassword, 10);
     
     const [newPatient] = await db.insert(patients).values({
+      id: testId,
       name: 'João Teste Fictício',
+      age: 35,
       email: testEmail,
       phone: '(11) 99999-9999',
       cpf: '000.000.000-00',
@@ -24,8 +28,7 @@ async function testDatabaseWithUser() {
       gender: 'Masculino',
       city: 'São Paulo',
       state: 'SP',
-      address: 'Rua de Teste, 123',
-      zipCode: '01000-000',
+      avatar: '👨',
       emailVerified: true,
     }).returning();
     
