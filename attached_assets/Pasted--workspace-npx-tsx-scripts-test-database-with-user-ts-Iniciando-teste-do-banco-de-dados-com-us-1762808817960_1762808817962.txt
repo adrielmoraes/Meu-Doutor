@@ -1,0 +1,49 @@
+~/workspace$ npx tsx scripts/test-database-with-user.ts
+🧪 Iniciando teste do banco de dados com usuário fictício...
+
+📝 Criando usuário fictício...
+
+❌ ERRO durante o teste: DrizzleQueryError: Failed query: insert into "patients" ("id", "name", "age", "birth_date", "cpf", "phone", "email", "email_verified", "verification_token", "token_expiry", "city", "state", "last_visit", "status", "priority", "avatar", "avatar_hint", "gender", "conversation_history", "reported_symptoms", "exam_results", "doctor_notes", "preventive_alerts", "health_goals", "final_explanation", "final_explanation_audio_uri", "wellness_plan", "created_at", "updated_at") values (default, $1, default, $2, $3, $4, $5, $6, default, default, $7, $8, default, default, default, default, default, $9, default, default, default, default, default, default, default, default, default, default, default) returning "id", "name", "age", "birth_date", "cpf", "phone", "email", "email_verified", "verification_token", "token_expiry", "city", "state", "last_visit", "status", "priority", "avatar", "avatar_hint", "gender", "conversation_history", "reported_symptoms", "exam_results", "doctor_notes", "preventive_alerts", "health_goals", "final_explanation", "final_explanation_audio_uri", "wellness_plan", "created_at", "updated_at"
+params: João Teste Fictício,1990-01-01,000.000.000-00,(11) 99999-9999,teste.ficticio.1762808761914@exemplo.com,true,São Paulo,SP,Masculino
+    at NeonHttpPreparedQuery.queryWithCache (/home/runner/workspace/node_modules/src/pg-core/session.ts:73:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonHttpPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-http/session.ts:83:18)
+    at async testDatabaseWithUser (/home/runner/workspace/scripts/test-database-with-user.ts:18:26) {
+  query: 'insert into "patients" ("id", "name", "age", "birth_date", "cpf", "phone", "email", "email_verified", "verification_token", "token_expiry", "city", "state", "last_visit", "status", "priority", "avatar", "avatar_hint", "gender", "conversation_history", "reported_symptoms", "exam_results", "doctor_notes", "preventive_alerts", "health_goals", "final_explanation", "final_explanation_audio_uri", "wellness_plan", "created_at", "updated_at") values (default, $1, default, $2, $3, $4, $5, $6, default, default, $7, $8, default, default, default, default, default, $9, default, default, default, default, default, default, default, default, default, default, default) returning "id", "name", "age", "birth_date", "cpf", "phone", "email", "email_verified", "verification_token", "token_expiry", "city", "state", "last_visit", "status", "priority", "avatar", "avatar_hint", "gender", "conversation_history", "reported_symptoms", "exam_results", "doctor_notes", "preventive_alerts", "health_goals", "final_explanation", "final_explanation_audio_uri", "wellness_plan", "created_at", "updated_at"',
+  params: [
+    'João Teste Fictício',
+    '1990-01-01',
+    '000.000.000-00',
+    '(11) 99999-9999',
+    'teste.ficticio.1762808761914@exemplo.com',
+    true,
+    'São Paulo',
+    'SP',
+    'Masculino'
+  ],
+  cause: NeonDbError: null value in column "id" of relation "patients" violates not-null constraint
+      at mr.execute (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:1300:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at async <anonymous> (/home/runner/workspace/node_modules/src/neon-http/session.ts:84:11)
+      at async NeonHttpPreparedQuery.queryWithCache (/home/runner/workspace/node_modules/src/pg-core/session.ts:71:12)
+      at async NeonHttpPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-http/session.ts:83:18)
+      at async testDatabaseWithUser (/home/runner/workspace/scripts/test-database-with-user.ts:18:26) {
+    severity: 'ERROR',
+    code: '23502',
+    detail: 'Failing row contains (null, João Teste Fictício, null, 1990-01-01, 000.000.000-00, (11) 99999-9999, teste.ficticio.1762808761914@exemplo.com, t, null, null, São Paulo, SP, null, Requer Validação, null, null, null, Masculino, , , , null, null, null, null, null, null, 2025-11-10 21:06:02.600832, 2025-11-10 21:06:02.600832).',
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: 'public',
+    table: 'patients',
+    column: 'id',
+    dataType: undefined,
+    constraint: undefined,
+    file: 'execMain.c',
+    line: '1997',
+    routine: 'ExecConstraints',
+    sourceError: undefined
+  }
+}
