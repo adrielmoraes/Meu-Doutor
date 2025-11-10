@@ -1,4 +1,3 @@
-
 'use server';
 
 import { getSession } from '@/lib/session';
@@ -6,6 +5,7 @@ import { revalidateTag } from 'next/cache';
 import { updateDoctor } from '@/lib/db-adapter';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+import cloudinary from 'cloudinary'; // Importe a biblioteca Cloudinary
 
 export async function uploadAvatarAction(formData: FormData): Promise<{ success: boolean; message: string; url?: string }> {
     const session = await getSession();
@@ -26,48 +26,43 @@ export async function uploadAvatarAction(formData: FormData): Promise<{ success:
     }
 
     try {
+        // Configurar Cloudinary
+        cloudinary.config({
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+            api_key: process.env.CLOUDINARY_API_KEY,
+            api_secret: process.env.CLOUDINARY_API_SECRET
+        });
+
         // Validação de tamanho (2MB máximo)
         const MAX_FILE_SIZE = 2 * 1024 * 1024;
         if (file.size > MAX_FILE_SIZE) {
             return { success: false, message: "Arquivo muito grande. Tamanho máximo: 2MB." };
         }
 
-        // Validação de tipo MIME do arquivo
-        const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg', 'image/webp'];
-        if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-            return { success: false, message: "Tipo de arquivo não permitido. Use apenas JPEG, PNG, GIF ou WebP." };
+        const fileBuffer = Buffer.from(await file.arrayBuffer());
+
+        // Validação server-side do tipo real do arquivo usando magic bytes
+        const { fileTypeFromBuffer } = await import('file-type');
+        const detectedType = await fileTypeFromBuffer(fileBuffer);
+
+        const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!detectedType || !ALLOWED_MIME_TYPES.includes(detectedType.mime)) {
+            return { success: false, message: "Tipo de arquivo não permitido. Use apenas JPEG, PNG ou GIF." };
         }
 
-        const fileBuffer = Buffer.from(await file.arrayBuffer());
-        
-        // Validação adicional usando magic bytes se file-type estiver disponível
-        try {
-            const { fileTypeFromBuffer } = await import('file-type');
-            const detectedType = await fileTypeFromBuffer(fileBuffer);
-            
-            if (detectedType && !ALLOWED_MIME_TYPES.includes(detectedType.mime)) {
-                return { success: false, message: "Tipo de arquivo detectado não é válido." };
-            }
-        } catch (importError) {
-            // Se file-type não estiver disponível, continue com a validação básica
-            console.log('[UploadAction] file-type não disponível, usando validação básica');
-        }
-        
-        // Gerar nome de arquivo seguro
-        const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-        const safeExtension = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension) ? extension : 'jpg';
-        const fileName = `${userId}-${Date.now()}.${safeExtension}`;
-        
-        // Criar diretório se não existir
-        const uploadDir = path.join(process.cwd(), 'public', 'avatars', 'doctors');
-        await mkdir(uploadDir, { recursive: true });
-        
-        // Salvar arquivo localmente
-        const filePath = path.join(uploadDir, fileName);
-        await writeFile(filePath, fileBuffer);
-        
-        // URL público relativo
-        const publicUrl = `/avatars/doctors/${fileName}`;
+        // Upload para Cloudinary
+        const base64Image = `data:${detectedType.mime};base64,${fileBuffer.toString('base64')}`;
+
+        const uploadResult = await cloudinary.uploader.upload(base64Image, {
+            folder: 'mediai/avatars/doctors',
+            public_id: `${userId}-${Date.now()}`,
+            transformation: [
+                { width: 400, height: 400, crop: 'fill', gravity: 'face' },
+                { quality: 'auto', fetch_format: 'auto' }
+            ]
+        });
+
+        const publicUrl = uploadResult.secure_url;
 
         await updateDoctor(userId, { avatar: publicUrl });
         revalidateTag(`doctor-profile-${userId}`);
@@ -77,7 +72,7 @@ export async function uploadAvatarAction(formData: FormData): Promise<{ success:
         return { success: true, message: "Avatar atualizado com sucesso!", url: publicUrl };
 
     } catch (error) {
-        console.error("[UploadAction] Erro durante o upload do avatar:", error);
+        console.error("[DoctorUploadAction] Erro durante o upload do avatar:", error);
         if (error instanceof Error) {
             return { success: false, message: `Falha no upload do arquivo: ${error.message}` };
         }
