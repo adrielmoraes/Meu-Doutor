@@ -61,23 +61,41 @@ export async function getDoctors(): Promise<Doctor[]> {
 }
 
 export async function addDoctorWithAuth(
-  doctorData: Omit<Doctor, 'id'>, 
-  hashedPassword: string,
+  doctor: Omit<Doctor, 'id'>,
+  password: string,
   verificationToken?: string,
   tokenExpiry?: Date
 ): Promise<string> {
-  const id = randomUUID();
-  
-  await db.insert(doctors).values({ 
-    ...doctorData, 
-    id,
-    emailVerified: false,
-    verificationToken: verificationToken || null,
-    tokenExpiry: tokenExpiry || null,
+  const doctorId = randomUUID();
+
+  console.log('[DB] Salvando médico com token:', {
+    email: doctor.email,
+    hasToken: !!verificationToken,
+    tokenLength: verificationToken?.length,
+    tokenExpiry: tokenExpiry
   });
-  await db.insert(doctorAuth).values({ id, password: hashedPassword });
-  
-  return id;
+
+  await db.transaction(async (tx) => {
+    await tx.insert(doctors).values({
+      id: doctorId,
+      ...doctor,
+      verificationToken: verificationToken || null,
+      tokenExpiry: tokenExpiry || null,
+      emailVerified: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    await tx.insert(doctorAuth).values({
+      id: doctorId,
+      password,
+      createdAt: new Date(),
+    });
+  });
+
+  console.log('[DB] ✅ Médico salvo com sucesso:', doctorId);
+
+  return doctorId;
 }
 
 export async function updateDoctor(id: string, data: Partial<Doctor>): Promise<void> {
@@ -147,23 +165,39 @@ export async function updatePatient(id: string, data: Partial<Patient>): Promise
 }
 
 export async function addPatientWithAuth(
-  patientData: Omit<Patient, 'id'>, 
-  hashedPassword: string,
-  verificationToken?: string,
-  tokenExpiry?: Date
+  patient: Omit<Patient, 'id'>,
+  password: string
 ): Promise<string> {
-  const id = randomUUID();
-  
-  await db.insert(patients).values({ 
-    ...patientData, 
-    id,
-    emailVerified: false,
-    verificationToken: verificationToken || null,
-    tokenExpiry: tokenExpiry || null,
+  const patientId = randomUUID();
+
+  console.log('[DB] Salvando paciente com token:', {
+    email: patient.email,
+    hasToken: !!patient.verificationToken,
+    tokenLength: patient.verificationToken?.length,
+    tokenExpiry: patient.tokenExpiry
   });
-  await db.insert(patientAuth).values({ id, password: hashedPassword });
-  
-  return id;
+
+  await db.transaction(async (tx) => {
+    await tx.insert(patients).values({
+      id: patientId,
+      ...patient,
+      verificationToken: patient.verificationToken || null,
+      tokenExpiry: patient.tokenExpiry || null,
+      emailVerified: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    await tx.insert(patientAuth).values({
+      id: patientId,
+      password,
+      createdAt: new Date(),
+    });
+  });
+
+  console.log('[DB] ✅ Paciente salvo com sucesso:', patientId);
+
+  return patientId;
 }
 
 export async function getExamsByPatientId(patientId: string): Promise<Exam[]> {
@@ -172,7 +206,7 @@ export async function getExamsByPatientId(patientId: string): Promise<Exam[]> {
     .from(exams)
     .where(eq(exams.patientId, patientId))
     .orderBy(desc(exams.createdAt));
-  
+
   return results.map(e => ({ ...e, results: e.results || undefined })) as Exam[];
 }
 
@@ -226,7 +260,7 @@ export async function getAllExamsForWellnessPlan(patientId: string): Promise<Exa
     .from(exams)
     .where(eq(exams.patientId, patientId))
     .orderBy(desc(exams.createdAt));
-  
+
   return results.map(e => ({ ...e, results: e.results || undefined })) as Exam[];
 }
 
@@ -256,7 +290,7 @@ export async function getAppointmentsForPatient(patientId: string): Promise<Appo
     .from(appointments)
     .where(eq(appointments.patientId, patientId))
     .orderBy(desc(appointments.createdAt));
-  
+
   return results.map(a => ({ ...a, patientAvatar: a.patientAvatar || undefined })) as Appointment[];
 }
 
@@ -265,7 +299,7 @@ export async function getAppointmentsByDate(doctorId: string, date: string): Pro
     .select()
     .from(appointments)
     .where(and(eq(appointments.doctorId, doctorId), eq(appointments.date, date)));
-  
+
   return results.map(a => ({ ...a, patientAvatar: a.patientAvatar || undefined })) as Appointment[];
 }
 
@@ -275,7 +309,7 @@ export async function getAppointmentsForDoctor(doctorId: string): Promise<Appoin
     .from(appointments)
     .where(eq(appointments.doctorId, doctorId))
     .orderBy(desc(appointments.createdAt));
-  
+
   return results.map(a => ({ ...a, patientAvatar: a.patientAvatar || undefined })) as Appointment[];
 }
 
@@ -410,7 +444,7 @@ export async function getConsultationsByPatient(patientId: string): Promise<Cons
     .from(consultations)
     .where(eq(consultations.patientId, patientId))
     .orderBy(desc(consultations.createdAt));
-  
+
   return results.map(c => ({ ...c, roomId: c.roomId || '' })) as Consultation[];
 }
 
@@ -420,7 +454,7 @@ export async function getConsultationsByDoctor(doctorId: string): Promise<Consul
     .from(consultations)
     .where(eq(consultations.doctorId, doctorId))
     .orderBy(desc(consultations.createdAt));
-  
+
   return results.map(c => ({ ...c, roomId: c.roomId || '' })) as Consultation[];
 }
 
@@ -429,7 +463,7 @@ export async function getConsultations(): Promise<Consultation[]> {
     .select()
     .from(consultations)
     .orderBy(desc(consultations.date));
-  
+
   return results.map(c => ({ ...c, roomId: c.roomId || '' })) as Consultation[];
 }
 
@@ -444,7 +478,7 @@ export async function saveTavusConversation(data: {
 }): Promise<string> {
   const { tavusConversations } = await import('../../shared/schema');
   const id = randomUUID();
-  
+
   await db.insert(tavusConversations).values({
     id,
     patientId: data.patientId,
@@ -455,19 +489,19 @@ export async function saveTavusConversation(data: {
     endTime: data.endTime,
     duration: data.duration,
   });
-  
+
   return id;
 }
 
 export async function getTavusConversationsByPatient(patientId: string): Promise<any[]> {
   const { tavusConversations } = await import('../../shared/schema');
-  
+
   const results = await db
     .select()
     .from(tavusConversations)
     .where(eq(tavusConversations.patientId, patientId))
     .orderBy(desc(tavusConversations.createdAt));
-  
+
   return results;
 }
 
@@ -483,7 +517,7 @@ export async function updateTavusConversation(conversationId: string, data: Part
   duration: number;
 }>): Promise<void> {
   const { tavusConversations } = await import('../../shared/schema');
-  
+
   await db
     .update(tavusConversations)
     .set({ ...data, updatedAt: new Date() })
@@ -525,7 +559,7 @@ export async function getAdminByEmailWithAuth(email: string): Promise<AdminWithP
 
 export async function addAdminWithAuth(adminData: Omit<Admin, 'id'>, hashedPassword: string): Promise<void> {
   const id = randomUUID();
-  
+
   await db.insert(admins).values({ ...adminData, id });
   await db.insert(adminAuth).values({ id, password: hashedPassword });
 }
@@ -539,9 +573,9 @@ export async function getAdmins(): Promise<Admin[]> {
 
 export async function getAdminSettings(): Promise<AdminSettings | null> {
   const { adminSettings } = await import('../../shared/schema');
-  
+
   const result = await db.select().from(adminSettings).limit(1);
-  
+
   if (!result[0]) {
     // Create default settings if they don't exist
     const defaultId = 'default';
@@ -549,7 +583,7 @@ export async function getAdminSettings(): Promise<AdminSettings | null> {
     const newResult = await db.select().from(adminSettings).where(eq(adminSettings.id, defaultId)).limit(1);
     return newResult[0] as AdminSettings;
   }
-  
+
   return result[0] as AdminSettings;
 }
 
@@ -558,7 +592,7 @@ export async function updateAdminSettings(
   updates: Partial<Omit<AdminSettings, 'id' | 'createdAt' | 'updatedAt'>>
 ): Promise<void> {
   const { adminSettings } = await import('../../shared/schema');
-  
+
   await db
     .update(adminSettings)
     .set({ ...updates, updatedAt: new Date() })
@@ -584,7 +618,7 @@ export async function createAuditLog(logData: {
   userAgent?: string;
 }): Promise<void> {
   const { auditLogs } = await import('../../shared/schema');
-  
+
   await db.insert(auditLogs).values({
     id: randomUUID(),
     ...logData,
@@ -593,40 +627,40 @@ export async function createAuditLog(logData: {
 
 export async function getAuditLogs(limit: number = 50, offset: number = 0): Promise<AuditLog[]> {
   const { auditLogs } = await import('../../shared/schema');
-  
+
   const results = await db
     .select()
     .from(auditLogs)
     .orderBy(desc(auditLogs.createdAt))
     .limit(limit)
     .offset(offset);
-  
+
   return results as AuditLog[];
 }
 
 export async function getAuditLogsByAdmin(adminId: string, limit: number = 50): Promise<AuditLog[]> {
   const { auditLogs } = await import('../../shared/schema');
-  
+
   const results = await db
     .select()
     .from(auditLogs)
     .where(eq(auditLogs.adminId, adminId))
     .orderBy(desc(auditLogs.createdAt))
     .limit(limit);
-  
+
   return results as AuditLog[];
 }
 
 export async function getAuditLogsByAction(action: string, limit: number = 50): Promise<AuditLog[]> {
   const { auditLogs } = await import('../../shared/schema');
-  
+
   const results = await db
     .select()
     .from(auditLogs)
     .where(eq(auditLogs.action, action))
     .orderBy(desc(auditLogs.createdAt))
     .limit(limit);
-  
+
   return results as AuditLog[];
 }
 
@@ -642,7 +676,7 @@ export async function trackUsage(usageData: {
   metadata?: Record<string, any>;
 }): Promise<void> {
   const { usageTracking } = await import('../../shared/schema');
-  
+
   await db.insert(usageTracking).values({
     id: randomUUID(),
     patientId: usageData.patientId,
@@ -657,16 +691,16 @@ export async function trackUsage(usageData: {
 
 export async function getPatientUsageStats(patientId: string): Promise<PatientUsageStats | null> {
   const { usageTracking } = await import('../../shared/schema');
-  
+
   const usage = await db
     .select()
     .from(usageTracking)
     .where(eq(usageTracking.patientId, patientId));
-  
+
   if (usage.length === 0) {
     const patient = await getPatientById(patientId);
     if (!patient) return null;
-    
+
     return {
       patientId,
       patientName: patient.name,
@@ -688,10 +722,10 @@ export async function getPatientUsageStats(patientId: string): Promise<PatientUs
       },
     };
   }
-  
+
   const patient = await getPatientById(patientId);
   if (!patient) return null;
-  
+
   const stats = {
     patientId,
     patientName: patient.name,
@@ -712,12 +746,12 @@ export async function getPatientUsageStats(patientId: string): Promise<PatientUs
       chat: 0,
     },
   };
-  
+
   for (const record of usage) {
     stats.totalTokens += record.tokensUsed || 0;
     stats.totalCallDuration += record.durationSeconds || 0;
     stats.totalCost += record.cost || 0;
-    
+
     switch (record.usageType) {
       case 'exam_analysis':
         stats.breakdown.examAnalysis += record.tokensUsed || 0;
@@ -745,7 +779,7 @@ export async function getPatientUsageStats(patientId: string): Promise<PatientUs
         break;
     }
   }
-  
+
   return stats;
 }
 

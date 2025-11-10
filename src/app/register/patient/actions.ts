@@ -85,6 +85,12 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       tokenExpiry: tokenExpiry,
     } as Omit<Patient, 'id'>, hashedPassword);
 
+    console.log('[Cadastro Paciente] ✅ Token salvo no banco:', {
+      patientId,
+      tokenLength: verificationToken.length,
+      tokenExpiry: tokenExpiry.toISOString()
+    });
+
     // Enviar email de verificação
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
                     (process.env.REPLIT_DOMAINS?.split(',')[0] 
