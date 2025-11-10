@@ -75,15 +75,12 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       reportedSymptoms: '',
       examResults: '',
       email: email,
-      emailVerified: false,
       cpf: rest.cpf,
       phone: rest.phone,
       gender: rest.gender,
       city: rest.city,
       state: rest.state.toUpperCase(),
-      verificationToken: verificationToken,
-      tokenExpiry: tokenExpiry,
-    } as Omit<Patient, 'id'>, hashedPassword);
+    }, hashedPassword, verificationToken, tokenExpiry);
 
     console.log('[Cadastro Paciente] ✅ Token salvo no banco:', {
       patientId,
@@ -134,13 +131,13 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       // Criar subscription com trial gratuito
       const subscription = await stripe.subscriptions.create({
         customer: customer.id,
-        items: [{ price: process.env.NEXT_PUBLIC_STRIPE_TRIAL_PRICE_ID }],
+        items: [{ price: process.env.NEXT_PUBLIC_STRIPE_TRIAL_PRICE_ID || '' }],
         trial_end: trialEndTimestamp,
         cancel_at: trialEndTimestamp,
         metadata: {
           patientId,
           planId: 'trial',
-          stripePriceId: process.env.NEXT_PUBLIC_STRIPE_TRIAL_PRICE_ID,
+          stripePriceId: process.env.NEXT_PUBLIC_STRIPE_TRIAL_PRICE_ID || '',
         },
       });
 
@@ -151,8 +148,8 @@ export async function createPatientAction(prevState: any, formData: FormData) {
         stripeSubscriptionId: subscription.id,
         stripeCustomerId: customer.id,
         status: 'trialing',
-        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        currentPeriodStart: new Date((subscription.current_period_start as number) * 1000),
+        currentPeriodEnd: new Date((subscription.current_period_end as number) * 1000),
       });
 
       console.log(`[Cadastro] Plano Trial ativado para ${email}`);

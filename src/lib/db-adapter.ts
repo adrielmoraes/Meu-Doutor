@@ -165,24 +165,26 @@ export async function updatePatient(id: string, data: Partial<Patient>): Promise
 }
 
 export async function addPatientWithAuth(
-  patient: Omit<Patient, 'id'>,
-  password: string
+  patient: Omit<Patient, 'id' | 'verificationToken' | 'tokenExpiry' | 'emailVerified'>,
+  password: string,
+  verificationToken?: string,
+  tokenExpiry?: Date
 ): Promise<string> {
   const patientId = randomUUID();
 
   console.log('[DB] Salvando paciente com token:', {
     email: patient.email,
-    hasToken: !!patient.verificationToken,
-    tokenLength: patient.verificationToken?.length,
-    tokenExpiry: patient.tokenExpiry
+    hasToken: !!verificationToken,
+    tokenLength: verificationToken?.length,
+    tokenExpiry: tokenExpiry
   });
 
   await db.transaction(async (tx) => {
     await tx.insert(patients).values({
       id: patientId,
       ...patient,
-      verificationToken: patient.verificationToken || null,
-      tokenExpiry: patient.tokenExpiry || null,
+      verificationToken: verificationToken || null,
+      tokenExpiry: tokenExpiry || null,
       emailVerified: false,
       createdAt: new Date(),
       updatedAt: new Date(),
