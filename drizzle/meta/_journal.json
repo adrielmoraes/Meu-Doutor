@@ -15,6 +15,13 @@
       "when": 1760984343292,
       "tag": "0001_flaky_crusher_hogan",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1762807674780,
+      "tag": "0002_flawless_zuras",
+      "breakpoints": true
     }
   ]
 }
