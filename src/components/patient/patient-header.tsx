@@ -48,10 +48,7 @@ export function PatientHeader({ patient }: PatientHeaderProps) {
         <div className="flex h-16 items-center justify-between">
           {/* Logo/Brand */}
           <Link href="/patient/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <MediAILogo className="h-8 w-8" />
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent hidden sm:block">
-              MediAI
-            </span>
+            <MediAILogo size="md" showText={true} />
           </Link>
 
           {/* Theme Toggle and User Menu */}
