@@ -95,6 +95,11 @@ export async function GET(request: NextRequest) {
       console.error('❌ [VERIFY-EMAIL] Token não encontrado no banco de dados');
       console.error('❌ [VERIFY-EMAIL] Token buscado:', token);
       console.error('❌ [VERIFY-EMAIL] Tipo:', type);
+      console.error('❌ [VERIFY-EMAIL] Possíveis causas:');
+      console.error('  1. Token já foi usado e removido do banco');
+      console.error('  2. Token expirou e foi removido');
+      console.error('  3. Token nunca foi salvo no banco (erro no cadastro)');
+      console.error('  4. URL de verificação está incorreta');
       
       return NextResponse.json({ 
         success: false, 
@@ -138,6 +143,9 @@ export async function GET(request: NextRequest) {
 
     if (!expiryDate || expiryDate < now) {
       console.error('❌ [VERIFY-EMAIL] Token expirado');
+      console.error('❌ [VERIFY-EMAIL] Data de expiração:', expiryDate?.toISOString());
+      console.error('❌ [VERIFY-EMAIL] Data atual:', now.toISOString());
+      console.error('❌ [VERIFY-EMAIL] Diferença em minutos:', expiryDate ? Math.floor((now.getTime() - expiryDate.getTime()) / 60000) : 'N/A');
 
       // Deletar token expirado
       if (tokenRecord.type === 'patient') {

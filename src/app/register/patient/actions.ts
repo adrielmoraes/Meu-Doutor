@@ -82,10 +82,15 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       state: rest.state.toUpperCase(),
     }, hashedPassword, verificationToken, tokenExpiry);
 
-    console.log('[Cadastro Paciente] ✅ Token salvo no banco:', {
+    console.log('[Cadastro Paciente] ✅ Paciente salvo com sucesso:', {
       patientId,
+      email,
+      phone: rest.phone,
+      city: rest.city,
+      state: rest.state,
       tokenLength: verificationToken.length,
-      tokenExpiry: tokenExpiry.toISOString()
+      tokenExpiry: tokenExpiry.toISOString(),
+      tokenExpiresIn: '24 horas'
     });
 
     // Enviar email de verificação
