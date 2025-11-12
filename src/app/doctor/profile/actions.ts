@@ -1,3 +1,4 @@
+
 'use server';
 
 import { getSession } from '@/lib/session';
@@ -5,7 +6,6 @@ import { revalidateTag } from 'next/cache';
 import { updateDoctor } from '@/lib/db-adapter';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
-import cloudinary from 'cloudinary'; // Importe a biblioteca Cloudinary
 
 export async function uploadAvatarAction(formData: FormData): Promise<{ success: boolean; message: string; url?: string }> {
     const session = await getSession();
@@ -26,13 +26,6 @@ export async function uploadAvatarAction(formData: FormData): Promise<{ success:
     }
 
     try {
-        // Configurar Cloudinary
-        cloudinary.config({
-            cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-            api_key: process.env.CLOUDINARY_API_KEY,
-            api_secret: process.env.CLOUDINARY_API_SECRET
-        });
-
         // Validação de tamanho (2MB máximo)
         const MAX_FILE_SIZE = 2 * 1024 * 1024;
         if (file.size > MAX_FILE_SIZE) {
@@ -50,19 +43,22 @@ export async function uploadAvatarAction(formData: FormData): Promise<{ success:
             return { success: false, message: "Tipo de arquivo não permitido. Use apenas JPEG, PNG ou GIF." };
         }
 
-        // Upload para Cloudinary
-        const base64Image = `data:${detectedType.mime};base64,${fileBuffer.toString('base64')}`;
+        // Definir caminho de upload local
+        const uploadDir = path.join(process.cwd(), 'public', 'avatars', 'doctors');
+        
+        // Criar diretório se não existir
+        await mkdir(uploadDir, { recursive: true });
 
-        const uploadResult = await cloudinary.uploader.upload(base64Image, {
-            folder: 'mediai/avatars/doctors',
-            public_id: `${userId}-${Date.now()}`,
-            transformation: [
-                { width: 400, height: 400, crop: 'fill', gravity: 'face' },
-                { quality: 'auto', fetch_format: 'auto' }
-            ]
-        });
+        // Gerar nome único do arquivo
+        const fileExtension = detectedType.ext;
+        const fileName = `${userId}-${Date.now()}.${fileExtension}`;
+        const filePath = path.join(uploadDir, fileName);
 
-        const publicUrl = uploadResult.secure_url;
+        // Salvar arquivo no sistema de arquivos
+        await writeFile(filePath, fileBuffer);
+
+        // URL pública para acessar a imagem
+        const publicUrl = `/avatars/doctors/${fileName}`;
 
         await updateDoctor(userId, { avatar: publicUrl });
         revalidateTag(`doctor-profile-${userId}`);
@@ -107,6 +103,6 @@ export async function updateDoctorProfile(formData: FormData): Promise<{ success
     return { success: true, message: 'Perfil atualizado com sucesso!' };
   } catch (error) {
     console.error("Erro ao atualizar perfil do médico:", error);
-    return { success: false, message: 'Falha ao atualizar o perfil.' };
+    return { success: false, message: 'Falha ao atualizar o perfil no servidor.' };
   }
 }
