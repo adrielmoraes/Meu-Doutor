@@ -1,0 +1,93 @@
+2025-11-10 21:42:23.49
+3484cba7
+User
+{"message": "[MediAI] 🏥 Starting medical consultation session...", "level": "INFO", "name": "mediai-avatar", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:23.489672+00:00"}
+2025-11-10 21:42:23.50
+3484cba7
+User
+{"message": "Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.", "level": "WARNING", "name": "google_genai._api_client", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:23.501112+00:00"}
+2025-11-10 21:42:24.10
+3484cba7
+User
+{"message": "[MediAI] ⏳ Waiting for avatar to be visible and audio/video to sync...", "level": "INFO", "name": "mediai-avatar", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:24.100318+00:00"}
+2025-11-10 21:42:24.18
+3484cba7
+User
+{"message": "[MediAI] ✅ Session started successfully!", "level": "INFO", "name": "mediai-avatar", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:24.106076+00:00"}
+2025-11-10 21:42:26.03
+3484cba7
+User
+{"message": "[MediAI] Avatar provider configured: bey", "level": "INFO", "name": "mediai-avatar", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:26.030226+00:00"}
+2025-11-10 21:42:26.04
+3484cba7
+User
+{"message": "[MediAI] 🎭 Avatar provider selected: bey", "level": "INFO", "name": "mediai-avatar", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:26.030513+00:00"}
+2025-11-10 21:42:26.04
+3484cba7
+User
+{"message": "[MediAI] 🎭 Initializing Beyond Presence (BEY) avatar...", "level": "INFO", "name": "mediai-avatar", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:26.030607+00:00"}
+2025-11-10 21:42:26.04
+3484cba7
+User
+{"message": "[MediAI] 🎥 Starting BEY avatar...", "level": "INFO", "name": "mediai-avatar", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:26.030783+00:00"}
+2025-11-10 21:42:26.24
+3484cba7
+User
+{"message": "Gemini Realtime API error: received 1011 (internal error) You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: h; then sent 1011 (internal error) You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: h\nTraceback (most recent call last):\n File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/plugins/google/realtime/realtime_api.py\", line 667, in _main_task\n async with self._client.aio.live.connect(\n File \"/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/contextlib.py\", line 210, in __aenter__\n return await anext(self.gen)\n ^^^^^^^^^^^^^^^^^^^^^\n File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/google/genai/live.py\", line 1085, in connect\n raw_response = await ws.recv(decode=False)\n ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/websockets/asyncio/connection.py\", line 322, in recv\n raise self.protocol.close_exc from self.recv_exc\nwebsockets.exceptions.ConnectionClosedError: received 1011 (internal error) You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: h; then sent 1011 (internal error) You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: h", "level": "ERROR", "name": "livekit.plugins.google", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:26.231487+00:00"}
+2025-11-10 21:42:26.24
+3484cba7
+User
+{"message": "AgentSession is closing due to unrecoverable error\nTraceback (most recent call last):\n File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/plugins/google/realtime/realtime_api.py\", line 667, in _main_task\n async with self._client.aio.live.connect(\n File \"/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/contextlib.py\", line 210, in __aenter__\n return await anext(self.gen)\n ^^^^^^^^^^^^^^^^^^^^^\n File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/google/genai/live.py\", line 1085, in connect\n raw_response = await ws.recv(decode=False)\n ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/websockets/asyncio/connection.py\", line 322, in recv\n raise self.protocol.close_exc from self.recv_exc\nwebsockets.exceptions.ConnectionClosedError: received 1011 (internal error) You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: h; then sent 1011 (internal error) You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: h", "level": "ERROR", "name": "livekit.agents", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:26.245841+00:00"}
+2025-11-10 21:42:26.27
+3484cba7
+User
+{"message": "Error in _main_task\nTraceback (most recent call last):\n File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/plugins/google/realtime/realtime_api.py\", line 667, in _main_task\n async with self._client.aio.live.connect(\n File \"/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/contextlib.py\", line 210, in __aenter__\n return await anext(self.gen)\n ^^^^^^^^^^^^^^^^^^^^^\n File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/google/genai/live.py\", line 1085, in connect\n raw_response = await ws.recv(decode=False)\n ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/websockets/asyncio/connection.py\", line 322, in recv\n raise self.protocol.close_exc from self.recv_exc\nwebsockets.exceptions.ConnectionClosedError: received 1011 (internal error) You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: h; then sent 1011 (internal error) You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: h\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/agents/utils/log.py\", line 16, in async_fn_logs\n return await fn(*args, **kwargs)\n ^^^^^^^^^^^^^^^^^^^^^^^^^\n File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/plugins/google/realtime/realtime_api.py\", line 717, in _main_task\n raise APIConnectionError(message=\"Failed to connect to Gemini Live\") from e\nlivekit.agents._exceptions.APIConnectionError: Failed to connect to Gemini Live (body=None, retryable=True)", "level": "ERROR", "name": "livekit.plugins.google", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:26.248080+00:00"}
+2025-11-10 21:42:28.57
+3484cba7
+User
+{"message": "resume_false_interruption is enabled, but the audio output does not support pause, ignored", "level": "WARNING", "name": "livekit.agents", "audio_output": "DataStreamIO", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:28.574156+00:00"}
+2025-11-10 21:42:28.57
+3484cba7
+User
+{"message": "[MediAI] ✅ Beyond Presence avatar started successfully!", "level": "INFO", "name": "mediai-avatar", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:28.574373+00:00"}
+2025-11-10 21:42:29.10
+3484cba7
+User
+{"message": "[MediAI] 👁️ Starting visual analysis...", "level": "INFO", "name": "mediai-avatar", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:29.102475+00:00"}
+2025-11-10 21:42:29.10
+3484cba7
+User
+{"message": "[MediAI] 🎤 Generating initial greeting...", "level": "INFO", "name": "mediai-avatar", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:29.102754+00:00"}
+2025-11-10 21:42:29.14
+3484cba7
+User
+{"message": "Error in _traceable_on_enter\nTraceback (most recent call last):\n File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/agents/utils/log.py\", line 16, in async_fn_logs\n return await fn(*args, **kwargs)\n ^^^^^^^^^^^^^^^^^^^^^^^^^\n File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/agents/voice/agent_activity.py\", line 434, in _traceable_on_enter\n await self._agent.on_enter()\n File \"/home/runner/workspace/livekit-agent/agent.py\", line 539, in on_enter\n await self.session.generate_reply(instructions=initial_greeting)\n ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/agents/voice/agent_session.py\", line 836, in generate_reply\n raise RuntimeError(\"AgentSession is closing, cannot use generate_reply()\")\nRuntimeError: AgentSession is closing, cannot use generate_reply()", "level": "ERROR", "name": "livekit.agents", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:29.102954+00:00"}
+2025-11-10 21:42:29.14
+3484cba7
+User
+{"message": "[Metrics] 🔄 Iniciando envio periódico de métricas a cada 60s...", "level": "INFO", "name": "mediai-avatar", "pid": 41, "job_id": "AJ_aggQc7WNmDkY", "timestamp": "2025-11-11T00:42:29.140199+00:00"}
+
+2025-11-10 21:42:34.91
+3484cba7
+System
+a port configuration was specified but the required port was never opened
+2025-11-10 21:42:42.99
+3484cba7
+System
+starting up user application
+2025-11-10 21:42:42.99
+3484cba7
+System
+metasidecar: loaded enterprise status from environment is_enterprise=false
+2025-11-10 21:42:42.99
+3484cba7
+System
+forwarding local port 5000 to external port 80 (mapped as 1104)
+2025-11-10 21:42:56.13
+3484cba7
+User
+{"message": "starting worker", "level": "INFO", "name": "livekit.agents", "version": "1.2.17", "rtc-version": "1.0.17", "timestamp": "2025-11-11T00:42:56.129899+00:00"}
+2025-11-10 21:42:56.13
+3484cba7
+User
+{"message": "preloading plugins", "level": "INFO", "name": "livekit.agents", "packages": ["livekit.plugins.tavus", "livekit.plugins.bey", "livekit.plugins.google", "av"], "timestamp": "2025-11-11T00:42:56.130176+00:00"}
