@@ -8,6 +8,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### November 12, 2025 - LiveKit Connection Performance Optimization Complete
+- **Implemented LiveKit warmup system** - Pre-fetches connection token in background when patient enters dashboard, enabling instant consultation start
+- **Thread-safe token caching** - 5-minute cache with proactive 1-minute pre-expiration refresh and concurrent request protection
+- **Visual feedback system** - Dashboard displays "Conexão preparada – início instantâneo garantido" when warmup completes
+- **Optimized connection settings** - Enabled adaptive stream, dynacast, and optimized reconnect policies for faster connection
+- **Removed artificial delays** - Eliminated unnecessary waits and streamlined connection flow
+- **Performance verified** - Logs confirm single token fetch, successful caching, and instant connection on consultation entry
+
 ### November 12, 2025 - Avatar Upload Fixed & Email Verification System Complete
 - **Fixed avatar upload system** - Migrated from local filesystem to Cloudinary cloud storage to support Vercel serverless environment
 - **Fixed email verification** - Corrected token persistence issue by standardizing function signatures between patient and doctor registration

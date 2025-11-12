@@ -14,17 +14,6 @@ run = ["sh", "-c", "cd livekit-agent && python run-agent.py"]
 runButton = "Project"
 
 [[workflows.workflow]]
-name = "MediAI Avatar Agent"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd livekit-agent && python run-agent.py"
-
-[workflows.workflow.metadata]
-outputType = "console"
-
-[[workflows.workflow]]
 name = "Project"
 mode = "parallel"
 author = "agent"
