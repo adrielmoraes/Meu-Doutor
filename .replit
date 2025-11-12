@@ -11,19 +11,7 @@ deploymentTarget = "vm"
 run = ["sh", "-c", "cd livekit-agent && python run-agent.py"]
 
 [workflows]
-runButton = "Backend LiveKit Agent"
-
-[[workflows.workflow]]
-name = "Start Game"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "MediAI Avatar Agent"
@@ -37,22 +25,40 @@ args = "cd livekit-agent && python run-agent.py"
 outputType = "console"
 
 [[workflows.workflow]]
-name = "LiveKit Agent (Backend)"
-author = 44034514
-mode = "sequential"
+name = "Project"
+mode = "parallel"
+author = "agent"
 
 [[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd livekit-agent && python run-agent.py"
+task = "workflow.run"
+args = "Frontend - Next.js"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Avatar AI Agent"
 
 [[workflows.workflow]]
-name = "Backend LiveKit Agent"
-author = 44034514
-mode = "sequential"
+name = "Frontend - Next.js"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow]]
+name = "Avatar AI Agent"
+author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd livekit-agent && python run-agent.py"
+
+[workflows.workflow.metadata]
+outputType = "console"
 
 [[ports]]
 localPort = 5000

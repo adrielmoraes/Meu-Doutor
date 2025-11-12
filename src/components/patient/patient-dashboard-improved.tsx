@@ -1,6 +1,6 @@
 'use client';
 
-import { FileClock, UserPlus, HeartPulse, Video, Activity, User, Upload, Brain, Calendar, TrendingUp, Award, Sparkles, MessageCircle, LayoutDashboard, FileText, Heart, Users, Apple, Dumbbell, BrainCircuit } from "lucide-react";
+import { FileClock, UserPlus, HeartPulse, Video, Activity, User, Upload, Brain, Calendar, TrendingUp, Award, Sparkles, MessageCircle, LayoutDashboard, FileText, Heart, Users, Apple, Dumbbell, BrainCircuit, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import type { Patient } from "@/types";
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MediAILogo } from "./medi-ai-logo"; // Assuming MediAILogo is in a component file
+import { useLiveKitWarmup } from '@/hooks/use-livekit-warmup';
 
 
 
@@ -21,6 +22,9 @@ interface PatientDashboardProps {
 
 export default function PatientDashboardImproved({ patient, examCount = 0, upcomingAppointments = 0 }: PatientDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview");
+  
+  // Pre-load LiveKit connection for instant consultation start
+  const { isWarming, isWarmed } = useLiveKitWarmup(patient.id ?? null, patient.name ?? null);
 
   const quickActions = [
     {
@@ -203,12 +207,25 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                   Clique no botão abaixo para iniciar sua consulta ao vivo com a MediAI. 
                   Você poderá conversar por voz e vídeo em tempo real.
                 </p>
-                <Link href="/patient/live-consultation">
-                  <Button size="lg" className="bg-gradient-to-r from-primary to-accent hover:opacity-90">
-                    <Video className="mr-2 h-5 w-5" />
-                    Iniciar Consulta ao Vivo
-                  </Button>
-                </Link>
+                <div className="space-y-2">
+                  <Link href="/patient/live-consultation">
+                    <Button size="lg" className="bg-gradient-to-r from-primary to-accent hover:opacity-90 w-full">
+                      <Video className="mr-2 h-5 w-5" />
+                      Iniciar Consulta ao Vivo
+                      {isWarmed && <Zap className="ml-2 h-4 w-4 text-yellow-300" />}
+                    </Button>
+                  </Link>
+                  {isWarmed ? (
+                    <p className="text-sm text-emerald-400 font-medium flex items-center justify-center gap-1">
+                      <Zap className="h-3 w-3" />
+                      Conexão preparada – início instantâneo garantido
+                    </p>
+                  ) : isWarming ? (
+                    <p className="text-sm text-blue-300/70 flex items-center justify-center gap-1">
+                      Preparando conexão segura…
+                    </p>
+                  ) : null}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -249,15 +266,24 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                       <Activity className="h-4 w-4" /> Disponível sempre
                     </span>
                   </div>
-                  <Link href="/patient/live-consultation">
-                    <Button
-                      size="lg"
-                      className="bg-white text-purple-600 hover:bg-white/90 font-semibold shadow-2xl hover:scale-105 transition-transform"
-                    >
-                      <Video className="mr-2 h-5 w-5" />
-                      Iniciar Consulta ao Vivo
-                    </Button>
-                  </Link>
+                  <div className="space-y-2">
+                    <Link href="/patient/live-consultation">
+                      <Button
+                        size="lg"
+                        className="bg-white text-purple-600 hover:bg-white/90 font-semibold shadow-2xl hover:scale-105 transition-transform w-full"
+                      >
+                        <Video className="mr-2 h-5 w-5" />
+                        Iniciar Consulta ao Vivo
+                        {isWarmed && <Zap className="ml-2 h-4 w-4 text-purple-600" />}
+                      </Button>
+                    </Link>
+                    {isWarmed && (
+                      <p className="text-xs text-emerald-400 font-medium flex items-center justify-center gap-1">
+                        <Zap className="h-3 w-3" />
+                        Início instantâneo pronto
+                      </p>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

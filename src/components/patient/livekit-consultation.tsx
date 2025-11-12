@@ -20,6 +20,7 @@ import {
   useTokenManager,
   useNetworkQuality,
 } from '@/shared/realtime';
+import { getCachedToken, clearCachedToken } from '@/lib/livekit-warmup';
 
 interface LiveKitConsultationProps {
   patientId: string;
@@ -213,38 +214,30 @@ export default function LiveKitConsultation({ patientId, patientName }: LiveKitC
       try {
         logEvent('Initializing consultation');
         
-        // Step 1: Check network
+        // Step 1: Quick network check (parallel with token fetch for speed)
         setCurrentState('checking-network');
-        await new Promise(resolve => setTimeout(resolve, 500)); // Brief delay to show network check
         
         if (!isOnline) {
           throw new Error('Sem conexão com a internet. Verifique sua conexão e tente novamente.');
         }
 
-        // Step 2: Get initial token
+        // Check for cached token first (instant if available)
+        const cached = getCachedToken();
+        if (cached) {
+          logEvent('Using cached token (instant connection!)');
+          tokenManager.setToken(cached.token, cached.url);
+          connectionSupervisor.connect();
+          setCurrentState('ready');
+          consultationStartTime.current = Date.now();
+          return;
+        }
+
+        // Step 2: Get initial token (immediately, no artificial delay)
         setCurrentState('getting-token');
         logEvent('Fetching initial token');
         
-        try {
-          // Try to get media permissions first
-          const stream = await navigator.mediaDevices.getUserMedia({ 
-            audio: true,
-            video: false 
-          });
-          stream.getTracks().forEach(track => track.stop());
-          logEvent('Media permissions granted');
-        } catch (mediaError: any) {
-          logEvent('Media permission error', { error: mediaError.message });
-          
-          if (mediaError.name === 'NotAllowedError' || mediaError.name === 'PermissionDeniedError') {
-            throw new Error(ERROR_MESSAGES['permission-denied']);
-          }
-          
-          // Continue anyway for other media errors
-          logEvent('Continuing despite media error');
-        }
-
-        const response = await fetch('/api/livekit/token', {
+        // Parallel: Get token while checking media permissions (faster)
+        const tokenPromise = fetch('/api/livekit/token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -257,7 +250,28 @@ export default function LiveKitConsultation({ patientId, patientName }: LiveKitC
             }
           })
         });
+        
+        const mediaPromise = navigator.mediaDevices.getUserMedia({ 
+          audio: true,
+          video: false 
+        }).then(stream => {
+          stream.getTracks().forEach(track => track.stop());
+          logEvent('Media permissions granted');
+          return true;
+        }).catch((mediaError: any) => {
+          logEvent('Media permission error', { error: mediaError.message });
+          
+          if (mediaError.name === 'NotAllowedError' || mediaError.name === 'PermissionDeniedError') {
+            throw new Error(ERROR_MESSAGES['permission-denied']);
+          }
+          
+          // Continue anyway for other media errors
+          logEvent('Continuing despite media error');
+          return false;
+        });
 
+        // Wait for both in parallel (faster)
+        const [response] = await Promise.all([tokenPromise, mediaPromise]);
         const data = await response.json();
 
         if (!response.ok) {
@@ -372,6 +386,7 @@ export default function LiveKitConsultation({ patientId, patientName }: LiveKitC
     // Clean up
     connectionSupervisor.disconnect();
     tokenManager.clearToken();
+    clearCachedToken();
     
     window.location.href = '/patient/dashboard';
   };
@@ -529,6 +544,18 @@ export default function LiveKitConsultation({ patientId, patientName }: LiveKitC
           dynacast: true,
           videoCaptureDefaults: {
             resolution: VideoPresets.h720.resolution,
+          },
+          // Performance optimizations for faster connection
+          publishDefaults: {
+            videoSimulcastLayers: [VideoPresets.h720],
+            stopMicTrackOnMute: false, // Keep mic warm for faster unmute
+          },
+          // Faster reconnection
+          reconnectPolicy: {
+            nextRetryDelayInMs: (context) => {
+              // Exponential backoff: 1s, 2s, 4s, 8s, max 15s
+              return Math.min(1000 * Math.pow(2, context.retryCount), 15000);
+            },
           },
         }}
         className="h-full w-full"
