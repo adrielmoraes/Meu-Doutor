@@ -6,6 +6,16 @@ MediAI is an AI-powered healthcare platform designed to connect patients with me
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### November 12, 2025 - Avatar Upload Fixed & Email Verification System Complete
+- **Fixed avatar upload system** - Migrated from local filesystem to Cloudinary cloud storage to support Vercel serverless environment
+- **Fixed email verification** - Corrected token persistence issue by standardizing function signatures between patient and doctor registration
+- **Fixed contact data persistence** - Resolved bug where phone, city, and state weren't being saved during patient registration
+- **Removed database transactions** - Adapted code to work with neon-http driver limitations using sequential operations with manual rollback
+- **Aligned TypeScript types** - Expanded schema icon unions and added weeklyTasks to eliminate all LSP errors
+- **All systems tested and working** - Comprehensive test suite validates registration, verification, and avatar upload flows
+
 ## System Architecture
 
 ### Frontend
@@ -49,7 +59,7 @@ Preferred communication style: Simple, everyday language.
 - Beyond Presence (BEY) - Hyper-realistic virtual avatar alternative
 
 ### Cloud Services
-- Google Cloud Storage (for specific uses, though local storage is preferred for avatars)
+- Cloudinary (avatar and media file storage for patients and doctors)
 - LiveKit Cloud
 
 ### Database

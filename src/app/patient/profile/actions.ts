@@ -5,8 +5,13 @@ import { getSession } from '@/lib/session';
 import { revalidateTag } from 'next/cache';
 import { updatePatient } from '@/lib/db-adapter';
 import type { Patient } from '@/types';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Ação para atualizar os campos de texto do perfil do paciente
 export async function updatePatientProfile(formData: FormData): Promise<{ success: boolean; message: string }> {
@@ -43,7 +48,7 @@ export async function updatePatientProfile(formData: FormData): Promise<{ succes
   }
 }
 
-// Ação para fazer upload do avatar do paciente (armazenamento local)
+// Ação para fazer upload do avatar do paciente (Cloudinary)
 export async function uploadPatientAvatarAction(formData: FormData): Promise<{ success: boolean; message: string; url?: string }> {
     const session = await getSession();
 
@@ -80,22 +85,22 @@ export async function uploadPatientAvatarAction(formData: FormData): Promise<{ s
             return { success: false, message: "Tipo de arquivo não permitido. Use apenas JPEG, PNG ou GIF." };
         }
 
-        // Definir caminho de upload local
-        const uploadDir = path.join(process.cwd(), 'public', 'avatars', 'patients');
-        
-        // Criar diretório se não existir
-        await mkdir(uploadDir, { recursive: true });
+        // Converter buffer para base64 para upload no Cloudinary
+        const base64File = `data:${detectedType.mime};base64,${fileBuffer.toString('base64')}`;
 
-        // Gerar nome único do arquivo
-        const fileExtension = detectedType.ext;
-        const fileName = `${userId}-${Date.now()}.${fileExtension}`;
-        const filePath = path.join(uploadDir, fileName);
+        // Upload para Cloudinary
+        const uploadResult = await cloudinary.uploader.upload(base64File, {
+            folder: 'mediai/avatars/patients',
+            public_id: `patient_${userId}_${Date.now()}`,
+            transformation: [
+                { width: 400, height: 400, crop: 'fill', gravity: 'face' },
+                { quality: 'auto:good' }
+            ],
+            format: 'jpg'
+        });
 
-        // Salvar arquivo no sistema de arquivos
-        await writeFile(filePath, fileBuffer);
-
-        // URL pública para acessar a imagem
-        const publicUrl = `/avatars/patients/${fileName}`;
+        // URL pública do Cloudinary
+        const publicUrl = uploadResult.secure_url;
 
         await updatePatient(userId, { avatar: publicUrl });
         revalidateTag(`patient-profile-${userId}`);

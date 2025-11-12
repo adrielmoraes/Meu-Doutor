@@ -4,8 +4,13 @@
 import { getSession } from '@/lib/session';
 import { revalidateTag } from 'next/cache';
 import { updateDoctor } from '@/lib/db-adapter';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function uploadAvatarAction(formData: FormData): Promise<{ success: boolean; message: string; url?: string }> {
     const session = await getSession();
@@ -43,22 +48,22 @@ export async function uploadAvatarAction(formData: FormData): Promise<{ success:
             return { success: false, message: "Tipo de arquivo não permitido. Use apenas JPEG, PNG ou GIF." };
         }
 
-        // Definir caminho de upload local
-        const uploadDir = path.join(process.cwd(), 'public', 'avatars', 'doctors');
-        
-        // Criar diretório se não existir
-        await mkdir(uploadDir, { recursive: true });
+        // Converter buffer para base64 para upload no Cloudinary
+        const base64File = `data:${detectedType.mime};base64,${fileBuffer.toString('base64')}`;
 
-        // Gerar nome único do arquivo
-        const fileExtension = detectedType.ext;
-        const fileName = `${userId}-${Date.now()}.${fileExtension}`;
-        const filePath = path.join(uploadDir, fileName);
+        // Upload para Cloudinary
+        const uploadResult = await cloudinary.uploader.upload(base64File, {
+            folder: 'mediai/avatars/doctors',
+            public_id: `doctor_${userId}_${Date.now()}`,
+            transformation: [
+                { width: 400, height: 400, crop: 'fill', gravity: 'face' },
+                { quality: 'auto:good' }
+            ],
+            format: 'jpg'
+        });
 
-        // Salvar arquivo no sistema de arquivos
-        await writeFile(filePath, fileBuffer);
-
-        // URL pública para acessar a imagem
-        const publicUrl = `/avatars/doctors/${fileName}`;
+        // URL pública do Cloudinary
+        const publicUrl = uploadResult.secure_url;
 
         await updateDoctor(userId, { avatar: publicUrl });
         revalidateTag(`doctor-profile-${userId}`);
