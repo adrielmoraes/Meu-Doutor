@@ -4,6 +4,7 @@
  */
 
 let cachedToken: { token: string; url: string; expiry: number } | null = null;
+let ongoingFetch: Promise<{ success: boolean; token?: string; url?: string; error?: string }> | null = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const PREEMPTIVE_REFRESH = 60 * 1000; // Refresh 1 minute before expiry
 
@@ -24,45 +25,63 @@ export async function warmupLiveKitConnection(
       };
     }
 
-    console.log('[LiveKit Warmup] Fetching new token');
-    
-    const roomName = `mediai-consultation-${patientId}`;
-    const response = await fetch('/api/livekit/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        roomName,
-        participantName: patientName,
-        metadata: {
-          patient_id: patientId,
-          patient_name: patientName,
-          session_type: 'medical_consultation'
-        }
-      })
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      return { success: false, error: error.message || 'Failed to get token' };
+    // If there's an ongoing fetch, wait for it instead of making a new request
+    if (ongoingFetch) {
+      console.log('[LiveKit Warmup] Joining ongoing fetch');
+      return await ongoingFetch;
     }
 
-    const data = await response.json();
+    console.log('[LiveKit Warmup] Fetching new token');
     
-    // Cache the token
-    cachedToken = {
-      token: data.token,
-      url: data.url,
-      expiry: now + CACHE_DURATION,
-    };
+    // Create and store the fetch promise to prevent concurrent requests
+    ongoingFetch = (async () => {
+      try {
+        const roomName = `mediai-consultation-${patientId}`;
+        const response = await fetch('/api/livekit/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomName,
+            participantName: patientName,
+            metadata: {
+              patient_id: patientId,
+              patient_name: patientName,
+              session_type: 'medical_consultation'
+            }
+          })
+        });
 
-    console.log('[LiveKit Warmup] Token cached successfully');
+        if (!response.ok) {
+          const error = await response.json();
+          return { success: false, error: error.message || 'Failed to get token' };
+        }
 
-    return {
-      success: true,
-      token: data.token,
-      url: data.url,
-    };
+        const data = await response.json();
+        
+        // Cache the token
+        cachedToken = {
+          token: data.token,
+          url: data.url,
+          expiry: now + CACHE_DURATION,
+        };
+
+        console.log('[LiveKit Warmup] Token cached successfully');
+
+        return {
+          success: true,
+          token: data.token,
+          url: data.url,
+        };
+      } finally {
+        // Clear ongoing fetch flag
+        ongoingFetch = null;
+      }
+    })();
+
+    return await ongoingFetch;
   } catch (error) {
+    // Clear ongoing fetch on error
+    ongoingFetch = null;
     console.error('[LiveKit Warmup] Error:', error);
     return {
       success: false,
