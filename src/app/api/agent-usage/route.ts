@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         cost: Math.ceil((validatedData.sttTokens / 1000000) * 0.10 * 5.0 * 100), // USD -> BRL centavos
         metadata: {
           sessionId: validatedData.sessionId,
-          model: 'gemini-2.0-flash-exp',
+          model: 'gemini-2.5-flash',
           ...validatedData.metadata,
         },
       });
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
         cost: Math.ceil(llmCost),
         metadata: {
           sessionId: validatedData.sessionId,
-          model: 'gemini-2.0-flash-exp',
+          model: 'gemini-2.5-flash',
           inputTokens: validatedData.llmInputTokens,
           outputTokens: validatedData.llmOutputTokens,
           ...validatedData.metadata,
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
         cost: Math.ceil((validatedData.ttsTokens / 1000000) * 0.40 * 5.0 * 100), // USD -> BRL centavos
         metadata: {
           sessionId: validatedData.sessionId,
-          model: 'gemini-2.0-flash-exp',
+          model: 'gemini-2.5-flash',
           ...validatedData.metadata,
         },
       });
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
         cost: Math.ceil(visionCost),
         metadata: {
           sessionId: validatedData.sessionId,
-          model: 'gemini-2.0-flash-exp',
+          model: 'gemini-2.5-flash',
           inputTokens: validatedData.visionInputTokens,
           outputTokens: validatedData.visionOutputTokens,
           visionAnalysis: true,

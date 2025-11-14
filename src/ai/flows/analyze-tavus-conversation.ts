@@ -26,7 +26,7 @@ export const analyzeTavusConversation = ai.defineFlow(
     const { transcript, patientId } = input;
 
     const { text } = await ai.generate({
-      model: 'googleai/gemini-2.0-flash-exp',
+      model: 'googleai/gemini-2.5-flash',
       config: {
         temperature: 0.3,
       },

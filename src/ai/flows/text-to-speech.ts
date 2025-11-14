@@ -48,7 +48,7 @@ const textToSpeechFlow = ai.defineFlow(
       }
 
       // Use the recommended model for text-to-speech.
-      const model = googleAI.model('gemini-2.0-flash-exp');
+      const model = googleAI.model('gemini-2.5-flash');
 
       const {media} = await ai.generate({
         model: model,

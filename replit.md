@@ -8,6 +8,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### November 14, 2025 - Gemini Model Migration to Stable Version
+- **Migrated all Gemini models to gemini-2.5-flash** - Replaced experimental gemini-2.0-flash-exp and deprecated gemini-1.5-flash with stable gemini-2.5-flash
+- **Updated 15+ files across frontend and backend** - Systematically updated all Gemini API calls throughout the codebase
+- **Fixed quota issues** - Resolved free tier quota limitations by switching from experimental model (limit: 0 RPM) to stable version (10 RPM, 250K TPM)
+- **Tested model compatibility** - Verified gemini-2.5-flash and gemini-2.0-flash work with current API key
+- **Updated LiveKit agent** - Migrated Python agent to use gemini-2.5-flash for Realtime API (STT, LLM, TTS, Vision)
+- **All systems updated** - Chat therapist, speech-to-text, text-to-speech, medical analysis, and consultation flows now use stable model
+
 ### November 12, 2025 - LiveKit Connection Performance Optimization Complete
 - **Implemented LiveKit warmup system** - Pre-fetches connection token in background when patient enters dashboard, enabling instant consultation start
 - **Thread-safe token caching** - 5-minute cache with proactive 1-minute pre-expiration refresh and concurrent request protection
@@ -61,7 +69,7 @@ Preferred communication style: Simple, everyday language.
 ## External Dependencies
 
 ### AI/ML Services
-- Google Gemini API (Gemini 2.0 Flash, Gemini 2.0 Flash Vision, Gemini 1.5 Pro, Gemini 2.5 Flash TTS)
+- Google Gemini API (Gemini 2.5 Flash - stable model used throughout platform)
 - Google Genkit (AI orchestration framework)
 - Tavus CVI (Conversational Video Interface for AI avatars)
 - Beyond Presence (BEY) - Hyper-realistic virtual avatar alternative

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await audioFile.arrayBuffer();
     const audioBase64 = Buffer.from(arrayBuffer).toString('base64');
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const transcriptionPrompt = `Você é um assistente médico especializado em transcrever consultas médicas.\nTranscreva com precisão a conversa de áudio entre médico e paciente.\nIdentifique quem está falando (Médico ou Paciente) e formate a transcrição de forma clara.\nMantenha todos os termos médicos e detalhes clínicos mencionados.`;
 
