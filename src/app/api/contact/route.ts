@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
       const { client: resend, fromEmail } = await getUncachableResendClient();
       
       await resend.emails.send({
-        from: fromEmail || 'MediAI <noreply@sejafelizsempre.com>',
-        to: ['contato@sejafelizsempre.com'],
+        from: fromEmail || 'MediAI <noreply@appmediai.com>',
+        to: ['contato@appmediai.com'],
         replyTo: validatedData.email,
         subject: `[Contato MediAI] ${validatedData.subject}`,
         html: getContactEmailTemplate(validatedData),

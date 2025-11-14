@@ -65,7 +65,7 @@ async function testResendEmail() {
                       © ${new Date().getFullYear()} MediAI. Todos os direitos reservados.
                     </p>
                     <p style="margin: 10px 0 0 0; color: #a0aec0; font-size: 12px;">
-                      Enviado via sejafelizsempre.com
+                      Enviado via appmediai.com
                     </p>
                   </td>
                 </tr>

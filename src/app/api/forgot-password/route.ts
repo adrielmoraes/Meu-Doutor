@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Enviar email
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://mediai.replit.app';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.appmediai.com';
     const resetUrl = `${baseUrl}/reset-password?token=${resetToken}&type=${userType}`;
     
     const { client, fromEmail } = await getUncachableResendClient();

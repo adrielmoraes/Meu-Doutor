@@ -42,13 +42,13 @@ export default function TermosPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white">
       <Header />
-      
+
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative w-full py-20 md:py-32 overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
           <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
-          
+
           <div className="container px-4 md:px-6 relative z-10">
             <div className="max-w-4xl mx-auto text-center space-y-6">
               <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center mb-6">
@@ -186,7 +186,7 @@ export default function TermosPage() {
                       <AlertTriangle className="h-8 w-8" />
                       4. Disclaimers Médicos Importantes
                     </h2>
-                    
+
                     <div className="bg-red-500/20 border-2 border-red-500/50 rounded-xl p-6 mb-6">
                       <p className="text-red-200 font-bold text-lg mb-3">
                         ⚠️ AVISO CRÍTICO: LEIA COM ATENÇÃO
@@ -261,7 +261,7 @@ export default function TermosPage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">5. Cadastro e Conta</h2>
-                    
+
                     <h3 className="text-xl font-semibold text-purple-300">5.1. Requisitos de Cadastro</h3>
                     <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
                       <li>Você deve ter pelo menos 18 anos ou consentimento de responsável legal</li>
@@ -294,7 +294,7 @@ export default function TermosPage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">6. Responsabilidades do Usuário</h2>
-                    
+
                     <h3 className="text-xl font-semibold text-purple-300">6.1. Uso Adequado</h3>
                     <p className="text-blue-100/80 leading-relaxed">Você concorda em:</p>
                     <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
@@ -331,7 +331,7 @@ export default function TermosPage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">7. Responsabilidades da Plataforma</h2>
-                    
+
                     <h3 className="text-xl font-semibold text-purple-300">7.1. Fornecimento de Serviços</h3>
                     <p className="text-blue-100/80 leading-relaxed">
                       Nos comprometemos a:
@@ -366,7 +366,7 @@ export default function TermosPage() {
                       <CreditCard className="h-8 w-8" />
                       8. Assinaturas e Pagamentos
                     </h2>
-                    
+
                     <h3 className="text-xl font-semibold text-purple-300">8.1. Planos e Preços</h3>
                     <p className="text-blue-100/80 leading-relaxed">
                       Oferecemos diferentes planos de assinatura (Gratuito, Básico, Premium, Empresarial). 
@@ -412,7 +412,7 @@ export default function TermosPage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">9. Cancelamento e Reembolso</h2>
-                    
+
                     <h3 className="text-xl font-semibold text-purple-300">9.1. Direito de Arrependimento (CDC)</h3>
                     <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-6">
                       <p className="text-blue-100/80 leading-relaxed">
@@ -455,7 +455,7 @@ export default function TermosPage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">10. Propriedade Intelectual</h2>
-                    
+
                     <h3 className="text-xl font-semibold text-purple-300">10.1. Propriedade da MediAI</h3>
                     <p className="text-blue-100/80 leading-relaxed">
                       Todos os direitos de propriedade intelectual sobre a plataforma, incluindo mas não limitado a:
@@ -494,7 +494,7 @@ export default function TermosPage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">11. Limitações de Responsabilidade</h2>
-                    
+
                     <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6 mb-6">
                       <p className="text-orange-300 font-semibold mb-2">⚠️ IMPORTANTE</p>
                       <p className="text-blue-200/70">
@@ -549,7 +549,7 @@ export default function TermosPage() {
                       <Shield className="h-8 w-8" />
                       12. Privacidade e Proteção de Dados
                     </h2>
-                    
+
                     <p className="text-blue-100/80 leading-relaxed">
                       O tratamento de seus dados pessoais está detalhado em nossa{" "}
                       <Link href="/privacidade" className="text-cyan-400 hover:text-cyan-300 underline font-semibold">
@@ -566,7 +566,7 @@ export default function TermosPage() {
                         <li>Você possui direitos sobre seus dados (acesso, correção, exclusão, portabilidade)</li>
                         <li>Dados médicos são protegidos com segurança adicional</li>
                         <li>Compartilhamento com terceiros é transparente e limitado</li>
-                        <li>Você pode exercer seus direitos através do DPO: <a href="mailto:dpo@mediai.com.br" className="text-cyan-400 hover:text-cyan-300">dpo@mediai.com.br</a></li>
+                        <li>Você pode exercer seus direitos através do DPO: <a href="mailto:dpo@appmediai.com" className="text-cyan-400 hover:text-cyan-300">dpo@appmediai.com</a></li>
                       </ul>
                     </div>
                   </CardContent>
@@ -578,7 +578,7 @@ export default function TermosPage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">13. Modificações nos Termos</h2>
-                    
+
                     <p className="text-blue-100/80 leading-relaxed">
                       Podemos atualizar estes Termos de Uso periodicamente. Alterações significativas serão notificadas:
                     </p>
@@ -603,7 +603,7 @@ export default function TermosPage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">14. Rescisão e Suspensão</h2>
-                    
+
                     <h3 className="text-xl font-semibold text-purple-300">14.1. Suspensão ou Encerramento pela MediAI</h3>
                     <p className="text-blue-100/80 leading-relaxed">
                       Podemos suspender ou encerrar sua conta imediatamente, sem aviso prévio, se:
@@ -635,7 +635,7 @@ export default function TermosPage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">15. Lei Aplicável e Jurisdição</h2>
-                    
+
                     <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6">
                       <p className="text-blue-100/80 leading-relaxed mb-4">
                         Estes Termos de Uso são regidos pelas leis da <strong className="text-cyan-300">República Federativa do Brasil</strong>, incluindo:
@@ -663,7 +663,7 @@ export default function TermosPage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20 shadow-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">16. Contato</h2>
-                    
+
                     <p className="text-blue-100/80 leading-relaxed">
                       Para dúvidas, sugestões ou reclamações sobre estes Termos de Uso:
                     </p>
@@ -672,8 +672,8 @@ export default function TermosPage() {
                       <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6">
                         <h3 className="font-semibold text-cyan-300 mb-4">Contato Geral</h3>
                         <div className="space-y-2 text-blue-100/80 text-sm">
-                          <p><strong>Email:</strong> <a href="mailto:contato@mediai.com.br" className="text-cyan-400 hover:text-cyan-300">contato@mediai.com.br</a></p>
-                          <p><strong>Suporte:</strong> <a href="mailto:suporte@mediai.com.br" className="text-cyan-400 hover:text-cyan-300">suporte@mediai.com.br</a></p>
+                          <p><strong>Email:</strong> <a href="mailto:contato@appmediai.com" className="text-cyan-400 hover:text-cyan-300">contato@appmediai.com</a></p>
+                          <p><strong>Suporte:</strong> <a href="mailto:suporte@appmediai.com" className="text-cyan-400 hover:text-cyan-300">suporte@appmediai.com</a></p>
                           <p><strong>Telefone:</strong> (11) 4002-8922</p>
                         </div>
                       </div>

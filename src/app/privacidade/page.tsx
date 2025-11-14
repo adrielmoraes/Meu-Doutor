@@ -39,13 +39,13 @@ export default function PrivacidadePage() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white">
       <Header />
-      
+
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative w-full py-20 md:py-32 overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
           <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
-          
+
           <div className="container px-4 md:px-6 relative z-10">
             <div className="max-w-4xl mx-auto text-center space-y-6">
               <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center mb-6">
@@ -137,7 +137,7 @@ export default function PrivacidadePage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">2. Dados Coletados</h2>
-                    
+
                     <h3 className="text-xl font-semibold text-purple-300 mt-6">2.1. Dados Pessoais Básicos</h3>
                     <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
                       <li>Nome completo</li>
@@ -234,7 +234,7 @@ export default function PrivacidadePage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">4. Como Usamos os Dados</h2>
-                    
+
                     <h3 className="text-xl font-semibold text-purple-300 mt-6">4.1. Análises Médicas por IA</h3>
                     <p className="text-blue-100/80 leading-relaxed">
                       Seus exames médicos e dados de saúde são processados por nossos 15 especialistas de IA 
@@ -287,7 +287,7 @@ export default function PrivacidadePage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">5. Compartilhamento com Terceiros</h2>
-                    
+
                     <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6 mb-6">
                       <p className="text-orange-300 font-semibold mb-2">⚠️ Princípio de Minimização</p>
                       <p className="text-blue-200/70">
@@ -316,7 +316,7 @@ export default function PrivacidadePage() {
                       <p className="text-blue-200/70 leading-relaxed">
                         Conforme Art. 18, VII da LGPD, você tem direito de requisitar a lista completa 
                         com nomes específicos de todas as empresas terceiras. Para solicitar, entre em 
-                        contato com nosso DPO: <a href="mailto:dpo@mediai.com.br" className="text-cyan-300 hover:underline">dpo@mediai.com.br</a>
+                        contato com nosso DPO: <a href="mailto:dpo@appmediai.com" className="text-cyan-300 hover:underline">dpo@appmediai.com</a>
                       </p>
                     </div>
 
@@ -414,7 +414,7 @@ export default function PrivacidadePage() {
                         Para exercer qualquer destes direitos, entre em contato com nosso DPO:
                       </p>
                       <ul className="list-disc list-inside space-y-1 text-blue-100/80 ml-4">
-                        <li>Email: <a href="mailto:dpo@sejafelizsempre.com" className="text-cyan-400 hover:text-cyan-300">dpo@sejafelizsempre.com</a></li>
+                        <li>Email: <a href="mailto:dpo@appmediai.com" className="text-cyan-400 hover:text-cyan-300">dpo@appmediai.com</a></li>
                         <li>Através das configurações da sua conta na plataforma</li>
                         <li>Responderemos em até <strong>15 dias úteis</strong></li>
                       </ul>
@@ -428,7 +428,7 @@ export default function PrivacidadePage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">7. Retenção de Dados</h2>
-                    
+
                     <div className="space-y-4">
                       <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-6">
                         <h3 className="font-semibold text-purple-300 mb-2">Dados Médicos</h3>
@@ -477,7 +477,7 @@ export default function PrivacidadePage() {
                       <Lock className="h-8 w-8" />
                       8. Segurança e Proteção
                     </h2>
-                    
+
                     <p className="text-blue-100/80 leading-relaxed">
                       Implementamos medidas técnicas e organizacionais robustas para proteger seus dados:
                     </p>
@@ -536,7 +536,7 @@ export default function PrivacidadePage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">9. Cookies e Tecnologias de Rastreamento</h2>
-                    
+
                     <p className="text-blue-100/80 leading-relaxed">
                       Utilizamos cookies e tecnologias similares para melhorar sua experiência:
                     </p>
@@ -585,7 +585,7 @@ export default function PrivacidadePage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">10. Dados de Crianças e Adolescentes</h2>
-                    
+
                     <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6 mb-6">
                       <p className="text-orange-300 font-semibold mb-2">⚠️ Proteção Especial</p>
                       <p className="text-blue-200/70">
@@ -615,7 +615,7 @@ export default function PrivacidadePage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">11. Transferência Internacional de Dados</h2>
-                    
+
                     <p className="text-blue-100/80 leading-relaxed">
                       Alguns de nossos fornecedores de tecnologia podem processar dados em servidores localizados fora do Brasil 
                       (incluindo provedores de IA, comunicação em tempo real, avatares virtuais, pagamentos e infraestrutura em nuvem).
@@ -640,7 +640,7 @@ export default function PrivacidadePage() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">12. Alterações nesta Política</h2>
-                    
+
                     <p className="text-blue-100/80 leading-relaxed">
                       Podemos atualizar esta Política de Privacidade periodicamente para refletir mudanças em nossas 
                       práticas, legislação ou serviços.
@@ -668,7 +668,7 @@ export default function PrivacidadePage() {
                       <Mail className="h-8 w-8" />
                       13. Contato e Encarregado de Dados (DPO)
                     </h2>
-                    
+
                     <p className="text-blue-100/80 leading-relaxed">
                       Para dúvidas, solicitações ou reclamações sobre esta Política de Privacidade ou sobre o tratamento 
                       dos seus dados pessoais:
@@ -678,7 +678,7 @@ export default function PrivacidadePage() {
                       <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6">
                         <h3 className="font-semibold text-cyan-300 mb-4">Encarregado de Proteção de Dados (DPO)</h3>
                         <div className="space-y-2 text-blue-100/80">
-                          <p><strong>Email:</strong> <a href="mailto:dpo@mediai.com.br" className="text-cyan-400 hover:text-cyan-300">dpo@mediai.com.br</a></p>
+                          <p><strong>Email:</strong> <a href="mailto:dpo@appmediai.com" className="text-cyan-400 hover:text-cyan-300">dpo@appmediai.com</a></p>
                           <p><strong>Prazo de resposta:</strong> 15 dias úteis</p>
                         </div>
                       </div>
