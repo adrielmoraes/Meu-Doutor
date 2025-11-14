@@ -381,7 +381,7 @@ class VideoAnalyzer:
     """Analyzes video frames from patient using Gemini Vision."""
     
     def __init__(self, metrics_collector: Optional[MetricsCollector] = None):
-        self.vision_model = genai.GenerativeModel('gemini-2.5-flash')
+        self.vision_model = genai.GenerativeModel('gemini-1.5-flash')  # Modelo estável para Vision
         self.last_analysis = None
         self.last_frame_time = 0
         self.metrics_collector = metrics_collector
@@ -667,7 +667,7 @@ CONTEXTO VISUAL (o que você vê agora):
     # We'll update instructions dynamically to include visual context
     session = AgentSession(
         llm=google.beta.realtime.RealtimeModel(
-            model="gemini-2.5-flash",
+            model="gemini-2.0-flash-exp",  # Modelo correto para Realtime API
             voice="Aoede",  # Female voice (Portuguese)
             temperature=0.5,  # Lower for more consistent responses and pronunciation
             instructions=system_prompt.replace("{visual_context}", "Aguardando primeira análise visual..."),
