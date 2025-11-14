@@ -5,13 +5,7 @@ import { getSession } from '@/lib/session';
 import { revalidateTag } from 'next/cache';
 import { updatePatient } from '@/lib/db-adapter';
 import type { Patient } from '@/types';
-import { v2 as cloudinary } from 'cloudinary';
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { Client as ObjectStorageClient } from '@replit/object-storage';
 
 // Ação para atualizar os campos de texto do perfil do paciente
 export async function updatePatientProfile(formData: FormData): Promise<{ success: boolean; message: string }> {
@@ -85,22 +79,19 @@ export async function uploadPatientAvatarAction(formData: FormData): Promise<{ s
             return { success: false, message: "Tipo de arquivo não permitido. Use apenas JPEG, PNG ou GIF." };
         }
 
-        // Upload para Vercel Blob
-        const { put } = await import('@vercel/blob');
+        // Upload para Replit Object Storage
+        const objectStorage = new ObjectStorageClient();
+        const fileName = `avatars/patients/${userId}-${Date.now()}.${detectedType.ext}`;
         
-        const blob = await put(
-            `avatars/patients/${userId}-${Date.now()}.jpg`,
-            file,
-            {
-                access: 'public',
-                addRandomSuffix: false,
-            }
-        );
-
-        const publicUrl = blob.url;
+        await objectStorage.uploadFromBytes(fileName, fileBuffer);
+        
+        // URL pública via Replit Object Storage
+        const publicUrl = `${process.env.REPLIT_DEPLOYMENT_URL || 'https://' + process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + '.repl.co'}/api/storage/${fileName}`;
 
         await updatePatient(userId, { avatar: publicUrl });
         revalidateTag(`patient-profile-${userId}`);
+
+        console.log(`[PatientUploadAction] Avatar salvo no Object Storage: ${fileName}`);
 
         return { success: true, message: "Avatar atualizado com sucesso!", url: publicUrl };
 
