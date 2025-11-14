@@ -65,7 +65,7 @@ class GeminiLLM(llm.LLM):
     def __init__(
         self,
         *,
-        model: str = "gemini-1.5-flash-latest",
+        model: str = "gemini-1.5-flash",
         api_key: Optional[str] = None,
         instructions: str = ""
     ):

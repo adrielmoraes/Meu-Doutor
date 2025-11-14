@@ -14,9 +14,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Texto não fornecido' }, { status: 400 });
     }
 
-    // Usar Gemini 1.5 Flash Latest para gerar áudio em português brasileiro
+    // Usar Gemini 1.5 Flash para gerar áudio em português brasileiro
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash-latest',
+      model: 'gemini-1.5-flash',
       contents: [{ 
         parts: [{ text: `Fale em português brasileiro de forma natural e clara: ${text}` }] 
       }],
