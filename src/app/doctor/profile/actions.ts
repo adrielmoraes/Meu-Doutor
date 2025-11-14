@@ -4,7 +4,13 @@
 import { getSession } from '@/lib/session';
 import { revalidateTag } from 'next/cache';
 import { updateDoctor } from '@/lib/db-adapter';
-import { Client as ObjectStorageClient } from '@replit/object-storage';
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function uploadAvatarAction(formData: FormData): Promise<{ success: boolean; message: string; url?: string }> {
     const session = await getSession();
@@ -42,19 +48,27 @@ export async function uploadAvatarAction(formData: FormData): Promise<{ success:
             return { success: false, message: "Tipo de arquivo não permitido. Use apenas JPEG, PNG ou GIF." };
         }
 
-        // Upload para Replit Object Storage
-        const objectStorage = new ObjectStorageClient();
-        const fileName = `avatars/doctors/${userId}-${Date.now()}.${detectedType.ext}`;
-        
-        await objectStorage.uploadFromBytes(fileName, fileBuffer);
-        
-        // URL pública via Replit Object Storage
-        const publicUrl = `${process.env.REPLIT_DEPLOYMENT_URL || 'https://' + process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + '.repl.co'}/api/storage/${fileName}`;
+        // Converter buffer para base64 para upload no Cloudinary
+        const base64File = `data:${detectedType.mime};base64,${fileBuffer.toString('base64')}`;
+
+        // Upload para Cloudinary
+        const uploadResult = await cloudinary.uploader.upload(base64File, {
+            folder: 'mediai/avatars/doctors',
+            public_id: `doctor_${userId}_${Date.now()}`,
+            transformation: [
+                { width: 400, height: 400, crop: 'fill', gravity: 'face' },
+                { quality: 'auto:good' }
+            ],
+            format: 'jpg'
+        });
+
+        // URL pública do Cloudinary
+        const publicUrl = uploadResult.secure_url;
 
         await updateDoctor(userId, { avatar: publicUrl });
         revalidateTag(`doctor-profile-${userId}`);
 
-        console.log(`[DoctorUploadAction] Avatar salvo no Object Storage: ${fileName}`);
+        console.log(`[UploadAction] Avatar do médico ${userId} atualizado com sucesso. Nova URL: ${publicUrl}`);
 
         return { success: true, message: "Avatar atualizado com sucesso!", url: publicUrl };
 
