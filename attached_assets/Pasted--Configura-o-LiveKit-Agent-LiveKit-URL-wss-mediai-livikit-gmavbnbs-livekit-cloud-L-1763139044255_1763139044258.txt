@@ -1,0 +1,66 @@
+
+✅ Configuração LiveKit Agent:
+  • LiveKit URL: wss://mediai-livikit-gmavbnbs.livekit.cloud
+  • LiveKit API Key: APIrYvWHxL...
+  • Gemini API: ✅ Configurado (100% Gemini powered)
+  • Avatar Providers Disponíveis:
+    - Tavus: 🎭 CONFIGURADO
+      Replica ID: r3a47ce45e68
+      Persona ID: p62f611e6898
+    - Beyond Presence (BEY): 🎭 CONFIGURADO
+      Avatar ID: 694c83e2-8895-4a98-bd16-56332ca3f449
+  • Avatar Ativo: Definido no Admin Panel (banco de dados)
+  • Database: ✅ Configurado
+
+============================================================
+🎭 Iniciando MediAI Agent...
+   📡 Aguardando pacientes na sala LiveKit...
+   🎥 O avatar Tavus aparecerá automaticamente quando
+   🏥 um paciente iniciar uma consulta!
+   🧠 100% Gemini API (STT + LLM + TTS)
+============================================================
+
+{"message": "starting worker", "level": "INFO", "name": "livekit.agents", "version": "1.2.17", "rtc-version": "1.0.17", "timestamp": "2025-11-14T16:22:54.657287+00:00"}
+{"message": "preloading plugins", "level": "INFO", "name": "livekit.agents", "packages": ["livekit.plugins.tavus", "livekit.plugins.bey", "livekit.plugins.google", "av"], "timestamp": "2025-11-14T16:22:54.657464+00:00"}
+{"message": "initializing process", "level": "INFO", "name": "livekit.agents", "pid": 3627, "timestamp": "2025-11-14T16:22:56.916131+00:00"}
+{"message": "initializing process", "level": "INFO", "name": "livekit.agents", "pid": 3629, "timestamp": "2025-11-14T16:22:56.922223+00:00"}
+{"message": "initializing process", "level": "INFO", "name": "livekit.agents", "pid": 3631, "timestamp": "2025-11-14T16:22:56.930717+00:00"}
+{"message": "initializing process", "level": "INFO", "name": "livekit.agents", "pid": 3633, "timestamp": "2025-11-14T16:22:56.948406+00:00"}
+{"message": "process initialized", "level": "INFO", "name": "livekit.agents", "pid": 3629, "elapsed_time": 0.21, "timestamp": "2025-11-14T16:22:57.135489+00:00"}
+{"message": "process initialized", "level": "INFO", "name": "livekit.agents", "pid": 3633, "elapsed_time": 0.2, "timestamp": "2025-11-14T16:22:57.147735+00:00"}
+{"message": "process initialized", "level": "INFO", "name": "livekit.agents", "pid": 3631, "elapsed_time": 0.23, "timestamp": "2025-11-14T16:22:57.160319+00:00"}
+{"message": "process initialized", "level": "INFO", "name": "livekit.agents", "pid": 3627, "elapsed_time": 0.24, "timestamp": "2025-11-14T16:22:57.160511+00:00"}
+{"message": "registered worker", "level": "INFO", "name": "livekit.agents", "id": "AW_WTUeRrMBMZuo", "url": "wss://mediai-livikit-gmavbnbs.livekit.cloud", "region": "US West B", "protocol": 16, "timestamp": "2025-11-14T16:22:57.320381+00:00"}
+{"message": "received job request", "level": "INFO", "name": "livekit.agents", "job_id": "AJ_VaXLqr4JXzSb", "dispatch_id": "AD_NFQrWGkhCxNw", "room_name": "mediai-consultation-c8b5a464-aa1b-4a33-8eaf-306a67f068d2", "agent_name": "", "resuming": false, "timestamp": "2025-11-14T16:45:11.482469+00:00"}
+{"message": "[MediAI] 🎯 Starting agent for patient: c8b5a464-aa1b-4a33-8eaf-306a67f068d2", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:11.984064+00:00"}
+{"message": "[Metrics] AGENT_SECRET não configurado - métricas não serão enviadas", "level": "WARNING", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:11.984272+00:00"}
+{"message": "[Metrics] 📊 Iniciado coletor de métricas para sessão mediai-consultation-c8b5a464-aa1b-4a33-8eaf-306a67f068d2", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:11.984336+00:00"}
+{"message": "[MediAI] 📋 Loading patient context...", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:11.984591+00:00"}
+{"message": "initializing process", "level": "INFO", "name": "livekit.agents", "pid": 3853, "timestamp": "2025-11-14T16:45:12.629068+00:00"}
+{"message": "process initialized", "level": "INFO", "name": "livekit.agents", "pid": 3853, "elapsed_time": 0.2, "timestamp": "2025-11-14T16:45:12.825011+00:00"}
+{"message": "[MediAI] ✅ Patient context loaded (651 chars)", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:15.725827+00:00"}
+{"message": "[MediAI] 🤖 Creating Gemini Live API model...", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:15.726169+00:00"}
+{"message": "[MediAI] 🎙️ Creating agent session with Gemini Live API...", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:15.726255+00:00"}
+{"message": "[MediAI] 🏥 Starting medical consultation session...", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:15.727326+00:00"}
+{"message": "Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.", "level": "WARNING", "name": "google_genai._api_client", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:15.731740+00:00"}
+{"message": "[MediAI] ⏳ Waiting for avatar to be visible and audio/video to sync...", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:15.787874+00:00"}
+{"message": "[MediAI] ✅ Session started successfully!", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:15.788882+00:00"}
+{"message": "[MediAI] Avatar provider configured: bey", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:17.271434+00:00"}
+{"message": "[MediAI] 🎭 Avatar provider selected: bey", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:17.271621+00:00"}
+{"message": "[MediAI] 🎭 Initializing Beyond Presence (BEY) avatar...", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:17.271671+00:00"}
+{"message": "[MediAI] 🎥 Starting BEY avatar...", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:17.271740+00:00"}
+{"message": "resume_false_interruption is enabled, but the audio output does not support pause, ignored", "level": "WARNING", "name": "livekit.agents", "audio_output": "DataStreamIO", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:20.348839+00:00"}
+{"message": "[MediAI] ✅ Beyond Presence avatar started successfully!", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:20.349018+00:00"}
+{"message": "[MediAI] 👁️ Starting visual analysis...", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:20.788497+00:00"}
+{"message": "[MediAI] 🎤 Generating initial greeting...", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:20.788666+00:00"}
+{"message": "[Metrics] 🔄 Iniciando envio periódico de métricas a cada 60s...", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:20.789072+00:00"}
+{"message": "received server content but no active generation.", "level": "WARNING", "name": "livekit.plugins.google", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:21.147220+00:00"}
+{"message": "received server content but no active generation.", "level": "WARNING", "name": "livekit.plugins.google", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:21.147668+00:00"}
+{"message": "no active generation to report metrics for", "level": "WARNING", "name": "livekit.plugins.google", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:21.147715+00:00"}
+{"message": "Error in _realtime_reply_task\nTraceback (most recent call last):\n  File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/agents/utils/log.py\", line 16, in async_fn_logs\n    return await fn(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/agents/voice/agent_activity.py\", line 1936, in _realtime_reply_task\n    generation_ev = await self._rt_session.generate_reply(\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nlivekit.agents.llm.realtime.RealtimeError: generate_reply timed out waiting for generation_created event.", "level": "ERROR", "name": "livekit.agents", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:25.790466+00:00"}
+{"message": "closing agent session due to participant disconnect (disable via `RoomInputOptions.close_on_disconnect=False`)", "level": "INFO", "name": "livekit.agents", "participant": "Adriel Moraes ", "reason": "CLIENT_INITIATED", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:39.289484+00:00"}
+{"message": "[Vision] 📸 Analisando aparência do paciente...", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:40.792054+00:00"}
+{"message": "[Vision] ✅ Contexto visual: Estou vendo o paciente através da câmera. Posso ver sua expressão facial e ambiente ao redor.", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:40.792821+00:00"}
+{"message": "[Vision] 📸 Analisando aparência do paciente...", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:55.794553+00:00"}
+{"message": "[Vision] ✅ Contexto visual: Estou vendo o paciente através da câmera. Posso ver sua expressão facial e ambiente ao redor.", "level": "INFO", "name": "mediai-avatar", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:45:55.794687+00:00"}
+{"message": "process exiting", "level": "INFO", "name": "livekit.agents", "reason": "", "pid": 3629, "job_id": "AJ_VaXLqr4JXzSb", "timestamp": "2025-11-14T16:46:02.963226+00:00"}

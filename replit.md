@@ -8,13 +8,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### November 14, 2025 - Gemini Model Migration to Stable Version
+### November 14, 2025 - Gemini Model Migration & LiveKit Audio Fix
 - **Migrated all Gemini models to gemini-2.5-flash** - Replaced experimental gemini-2.0-flash-exp and deprecated gemini-1.5-flash with stable gemini-2.5-flash
 - **Updated 15+ files across frontend and backend** - Systematically updated all Gemini API calls throughout the codebase
 - **Fixed quota issues** - Resolved free tier quota limitations by switching from experimental model (limit: 0 RPM) to stable version (10 RPM, 250K TPM)
-- **Tested model compatibility** - Verified gemini-2.5-flash and gemini-2.0-flash work with current API key
-- **Updated LiveKit agent** - Migrated Python agent to use gemini-2.5-flash for Realtime API (STT, LLM, TTS, Vision)
-- **All systems updated** - Chat therapist, speech-to-text, text-to-speech, medical analysis, and consultation flows now use stable model
+- **Fixed LiveKit real-time audio** - Corrected invalid model name in RealtimeModel (was using non-existent `gemini-2.5-flash-native-audio-preview-09-2025`, now uses correct `gemini-2.5-flash`)
+- **Resolved audio timeout errors** - Fixed `generate_reply timed out waiting for generation_created event` by using valid Gemini model
+- **All systems updated** - Chat therapist, speech-to-text, text-to-speech, medical analysis, LiveKit agent, and consultation flows now use stable model
 
 ### November 12, 2025 - LiveKit Connection Performance Optimization Complete
 - **Implemented LiveKit warmup system** - Pre-fetches connection token in background when patient enters dashboard, enabling instant consultation start
