@@ -667,7 +667,7 @@ CONTEXTO VISUAL (o que você vê agora):
     # We'll update instructions dynamically to include visual context
     session = AgentSession(
         llm=google.beta.realtime.RealtimeModel(
-            model="gemini-2.0-flash",  # Realtime API requires 2.0, not 2.5
+            model="gemini-2.0-flash-live-001",  # Realtime API specific model
             voice="Aoede",  # Female voice (Portuguese)
             temperature=0.5,  # Lower for more consistent responses and pronunciation
             instructions=system_prompt.replace("{visual_context}", "Aguardando primeira análise visual..."),

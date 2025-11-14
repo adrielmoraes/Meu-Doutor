@@ -12,9 +12,10 @@ Preferred communication style: Simple, everyday language.
 - **Migrated all Gemini models to gemini-2.5-flash** - Replaced experimental gemini-2.0-flash-exp and deprecated gemini-1.5-flash with stable gemini-2.5-flash
 - **Updated 15+ files across frontend and backend** - Systematically updated all Gemini API calls throughout the codebase
 - **Fixed quota issues** - Resolved free tier quota limitations by switching from experimental model (limit: 0 RPM) to stable version (10 RPM, 250K TPM)
-- **Fixed LiveKit Realtime API compatibility** - Discovered `gemini-2.5-flash` does NOT support bidiGenerateContent (Realtime API), switched to `gemini-2.0-flash` which is compatible
-- **Resolved audio errors** - Fixed `models/gemini-2.5-flash is not found for API version v1beta, or is not supported for bidiGenerateContent` error
-- **All systems updated** - Chat/medical flows use gemini-2.5-flash; LiveKit Realtime API uses gemini-2.0-flash for audio support
+- **Fixed LiveKit Realtime API compatibility** - Discovered regular Gemini models (gemini-2.5-flash, gemini-2.0-flash) do NOT support bidiGenerateContent
+- **Switched to correct Realtime model** - Using `gemini-2.0-flash-live-001`, the official model specifically designed for bidirectional audio streaming
+- **Resolved audio errors** - Fixed `models/gemini-2.x-flash is not found for API version v1beta, or is not supported for bidiGenerateContent` error
+- **All systems updated** - Chat/medical flows use gemini-2.5-flash; LiveKit Realtime API uses gemini-2.0-flash-live-001 for real-time audio
 
 ### November 12, 2025 - LiveKit Connection Performance Optimization Complete
 - **Implemented LiveKit warmup system** - Pre-fetches connection token in background when patient enters dashboard, enabling instant consultation start
