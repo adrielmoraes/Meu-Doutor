@@ -47,7 +47,7 @@ async function getPatientContext(patientId: string): Promise<string> {
     }
 
     const exams = await getExamsByPatientId(patientId);
-    
+
     let context = `INFORMAÇÕES DO PACIENTE:
 Nome: ${patient.name}
 Idade: ${patient.age} anos
@@ -66,20 +66,20 @@ ${patient.conversationHistory.substring(0, 500)}...`;
 
     if (exams.length > 0) {
       context += `\n\nHISTÓRICO DE EXAMES E DIAGNÓSTICOS:`;
-      
+
       for (const exam of exams.slice(-5)) {
         context += `\n\n--- Exame: ${exam.type} ---`;
         context += `\nData: ${new Date(exam.date).toLocaleDateString('pt-BR')}`;
         context += `\nStatus: ${exam.status}`;
-        
+
         if (exam.result) {
           context += `\nResultado/Diagnóstico Preliminar: ${exam.result.substring(0, 300)}...`;
         }
-        
+
         if (exam.doctorNotes) {
           context += `\nNotas do Médico: ${exam.doctorNotes.substring(0, 300)}...`;
         }
-        
+
         if (exam.finalExplanation) {
           context += `\nExplicação Final: ${exam.finalExplanation.substring(0, 200)}...`;
         }
@@ -158,6 +158,7 @@ DIRETRIZES IMPORTANTES:
 - Nunca dê diagnósticos ou prescreva medicamentos - você pode apenas explicar o que já foi diagnosticado
 
 Forneça sua resposta abaixo:`,
+  model: 'googleai/gemini-1.5-flash-latest',
 });
 
 const therapistChatFlow = ai.defineFlow(
@@ -168,7 +169,7 @@ const therapistChatFlow = ai.defineFlow(
   },
   async (input) => {
     const patientContext = await getPatientContext(input.patientId);
-    
+
     const { output } = await therapistPrompt({
       patientContext,
       message: input.message,
