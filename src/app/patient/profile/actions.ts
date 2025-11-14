@@ -85,22 +85,19 @@ export async function uploadPatientAvatarAction(formData: FormData): Promise<{ s
             return { success: false, message: "Tipo de arquivo não permitido. Use apenas JPEG, PNG ou GIF." };
         }
 
-        // Converter buffer para base64 para upload no Cloudinary
-        const base64File = `data:${detectedType.mime};base64,${fileBuffer.toString('base64')}`;
+        // Upload para Vercel Blob
+        const { put } = await import('@vercel/blob');
+        
+        const blob = await put(
+            `avatars/patients/${userId}-${Date.now()}.jpg`,
+            file,
+            {
+                access: 'public',
+                addRandomSuffix: false,
+            }
+        );
 
-        // Upload para Cloudinary
-        const uploadResult = await cloudinary.uploader.upload(base64File, {
-            folder: 'mediai/avatars/patients',
-            public_id: `patient_${userId}_${Date.now()}`,
-            transformation: [
-                { width: 400, height: 400, crop: 'fill', gravity: 'face' },
-                { quality: 'auto:good' }
-            ],
-            format: 'jpg'
-        });
-
-        // URL pública do Cloudinary
-        const publicUrl = uploadResult.secure_url;
+        const publicUrl = blob.url;
 
         await updatePatient(userId, { avatar: publicUrl });
         revalidateTag(`patient-profile-${userId}`);

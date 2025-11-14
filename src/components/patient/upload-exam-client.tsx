@@ -165,8 +165,33 @@ export default function UploadExamClient() {
     }, 6000);
 
     try {
-        const documentsToAnalyze = stagedFiles.map(sf => ({
-            examDataUri: sf.dataUri,
+        // Primeiro, fazer upload dos arquivos para Vercel Blob
+        const uploadFormData = new FormData();
+        for (const staged of stagedFiles) {
+          if (staged.file) {
+            uploadFormData.append('files', staged.file);
+          }
+        }
+
+        // Importar dinamicamente a Server Action para upload
+        const { uploadExamFilesAction } = await import('@/app/patient/upload-exam/actions');
+        const uploadResult = await uploadExamFilesAction(uploadFormData);
+
+        if (!uploadResult.success || !uploadResult.urls) {
+          toast({
+            title: "Erro no Upload",
+            description: uploadResult.message || "Ocorreu um erro desconhecido ao fazer upload dos arquivos.",
+            variant: "destructive",
+          });
+          setIsAnalyzing(false);
+          return;
+        }
+
+        // Agora usar as URLs para análise
+        const examUrls = uploadResult.urls;
+
+        const documentsToAnalyze = stagedFiles.map((sf, index) => ({
+            examDataUri: examUrls[index], // Usar a URL do Blob Storage
             fileName: sf.name,
         }));
 
@@ -174,6 +199,8 @@ export default function UploadExamClient() {
 
         const saveResult = await saveExamAnalysisAction(session.userId, {
             ...analysisResult,
+            // Usar as URLs do Blob Storage para salvar, não o dataUri original
+            fileUrls: examUrls, // Salvar as URLs dos arquivos
             fileName: `${stagedFiles.length} documento(s) analisado(s)`,
         });
 
@@ -254,14 +281,14 @@ export default function UploadExamClient() {
                     {isAnalyzing && (
                         <>
                             <div className="absolute inset-0 z-[5] pointer-events-none">
-                                <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-80 blur-sm animate-scan" 
-                                     style={{ 
+                                <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-80 blur-sm animate-scan"
+                                     style={{
                                          boxShadow: '0 0 20px 5px rgba(239, 68, 68, 0.5)',
                                          animation: 'scan 2s ease-in-out infinite'
-                                     }} 
+                                     }}
                                 />
-                                <div className="absolute w-full h-[2px] bg-red-400 opacity-60 animate-scan" 
-                                     style={{ animation: 'scan 2s ease-in-out infinite' }} 
+                                <div className="absolute w-full h-[2px] bg-red-400 opacity-60 animate-scan"
+                                     style={{ animation: 'scan 2s ease-in-out infinite' }}
                                 />
                             </div>
                             <div className="absolute inset-0 bg-gradient-to-b from-red-500/10 via-transparent to-red-500/10 z-[4] pointer-events-none animate-pulse" />
