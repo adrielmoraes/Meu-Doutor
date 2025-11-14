@@ -18,6 +18,6 @@ if(plugins.length === 0) {
 
 export const ai = genkit({
   plugins,
-  // Gemini 1.5 Flash - Modelo estável com ótima quota gratuita
-  model: 'googleai/gemini-1.5-flash',
+  // Gemini 2.0 Flash - Modelo atual disponível na API v1beta
+  model: 'googleai/gemini-2.0-flash-exp',
 });

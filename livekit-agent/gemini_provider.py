@@ -21,7 +21,7 @@ class GeminiSTT(stt.STT):
             raise ValueError('GEMINI_API_KEY not found in environment')
         
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-pro')
+        self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
     
     async def recognize(
         self,
@@ -65,7 +65,7 @@ class GeminiLLM(llm.LLM):
     def __init__(
         self,
         *,
-        model: str = "gemini-1.5-flash",
+        model: str = "gemini-2.0-flash-exp",
         api_key: Optional[str] = None,
         instructions: str = ""
     ):

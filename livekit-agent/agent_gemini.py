@@ -144,7 +144,7 @@ CONTEXTO DO PACIENTE:
         instructions=instructions,
         vad=silero.VAD.load(),
         stt=google.STT(languages=["pt-BR"]),  # Gemini STT em português
-        llm=google.LLM(model="gemini-1.5-flash"),  # Gemini LLM (modelo gratuito)
+        llm=google.LLM(model="gemini-2.0-flash-exp"),  # Gemini LLM
         tts=google.TTS(voice="pt-BR-Standard-A")  # Gemini TTS em português
     )
     
