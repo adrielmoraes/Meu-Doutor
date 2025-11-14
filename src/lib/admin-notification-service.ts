@@ -37,7 +37,7 @@ export async function sendAdminNotification(notification: NotificationData): Pro
     const htmlContent = generateEmailHtml(notification);
     
     await client.emails.send({
-      from: fromEmail || 'MediAI <noreply@mediai.com>',
+      from: fromEmail || 'MediAI Admin <noreply@appmediai.com>',
       to: settings.supportEmail,
       subject: notification.subject,
       html: htmlContent,

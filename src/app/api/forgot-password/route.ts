@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     const { client, fromEmail } = await getUncachableResendClient();
     
     await client.emails.send({
-      from: fromEmail || 'MediAI <noreply@sejafelizsempre.com>',
+      from: fromEmail || 'MediAI <noreply@appmediai.com>',
       to: [email],
       subject: 'Recuperação de Senha - MediAI',
       html: getPasswordResetTemplate(user.fullName, resetUrl),

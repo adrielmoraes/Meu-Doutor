@@ -5,7 +5,7 @@ let connectionSettings: any;
 async function getCredentials() {
   // Tentar usar variáveis de ambiente diretamente primeiro
   const envApiKey = process.env.RESEND_API_KEY;
-  const envFromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@sejafelizsempre.com';
+  const envFromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@appmediai.com';
   
   if (envApiKey) {
     console.log('✅ Usando RESEND_API_KEY das variáveis de ambiente');

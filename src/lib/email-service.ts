@@ -38,7 +38,7 @@ export async function sendVerificationEmail(data: VerificationEmailData): Promis
       const { client, fromEmail } = await getUncachableResendClient();
 
       const result = await client.emails.send({
-        from: fromEmail || 'MediAI <noreply@mediai.com>',
+        from: fromEmail || 'MediAI <noreply@appmediai.com>',
         to: [data.to],
         subject: 'Confirme seu email - MediAI',
         html: getEmailTemplate(data.name, data.verificationUrl),
@@ -82,7 +82,7 @@ async function sendViaResendFallback(data: VerificationEmailData, apiKey: string
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'MediAI <noreply@mediai.com>',
+      from: 'MediAI <noreply@appmediai.com>',
       to: [data.to],
       subject: 'Confirme seu email - MediAI',
       html: getEmailTemplate(data.name, data.verificationUrl),
@@ -110,7 +110,7 @@ async function sendViaSendGrid(data: VerificationEmailData, apiKey: string): Pro
       personalizations: [{
         to: [{ email: data.to }],
       }],
-      from: { email: 'noreply@mediai.com', name: 'MediAI' },
+      from: { email: 'noreply@appmediai.com', name: 'MediAI' },
       subject: 'Confirme seu email - MediAI',
       content: [{
         type: 'text/html',
