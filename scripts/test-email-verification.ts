@@ -102,7 +102,7 @@ async function testEmailVerification() {
 
     // 6. Enviar email
     const result = await client.emails.send({
-      from: fromEmail || 'MediAI <noreply@mediai.com>',
+      from: fromEmail || 'MediAI <noreply@appmediai.com>',
       to: [testEmail],
       subject: '🧪 TESTE - Confirme seu email - MediAI',
       html: htmlContent,
