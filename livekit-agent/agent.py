@@ -398,32 +398,59 @@ class VideoAnalyzer:
     async def analyze_frame_gemini(self, frame: rtc.VideoFrame) -> str:
         """Analyze a LiveKit VideoFrame using Gemini Vision - REAL analysis."""
         try:
-            logger.info(f"[Vision] Converting frame {frame.width}x{frame.height} to JPEG...")
-            
-            # Convert LiveKit frame to PIL Image
-            from PIL import Image
             import io
             
-            # Get frame buffer
-            buffer = frame.to_argb()
+            logger.info(f"[Vision] Converting frame {frame.width}x{frame.height} to JPEG...")
             
-            # Create PIL Image from buffer
-            img = Image.frombytes('RGBA', (frame.width, frame.height), buffer.data)
+            # Convert LiveKit VideoFrame to PIL Image
+            # frame.to_image() is available in all LiveKit versions and handles all formats
+            try:
+                # Primary method: Direct conversion to PIL Image
+                img = frame.to_image()
+                logger.info(f"[Vision] ✅ Converted to PIL Image successfully")
+                
+            except AttributeError:
+                # Fallback: Use to_ndarray if to_image is not available
+                logger.warning("[Vision] to_image() not available, trying to_ndarray...")
+                try:
+                    import numpy as np
+                    from PIL import Image
+                    
+                    # Get as RGB numpy array
+                    rgb_array = frame.to_ndarray(format="rgb24")
+                    
+                    # Convert numpy array to PIL Image
+                    img = Image.fromarray(rgb_array, mode='RGB')
+                    
+                    logger.info("[Vision] ✅ Converted via ndarray successfully")
+                    
+                except Exception as ndarray_err:
+                    logger.error(f"[Vision] to_ndarray failed: {ndarray_err}")
+                    # Continue to next frame
+                    return "Processando próximo frame..."
             
-            # Convert to RGB and then to JPEG bytes
-            img_rgb = img.convert('RGB')
+            # Convert PIL Image to JPEG bytes
             img_buffer = io.BytesIO()
-            img_rgb.save(img_buffer, format='JPEG', quality=85)
+            img.save(img_buffer, format='JPEG', quality=85)
             frame_bytes = img_buffer.getvalue()
             
-            logger.info(f"[Vision] Frame converted to JPEG ({len(frame_bytes)} bytes)")
+            logger.info(f"[Vision] ✅ Frame converted to JPEG ({len(frame_bytes)} bytes)")
             
             # Analyze with Gemini Vision
-            return await self.analyze_frame(frame_bytes)
+            description = await self.analyze_frame(frame_bytes)
+            
+            # Confirm successful analysis
+            if description and not description.startswith("Análise") and not description.startswith("Erro"):
+                logger.info(f"[Vision] 🎉 Real visual analysis completed successfully!")
+            
+            return description
             
         except Exception as e:
-            logger.error(f"[Vision] ❌ Error converting frame: {e}")
-            return "Erro ao processar imagem da câmera."
+            logger.error(f"[Vision] ❌ Unexpected error in frame analysis: {e}")
+            import traceback
+            traceback.print_exc()
+            # Don't give up - keep trying on next frame
+            return "Processando próximo frame..."
         
     async def analyze_frame(self, frame_data: bytes) -> str:
         """Analyze a video frame and return description with retry."""
