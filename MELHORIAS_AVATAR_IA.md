@@ -76,25 +76,30 @@ self.visual_context = "Estou vendo o paciente através da câmera. Posso ver sua
 5. Atualiza contexto visual com informação verdadeira
 ```
 
-#### Código Novo (REAL) - Versão Final com PyAV
+#### Código Novo (REAL) - Versão Final 
 ```python
 async def analyze_frame_gemini(self, frame: rtc.VideoFrame) -> str:
     """Analyze LiveKit VideoFrame using Gemini Vision - REAL analysis."""
-    # Converter usando PyAV (suporta TODOS os formatos)
-    av_frame = frame.to_av_frame()
-    av_frame_rgb = av_frame.reformat(format='rgb24')
-    img = av_frame_rgb.to_image()  # PIL Image
+    # Método 1: Conversão direta (disponível em todas as versões do LiveKit)
+    img = frame.to_image()  # Retorna PIL Image diretamente
     
-    # Converter para JPEG
+    # Fallback: Se to_image() não estiver disponível
+    if not hasattr(frame, 'to_image'):
+        rgb_array = frame.to_ndarray(format="rgb24")
+        img = Image.fromarray(rgb_array, mode='RGB')
+    
+    # Converter PIL Image para JPEG
     img_buffer = io.BytesIO()
     img.save(img_buffer, format='JPEG', quality=85)
     frame_bytes = img_buffer.getvalue()
     
     # Analisar com Gemini Vision
-    return await self.analyze_frame(frame_bytes)
+    description = await self.analyze_frame(frame_bytes)
+    
+    return description
 ```
 
-**Nota:** O método `frame.to_av_frame()` do LiveKit converte automaticamente qualquer formato de vídeo (I420, NV12, ARGB, etc.) para AVFrame do PyAV, garantindo compatibilidade universal.
+**Nota:** O método `frame.to_image()` do LiveKit converte automaticamente qualquer formato de vídeo (I420, NV12, ARGB, etc.) para PIL Image, garantindo compatibilidade universal sem dependências externas.
 
 #### Fluxo de Análise Visual
 ```
@@ -123,14 +128,15 @@ async def analyze_frame_gemini(self, frame: rtc.VideoFrame) -> str:
 
 ### Dependências Adicionadas
 - **Pillow** (>=10.0.0) - Conversão de imagem PIL para JPEG
-- **PyAV (av)** (já disponível via LiveKit) - Conversão universal de formatos de vídeo (I420, NV12, ARGB, etc.)
-- **NumPy** (já disponível) - Fallback para manipulação de arrays
+- **NumPy** (já disponível) - Fallback para conversão via ndarray se necessário
+
+**Nota:** `frame.to_image()` é nativo do LiveKit e não requer dependências externas.
 
 ### Arquivos Modificados
-- `livekit-agent/agent.py` (linhas 681-735): Loop de visão real
-- `livekit-agent/agent.py` (linhas 401-449): Análise com Gemini Vision
-- `livekit-agent/agent.py` (linhas 774-777): Prompt atualizado
-- `livekit-agent/requirements.txt`: Adicionado Pillow
+- `livekit-agent/agent.py` (linhas ~681-735): Loop de visão real
+- `livekit-agent/agent.py` (linhas ~401-456): Análise com Gemini Vision usando frame.to_image()
+- `livekit-agent/agent.py` (linhas ~774-815): Prompt atualizado com regras anti-hallucination
+- `livekit-agent/requirements.txt`: Adicionado Pillow>=10.0.0
 
 ### Status: ✅ RESOLVIDO
 

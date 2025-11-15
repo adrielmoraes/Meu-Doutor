@@ -8,6 +8,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### November 15, 2025 - Avatar AI Agent: Real Vision & Doctor Recommendations Fixed
+- **Fixed real-time camera vision** - Implemented REAL visual analysis using Gemini Vision API with LiveKit frame.to_image() for universal format compatibility
+- **Fixed doctor recommendations** - AI now queries actual database for doctors instead of hallucinating names; strict anti-hallucination rules enforced in system prompt
+- **Stabilized LiveKit connection** - Resolved port conflicts preventing agent startup; improved process cleanup
+- **Enhanced error recovery** - Vision system continues processing on frame errors instead of permanent failure
+- **Performance validated** - Vision analysis runs every 20 seconds with frame conversion logging for monitoring
+- **Documentation complete** - Comprehensive MELHORIAS_AVATAR_IA.md details all 3 critical fixes with implementation guide
+
 ### November 14, 2025 - Gemini Model Migration & LiveKit Realtime API Fix
 - **Migrated all Gemini models to gemini-2.5-flash** - Replaced experimental gemini-2.0-flash-exp and deprecated gemini-1.5-flash with stable gemini-2.5-flash
 - **Updated 15+ files across frontend and backend** - Systematically updated all Gemini API calls throughout the codebase
