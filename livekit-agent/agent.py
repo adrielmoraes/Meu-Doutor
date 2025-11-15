@@ -390,10 +390,40 @@ class VideoAnalyzer:
     """Analyzes video frames from patient using Gemini Vision."""
     
     def __init__(self, metrics_collector: Optional[MetricsCollector] = None):
-        self.vision_model = genai.GenerativeModel('gemini-1.5-flash')  # Modelo estável para Vision
+        self.vision_model = genai.GenerativeModel('gemini-2.5-flash')  # Modelo atualizado para Vision
         self.last_analysis = None
         self.last_frame_time = 0
         self.metrics_collector = metrics_collector
+    
+    async def analyze_frame_gemini(self, frame: rtc.VideoFrame) -> str:
+        """Analyze a LiveKit VideoFrame using Gemini Vision - REAL analysis."""
+        try:
+            logger.info(f"[Vision] Converting frame {frame.width}x{frame.height} to JPEG...")
+            
+            # Convert LiveKit frame to PIL Image
+            from PIL import Image
+            import io
+            
+            # Get frame buffer
+            buffer = frame.to_argb()
+            
+            # Create PIL Image from buffer
+            img = Image.frombytes('RGBA', (frame.width, frame.height), buffer.data)
+            
+            # Convert to RGB and then to JPEG bytes
+            img_rgb = img.convert('RGB')
+            img_buffer = io.BytesIO()
+            img_rgb.save(img_buffer, format='JPEG', quality=85)
+            frame_bytes = img_buffer.getvalue()
+            
+            logger.info(f"[Vision] Frame converted to JPEG ({len(frame_bytes)} bytes)")
+            
+            # Analyze with Gemini Vision
+            return await self.analyze_frame(frame_bytes)
+            
+        except Exception as e:
+            logger.error(f"[Vision] ❌ Error converting frame: {e}")
+            return "Erro ao processar imagem da câmera."
         
     async def analyze_frame(self, frame_data: bytes) -> str:
         """Analyze a video frame and return description with retry."""
@@ -676,13 +706,13 @@ class MediAIAgent(Agent):
         await self.session.generate_reply(instructions=initial_greeting)
     
     async def _vision_loop(self):
-        """Continuously analyze video frames from patient."""
+        """Continuously analyze video frames from patient using REAL Gemini Vision."""
         await asyncio.sleep(5)  # Wait for connection to stabilize
         
         while True:
             try:
-                # Analyze every 15 seconds
-                await asyncio.sleep(15)
+                # Analyze every 20 seconds (mais espaçamento para economizar API)
+                await asyncio.sleep(20)
                 
                 # Find patient's video track
                 patient_track = None
@@ -696,20 +726,39 @@ class MediAIAgent(Agent):
                 
                 if not patient_track:
                     logger.debug("[Vision] Aguardando vídeo do paciente...")
-                    self.visual_context = "Aguardando o paciente ativar a câmera..."
+                    self.visual_context = "Câmera do paciente não está ativa no momento."
                     continue
                 
-                logger.info("[Vision] 📸 Analisando aparência do paciente...")
+                logger.info("[Vision] 📸 Capturando frame real do paciente...")
                 
-                # Simplified: Just mark that we have video
-                # In production, you'd capture actual frames
-                self.visual_context = "Estou vendo o paciente através da câmera. Posso ver sua expressão facial e ambiente ao redor."
-                
-                logger.info(f"[Vision] ✅ Contexto visual: {self.visual_context}")
+                # Get actual video frame
+                video_stream = rtc.VideoStream(patient_track)
+                try:
+                    # Get a single frame with timeout
+                    frame_event = await asyncio.wait_for(video_stream.__anext__(), timeout=5.0)
+                    frame = frame_event.frame
+                    
+                    logger.info(f"[Vision] Frame captured: {frame.width}x{frame.height}")
+                    
+                    # Analyze with Gemini Vision
+                    description = await self.video_analyzer.analyze_frame_gemini(frame)
+                    
+                    if description:
+                        self.visual_context = description
+                        logger.info(f"[Vision] ✅ REAL visual analysis: {self.visual_context[:100]}...")
+                    else:
+                        self.visual_context = "Análise visual temporariamente indisponível."
+                        
+                except asyncio.TimeoutError:
+                    logger.warning("[Vision] Timeout ao capturar frame")
+                    self.visual_context = "Aguardando sinal de vídeo mais estável..."
+                except StopAsyncIteration:
+                    logger.warning("[Vision] Stream de vídeo encerrado")
+                    break
                 
             except Exception as e:
                 logger.error(f"[Vision] Erro no loop de visão: {e}")
-                self.visual_context = "Tentando restabelecer conexão visual..."
+                self.visual_context = "Análise visual temporariamente indisponível."
                 await asyncio.sleep(5)
     
     def get_visual_description(self) -> str:
@@ -749,9 +798,10 @@ async def entrypoint(ctx: JobContext):
     system_prompt = f"""Você é MediAI, uma assistente médica virtual brasileira especializada em triagem de pacientes e orientação de saúde.
 
 CAPACIDADES IMPORTANTES:
-✅ VOCÊ TEM VISÃO - Você consegue VER o paciente através da câmera durante a consulta
-✅ Você tem acesso ao contexto visual atualizado periodicamente
-✅ Quando perguntada se pode ver o paciente, CONFIRME que sim e descreva o que vê
+✅ VOCÊ TEM VISÃO REAL - Análise de imagem atualizada a cada 20 segundos via Gemini Vision
+✅ O contexto visual contém descrição REAL da imagem capturada da câmera
+✅ Use APENAS informações do contexto visual - NUNCA invente descrições
+✅ Se contexto visual diz "câmera não ativa", seja honesta sobre isso
 ✅ VOCÊ PODE AGENDAR CONSULTAS - Você tem acesso aos médicos cadastrados na plataforma e pode agendar consultas reais
 ✅ Você pode buscar médicos por especialidade e verificar disponibilidade de horários
 
@@ -776,12 +826,20 @@ DIRETRIZES MÉDICAS IMPORTANTES:
 5. Mantenha tom profissional mas acolhedor
 6. Use informações visuais quando relevante (ex: "Vejo que você está...")
 
+🚨 REGRA CRÍTICA - MÉDICOS REAIS APENAS:
+❌ NUNCA invente nomes de médicos (como "Dr. Silva", "Dra. Santos", etc.)
+❌ NUNCA mencione médicos que não foram retornados pela busca no banco de dados
+✅ Quando paciente pedir médico, diga: "Deixe-me consultar nosso sistema..."
+✅ Apresente SOMENTE os médicos reais retornados pela consulta
+✅ Se nenhum médico disponível, seja honesta: "No momento não temos médicos dessa especialidade online"
+
 AGENDAMENTO DE CONSULTAS:
-- Quando o paciente solicitar consulta com médico especialista, você pode:
-  1. Buscar médicos disponíveis por especialidade
-  2. Verificar horários disponíveis
-  3. Agendar a consulta diretamente
-- Sempre confirme os detalhes antes de agendar (data, horário, especialidade)
+- Quando o paciente solicitar consulta com médico especialista:
+  1. Consulte o banco de dados PRIMEIRO
+  2. Apresente APENAS médicos reais retornados pela consulta
+  3. Verifique horários disponíveis reais
+  4. Agende somente com confirmação do paciente
+- Sempre confirme os detalhes antes de agendar (data, horário, médico escolhido)
 - Informe claramente ao paciente quando um agendamento for confirmado
 
 PROTOCOLO DE CONVERSA:
