@@ -42,6 +42,15 @@ logger.setLevel(logging.INFO)
 # Configure Gemini for vision
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 
+# API configuration for agent tools
+NEXT_PUBLIC_URL = os.getenv('NEXT_PUBLIC_URL') or os.getenv('NEXT_PUBLIC_BASE_URL', 'http://localhost:5000')
+AGENT_SECRET = os.getenv('AGENT_SECRET', '')
+
+if not AGENT_SECRET:
+    logger.warning("[AI Tools] ⚠️ AGENT_SECRET não configurado - funcionalidades de agendamento desabilitadas")
+else:
+    logger.info(f"[AI Tools] ✅ API configurada: {NEXT_PUBLIC_URL}")
+
 
 @retry(
     stop=stop_after_attempt(3),
@@ -501,6 +510,134 @@ EXAMES RECENTES ({len(exams)}):
         return f"Erro ao carregar contexto: {str(e)}"
 
 
+async def search_doctors(specialty: str = None, limit: int = 5) -> dict:
+    """
+    Busca médicos disponíveis na plataforma.
+    
+    Args:
+        specialty: Especialidade médica (ex: "cardiologia", "pediatria")
+        limit: Número máximo de médicos a retornar
+    
+    Returns:
+        Lista de médicos com informações relevantes
+    """
+    if not AGENT_SECRET:
+        logger.warning("[AI Tools] Cannot search doctors - AGENT_SECRET not configured")
+        return {"success": False, "error": "Configuração ausente", "doctors": []}
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            url = f"{NEXT_PUBLIC_URL}/api/ai-agent/doctors"
+            params = {"limit": str(limit)}
+            if specialty:
+                params["specialty"] = specialty
+            
+            headers = {"x-agent-secret": AGENT_SECRET}
+            
+            logger.info(f"[AI Tools] Buscando médicos: {url} (especialidade={specialty})")
+            response = await client.get(url, params=params, headers=headers, timeout=10.0)
+            response.raise_for_status()
+            
+            data = response.json()
+            logger.info(f"[AI Tools] ✅ Encontrados {data.get('count', 0)} médicos")
+            return data
+            
+    except Exception as e:
+        logger.error(f"[AI Tools] ❌ Erro ao buscar médicos: {e}")
+        return {"success": False, "error": str(e), "doctors": []}
+
+
+async def get_available_slots(doctor_id: str, date: str) -> dict:
+    """
+    Busca horários disponíveis de um médico para uma data específica.
+    
+    Args:
+        doctor_id: ID do médico
+        date: Data no formato YYYY-MM-DD
+    
+    Returns:
+        Lista de horários disponíveis
+    """
+    if not AGENT_SECRET:
+        logger.warning("[AI Tools] Cannot get available slots - AGENT_SECRET not configured")
+        return {"success": False, "error": "Configuração ausente", "availableSlots": []}
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            url = f"{NEXT_PUBLIC_URL}/api/ai-agent/schedule"
+            params = {"doctorId": doctor_id, "date": date}
+            headers = {"x-agent-secret": AGENT_SECRET}
+            
+            logger.info(f"[AI Tools] Buscando horários: {url} (médico={doctor_id}, data={date})")
+            response = await client.get(url, params=params, headers=headers, timeout=10.0)
+            response.raise_for_status()
+            
+            data = response.json()
+            logger.info(f"[AI Tools] ✅ Encontrados {data.get('totalAvailable', 0)} horários disponíveis")
+            return data
+            
+    except Exception as e:
+        logger.error(f"[AI Tools] ❌ Erro ao buscar horários: {e}")
+        return {"success": False, "error": str(e), "availableSlots": []}
+
+
+async def schedule_appointment(
+    doctor_id: str,
+    patient_id: str,
+    patient_name: str,
+    date: str,
+    start_time: str,
+    end_time: str,
+    notes: str = ""
+) -> dict:
+    """
+    Agenda uma consulta com um médico real da plataforma.
+    
+    Args:
+        doctor_id: ID do médico
+        patient_id: ID do paciente
+        patient_name: Nome do paciente
+        date: Data no formato YYYY-MM-DD
+        start_time: Horário de início (formato HH:MM)
+        end_time: Horário de término (formato HH:MM)
+        notes: Observações adicionais
+    
+    Returns:
+        Confirmação do agendamento
+    """
+    if not AGENT_SECRET:
+        logger.warning("[AI Tools] Cannot schedule appointment - AGENT_SECRET not configured")
+        return {"success": False, "error": "Configuração ausente"}
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            url = f"{NEXT_PUBLIC_URL}/api/ai-agent/schedule"
+            headers = {"x-agent-secret": AGENT_SECRET, "Content-Type": "application/json"}
+            
+            payload = {
+                "doctorId": doctor_id,
+                "patientId": patient_id,
+                "patientName": patient_name,
+                "date": date,
+                "startTime": start_time,
+                "endTime": end_time,
+                "type": "consultation",
+                "notes": notes
+            }
+            
+            logger.info(f"[AI Tools] Agendando consulta: paciente={patient_name}, médico={doctor_id}, data={date} {start_time}")
+            response = await client.post(url, json=payload, headers=headers, timeout=10.0)
+            response.raise_for_status()
+            
+            data = response.json()
+            logger.info(f"[AI Tools] ✅ Consulta agendada: {data.get('appointmentId')}")
+            return data
+            
+    except Exception as e:
+        logger.error(f"[AI Tools] ❌ Erro ao agendar consulta: {e}")
+        return {"success": False, "error": str(e)}
+
+
 class MediAIAgent(Agent):
     """MediAI Voice Agent with Vision"""
     
@@ -615,6 +752,8 @@ CAPACIDADES IMPORTANTES:
 ✅ VOCÊ TEM VISÃO - Você consegue VER o paciente através da câmera durante a consulta
 ✅ Você tem acesso ao contexto visual atualizado periodicamente
 ✅ Quando perguntada se pode ver o paciente, CONFIRME que sim e descreva o que vê
+✅ VOCÊ PODE AGENDAR CONSULTAS - Você tem acesso aos médicos cadastrados na plataforma e pode agendar consultas reais
+✅ Você pode buscar médicos por especialidade e verificar disponibilidade de horários
 
 IDIOMA E COMUNICAÇÃO:
 - Fale EXCLUSIVAMENTE em português brasileiro claro e natural
@@ -637,6 +776,14 @@ DIRETRIZES MÉDICAS IMPORTANTES:
 5. Mantenha tom profissional mas acolhedor
 6. Use informações visuais quando relevante (ex: "Vejo que você está...")
 
+AGENDAMENTO DE CONSULTAS:
+- Quando o paciente solicitar consulta com médico especialista, você pode:
+  1. Buscar médicos disponíveis por especialidade
+  2. Verificar horários disponíveis
+  3. Agendar a consulta diretamente
+- Sempre confirme os detalhes antes de agendar (data, horário, especialidade)
+- Informe claramente ao paciente quando um agendamento for confirmado
+
 PROTOCOLO DE CONVERSA:
 1. Cumprimente o paciente pelo nome de forma calorosa
 2. Pergunte sobre o motivo da consulta de hoje
@@ -644,6 +791,7 @@ PROTOCOLO DE CONVERSA:
 4. Relacione com histórico médico quando relevante
 5. Use o contexto visual para enriquecer a avaliação
 6. Ao final, resuma o que foi discutido e forneça orientações preliminares
+7. Se apropriado, ofereça agendar consulta com especialista
 
 IMPORTANTE: Mantenha suas respostas curtas e objetivas. Faça perguntas uma de cada vez e aguarde a resposta do paciente antes de continuar. Seja natural e conversacional.
 

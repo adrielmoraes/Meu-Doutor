@@ -1,0 +1,88 @@
+Analisando as imagens e o código do projeto, vejo que você está atualmente usando Cloudinary para armazenar avatares de médicos e pacientes. Porém, para os documentos de exames enviados pelos usuários, estou vendo que o código não implementa storage persistente ainda - parece que os arquivos são apenas convertidos para dataUri e mantidos em memória.
+
+📊 Situação Atual
+✅ Já implementado (Cloudinary):
+
+Avatar de médicos (src/app/doctor/profile/actions.ts)
+Avatar de pacientes (src/app/patient/profile/actions.ts)
+❌ Precisa implementar:
+
+Upload de exames médicos (PDFs, imagens)
+Armazenamento persistente desses documentos
+🎯 Recomendação: Usar Vercel Blob Storage
+Pelo que vi nas imagens, você está na seção "Armazenar" (Storage) da Vercel. A melhor opção é usar Vercel Blob, que é nativo da plataforma e integra perfeitamente com Next.js.
+
+Por que Vercel Blob?
+✅ Integração nativa - Feito para funcionar com Vercel
+✅ Fácil configuração - Variáveis de ambiente automáticas
+✅ Escalável - Ideal para documentos médicos grandes
+✅ Seguro - URLs assinadas com expiração
+✅ Custo efetivo - Pay-as-you-go
+🔧 Configuração na Vercel
+Passo 1: Criar Blob Store na Vercel
+Acesse o projeto na Vercel
+Vá em Storage (tab "Armazenar")
+Clique em "Criar banco de dados" ou "Connect Store"
+Selecione "Blob"
+Configure:
+Nome: mediai-documents (ou qualquer nome)
+Ambientes: Marque Development, Preview e Production
+Clique em "Criar" ou "Conectar"
+A Vercel criará automaticamente as seguintes variáveis de ambiente:
+
+BLOB_READ_WRITE_TOKEN
+Passo 2: Instalar o pacote Vercel Blo
+npm install @vercel/blob
+
+
+Run again
+b
+
+Passo 3: Criar Server Action para Upload de Exame
+src/app/patient/upload-exam/actions.ts
++78
+-0
+s
+
+Passo 4: Atualizar Cliente de Upload de Exame
+src/components/patient/upload-exam-client.tsx
++29
+-7
+s
+
+Passo 5: Também migrar Avatares para Vercel Blob (Opcional)
+Se quiser migrar os avatares do Cloudinary para Vercel Blob (mais consistente), posso criar essa migração também. Seria assim
+
+src/app/patient/profile/actions.ts
++11
+-15
+:
+
+📋 Checklist de Configuração
+✅ Na Vercel Dashboard:
+
+Criar Blob Store
+Conectar aos ambientes (Development, Preview, Production)
+Verificar variável BLOB_READ_WRITE_TOKEN
+✅ No código:
+
+Instalar @vercel/blob
+Criar server actions de upload
+Atualizar componentes de upload
+✅ Configurar na Replit (Secrets):
+
+Adicionar BLOB_READ_WRITE_TOKEN nos Secrets para desenvolvimento local
+💡 Vantagens do Vercel Blob
+URLs públicas diretas - Não precisa de assinatura para acesso público
+CDN global - Servido via edge network da Vercel
+Integração com ISR/SSR - Funciona perfeitamente com Next.js
+Sem configuração de CORS - Tudo configurado automaticamente
+Deseja que eu implemente a migração completa para Vercel Blob ou prefere manter Cloudinary para avatares e usar Blob só para documentos?
+
+Checkpoint made
+Configurar Vercel Blob para uploads
+2 hours ago
+•
+
+303cfe54
+

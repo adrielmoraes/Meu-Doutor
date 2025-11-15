@@ -1,114 +1,151 @@
+"use server";
 
-'use server';
-
-import { getSession } from '@/lib/session';
-import { revalidateTag } from 'next/cache';
-import { updatePatient } from '@/lib/db-adapter';
-import type { Patient } from '@/types';
-import { v2 as cloudinary } from 'cloudinary';
+import { getSession } from "@/lib/session";
+import { revalidateTag } from "next/cache";
+import { updatePatient } from "@/lib/db-adapter";
+import type { Patient } from "@/types";
+import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // Ação para atualizar os campos de texto do perfil do paciente
-export async function updatePatientProfile(formData: FormData): Promise<{ success: boolean; message: string }> {
-  const session = await getSession();
-  if (!session || session.role !== 'patient') {
-    return { success: false, message: 'Não autorizado' };
-  }
+export async function updatePatientProfile(
+    formData: FormData,
+): Promise<{ success: boolean; message: string }> {
+    const session = await getSession();
+    if (!session || session.role !== "patient") {
+        return { success: false, message: "Não autorizado" };
+    }
 
-  const { userId } = session;
-  
-  // Extrair dados do formulário
-  const name = formData.get('name') as string;
-  const city = formData.get('city') as string;
-  const state = formData.get('state') as string;
+    const { userId } = session;
 
-  const updatedData: Partial<Patient> = {};
+    // Extrair dados do formulário
+    const name = formData.get("name") as string;
+    const city = formData.get("city") as string;
+    const state = formData.get("state") as string;
 
-  if (name) updatedData.name = name;
-  if (city) updatedData.city = city;
-  if (state) updatedData.state = state;
+    const updatedData: Partial<Patient> = {};
 
-  if (Object.keys(updatedData).length === 0) {
-    return { success: false, message: 'Nenhum dado para atualizar.' };
-  }
+    if (name) updatedData.name = name;
+    if (city) updatedData.city = city;
+    if (state) updatedData.state = state;
 
-  try {
-    await updatePatient(userId, updatedData);
-    revalidateTag(`patient-profile-${userId}`);
+    if (Object.keys(updatedData).length === 0) {
+        return { success: false, message: "Nenhum dado para atualizar." };
+    }
 
-    return { success: true, message: 'Perfil atualizado com sucesso!' };
-  } catch (error) {
-    console.error("Erro ao atualizar perfil do paciente:", error);
-    return { success: false, message: 'Falha ao atualizar o perfil no servidor.' };
-  }
+    try {
+        await updatePatient(userId, updatedData);
+        revalidateTag(`patient-profile-${userId}`);
+
+        return { success: true, message: "Perfil atualizado com sucesso!" };
+    } catch (error) {
+        console.error("Erro ao atualizar perfil do paciente:", error);
+        return {
+            success: false,
+            message: "Falha ao atualizar o perfil no servidor.",
+        };
+    }
 }
 
 // Ação para fazer upload do avatar do paciente (Cloudinary)
-export async function uploadPatientAvatarAction(formData: FormData): Promise<{ success: boolean; message: string; url?: string }> {
+export async function uploadPatientAvatarAction(
+    formData: FormData,
+): Promise<{ success: boolean; message: string; url?: string }> {
     const session = await getSession();
 
-    if (!session || session.role !== 'patient') {
-        return { success: false, message: "Usuário não autenticado ou não é um paciente." };
+    if (!session || session.role !== "patient") {
+        return {
+            success: false,
+            message: "Usuário não autenticado ou não é um paciente.",
+        };
     }
 
-    const file = formData.get('file') as File;
-    const userId = formData.get('userId') as string;
+    const file = formData.get("file") as File;
+    const userId = formData.get("userId") as string;
 
     if (!file || !userId) {
-        return { success: false, message: "Arquivo ou ID do usuário não fornecido." };
+        return {
+            success: false,
+            message: "Arquivo ou ID do usuário não fornecido.",
+        };
     }
 
     if (userId !== session.userId) {
-        return { success: false, message: "Não autorizado a atualizar este perfil." };
+        return {
+            success: false,
+            message: "Não autorizado a atualizar este perfil.",
+        };
     }
 
     try {
         // Validação de tamanho (2MB máximo)
         const MAX_FILE_SIZE = 2 * 1024 * 1024;
         if (file.size > MAX_FILE_SIZE) {
-            return { success: false, message: "Arquivo muito grande. Tamanho máximo: 2MB." };
+            return {
+                success: false,
+                message: "Arquivo muito grande. Tamanho máximo: 2MB.",
+            };
         }
 
         const fileBuffer = Buffer.from(await file.arrayBuffer());
-        
+
         // Validação server-side do tipo real do arquivo usando magic bytes
-        const { fileTypeFromBuffer } = await import('file-type');
+        const { fileTypeFromBuffer } = await import("file-type");
         const detectedType = await fileTypeFromBuffer(fileBuffer);
-        
-        const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
+
+        const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/gif"];
         if (!detectedType || !ALLOWED_MIME_TYPES.includes(detectedType.mime)) {
-            return { success: false, message: "Tipo de arquivo não permitido. Use apenas JPEG, PNG ou GIF." };
+            return {
+                success: false,
+                message:
+                    "Tipo de arquivo não permitido. Use apenas JPEG, PNG ou GIF.",
+            };
         }
 
-        // Upload para Vercel Blob
-        const { put } = await import('@vercel/blob');
-        
-        const blob = await put(
-            `avatars/patients/${userId}-${Date.now()}.jpg`,
-            file,
-            {
-                access: 'public',
-                addRandomSuffix: false,
-            }
-        );
+        // Converter buffer para base64 para upload no Cloudinary
+        const base64File = `data:${detectedType.mime};base64,${fileBuffer.toString("base64")}`;
 
-        const publicUrl = blob.url;
+        // Upload para Cloudinary
+        const uploadResult = await cloudinary.uploader.upload(base64File, {
+            folder: "mediai/avatars/patients",
+            public_id: `patient_${userId}_${Date.now()}`,
+            transformation: [
+                { width: 400, height: 400, crop: "fill", gravity: "face" },
+                { quality: "auto:good" },
+            ],
+            format: "jpg",
+        });
+
+        // URL pública do Cloudinary
+        const publicUrl = uploadResult.secure_url;
 
         await updatePatient(userId, { avatar: publicUrl });
         revalidateTag(`patient-profile-${userId}`);
 
-        return { success: true, message: "Avatar atualizado com sucesso!", url: publicUrl };
-
+        return {
+            success: true,
+            message: "Avatar atualizado com sucesso!",
+            url: publicUrl,
+        };
     } catch (error) {
-        console.error("[PatientUploadAction] Erro durante o upload do avatar:", error);
+        console.error(
+            "[PatientUploadAction] Erro durante o upload do avatar:",
+            error,
+        );
         if (error instanceof Error) {
-            return { success: false, message: `Falha no upload do arquivo: ${error.message}` };
+            return {
+                success: false,
+                message: `Falha no upload do arquivo: ${error.message}`,
+            };
         }
-        return { success: false, message: "Ocorreu um erro desconhecido no servidor." };
+        return {
+            success: false,
+            message: "Ocorreu um erro desconhecido no servidor.",
+        };
     }
 }
