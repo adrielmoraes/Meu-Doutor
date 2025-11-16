@@ -562,7 +562,11 @@ export default function LiveKitConsultation({ patientId, patientName }: LiveKitC
         }}
         video={{
           deviceId: undefined,
-          resolution: VideoPresets.h720.resolution,
+          resolution: {
+            width: 1280,
+            height: 720,
+            frameRate: 30,
+          },
         }}
         onConnected={(room?: Room) => {
           logEvent('LiveKitRoom onConnected callback');
