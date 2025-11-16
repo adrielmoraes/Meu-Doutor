@@ -397,18 +397,19 @@ class VideoAnalyzer:
     
     async def analyze_frame_gemini(self, frame: rtc.VideoFrame) -> str:
         """Analyze a LiveKit VideoFrame using Gemini Vision - REAL analysis."""
+        rgba_frame = None
         try:
             import io
             import numpy as np
             from PIL import Image
-            from livekit.rtc import proto_video
+            from livekit.rtc import VideoBufferType
             
             logger.info(f"[Vision] Converting frame {frame.width}x{frame.height} (type={frame.type}) to JPEG...")
             
             # Convert LiveKit VideoFrame to RGBA format for universal compatibility
             try:
                 # Convert to RGBA using LiveKit's built-in convert() method
-                rgba_frame = frame.convert(proto_video.VideoBufferType.RGBA)
+                rgba_frame = frame.convert(VideoBufferType.RGBA)
                 
                 # Get raw RGBA data
                 rgba_data = rgba_frame.data
@@ -452,13 +453,17 @@ class VideoAnalyzer:
                 logger.info(f"[Vision] 🎉 Real visual analysis completed successfully!")
             
             return description
-            
         except Exception as e:
             logger.error(f"[Vision] ❌ Unexpected error in frame analysis: {e}")
             import traceback
             traceback.print_exc()
             # Don't give up - keep trying on next frame
             return "Processando próximo frame..."
+        finally:
+            # CRITICAL: Release native frame buffers to prevent memory leak
+            if rgba_frame is not None:
+                rgba_frame.close()
+            frame.close()
         
     async def analyze_frame(self, frame_data: bytes) -> str:
         """Analyze a video frame and return description with retry."""
@@ -744,8 +749,97 @@ class MediAIAgent(Agent):
         
         await self.session.generate_reply(instructions=initial_greeting)
     
+    async def _handle_user_transcription(self, event):
+        """Handle user transcription event from AgentSession - REAL intent detection."""
+        try:
+            # Extract transcript from event
+            if not hasattr(event, 'transcript') or not event.transcript:
+                logger.warning("[Intent] No transcript in event")
+                return
+            
+            message_text = event.transcript
+            logger.info(f"[Intent] 🎙️ Patient said: {message_text[:100]}...")
+            
+            # Store for analysis
+            self.last_transcription = message_text.lower()
+            
+            # Specialty keywords mapping
+            SPECIALTY_MAP = {
+                "cardiologista": "Cardiologia",
+                "cardio": "Cardiologia",
+                "coração": "Cardiologia",
+                "pediatra": "Pediatria",
+                "criança": "Pediatria",
+                "bebê": "Pediatria",
+                "dermatologista": "Dermatologia",
+                "pele": "Dermatologia",
+                "psiquiatra": "Psiquiatria",
+                "mental": "Psiquiatria",
+                "ortopedista": "Ortopedia",
+                "osso": "Ortopedia",
+                "ginecologista": "Ginecologia",
+                "gineco": "Ginecologia",
+                "neurologista": "Neurologia",
+                "cérebro": "Neurologia",
+                "oftalmologista": "Oftalmologia",
+                "olho": "Oftalmologia",
+                "visão": "Oftalmologia"
+            }
+            
+            # General doctor keywords
+            DOCTOR_KEYWORDS = ["médico", "medico", "doutor", "doutora", "especialista", "consulta", "agendar", "marcar"]
+            
+            # Check if patient wants a doctor
+            wants_doctor = any(keyword in self.last_transcription for keyword in DOCTOR_KEYWORDS)
+            
+            if wants_doctor:
+                # Detect specialty
+                detected_specialty = None
+                for keyword, specialty in SPECIALTY_MAP.items():
+                    if keyword in self.last_transcription:
+                        detected_specialty = specialty
+                        break
+                
+                logger.info(f"[Intent] 🎯 Detected doctor request! Specialty: {detected_specialty or 'General'}")
+                
+                # Search for doctors with detected specialty
+                doctors_result = await search_doctors(specialty=detected_specialty, limit=10)
+                
+                if doctors_result.get('success') and doctors_result.get('doctors'):
+                    self.doctor_search_cache = doctors_result
+                    self.last_doctor_search_time = time.time()
+                    
+                    # Build doctor list for context
+                    doctor_list = []
+                    for doc in doctors_result['doctors'][:5]:  # Top 5
+                        doctor_list.append(
+                            f"- Dr(a). {doc['name']} ({doc['specialty']}) - CRM {doc['crm']}, Email: {doc.get('email', 'N/A')}"
+                        )
+                    
+                    if doctor_list:
+                        specialty_label = detected_specialty or "disponíveis"
+                        doctor_context = f"\n\nMÉDICOS {specialty_label.upper()} (dados REAIS do banco):\n" + "\n".join(doctor_list)
+                        
+                        # Inject real doctor data into the conversation
+                        await self.session.say(
+                            f"Encontrei alguns médicos especialistas para você. {doctor_context}\n\nGostaria de agendar uma consulta com algum deles?"
+                        )
+                        
+                        logger.info(f"[Intent] ✅ Injected {len(doctor_list)} REAL doctors into conversation!")
+                else:
+                    # No doctors found
+                    await self.session.say(
+                        f"Desculpe, no momento não temos médicos de {detected_specialty or 'qualquer especialidade'} disponíveis. Você pode tentar novamente mais tarde ou verificar nosso sistema."
+                    )
+                    logger.warning(f"[Intent] ⚠️ No doctors found for specialty: {detected_specialty}")
+        
+        except Exception as e:
+            logger.error(f"[Intent] Error handling transcription: {e}")
+            import traceback
+            traceback.print_exc()
+    
     async def on_user_turn_completed(self, turn_ctx: llm.ChatContext, new_message: llm.ChatMessage):
-        """Called when patient finishes speaking - real intent detection."""
+        """DEPRECATED: Gemini Live doesn't emit ChatMessage events. Use _handle_user_transcription instead."""
         try:
             # Extract text from the message content (list of ChatMessagePart)
             if isinstance(new_message.content, list):
@@ -1020,6 +1114,12 @@ CONTEXTO VISUAL (o que você vê agora):
     )
     
     logger.info("[MediAI] 🏥 Starting medical consultation session...")
+    
+    # Register listener for user transcriptions to detect doctor search intent
+    @session.on("user_input_transcribed")
+    def on_user_transcribed(event):
+        """Real-time intent detection from patient speech transcriptions."""
+        asyncio.create_task(agent._handle_user_transcription(event))
     
     # Start session with agent
     await session.start(
