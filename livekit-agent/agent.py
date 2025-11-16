@@ -706,7 +706,7 @@ async def schedule_appointment(
 class MediAIAgent(Agent):
     """MediAI Voice Agent with Vision"""
     
-    def __init__(self, instructions: str, room: rtc.Room, metrics_collector: Optional[MetricsCollector] = None):
+    def __init__(self, instructions: str, room: rtc.Room, metrics_collector: Optional[MetricsCollector] = None, patient_id: str = None):
         super().__init__(instructions=instructions)
         self.room = room
         self.metrics_collector = metrics_collector
@@ -715,6 +715,10 @@ class MediAIAgent(Agent):
         self._vision_task = None
         self._metrics_task = None
         self.base_instructions = instructions
+        self.patient_id = patient_id
+        self.last_transcription = ""
+        self.doctor_search_cache = None
+        self.last_doctor_search_time = 0
     
     async def on_enter(self):
         """Called when agent enters the session - generates initial greeting"""
@@ -739,6 +743,87 @@ class MediAIAgent(Agent):
             self.metrics_collector.track_llm(input_text=initial_greeting)
         
         await self.session.generate_reply(instructions=initial_greeting)
+    
+    async def on_user_turn_completed(self, message: str):
+        """Called when patient finishes speaking - real intent detection."""
+        try:
+            # Store transcription for analysis
+            self.last_transcription = message.lower()
+            logger.info(f"[Intent] Patient said: {message[:100]}...")
+            
+            # Specialty keywords mapping
+            SPECIALTY_MAP = {
+                "cardiologista": "Cardiologia",
+                "cardio": "Cardiologia",
+                "coração": "Cardiologia",
+                "pediatra": "Pediatria",
+                "criança": "Pediatria",
+                "dermatologista": "Dermatologia",
+                "pele": "Dermatologia",
+                "psiquiatra": "Psiquiatria",
+                "mental": "Psiquiatria",
+                "ortopedista": "Ortopedia",
+                "osso": "Ortopedia",
+                "ginecologista": "Ginecologia",
+                "gineco": "Ginecologia",
+                "neurologista": "Neurologia",
+                "cérebro": "Neurologia",
+                "oftalmologista": "Oftalmologia",
+                "olho": "Oftalmologia",
+                "visão": "Oftalmologia"
+            }
+            
+            # General doctor keywords
+            DOCTOR_KEYWORDS = ["médico", "medico", "doutor", "doutora", "especialista", "consulta", "agendar", "marcar"]
+            
+            # Check if patient wants a doctor
+            wants_doctor = any(keyword in self.last_transcription for keyword in DOCTOR_KEYWORDS)
+            
+            if wants_doctor:
+                # Detect specialty
+                detected_specialty = None
+                for keyword, specialty in SPECIALTY_MAP.items():
+                    if keyword in self.last_transcription:
+                        detected_specialty = specialty
+                        break
+                
+                logger.info(f"[Intent] 🎯 Detected doctor request! Specialty: {detected_specialty or 'General'}")
+                
+                # Search for doctors with detected specialty
+                doctors_result = await search_doctors(specialty=detected_specialty, limit=10)
+                
+                if doctors_result.get('success') and doctors_result.get('doctors'):
+                    self.doctor_search_cache = doctors_result
+                    self.last_doctor_search_time = time.time()
+                    
+                    # Build doctor list for context
+                    doctor_list = []
+                    for doc in doctors_result['doctors'][:5]:  # Top 5
+                        doctor_list.append(
+                            f"- Dr(a). {doc['name']} ({doc['specialty']}) - CRM {doc['crm']}, Email: {doc.get('email', 'N/A')}"
+                        )
+                    
+                    if doctor_list:
+                        specialty_label = detected_specialty or "disponíveis"
+                        doctor_context = f"\n\nMÉDICOS {specialty_label.upper()} (dados REAIS do banco):\n" + "\n".join(doctor_list)
+                        
+                        # Inject real doctor data into the conversation
+                        await self.session.generate_reply(
+                            instructions=f"O paciente pediu informações sobre médicos. IMPORTANTE: Use APENAS os dados reais abaixo. NUNCA invente nomes.\n{doctor_context}\n\nApresente esses médicos de forma natural e pergunte se o paciente deseja agendar consulta com algum deles."
+                        )
+                        
+                        logger.info(f"[Intent] ✅ Injected {len(doctor_list)} REAL doctors into conversation!")
+                else:
+                    # No doctors found
+                    await self.session.generate_reply(
+                        instructions=f"O paciente pediu médicos de {detected_specialty or 'qualquer especialidade'}, mas nenhum está disponível no momento. Seja honesta sobre isso e sugira que ele tente novamente mais tarde ou verifique o sistema."
+                    )
+                    logger.warning(f"[Intent] ⚠️ No doctors found for specialty: {detected_specialty}")
+            
+        except Exception as e:
+            logger.error(f"[Intent] Error in on_user_turn_completed: {e}")
+            import traceback
+            traceback.print_exc()
     
     async def _vision_loop(self):
         """Continuously analyze video frames from patient using REAL Gemini Vision."""
@@ -901,7 +986,8 @@ CONTEXTO VISUAL (o que você vê agora):
     agent = MediAIAgent(
         instructions=system_prompt, 
         room=ctx.room,
-        metrics_collector=metrics_collector
+        metrics_collector=metrics_collector,
+        patient_id=patient_id
     )
     
     # Create AgentSession with integrated Gemini Live model (STT + LLM + TTS)
