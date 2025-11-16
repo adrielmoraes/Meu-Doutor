@@ -15,7 +15,7 @@ from typing import Optional
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
-from livekit.agents import JobContext, WorkerOptions, cli, Agent
+from livekit.agents import JobContext, WorkerOptions, cli, Agent, llm
 from livekit.agents.voice import AgentSession
 from livekit.plugins import tavus, bey, google
 from livekit import rtc
@@ -744,12 +744,28 @@ class MediAIAgent(Agent):
         
         await self.session.generate_reply(instructions=initial_greeting)
     
-    async def on_user_turn_completed(self, message: str):
+    async def on_user_turn_completed(self, turn_ctx: llm.ChatContext, new_message: llm.ChatMessage):
         """Called when patient finishes speaking - real intent detection."""
         try:
+            # Extract text from the message content (list of ChatMessagePart)
+            if isinstance(new_message.content, list):
+                # Extract text from each ChatMessagePart
+                text_parts = [getattr(part, 'text', '') for part in new_message.content if hasattr(part, 'text')]
+                message_text = " ".join(text_parts).strip()
+            elif hasattr(new_message, 'text'):
+                # Fallback to direct text attribute
+                message_text = new_message.text or ""
+            else:
+                message_text = str(new_message.content) if new_message.content else ""
+            
+            # Skip if no text was extracted
+            if not message_text:
+                logger.warning("[Intent] No text extracted from message, skipping intent detection")
+                return
+            
             # Store transcription for analysis
-            self.last_transcription = message.lower()
-            logger.info(f"[Intent] Patient said: {message[:100]}...")
+            self.last_transcription = message_text.lower()
+            logger.info(f"[Intent] Patient said: {message_text[:100]}...")
             
             # Specialty keywords mapping
             SPECIALTY_MAP = {
