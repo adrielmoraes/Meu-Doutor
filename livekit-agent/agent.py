@@ -460,10 +460,9 @@ class VideoAnalyzer:
             # Don't give up - keep trying on next frame
             return "Processando próximo frame..."
         finally:
-            # CRITICAL: Release native frame buffers to prevent memory leak
-            if rgba_frame is not None:
-                rgba_frame.close()
-            frame.close()
+            # Cleanup - VideoFrame objects are automatically managed
+            # No need to manually close them
+            pass
         
     async def analyze_frame(self, frame_data: bytes) -> str:
         """Analyze a video frame and return description with retry."""
@@ -602,9 +601,15 @@ async def search_doctors(specialty: str = None, limit: int = 5) -> dict:
             if specialty:
                 params["specialty"] = specialty
             
-            headers = {"x-agent-secret": AGENT_SECRET}
+            # CORREÇÃO: Header correto com 'X-Agent-Secret' (maiúsculo)
+            headers = {
+                "X-Agent-Secret": AGENT_SECRET,
+                "Content-Type": "application/json"
+            }
             
             logger.info(f"[AI Tools] Buscando médicos: {url} (especialidade={specialty})")
+            logger.info(f"[AI Tools] Headers: X-Agent-Secret presente: {bool(AGENT_SECRET)}")
+            
             response = await client.get(url, params=params, headers=headers, timeout=10.0)
             response.raise_for_status()
             
@@ -612,6 +617,9 @@ async def search_doctors(specialty: str = None, limit: int = 5) -> dict:
             logger.info(f"[AI Tools] ✅ Encontrados {data.get('count', 0)} médicos")
             return data
             
+    except httpx.HTTPStatusError as e:
+        logger.error(f"[AI Tools] ❌ HTTP Error {e.response.status_code}: {e.response.text}")
+        return {"success": False, "error": f"HTTP {e.response.status_code}", "doctors": []}
     except Exception as e:
         logger.error(f"[AI Tools] ❌ Erro ao buscar médicos: {e}")
         return {"success": False, "error": str(e), "doctors": []}
@@ -821,15 +829,16 @@ class MediAIAgent(Agent):
                         doctor_context = f"\n\nMÉDICOS {specialty_label.upper()} (dados REAIS do banco):\n" + "\n".join(doctor_list)
                         
                         # Inject real doctor data into the conversation
-                        await self.session.say(
-                            f"Encontrei alguns médicos especialistas para você. {doctor_context}\n\nGostaria de agendar uma consulta com algum deles?"
+                        # CORREÇÃO: Usar generate_reply em vez de say() para evitar erro de TTS
+                        await self.session.generate_reply(
+                            instructions=f"Informe ao paciente que você encontrou médicos. {doctor_context}\n\nPergunte se o paciente deseja agendar consulta com algum deles."
                         )
                         
                         logger.info(f"[Intent] ✅ Injected {len(doctor_list)} REAL doctors into conversation!")
                 else:
                     # No doctors found
-                    await self.session.say(
-                        f"Desculpe, no momento não temos médicos de {detected_specialty or 'qualquer especialidade'} disponíveis. Você pode tentar novamente mais tarde ou verificar nosso sistema."
+                    await self.session.generate_reply(
+                        instructions=f"Informe ao paciente que no momento não há médicos de {detected_specialty or 'qualquer especialidade'} disponíveis. Seja honesta e sugira tentar novamente mais tarde."
                     )
                     logger.warning(f"[Intent] ⚠️ No doctors found for specialty: {detected_specialty}")
         
