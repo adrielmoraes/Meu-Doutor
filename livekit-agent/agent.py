@@ -504,6 +504,106 @@ class VideoAnalyzer:
             return "Análise visual temporariamente indisponível."
 
 
+# =========================================
+# GEMINI LIVE API FUNCTION DECLARATIONS
+# =========================================
+
+SEARCH_DOCTORS_TOOL = {
+    "name": "search_doctors",
+    "description": """Busca médicos disponíveis no sistema MediAI. 
+    Use esta função quando o paciente solicitar:
+    - Encontrar um médico ou especialista
+    - Agendar uma consulta (primeiro busque médicos, depois agende)
+    - Informações sobre médicos disponíveis
+    
+    IMPORTANTE: Esta função retorna médicos REAIS do banco de dados - NUNCA invente nomes!""",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "specialty": {
+                "type": "string",
+                "description": "Especialidade médica desejada. Use null ou omita para buscar todos os médicos.",
+                "enum": ["Cardiologia", "Pediatria", "Dermatologia", "Psiquiatria", "Ortopedia", 
+                         "Ginecologia", "Neurologia", "Oftalmologia", "Clínico Geral"]
+            },
+            "limit": {
+                "type": "integer",
+                "description": "Número máximo de médicos a retornar (padrão: 5, máximo: 20)",
+                "default": 5,
+                "minimum": 1,
+                "maximum": 20
+            }
+        }
+    }
+}
+
+SCHEDULE_APPOINTMENT_TOOL = {
+    "name": "schedule_appointment",
+    "description": """Agenda uma consulta com um médico específico. 
+    Use esta função SOMENTE após:
+    1. Buscar médicos disponíveis com search_doctors
+    2. Paciente confirmar qual médico deseja
+    3. Paciente confirmar data e horário desejados
+    
+    NUNCA agende sem confirmação explícita do paciente!""",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "doctor_id": {
+                "type": "string",
+                "description": "ID do médico escolhido (obtido da busca de médicos anteriormente)"
+            },
+            "patient_id": {
+                "type": "string",
+                "description": "ID do paciente (você já tem acesso a isso no contexto da sessão)"
+            },
+            "patient_name": {
+                "type": "string",
+                "description": "Nome completo do paciente"
+            },
+            "date": {
+                "type": "string",
+                "description": "Data da consulta no formato YYYY-MM-DD (ex: 2025-11-20)"
+            },
+            "start_time": {
+                "type": "string",
+                "description": "Horário de início no formato HH:MM em formato 24h (ex: 14:30)"
+            },
+            "end_time": {
+                "type": "string",
+                "description": "Horário de término no formato HH:MM em formato 24h (ex: 15:00)"
+            },
+            "notes": {
+                "type": "string",
+                "description": "Notas ou motivo da consulta fornecidas pelo paciente (opcional)",
+                "default": ""
+            }
+        },
+        "required": ["doctor_id", "patient_id", "patient_name", "date", "start_time", "end_time"]
+    }
+}
+
+GET_AVAILABLE_SLOTS_TOOL = {
+    "name": "get_available_slots",
+    "description": """Busca horários disponíveis de um médico para uma data específica.
+    Use esta função após o paciente escolher um médico e antes de agendar, para mostrar os horários livres.""",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "doctor_id": {
+                "type": "string",
+                "description": "ID do médico escolhido"
+            },
+            "date": {
+                "type": "string",
+                "description": "Data desejada no formato YYYY-MM-DD (ex: 2025-11-20)"
+            }
+        },
+        "required": ["doctor_id", "date"]
+    }
+}
+
+
 async def get_patient_context(patient_id: str) -> str:
     """Get complete patient context for the AI."""
     import asyncpg
@@ -1109,7 +1209,18 @@ CONTEXTO VISUAL (o que você vê agora):
         patient_id=patient_id
     )
     
-    # Create AgentSession with integrated Gemini Live model (STT + LLM + TTS)
+    # Define function tools for the AI
+    tools = [{
+        "function_declarations": [
+            SEARCH_DOCTORS_TOOL,
+            SCHEDULE_APPOINTMENT_TOOL,
+            GET_AVAILABLE_SLOTS_TOOL
+        ]
+    }]
+    
+    logger.info(f"[MediAI] 🛠️ Configured {len(tools[0]['function_declarations'])} function tools for AI")
+    
+    # Create AgentSession with integrated Gemini Live model (STT + LLM + TTS + TOOLS)
     # We'll update instructions dynamically to include visual context
     session = AgentSession(
         llm=google.beta.realtime.RealtimeModel(
@@ -1119,6 +1230,7 @@ CONTEXTO VISUAL (o que você vê agora):
             instructions=system_prompt.replace("{visual_context}", "Aguardando primeira análise visual..."),
             # Configure for Brazilian Portuguese
             language="pt-BR",  # Explicitly set Brazilian Portuguese
+            tools=tools,  # Enable function calling
         ),
     )
     
@@ -1129,6 +1241,77 @@ CONTEXTO VISUAL (o que você vê agora):
     def on_user_transcribed(event):
         """Real-time intent detection from patient speech transcriptions."""
         asyncio.create_task(agent._handle_user_transcription(event))
+    
+    # Register handler for function tool calls from Gemini
+    async def handle_tool_calls(tool_call_event):
+        """Execute function tools when Gemini calls them."""
+        try:
+            if not hasattr(tool_call_event, 'function_calls'):
+                logger.warning("[Tools] No function_calls in tool_call event")
+                return
+            
+            logger.info(f"[Tools] 🛠️ Gemini called {len(tool_call_event.function_calls)} function(s)")
+            
+            function_responses = []
+            
+            for fc in tool_call_event.function_calls:
+                func_name = fc.name
+                func_args = fc.args if hasattr(fc, 'args') else {}
+                
+                logger.info(f"[Tools] Executing: {func_name}({func_args})")
+                
+                # Execute the appropriate function
+                result = None
+                
+                if func_name == "search_doctors":
+                    specialty = func_args.get('specialty')
+                    limit = func_args.get('limit', 5)
+                    result = await search_doctors(specialty=specialty, limit=limit)
+                    
+                elif func_name == "schedule_appointment":
+                    result = await schedule_appointment(
+                        doctor_id=func_args.get('doctor_id'),
+                        patient_id=patient_id,  # From session context
+                        patient_name=func_args.get('patient_name'),
+                        date=func_args.get('date'),
+                        start_time=func_args.get('start_time'),
+                        end_time=func_args.get('end_time'),
+                        notes=func_args.get('notes', '')
+                    )
+                    
+                elif func_name == "get_available_slots":
+                    result = await get_available_slots(
+                        doctor_id=func_args.get('doctor_id'),
+                        date=func_args.get('date')
+                    )
+                else:
+                    result = {"success": False, "error": f"Unknown function: {func_name}"}
+                
+                # Build function response following Gemini Live API format
+                from google.genai import types
+                function_response = types.FunctionResponse(
+                    id=fc.id,
+                    name=func_name,
+                    response=result
+                )
+                function_responses.append(function_response)
+                
+                logger.info(f"[Tools] ✅ {func_name} completed: {result.get('success', False)}")
+            
+            # Send all function responses back to Gemini
+            await session.send_tool_response(function_responses=function_responses)
+            logger.info(f"[Tools] 📤 Sent {len(function_responses)} function response(s) to Gemini")
+            
+        except Exception as e:
+            logger.error(f"[Tools] ❌ Error handling tool calls: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    # Register tool_call event listener
+    @session.on("tool_call")
+    def on_tool_call(event):
+        """Called when Gemini wants to execute a function."""
+        asyncio.create_task(handle_tool_calls(event))
     
     # Start session with agent
     await session.start(
