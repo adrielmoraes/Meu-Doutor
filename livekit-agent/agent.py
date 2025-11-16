@@ -817,7 +817,7 @@ async def schedule_appointment(
 
 
 class MediAIAgent(Agent):
-    """MediAI Voice Agent with Vision"""
+    """MediAI Voice Agent with Gemini Live Native Vision"""
     
     def __init__(self, instructions: str, room: rtc.Room, metrics_collector: Optional[MetricsCollector] = None, patient_id: str = None):
         super().__init__(instructions=instructions)
@@ -832,6 +832,93 @@ class MediAIAgent(Agent):
         self.last_transcription = ""
         self.doctor_search_cache = None
         self.last_doctor_search_time = 0
+        self.session = None  # Will be set after session creation
+        self.last_frame_send_time = 0  # For 1 FPS throttling
+    
+    async def send_video_frame_to_gemini(self):
+        """Send video frames to Gemini Live API at 1 FPS for native vision."""
+        from livekit.rtc import VideoBufferType
+        from google.genai import types
+        from PIL import Image
+        import io
+        
+        # Throttle to 1 FPS
+        current_time = time.time()
+        if current_time - self.last_frame_send_time < 1.0:
+            return
+        
+        self.last_frame_send_time = current_time
+        
+        try:
+            # Get video track from remote participant (patient)
+            if not self.room.remote_participants:
+                return
+            
+            participant = list(self.room.remote_participants.values())[0]
+            video_track = None
+            
+            for track_pub in participant.track_publications.values():
+                if track_pub.kind == rtc.TrackKind.KIND_VIDEO and track_pub.subscribed:
+                    video_track = track_pub.track
+                    break
+            
+            if not video_track:
+                return
+            
+            # Get frame from video track
+            frame_stream = rtc.VideoStream(video_track)
+            frame_event = await asyncio.wait_for(
+                frame_stream.__anext__(), 
+                timeout=2.0
+            )
+            frame = frame_event.frame
+            
+            # Convert to RGB
+            rgba_frame = None
+            try:
+                rgba_frame = frame.convert(VideoBufferType.RGBA)
+                
+                # Get numpy array
+                height = rgba_frame.height
+                width = rgba_frame.width
+                
+                import numpy as np
+                rgba_array = np.frombuffer(rgba_frame.data, dtype=np.uint8)
+                rgba_array = rgba_array.reshape((height, width, 4))
+                
+                # Convert RGBA to RGB
+                rgb_array = rgba_array[:, :, :3]
+                
+                # Create PIL Image
+                img = Image.fromarray(rgb_array, 'RGB')
+                
+                # Resize to 768x768 (recommended by Gemini Live API)
+                img = img.resize((768, 768), Image.Resampling.LANCZOS)
+                
+                # Convert to JPEG bytes
+                img_buffer = io.BytesIO()
+                img.save(img_buffer, format='JPEG', quality=85)
+                frame_bytes = img_buffer.getvalue()
+                
+                # Send to Gemini Live API
+                if self.session:
+                    await self.session.send_realtime_input(
+                        video=types.Blob(
+                            data=base64.b64encode(frame_bytes).decode('utf-8'),
+                            mime_type="image/jpeg"
+                        )
+                    )
+                    logger.info(f"[Vision] 📹 Sent 768x768 frame to Gemini Live API ({len(frame_bytes)} bytes)")
+                    
+            finally:
+                if rgba_frame:
+                    rgba_frame.close()
+                frame.close()
+                
+        except asyncio.TimeoutError:
+            pass  # No frame available, skip
+        except Exception as e:
+            logger.error(f"[Vision] Error sending frame to Gemini: {e}")
     
     async def on_enter(self):
         """Called when agent enters the session - generates initial greeting"""
@@ -1319,7 +1406,23 @@ CONTEXTO VISUAL (o que você vê agora):
         room=ctx.room,
     )
     
+    # Store session reference in agent for video streaming
+    agent.session = session
+    
     logger.info("[MediAI] ✅ Session started successfully!")
+    logger.info("[MediAI] 📹 Video streaming to Gemini Live API enabled (1 FPS)")
+    
+    # Start background task to send video frames to Gemini Live API
+    async def stream_video_to_gemini():
+        """Background task to continuously send video frames to Gemini."""
+        try:
+            while True:
+                await agent.send_video_frame_to_gemini()
+                await asyncio.sleep(1.0)  # 1 FPS
+        except asyncio.CancelledError:
+            logger.info("[Vision] Video streaming stopped")
+    
+    video_streaming_task = asyncio.create_task(stream_video_to_gemini())
     
     # Hook into session events to track metrics
     # Note: Gemini Live API integrates STT/LLM/TTS, so we estimate based on interaction
