@@ -399,35 +399,43 @@ class VideoAnalyzer:
         """Analyze a LiveKit VideoFrame using Gemini Vision - REAL analysis."""
         try:
             import io
+            import numpy as np
+            from PIL import Image
+            from livekit.rtc import proto_video
             
-            logger.info(f"[Vision] Converting frame {frame.width}x{frame.height} to JPEG...")
+            logger.info(f"[Vision] Converting frame {frame.width}x{frame.height} (type={frame.type}) to JPEG...")
             
-            # Convert LiveKit VideoFrame to PIL Image
-            # frame.to_image() is available in all LiveKit versions and handles all formats
+            # Convert LiveKit VideoFrame to RGBA format for universal compatibility
             try:
-                # Primary method: Direct conversion to PIL Image
-                img = frame.to_image()
-                logger.info(f"[Vision] ✅ Converted to PIL Image successfully")
+                # Convert to RGBA using LiveKit's built-in convert() method
+                rgba_frame = frame.convert(proto_video.VideoBufferType.RGBA)
                 
-            except AttributeError:
-                # Fallback: Use to_ndarray if to_image is not available
-                logger.warning("[Vision] to_image() not available, trying to_ndarray...")
-                try:
-                    import numpy as np
-                    from PIL import Image
-                    
-                    # Get as RGB numpy array
-                    rgb_array = frame.to_ndarray(format="rgb24")
-                    
-                    # Convert numpy array to PIL Image
-                    img = Image.fromarray(rgb_array, mode='RGB')
-                    
-                    logger.info("[Vision] ✅ Converted via ndarray successfully")
-                    
-                except Exception as ndarray_err:
-                    logger.error(f"[Vision] to_ndarray failed: {ndarray_err}")
-                    # Continue to next frame
-                    return "Processando próximo frame..."
+                # Get raw RGBA data
+                rgba_data = rgba_frame.data
+                
+                # Create numpy array from RGBA data
+                # RGBA has 4 bytes per pixel
+                expected_size = rgba_frame.width * rgba_frame.height * 4
+                if len(rgba_data) != expected_size:
+                    logger.error(f"[Vision] RGBA data size mismatch: expected {expected_size}, got {len(rgba_data)}")
+                    return "Erro no tamanho do frame..."
+                
+                # Reshape into image array
+                rgba_array = np.frombuffer(rgba_data, dtype=np.uint8).reshape((rgba_frame.height, rgba_frame.width, 4))
+                
+                # Convert RGBA to RGB (remove alpha channel)
+                rgb_array = rgba_array[:, :, :3]
+                
+                # Create PIL Image
+                img = Image.fromarray(rgb_array, mode='RGB')
+                
+                logger.info(f"[Vision] ✅ Converted to RGB via RGBA successfully")
+                
+            except Exception as convert_err:
+                logger.error(f"[Vision] Frame conversion failed: {convert_err}")
+                import traceback
+                traceback.print_exc()
+                return "Erro na conversão do frame..."
             
             # Convert PIL Image to JPEG bytes
             img_buffer = io.BytesIO()

@@ -13,7 +13,7 @@ import {
 import { Track, Room, RoomEvent, VideoPresets } from 'livekit-client';
 import '@livekit/components-styles';
 import { Button } from '@/components/ui/button';
-import { Loader2, Mic, MicOff, PhoneOff, WifiOff, AlertTriangle } from 'lucide-react';
+import { Loader2, Mic, MicOff, PhoneOff, WifiOff, AlertTriangle, SwitchCamera } from 'lucide-react';
 import {
   useConnectionSupervisor,
   useLiveKitHeartbeat,
@@ -103,9 +103,31 @@ function AvatarVideoDisplay({ audioOnlyMode }: { audioOnlyMode: boolean }) {
   );
 }
 
-function CustomControls({ onEndConsultation }: { onEndConsultation: () => void }) {
+function CustomControls({ onEndConsultation, room }: { onEndConsultation: () => void; room: Room | null }) {
   const { localParticipant } = useLocalParticipant();
   const [isMuted, setIsMuted] = useState(false);
+  const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([]);
+  const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
+  const [isSwitchingCamera, setIsSwitchingCamera] = useState(false);
+
+  useEffect(() => {
+    const loadCameraDevices = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        setCameraDevices(videoDevices);
+      } catch (error) {
+        console.error('[CustomControls] Failed to enumerate devices:', error);
+      }
+    };
+
+    loadCameraDevices();
+
+    navigator.mediaDevices.addEventListener('devicechange', loadCameraDevices);
+    return () => {
+      navigator.mediaDevices.removeEventListener('devicechange', loadCameraDevices);
+    };
+  }, []);
 
   const toggleMicrophone = async () => {
     if (localParticipant) {
@@ -114,6 +136,36 @@ function CustomControls({ onEndConsultation }: { onEndConsultation: () => void }
       setIsMuted(!enabled);
     }
   };
+
+  const switchCamera = async () => {
+    if (!localParticipant || !room || cameraDevices.length < 2 || isSwitchingCamera) {
+      return;
+    }
+
+    try {
+      setIsSwitchingCamera(true);
+      console.log('[CustomControls] Switching camera...');
+
+      const nextIndex = (currentCameraIndex + 1) % cameraDevices.length;
+      const nextDevice = cameraDevices[nextIndex];
+
+      console.log('[CustomControls] Next camera:', nextDevice.label, nextDevice.deviceId);
+
+      await localParticipant.setCameraEnabled(true, {
+        deviceId: nextDevice.deviceId,
+        resolution: VideoPresets.h720.resolution,
+      });
+
+      setCurrentCameraIndex(nextIndex);
+      console.log('[CustomControls] ✅ Camera switched successfully');
+    } catch (error) {
+      console.error('[CustomControls] Failed to switch camera:', error);
+    } finally {
+      setIsSwitchingCamera(false);
+    }
+  };
+
+  const hasMultipleCameras = cameraDevices.length > 1;
 
   return (
     <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50">
@@ -130,6 +182,26 @@ function CustomControls({ onEndConsultation }: { onEndConsultation: () => void }
             <Mic className="w-6 h-6" />
           )}
         </Button>
+
+        {hasMultipleCameras && (
+          <>
+            <div className="w-px h-8 bg-slate-600" />
+            
+            <Button
+              onClick={switchCamera}
+              variant="secondary"
+              size="lg"
+              className="rounded-full w-14 h-14 p-0"
+              disabled={isSwitchingCamera}
+            >
+              {isSwitchingCamera ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : (
+                <SwitchCamera className="w-6 h-6" />
+              )}
+            </Button>
+          </>
+        )}
 
         <div className="w-px h-8 bg-slate-600" />
 
@@ -648,7 +720,7 @@ export default function LiveKitConsultation({ patientId, patientName }: LiveKitC
           </div>
 
           {/* Custom Controls */}
-          <CustomControls onEndConsultation={endConsultation} />
+          <CustomControls onEndConsultation={endConsultation} room={room} />
 
           {/* Audio Renderer */}
           <RoomAudioRenderer />
