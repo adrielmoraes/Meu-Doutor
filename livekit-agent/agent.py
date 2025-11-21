@@ -718,14 +718,14 @@ async def search_doctors(specialty: str = None, limit: int = 5) -> dict:
             if specialty:
                 params["specialty"] = specialty
             
-            # CORREÇÃO: Header correto com 'X-Agent-Secret' (maiúsculo)
+            # Header padronizado em minúsculas para compatibilidade com Next.js
             headers = {
-                "X-Agent-Secret": AGENT_SECRET,
+                "x-agent-secret": AGENT_SECRET,
                 "Content-Type": "application/json"
             }
             
             logger.info(f"[AI Tools] Buscando médicos: {url} (especialidade={specialty})")
-            logger.info(f"[AI Tools] Headers: X-Agent-Secret presente: {bool(AGENT_SECRET)}")
+            logger.info(f"[AI Tools] Headers: x-agent-secret presente: {bool(AGENT_SECRET)}")
             
             response = await client.get(url, params=params, headers=headers, timeout=10.0)
             response.raise_for_status()
