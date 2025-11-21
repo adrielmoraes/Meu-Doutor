@@ -832,7 +832,7 @@ class MediAIAgent(Agent):
         self.last_transcription = ""
         self.doctor_search_cache = None
         self.last_doctor_search_time = 0
-        self.session = None  # Will be set after session creation
+        self._agent_session = None  # Will be set after session creation
         self.last_frame_send_time = 0  # For 1 FPS throttling
     
     async def send_video_frame_to_gemini(self):
@@ -901,8 +901,8 @@ class MediAIAgent(Agent):
                 frame_bytes = img_buffer.getvalue()
                 
                 # Send to Gemini Live API
-                if self.session:
-                    await self.session.send_realtime_input(
+                if self._agent_session:
+                    await self._agent_session.send_realtime_input(
                         video=types.Blob(
                             data=base64.b64encode(frame_bytes).decode('utf-8'),
                             mime_type="image/jpeg"
@@ -942,7 +942,7 @@ class MediAIAgent(Agent):
         if self.metrics_collector:
             self.metrics_collector.track_llm(input_text=initial_greeting)
         
-        await self.session.generate_reply(instructions=initial_greeting)
+        await self._agent_session.generate_reply(instructions=initial_greeting)
     
     async def _handle_user_transcription(self, event):
         """Handle user transcription event from AgentSession - REAL intent detection."""
@@ -1017,14 +1017,14 @@ class MediAIAgent(Agent):
                         
                         # Inject real doctor data into the conversation
                         # CORREÇÃO: Usar generate_reply em vez de say() para evitar erro de TTS
-                        await self.session.generate_reply(
+                        await self._agent_session.generate_reply(
                             instructions=f"Informe ao paciente que você encontrou médicos. {doctor_context}\n\nPergunte se o paciente deseja agendar consulta com algum deles."
                         )
                         
                         logger.info(f"[Intent] ✅ Injected {len(doctor_list)} REAL doctors into conversation!")
                 else:
                     # No doctors found
-                    await self.session.generate_reply(
+                    await self._agent_session.generate_reply(
                         instructions=f"Informe ao paciente que no momento não há médicos de {detected_specialty or 'qualquer especialidade'} disponíveis. Seja honesta e sugira tentar novamente mais tarde."
                     )
                     logger.warning(f"[Intent] ⚠️ No doctors found for specialty: {detected_specialty}")
@@ -1407,7 +1407,7 @@ CONTEXTO VISUAL (o que você vê agora):
     )
     
     # Store session reference in agent for video streaming
-    agent.session = session
+    agent._agent_session = session
     
     logger.info("[MediAI] ✅ Session started successfully!")
     logger.info("[MediAI] 📹 Video streaming to Gemini Live API enabled (1 FPS)")
