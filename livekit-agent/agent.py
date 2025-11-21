@@ -15,7 +15,7 @@ from typing import Optional
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
-from livekit.agents import JobContext, WorkerOptions, cli, Agent, llm
+from livekit.agents import JobContext, WorkerOptions, cli, Agent, llm, function_tool, RunContext
 from livekit.agents.voice import AgentSession
 from livekit.plugins import tavus, bey, google
 from livekit import rtc
@@ -747,96 +747,105 @@ async def _schedule_appointment_impl(
 
 
 # =========================================
-# FUNCTION CONTEXT - LiveKit Official Pattern
+# FUNCTION TOOLS - LiveKit Official Pattern
 # =========================================
+# Seguindo padrão oficial: https://docs.livekit.io/agents/build/tools/
 
-def create_mediai_function_context(patient_id: str) -> llm.FunctionContext:
+@function_tool()
+async def search_doctors(
+    context: RunContext,
+    specialty: str = None,
+    limit: int = 5
+) -> dict:
+    """Busca médicos disponíveis no sistema MediAI.
+    
+    Use quando o paciente solicitar:
+    - Encontrar um médico ou especialista
+    - Agendar uma consulta (primeiro busque médicos, depois agende)
+    - Informações sobre médicos disponíveis
+    
+    IMPORTANTE: Esta função retorna médicos REAIS do banco de dados - NUNCA invente nomes!
+    
+    Args:
+        specialty: Especialidade médica desejada. Opções: Cardiologia, Pediatria, Dermatologia, 
+                  Psiquiatria, Ortopedia, Ginecologia, Neurologia, Oftalmologia, Clínico Geral.
+        limit: Número máximo de médicos a retornar (padrão: 5, máximo: 20)
     """
-    Cria o FunctionContext com todas as function tools do MediAI.
-    Seguindo padrão oficial do LiveKit: https://docs.livekit.io/agents/build/tools/
+    return await _search_doctors_impl(specialty=specialty, limit=limit)
+
+
+@function_tool()
+async def get_available_slots(
+    context: RunContext,
+    doctor_id: str,
+    date: str
+) -> dict:
+    """Busca horários disponíveis de um médico para uma data específica.
+    
+    Use após o paciente escolher um médico e antes de agendar, para mostrar os horários livres.
+    
+    Args:
+        doctor_id: ID do médico escolhido
+        date: Data desejada no formato YYYY-MM-DD (ex: 2025-11-20)
     """
-    fnc_ctx = llm.FunctionContext()
-    
-    # Registrar search_doctors
-    @fnc_ctx.ai_callable(
-        description="""Busca médicos disponíveis no sistema MediAI. 
-Use quando o paciente solicitar:
-- Encontrar um médico ou especialista
-- Agendar uma consulta (primeiro busque médicos, depois agende)
-- Informações sobre médicos disponíveis
+    return await _get_available_slots_impl(doctor_id=doctor_id, date=date)
 
-IMPORTANTE: Esta função retorna médicos REAIS do banco de dados - NUNCA invente nomes!""",
-        name="search_doctors"
-    )
-    async def search_doctors(
-        specialty: llm.TypeInfo(
-            type="string",
-            description="Especialidade médica desejada. Opções: Cardiologia, Pediatria, Dermatologia, Psiquiatria, Ortopedia, Ginecologia, Neurologia, Oftalmologia, Clínico Geral. Use None para buscar todos os médicos."
-        ) = None,
-        limit: llm.TypeInfo(
-            type="integer",
-            description="Número máximo de médicos a retornar (padrão: 5, máximo: 20)"
-        ) = 5
-    ):
-        return await _search_doctors_impl(specialty=specialty, limit=limit)
-    
-    # Registrar get_available_slots
-    @fnc_ctx.ai_callable(
-        description="""Busca horários disponíveis de um médico para uma data específica.
-Use após o paciente escolher um médico e antes de agendar, para mostrar os horários livres.""",
-        name="get_available_slots"
-    )
-    async def get_available_slots(
-        doctor_id: llm.TypeInfo(
-            type="string",
-            description="ID do médico escolhido"
-        ),
-        date: llm.TypeInfo(
-            type="string",
-            description="Data desejada no formato YYYY-MM-DD (ex: 2025-11-20)"
-        )
-    ):
-        return await _get_available_slots_impl(doctor_id=doctor_id, date=date)
-    
-    # Registrar schedule_appointment
-    @fnc_ctx.ai_callable(
-        description="""Agenda uma consulta com um médico específico. 
-Use SOMENTE após:
-1. Buscar médicos disponíveis com search_doctors
-2. Paciente confirmar qual médico deseja
-3. Paciente confirmar data e horário desejados
 
-NUNCA agende sem confirmação explícita do paciente!""",
-        name="schedule_appointment"
-    )
-    async def schedule_appointment(
-        doctor_id: llm.TypeInfo(type="string", description="ID do médico escolhido (obtido da busca de médicos)"),
-        patient_name: llm.TypeInfo(type="string", description="Nome completo do paciente"),
-        date: llm.TypeInfo(type="string", description="Data da consulta no formato YYYY-MM-DD (ex: 2025-11-20)"),
-        start_time: llm.TypeInfo(type="string", description="Horário de início no formato HH:MM em formato 24h (ex: 14:30)"),
-        end_time: llm.TypeInfo(type="string", description="Horário de término no formato HH:MM em formato 24h (ex: 15:00)"),
-        notes: llm.TypeInfo(type="string", description="Notas ou motivo da consulta fornecidas pelo paciente (opcional)") = ""
-    ):
-        # patient_id já está disponível via closure
-        return await _schedule_appointment_impl(
-            doctor_id=doctor_id,
-            patient_id=patient_id,  # From outer scope
-            patient_name=patient_name,
-            date=date,
-            start_time=start_time,
-            end_time=end_time,
-            notes=notes
-        )
+@function_tool()
+async def schedule_appointment(
+    context: RunContext,
+    doctor_id: str,
+    patient_name: str,
+    date: str,
+    start_time: str,
+    end_time: str,
+    notes: str = ""
+) -> dict:
+    """Agenda uma consulta com um médico específico.
     
-    logger.info(f"[MediAI] 🛠️ FunctionContext criado com 3 function tools")
-    return fnc_ctx
+    Use SOMENTE após:
+    1. Buscar médicos disponíveis com search_doctors
+    2. Paciente confirmar qual médico deseja
+    3. Paciente confirmar data e horário desejados
+    
+    NUNCA agende sem confirmação explícita do paciente!
+    
+    Args:
+        doctor_id: ID do médico escolhido (obtido da busca de médicos)
+        patient_name: Nome completo do paciente
+        date: Data da consulta no formato YYYY-MM-DD (ex: 2025-11-20)
+        start_time: Horário de início no formato HH:MM em formato 24h (ex: 14:30)
+        end_time: Horário de término no formato HH:MM em formato 24h (ex: 15:00)
+        notes: Notas ou motivo da consulta fornecidas pelo paciente (opcional)
+    """
+    # Obter patient_id do agent instance (thread-safe)
+    agent = context.agent
+    patient_id = getattr(agent, 'patient_id', None)
+    
+    if not patient_id:
+        logger.error("[Tools] Patient ID not found in agent context!")
+        return {"success": False, "error": "Patient ID not available"}
+    
+    return await _schedule_appointment_impl(
+        doctor_id=doctor_id,
+        patient_id=patient_id,
+        patient_name=patient_name,
+        date=date,
+        start_time=start_time,
+        end_time=end_time,
+        notes=notes
+    )
 
 
 class MediAIAgent(Agent):
     """MediAI Voice Agent with Gemini Live Native Vision"""
     
     def __init__(self, instructions: str, room: rtc.Room, metrics_collector: Optional[MetricsCollector] = None, patient_id: str = None):
-        super().__init__(instructions=instructions)
+        # Register function tools with the Agent
+        super().__init__(
+            instructions=instructions,
+            tools=[search_doctors, get_available_slots, schedule_appointment]
+        )
         self.room = room
         self.metrics_collector = metrics_collector
         self.video_analyzer = VideoAnalyzer(metrics_collector=metrics_collector)
@@ -1354,16 +1363,14 @@ CONTEXTO VISUAL (o que você vê agora):
     
     logger.info(f"[MediAI] 🎙️ Creating agent session with Gemini Live API...")
     
-    # Create agent instance first (needs room for vision and metrics)
+    # Create agent instance with patient_id (thread-safe: stored on instance)
+    # Function tools acessam patient_id via context.agent.patient_id
     agent = MediAIAgent(
         instructions=system_prompt, 
         room=ctx.room,
         metrics_collector=metrics_collector,
         patient_id=patient_id
     )
-    
-    # Create function context (LiveKit official pattern)
-    fnc_ctx = create_mediai_function_context(patient_id=patient_id)
     
     # Create AgentSession with integrated Gemini Live model (STT + LLM + TTS)
     # Language is controlled via voice selection and system instructions
@@ -1374,7 +1381,6 @@ CONTEXTO VISUAL (o que você vê agora):
             voice="Aoede",  # Female voice optimized for Portuguese (pt-BR)
             temperature=0.5,  # Lower for more consistent responses and pronunciation
             instructions=system_prompt.replace("{visual_context}", "Aguardando primeira análise visual..."),
-            fnc_ctx=fnc_ctx,  # ← Function tools registrados seguindo padrão LiveKit
         ),
     )
     
