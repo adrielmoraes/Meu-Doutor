@@ -909,11 +909,13 @@ class MediAIAgent(Agent):
                         )
                     )
                     logger.info(f"[Vision] 📹 Sent 768x768 frame to Gemini Live API ({len(frame_bytes)} bytes)")
+            except Exception as frame_error:
+                logger.debug(f"[Vision] Error processing frame: {frame_error}")
                 
         except asyncio.TimeoutError:
             pass  # No frame available, skip
         except Exception as e:
-            logger.error(f"[Vision] Error sending frame to Gemini: {e}")
+            logger.debug(f"[Vision] Error sending frame to Gemini: {e}")
     
     async def on_enter(self):
         """Called when agent enters the session - generates initial greeting"""
