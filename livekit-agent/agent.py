@@ -909,11 +909,6 @@ class MediAIAgent(Agent):
                         )
                     )
                     logger.info(f"[Vision] 📹 Sent 768x768 frame to Gemini Live API ({len(frame_bytes)} bytes)")
-                    
-            finally:
-                if rgba_frame:
-                    rgba_frame.close()
-                frame.close()
                 
         except asyncio.TimeoutError:
             pass  # No frame available, skip
