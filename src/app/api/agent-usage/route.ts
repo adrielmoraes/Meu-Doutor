@@ -20,8 +20,8 @@ const agentUsageSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // Autenticação via header X-Agent-Secret
-    const agentSecret = request.headers.get('X-Agent-Secret');
+    // Autenticação via header x-agent-secret
+    const agentSecret = request.headers.get('x-agent-secret');
     const expectedSecret = process.env.AGENT_SECRET;
 
     if (!expectedSecret) {

@@ -8,8 +8,10 @@ import { getDoctors, getDoctorsBySpecialty } from "@/lib/db-adapter";
 export async function GET(request: NextRequest) {
   try {
     const agentSecret = request.headers.get("x-agent-secret");
+    const expectedSecret = process.env.AGENT_SECRET;
     
-    if (!agentSecret || agentSecret !== process.env.AGENT_SECRET) {
+    if (!agentSecret || agentSecret !== expectedSecret) {
+      console.warn("[AI Agent Doctors] Tentativa de acesso não autorizado");
       return NextResponse.json(
         { error: "Não autorizado" },
         { status: 401 }
