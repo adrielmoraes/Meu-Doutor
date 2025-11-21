@@ -43,7 +43,7 @@ logger.setLevel(logging.INFO)
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 
 # API configuration for agent tools
-NEXT_PUBLIC_URL = os.getenv('NEXT_PUBLIC_URL') or os.getenv('NEXT_PUBLIC_BASE_URL', 'http://localhost:5000')
+NEXT_PUBLIC_URL = os.getenv('NEXT_PUBLIC_BASE_URL') or os.getenv('NEXT_PUBLIC_URL', 'http://localhost:5000')
 AGENT_SECRET = os.getenv('AGENT_SECRET', '')
 
 if not AGENT_SECRET:
@@ -159,7 +159,7 @@ class MetricsCollector:
         self.last_sent_active_seconds = 0
         
         # Configurações
-        self.next_public_url = os.getenv('NEXT_PUBLIC_URL', 'http://localhost:5000')
+        self.next_public_url = os.getenv('NEXT_PUBLIC_BASE_URL') or os.getenv('NEXT_PUBLIC_URL', 'http://localhost:5000')
         self.agent_secret = os.getenv('AGENT_SECRET', '')
         
         if not self.agent_secret:
@@ -299,8 +299,8 @@ class MetricsCollector:
         
         url = f"{self.next_public_url}/api/agent-usage"
         headers = {
-            "X-Agent-Secret": self.agent_secret,
-            "Content-Type": "application/json"
+            "x-agent-secret": self.agent_secret,
+            "content-type": "application/json"
         }
         
         try:
@@ -969,15 +969,14 @@ class MediAIAgent(Agent):
         await self._agent_session.generate_reply(instructions=initial_greeting)
     
     async def _handle_user_transcription(self, event):
-        """Handle user transcription event from AgentSession - REAL intent detection."""
+        """Handle user transcription event - activates vision and logs speech."""
         try:
             # Extract transcript from event
             if not hasattr(event, 'transcript') or not event.transcript:
-                logger.warning("[Intent] No transcript in event")
                 return
             
             message_text = event.transcript
-            logger.info(f"[Intent] 🎙️ Patient said: {message_text[:100]}...")
+            logger.info(f"[Patient] 🎙️ {message_text[:100]}...")
             
             # Activate vision on first speech
             if not self._first_speech_detected:
@@ -985,181 +984,12 @@ class MediAIAgent(Agent):
                 self._vision_started = True
                 logger.info("[Vision] 🎬 Patient started speaking - activating vision analysis!")
             
-            # Store for analysis
-            self.last_transcription = message_text.lower()
-            
-            # Specialty keywords mapping
-            SPECIALTY_MAP = {
-                "cardiologista": "Cardiologia",
-                "cardio": "Cardiologia",
-                "coração": "Cardiologia",
-                "pediatra": "Pediatria",
-                "criança": "Pediatria",
-                "bebê": "Pediatria",
-                "dermatologista": "Dermatologia",
-                "pele": "Dermatologia",
-                "psiquiatra": "Psiquiatria",
-                "mental": "Psiquiatria",
-                "ortopedista": "Ortopedia",
-                "osso": "Ortopedia",
-                "ginecologista": "Ginecologia",
-                "gineco": "Ginecologia",
-                "neurologista": "Neurologia",
-                "cérebro": "Neurologia",
-                "oftalmologista": "Oftalmologia",
-                "olho": "Oftalmologia",
-                "visão": "Oftalmologia"
-            }
-            
-            # General doctor keywords
-            DOCTOR_KEYWORDS = ["médico", "medico", "doutor", "doutora", "especialista", "consulta", "agendar", "marcar"]
-            
-            # Check if patient wants a doctor
-            wants_doctor = any(keyword in self.last_transcription for keyword in DOCTOR_KEYWORDS)
-            
-            if wants_doctor:
-                # Detect specialty
-                detected_specialty = None
-                for keyword, specialty in SPECIALTY_MAP.items():
-                    if keyword in self.last_transcription:
-                        detected_specialty = specialty
-                        break
-                
-                logger.info(f"[Intent] 🎯 Detected doctor request! Specialty: {detected_specialty or 'General'}")
-                
-                # Search for doctors with detected specialty
-                doctors_result = await search_doctors(specialty=detected_specialty, limit=10)
-                
-                if doctors_result.get('success') and doctors_result.get('doctors'):
-                    self.doctor_search_cache = doctors_result
-                    self.last_doctor_search_time = time.time()
-                    
-                    # Build doctor list for context
-                    doctor_list = []
-                    for doc in doctors_result['doctors'][:5]:  # Top 5
-                        doctor_list.append(
-                            f"- Dr(a). {doc['name']} ({doc['specialty']}) - CRM {doc['crm']}, Email: {doc.get('email', 'N/A')}"
-                        )
-                    
-                    if doctor_list:
-                        specialty_label = detected_specialty or "disponíveis"
-                        doctor_context = f"\n\nMÉDICOS {specialty_label.upper()} (dados REAIS do banco):\n" + "\n".join(doctor_list)
-                        
-                        # Inject real doctor data into the conversation
-                        # CORREÇÃO: Usar generate_reply em vez de say() para evitar erro de TTS
-                        await self._agent_session.generate_reply(
-                            instructions=f"Informe ao paciente que você encontrou médicos. {doctor_context}\n\nPergunte se o paciente deseja agendar consulta com algum deles."
-                        )
-                        
-                        logger.info(f"[Intent] ✅ Injected {len(doctor_list)} REAL doctors into conversation!")
-                else:
-                    # No doctors found
-                    await self._agent_session.generate_reply(
-                        instructions=f"Informe ao paciente que no momento não há médicos de {detected_specialty or 'qualquer especialidade'} disponíveis. Seja honesta e sugira tentar novamente mais tarde."
-                    )
-                    logger.warning(f"[Intent] ⚠️ No doctors found for specialty: {detected_specialty}")
+            # Track input tokens for metrics
+            if self.metrics_collector:
+                self.metrics_collector.track_llm(input_text=message_text)
         
         except Exception as e:
-            logger.error(f"[Intent] Error handling transcription: {e}")
-            import traceback
-            traceback.print_exc()
-    
-    async def on_user_turn_completed(self, turn_ctx: llm.ChatContext, new_message: llm.ChatMessage):
-        """DEPRECATED: Gemini Live doesn't emit ChatMessage events. Use _handle_user_transcription instead."""
-        try:
-            # Extract text from the message content (list of ChatMessagePart)
-            if isinstance(new_message.content, list):
-                # Extract text from each ChatMessagePart
-                text_parts = [getattr(part, 'text', '') for part in new_message.content if hasattr(part, 'text')]
-                message_text = " ".join(text_parts).strip()
-            elif hasattr(new_message, 'text'):
-                # Fallback to direct text attribute
-                message_text = new_message.text or ""
-            else:
-                message_text = str(new_message.content) if new_message.content else ""
-            
-            # Skip if no text was extracted
-            if not message_text:
-                logger.warning("[Intent] No text extracted from message, skipping intent detection")
-                return
-            
-            # Store transcription for analysis
-            self.last_transcription = message_text.lower()
-            logger.info(f"[Intent] Patient said: {message_text[:100]}...")
-            
-            # Specialty keywords mapping
-            SPECIALTY_MAP = {
-                "cardiologista": "Cardiologia",
-                "cardio": "Cardiologia",
-                "coração": "Cardiologia",
-                "pediatra": "Pediatria",
-                "criança": "Pediatria",
-                "dermatologista": "Dermatologia",
-                "pele": "Dermatologia",
-                "psiquiatra": "Psiquiatria",
-                "mental": "Psiquiatria",
-                "ortopedista": "Ortopedia",
-                "osso": "Ortopedia",
-                "ginecologista": "Ginecologia",
-                "gineco": "Ginecologia",
-                "neurologista": "Neurologia",
-                "cérebro": "Neurologia",
-                "oftalmologista": "Oftalmologia",
-                "olho": "Oftalmologia",
-                "visão": "Oftalmologia"
-            }
-            
-            # General doctor keywords
-            DOCTOR_KEYWORDS = ["médico", "medico", "doutor", "doutora", "especialista", "consulta", "agendar", "marcar"]
-            
-            # Check if patient wants a doctor
-            wants_doctor = any(keyword in self.last_transcription for keyword in DOCTOR_KEYWORDS)
-            
-            if wants_doctor:
-                # Detect specialty
-                detected_specialty = None
-                for keyword, specialty in SPECIALTY_MAP.items():
-                    if keyword in self.last_transcription:
-                        detected_specialty = specialty
-                        break
-                
-                logger.info(f"[Intent] 🎯 Detected doctor request! Specialty: {detected_specialty or 'General'}")
-                
-                # Search for doctors with detected specialty
-                doctors_result = await search_doctors(specialty=detected_specialty, limit=10)
-                
-                if doctors_result.get('success') and doctors_result.get('doctors'):
-                    self.doctor_search_cache = doctors_result
-                    self.last_doctor_search_time = time.time()
-                    
-                    # Build doctor list for context
-                    doctor_list = []
-                    for doc in doctors_result['doctors'][:5]:  # Top 5
-                        doctor_list.append(
-                            f"- Dr(a). {doc['name']} ({doc['specialty']}) - CRM {doc['crm']}, Email: {doc.get('email', 'N/A')}"
-                        )
-                    
-                    if doctor_list:
-                        specialty_label = detected_specialty or "disponíveis"
-                        doctor_context = f"\n\nMÉDICOS {specialty_label.upper()} (dados REAIS do banco):\n" + "\n".join(doctor_list)
-                        
-                        # Inject real doctor data into the conversation
-                        await self.session.generate_reply(
-                            instructions=f"O paciente pediu informações sobre médicos. IMPORTANTE: Use APENAS os dados reais abaixo. NUNCA invente nomes.\n{doctor_context}\n\nApresente esses médicos de forma natural e pergunte se o paciente deseja agendar consulta com algum deles."
-                        )
-                        
-                        logger.info(f"[Intent] ✅ Injected {len(doctor_list)} REAL doctors into conversation!")
-                else:
-                    # No doctors found
-                    await self.session.generate_reply(
-                        instructions=f"O paciente pediu médicos de {detected_specialty or 'qualquer especialidade'}, mas nenhum está disponível no momento. Seja honesta sobre isso e sugira que ele tente novamente mais tarde ou verifique o sistema."
-                    )
-                    logger.warning(f"[Intent] ⚠️ No doctors found for specialty: {detected_specialty}")
-            
-        except Exception as e:
-            logger.error(f"[Intent] Error in on_user_turn_completed: {e}")
-            import traceback
-            traceback.print_exc()
+            logger.error(f"[Patient] Error handling transcription: {e}")
     
     async def _vision_loop(self):
         """Continuously analyze video frames from patient using REAL Gemini Vision.
@@ -1201,12 +1031,15 @@ class MediAIAgent(Agent):
                 
                 logger.info("[Vision] 📸 Capturando frame real do paciente...")
                 
-                # Get actual video frame
-                video_stream = rtc.VideoStream(patient_track)
+                # Get actual video frame (using context manager for proper cleanup)
+                video_stream = None
                 frame_event = None
                 frame = None
                 
                 try:
+                    # Create stream for single frame capture
+                    video_stream = rtc.VideoStream(patient_track)
+                    
                     # Get a single frame with timeout
                     frame_event = await asyncio.wait_for(video_stream.__anext__(), timeout=5.0)
                     frame = frame_event.frame
@@ -1229,8 +1062,16 @@ class MediAIAgent(Agent):
                     logger.warning("[Vision] Stream de vídeo encerrado")
                     break
                 finally:
+                    # CRÍTICO: Fechar stream ANTES de deletar para liberar buffers internos
+                    try:
+                        if video_stream is not None:
+                            await video_stream.aclose()
+                    except Exception as close_err:
+                        logger.debug(f"[Memory] Erro ao fechar stream: {close_err}")
+                    
                     # LIMPEZA AGRESSIVA DE MEMÓRIA
                     try:
+                        # Deletar objetos na ordem reversa de criação
                         if frame is not None:
                             del frame
                         if frame_event is not None:
@@ -1238,14 +1079,14 @@ class MediAIAgent(Agent):
                         if video_stream is not None:
                             del video_stream
                         
-                        # Limpar referências do loop
-                        if 'patient_track' in locals():
-                            del patient_track
+                        # Não manter referência ao track
+                        patient_track = None
                         
-                        # Forçar garbage collection
+                        # Forçar garbage collection TRIPLO para objetos grandes de vídeo
                         import gc
                         gc.collect()
-                        gc.collect()  # Segunda passada para garantir
+                        gc.collect()
+                        gc.collect()
                         
                         # Log memory AFTER cleanup
                         mem_after = process.memory_info().rss / 1024 / 1024  # MB
@@ -1253,7 +1094,8 @@ class MediAIAgent(Agent):
                         logger.info(f"[Memory] 📊 Depois da limpeza: {mem_after:.2f} MB (Δ {mem_delta:+.2f} MB)")
                         
                         if mem_delta > 50:  # Alerta se cresceu mais de 50MB
-                            logger.warning(f"[Memory] ⚠️ Crescimento significativo detectado: +{mem_delta:.2f} MB!")
+                            logger.warning(f"[Memory] ⚠️ Crescimento: +{mem_delta:.2f} MB - forçando limpeza extra...")
+                            gc.collect()  # Limpeza adicional se houver crescimento grande
                     except Exception as cleanup_err:
                         logger.error(f"[Memory] Erro na limpeza: {cleanup_err}")
                 
