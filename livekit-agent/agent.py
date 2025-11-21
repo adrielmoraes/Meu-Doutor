@@ -1404,19 +1404,22 @@ CONTEXTO VISUAL (o que você vê agora):
     agent._agent_session = session
     
     logger.info("[MediAI] ✅ Session started successfully!")
-    logger.info("[MediAI] 📹 Video streaming to Gemini Live API enabled (1 FPS)")
+    logger.info("[MediAI] 📹 Using periodic vision analysis (every 20s) instead of continuous streaming")
     
-    # Start background task to send video frames to Gemini Live API
-    async def stream_video_to_gemini():
-        """Background task to continuously send video frames to Gemini."""
-        try:
-            while True:
-                await agent.send_video_frame_to_gemini()
-                await asyncio.sleep(1.0)  # 1 FPS
-        except asyncio.CancelledError:
-            logger.info("[Vision] Video streaming stopped")
-    
-    video_streaming_task = asyncio.create_task(stream_video_to_gemini())
+    # DISABLED: Continuous video streaming causes memory leak
+    # Vision analysis is handled by _vision_loop() which runs every 20 seconds
+    # This is more memory-efficient and sufficient for medical consultations
+    # 
+    # async def stream_video_to_gemini():
+    #     """Background task to continuously send video frames to Gemini."""
+    #     try:
+    #         while True:
+    #             await agent.send_video_frame_to_gemini()
+    #             await asyncio.sleep(1.0)  # 1 FPS
+    #     except asyncio.CancelledError:
+    #         logger.info("[Vision] Video streaming stopped")
+    # 
+    # video_streaming_task = asyncio.create_task(stream_video_to_gemini())
     
     # Hook into session events to track metrics
     # Note: Gemini Live API integrates STT/LLM/TTS, so we estimate based on interaction
