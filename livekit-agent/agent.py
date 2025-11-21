@@ -1307,7 +1307,7 @@ CONTEXTO VISUAL (o que você vê agora):
     
     logger.info(f"[MediAI] 🛠️ Configured {len(tools[0]['function_declarations'])} function tools for AI")
     
-    # Create AgentSession with integrated Gemini Live model (STT + LLM + TTS + TOOLS)
+    # Create AgentSession with integrated Gemini Live model (STT + LLM + TTS)
     # We'll update instructions dynamically to include visual context
     session = AgentSession(
         llm=google.beta.realtime.RealtimeModel(
@@ -1315,9 +1315,6 @@ CONTEXTO VISUAL (o que você vê agora):
             voice="Aoede",  # Female voice (Portuguese)
             temperature=0.5,  # Lower for more consistent responses and pronunciation
             instructions=system_prompt.replace("{visual_context}", "Aguardando primeira análise visual..."),
-            # Configure for Brazilian Portuguese
-            language="pt-BR",  # Explicitly set Brazilian Portuguese
-            tools=tools,  # Enable function calling
         ),
     )
     
