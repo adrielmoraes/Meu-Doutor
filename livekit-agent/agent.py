@@ -1169,6 +1169,12 @@ class MediAIAgent(Agent):
                 # Analyze every 20 seconds (mais espaçamento para economizar API)
                 await asyncio.sleep(20)
                 
+                # Log memory BEFORE processing
+                import psutil
+                process = psutil.Process()
+                mem_before = process.memory_info().rss / 1024 / 1024  # MB
+                logger.info(f"[Memory] 📊 Antes da captura: {mem_before:.2f} MB")
+                
                 # Find patient's video track
                 patient_track = None
                 for participant in self.room.remote_participants.values():
@@ -1188,6 +1194,9 @@ class MediAIAgent(Agent):
                 
                 # Get actual video frame
                 video_stream = rtc.VideoStream(patient_track)
+                frame_event = None
+                frame = None
+                
                 try:
                     # Get a single frame with timeout
                     frame_event = await asyncio.wait_for(video_stream.__anext__(), timeout=5.0)
@@ -1203,13 +1212,6 @@ class MediAIAgent(Agent):
                         logger.info(f"[Vision] ✅ REAL visual analysis: {self.visual_context[:100]}...")
                     else:
                         self.visual_context = "Análise visual temporariamente indisponível."
-                    
-                    # Explicitly delete frame to free memory
-                    del frame
-                    del frame_event
-                    del video_stream
-                    import gc
-                    gc.collect()
                         
                 except asyncio.TimeoutError:
                     logger.warning("[Vision] Timeout ao capturar frame")
@@ -1217,6 +1219,34 @@ class MediAIAgent(Agent):
                 except StopAsyncIteration:
                     logger.warning("[Vision] Stream de vídeo encerrado")
                     break
+                finally:
+                    # LIMPEZA AGRESSIVA DE MEMÓRIA
+                    try:
+                        if frame is not None:
+                            del frame
+                        if frame_event is not None:
+                            del frame_event
+                        if video_stream is not None:
+                            del video_stream
+                        
+                        # Limpar referências do loop
+                        if 'patient_track' in locals():
+                            del patient_track
+                        
+                        # Forçar garbage collection
+                        import gc
+                        gc.collect()
+                        gc.collect()  # Segunda passada para garantir
+                        
+                        # Log memory AFTER cleanup
+                        mem_after = process.memory_info().rss / 1024 / 1024  # MB
+                        mem_delta = mem_after - mem_before
+                        logger.info(f"[Memory] 📊 Depois da limpeza: {mem_after:.2f} MB (Δ {mem_delta:+.2f} MB)")
+                        
+                        if mem_delta > 50:  # Alerta se cresceu mais de 50MB
+                            logger.warning(f"[Memory] ⚠️ Crescimento significativo detectado: +{mem_delta:.2f} MB!")
+                    except Exception as cleanup_err:
+                        logger.error(f"[Memory] Erro na limpeza: {cleanup_err}")
                 
             except Exception as e:
                 logger.error(f"[Vision] Erro no loop de visão: {e}")
