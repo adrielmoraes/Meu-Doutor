@@ -522,103 +522,9 @@ class VideoAnalyzer:
 
 
 # =========================================
-# GEMINI LIVE API FUNCTION DECLARATIONS
+# FUNCTION TOOLS - LiveKit Official Pattern
 # =========================================
-
-SEARCH_DOCTORS_TOOL = {
-    "name": "search_doctors",
-    "description": """Busca médicos disponíveis no sistema MediAI. 
-    Use esta função quando o paciente solicitar:
-    - Encontrar um médico ou especialista
-    - Agendar uma consulta (primeiro busque médicos, depois agende)
-    - Informações sobre médicos disponíveis
-    
-    IMPORTANTE: Esta função retorna médicos REAIS do banco de dados - NUNCA invente nomes!""",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "specialty": {
-                "type": "string",
-                "description": "Especialidade médica desejada. Use null ou omita para buscar todos os médicos.",
-                "enum": ["Cardiologia", "Pediatria", "Dermatologia", "Psiquiatria", "Ortopedia", 
-                         "Ginecologia", "Neurologia", "Oftalmologia", "Clínico Geral"]
-            },
-            "limit": {
-                "type": "integer",
-                "description": "Número máximo de médicos a retornar (padrão: 5, máximo: 20)",
-                "default": 5,
-                "minimum": 1,
-                "maximum": 20
-            }
-        }
-    }
-}
-
-SCHEDULE_APPOINTMENT_TOOL = {
-    "name": "schedule_appointment",
-    "description": """Agenda uma consulta com um médico específico. 
-    Use esta função SOMENTE após:
-    1. Buscar médicos disponíveis com search_doctors
-    2. Paciente confirmar qual médico deseja
-    3. Paciente confirmar data e horário desejados
-    
-    NUNCA agende sem confirmação explícita do paciente!""",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "doctor_id": {
-                "type": "string",
-                "description": "ID do médico escolhido (obtido da busca de médicos anteriormente)"
-            },
-            "patient_id": {
-                "type": "string",
-                "description": "ID do paciente (você já tem acesso a isso no contexto da sessão)"
-            },
-            "patient_name": {
-                "type": "string",
-                "description": "Nome completo do paciente"
-            },
-            "date": {
-                "type": "string",
-                "description": "Data da consulta no formato YYYY-MM-DD (ex: 2025-11-20)"
-            },
-            "start_time": {
-                "type": "string",
-                "description": "Horário de início no formato HH:MM em formato 24h (ex: 14:30)"
-            },
-            "end_time": {
-                "type": "string",
-                "description": "Horário de término no formato HH:MM em formato 24h (ex: 15:00)"
-            },
-            "notes": {
-                "type": "string",
-                "description": "Notas ou motivo da consulta fornecidas pelo paciente (opcional)",
-                "default": ""
-            }
-        },
-        "required": ["doctor_id", "patient_id", "patient_name", "date", "start_time", "end_time"]
-    }
-}
-
-GET_AVAILABLE_SLOTS_TOOL = {
-    "name": "get_available_slots",
-    "description": """Busca horários disponíveis de um médico para uma data específica.
-    Use esta função após o paciente escolher um médico e antes de agendar, para mostrar os horários livres.""",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "doctor_id": {
-                "type": "string",
-                "description": "ID do médico escolhido"
-            },
-            "date": {
-                "type": "string",
-                "description": "Data desejada no formato YYYY-MM-DD (ex: 2025-11-20)"
-            }
-        },
-        "required": ["doctor_id", "date"]
-    }
-}
+# Seguindo padrão oficial: https://docs.livekit.io/agents/build/tools/
 
 
 async def get_patient_context(patient_id: str) -> str:
@@ -696,13 +602,14 @@ EXAMES RECENTES ({len(exams)}):
         return f"Erro ao carregar contexto: {str(e)}"
 
 
-async def search_doctors(specialty: str = None, limit: int = 5) -> dict:
+async def _search_doctors_impl(specialty: str = None, limit: int = 5) -> dict:
     """
-    Busca médicos disponíveis na plataforma.
+    Implementação da busca de médicos disponíveis na plataforma.
+    IMPORTANTE: Esta função retorna médicos REAIS do banco de dados - NUNCA invente nomes!
     
     Args:
-        specialty: Especialidade médica (ex: "cardiologia", "pediatria")
-        limit: Número máximo de médicos a retornar
+        specialty: Especialidade médica (ex: "Cardiologia", "Pediatria", etc.)
+        limit: Número máximo de médicos a retornar (padrão: 5, máximo: 20)
     
     Returns:
         Lista de médicos com informações relevantes
@@ -742,13 +649,14 @@ async def search_doctors(specialty: str = None, limit: int = 5) -> dict:
         return {"success": False, "error": str(e), "doctors": []}
 
 
-async def get_available_slots(doctor_id: str, date: str) -> dict:
+async def _get_available_slots_impl(doctor_id: str, date: str) -> dict:
     """
     Busca horários disponíveis de um médico para uma data específica.
+    Use esta função após o paciente escolher um médico e antes de agendar.
     
     Args:
-        doctor_id: ID do médico
-        date: Data no formato YYYY-MM-DD
+        doctor_id: ID do médico escolhido
+        date: Data desejada no formato YYYY-MM-DD (ex: 2025-11-20)
     
     Returns:
         Lista de horários disponíveis
@@ -776,7 +684,7 @@ async def get_available_slots(doctor_id: str, date: str) -> dict:
         return {"success": False, "error": str(e), "availableSlots": []}
 
 
-async def schedule_appointment(
+async def _schedule_appointment_impl(
     doctor_id: str,
     patient_id: str,
     patient_name: str,
@@ -786,16 +694,21 @@ async def schedule_appointment(
     notes: str = ""
 ) -> dict:
     """
-    Agenda uma consulta com um médico real da plataforma.
+    Agenda uma consulta com um médico específico.
+    Use SOMENTE após:
+    1. Buscar médicos disponíveis com search_doctors
+    2. Paciente confirmar qual médico deseja
+    3. Paciente confirmar data e horário desejados
+    NUNCA agende sem confirmação explícita do paciente!
     
     Args:
-        doctor_id: ID do médico
-        patient_id: ID do paciente
-        patient_name: Nome do paciente
-        date: Data no formato YYYY-MM-DD
-        start_time: Horário de início (formato HH:MM)
-        end_time: Horário de término (formato HH:MM)
-        notes: Observações adicionais
+        doctor_id: ID do médico escolhido (obtido da busca anterior)
+        patient_id: ID do paciente (já disponível no contexto)
+        patient_name: Nome completo do paciente
+        date: Data da consulta no formato YYYY-MM-DD (ex: 2025-11-20)
+        start_time: Horário de início no formato HH:MM em formato 24h (ex: 14:30)
+        end_time: Horário de término no formato HH:MM em formato 24h (ex: 15:00)
+        notes: Notas ou motivo da consulta (opcional)
     
     Returns:
         Confirmação do agendamento
@@ -831,6 +744,92 @@ async def schedule_appointment(
     except Exception as e:
         logger.error(f"[AI Tools] ❌ Erro ao agendar consulta: {e}")
         return {"success": False, "error": str(e)}
+
+
+# =========================================
+# FUNCTION CONTEXT - LiveKit Official Pattern
+# =========================================
+
+def create_mediai_function_context(patient_id: str) -> llm.FunctionContext:
+    """
+    Cria o FunctionContext com todas as function tools do MediAI.
+    Seguindo padrão oficial do LiveKit: https://docs.livekit.io/agents/build/tools/
+    """
+    fnc_ctx = llm.FunctionContext()
+    
+    # Registrar search_doctors
+    @fnc_ctx.ai_callable(
+        description="""Busca médicos disponíveis no sistema MediAI. 
+Use quando o paciente solicitar:
+- Encontrar um médico ou especialista
+- Agendar uma consulta (primeiro busque médicos, depois agende)
+- Informações sobre médicos disponíveis
+
+IMPORTANTE: Esta função retorna médicos REAIS do banco de dados - NUNCA invente nomes!""",
+        name="search_doctors"
+    )
+    async def search_doctors(
+        specialty: llm.TypeInfo(
+            type="string",
+            description="Especialidade médica desejada. Opções: Cardiologia, Pediatria, Dermatologia, Psiquiatria, Ortopedia, Ginecologia, Neurologia, Oftalmologia, Clínico Geral. Use None para buscar todos os médicos."
+        ) = None,
+        limit: llm.TypeInfo(
+            type="integer",
+            description="Número máximo de médicos a retornar (padrão: 5, máximo: 20)"
+        ) = 5
+    ):
+        return await _search_doctors_impl(specialty=specialty, limit=limit)
+    
+    # Registrar get_available_slots
+    @fnc_ctx.ai_callable(
+        description="""Busca horários disponíveis de um médico para uma data específica.
+Use após o paciente escolher um médico e antes de agendar, para mostrar os horários livres.""",
+        name="get_available_slots"
+    )
+    async def get_available_slots(
+        doctor_id: llm.TypeInfo(
+            type="string",
+            description="ID do médico escolhido"
+        ),
+        date: llm.TypeInfo(
+            type="string",
+            description="Data desejada no formato YYYY-MM-DD (ex: 2025-11-20)"
+        )
+    ):
+        return await _get_available_slots_impl(doctor_id=doctor_id, date=date)
+    
+    # Registrar schedule_appointment
+    @fnc_ctx.ai_callable(
+        description="""Agenda uma consulta com um médico específico. 
+Use SOMENTE após:
+1. Buscar médicos disponíveis com search_doctors
+2. Paciente confirmar qual médico deseja
+3. Paciente confirmar data e horário desejados
+
+NUNCA agende sem confirmação explícita do paciente!""",
+        name="schedule_appointment"
+    )
+    async def schedule_appointment(
+        doctor_id: llm.TypeInfo(type="string", description="ID do médico escolhido (obtido da busca de médicos)"),
+        patient_name: llm.TypeInfo(type="string", description="Nome completo do paciente"),
+        date: llm.TypeInfo(type="string", description="Data da consulta no formato YYYY-MM-DD (ex: 2025-11-20)"),
+        start_time: llm.TypeInfo(type="string", description="Horário de início no formato HH:MM em formato 24h (ex: 14:30)"),
+        end_time: llm.TypeInfo(type="string", description="Horário de término no formato HH:MM em formato 24h (ex: 15:00)"),
+        notes: llm.TypeInfo(type="string", description="Notas ou motivo da consulta fornecidas pelo paciente (opcional)") = ""
+    ):
+        # patient_id já está disponível via closure
+        return await _schedule_appointment_impl(
+            doctor_id=doctor_id,
+            patient_id=patient_id,  # From outer scope
+            patient_name=patient_name,
+            date=date,
+            start_time=start_time,
+            end_time=end_time,
+            notes=notes
+        )
+    
+    logger.info(f"[MediAI] 🛠️ FunctionContext criado com 3 function tools")
+    return fnc_ctx
 
 
 class MediAIAgent(Agent):
@@ -1333,16 +1332,8 @@ CONTEXTO VISUAL (o que você vê agora):
         patient_id=patient_id
     )
     
-    # Define function tools for the AI
-    tools = [{
-        "function_declarations": [
-            SEARCH_DOCTORS_TOOL,
-            SCHEDULE_APPOINTMENT_TOOL,
-            GET_AVAILABLE_SLOTS_TOOL
-        ]
-    }]
-    
-    logger.info(f"[MediAI] 🛠️ Configured {len(tools[0]['function_declarations'])} function tools for AI")
+    # Create function context (LiveKit official pattern)
+    fnc_ctx = create_mediai_function_context(patient_id=patient_id)
     
     # Create AgentSession with integrated Gemini Live model (STT + LLM + TTS)
     # Language is controlled via voice selection and system instructions
@@ -1353,10 +1344,12 @@ CONTEXTO VISUAL (o que você vê agora):
             voice="Aoede",  # Female voice optimized for Portuguese (pt-BR)
             temperature=0.5,  # Lower for more consistent responses and pronunciation
             instructions=system_prompt.replace("{visual_context}", "Aguardando primeira análise visual..."),
+            fnc_ctx=fnc_ctx,  # ← Function tools registrados seguindo padrão LiveKit
         ),
     )
     
     logger.info("[MediAI] 🏥 Starting medical consultation session...")
+    logger.info("[MediAI] 🛠️ Function tools serão executados automaticamente pelo LiveKit")
     
     # Register listener for user transcriptions to detect doctor search intent
     @session.on("user_input_transcribed")
@@ -1364,76 +1357,9 @@ CONTEXTO VISUAL (o que você vê agora):
         """Real-time intent detection from patient speech transcriptions."""
         asyncio.create_task(agent._handle_user_transcription(event))
     
-    # Register handler for function tool calls from Gemini
-    async def handle_tool_calls(tool_call_event):
-        """Execute function tools when Gemini calls them."""
-        try:
-            if not hasattr(tool_call_event, 'function_calls'):
-                logger.warning("[Tools] No function_calls in tool_call event")
-                return
-            
-            logger.info(f"[Tools] 🛠️ Gemini called {len(tool_call_event.function_calls)} function(s)")
-            
-            function_responses = []
-            
-            for fc in tool_call_event.function_calls:
-                func_name = fc.name
-                func_args = fc.args if hasattr(fc, 'args') else {}
-                
-                logger.info(f"[Tools] Executing: {func_name}({func_args})")
-                
-                # Execute the appropriate function
-                result = None
-                
-                if func_name == "search_doctors":
-                    specialty = func_args.get('specialty')
-                    limit = func_args.get('limit', 5)
-                    result = await search_doctors(specialty=specialty, limit=limit)
-                    
-                elif func_name == "schedule_appointment":
-                    result = await schedule_appointment(
-                        doctor_id=func_args.get('doctor_id'),
-                        patient_id=patient_id,  # From session context
-                        patient_name=func_args.get('patient_name'),
-                        date=func_args.get('date'),
-                        start_time=func_args.get('start_time'),
-                        end_time=func_args.get('end_time'),
-                        notes=func_args.get('notes', '')
-                    )
-                    
-                elif func_name == "get_available_slots":
-                    result = await get_available_slots(
-                        doctor_id=func_args.get('doctor_id'),
-                        date=func_args.get('date')
-                    )
-                else:
-                    result = {"success": False, "error": f"Unknown function: {func_name}"}
-                
-                # Build function response following Gemini Live API format
-                from google.genai import types
-                function_response = types.FunctionResponse(
-                    id=fc.id,
-                    name=func_name,
-                    response=result
-                )
-                function_responses.append(function_response)
-                
-                logger.info(f"[Tools] ✅ {func_name} completed: {result.get('success', False)}")
-            
-            # Send all function responses back to Gemini
-            await session.send_tool_response(function_responses=function_responses)
-            logger.info(f"[Tools] 📤 Sent {len(function_responses)} function response(s) to Gemini")
-            
-        except Exception as e:
-            logger.error(f"[Tools] ❌ Error handling tool calls: {e}")
-            import traceback
-            traceback.print_exc()
-    
-    # Register tool_call event listener
-    @session.on("tool_call")
-    def on_tool_call(event):
-        """Called when Gemini wants to execute a function."""
-        asyncio.create_task(handle_tool_calls(event))
+    # NOTE: Não é mais necessário registrar handler manual para tool_call
+    # O LiveKit agora gerencia automaticamente a execução das function tools
+    # quando fnc_ctx é passado para o RealtimeModel
     
     # Start session with agent
     await session.start(
