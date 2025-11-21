@@ -460,9 +460,26 @@ class VideoAnalyzer:
             # Don't give up - keep trying on next frame
             return "Processando próximo frame..."
         finally:
-            # Cleanup - VideoFrame objects are automatically managed
-            # No need to manually close them
-            pass
+            # Explicitly free memory to prevent leaks
+            try:
+                if 'rgba_frame' in locals() and rgba_frame:
+                    del rgba_frame
+                if 'rgba_data' in locals():
+                    del rgba_data
+                if 'rgba_array' in locals():
+                    del rgba_array
+                if 'rgb_array' in locals():
+                    del rgb_array
+                if 'img' in locals():
+                    del img
+                if 'img_buffer' in locals():
+                    del img_buffer
+                if 'frame_bytes' in locals():
+                    del frame_bytes
+                import gc
+                gc.collect()
+            except:
+                pass
         
     async def analyze_frame(self, frame_data: bytes) -> str:
         """Analyze a video frame and return description with retry."""
@@ -834,6 +851,8 @@ class MediAIAgent(Agent):
         self.last_doctor_search_time = 0
         self._agent_session = None  # Will be set after session creation
         self.last_frame_send_time = 0  # For 1 FPS throttling
+        self._vision_started = False  # Start vision only when patient speaks
+        self._first_speech_detected = False  # Track first speech to activate vision
     
     async def send_video_frame_to_gemini(self):
         """Send video frames to Gemini Live API at 1 FPS for native vision."""
@@ -924,16 +943,16 @@ class MediAIAgent(Agent):
         logger.info("[MediAI] ⏳ Waiting for avatar to be visible and audio/video to sync...")
         await asyncio.sleep(5)
         
-        # Start vision analysis loop
-        logger.info("[MediAI] 👁️ Starting visual analysis...")
+        # Start vision analysis loop (will wait for patient to speak before processing)
+        logger.info("[MediAI] 👁️ Vision loop ready (will activate when patient speaks)...")
         self._vision_task = asyncio.create_task(self._vision_loop())
         
         # Start metrics periodic flush
         if self.metrics_collector:
             self._metrics_task = asyncio.create_task(self.metrics_collector.start_periodic_flush())
         
-        logger.info("[MediAI] 🎤 Generating initial greeting...")
-        initial_greeting = "Cumprimente o paciente calorosamente pelo nome em PORTUGUÊS BRASILEIRO claro e pergunte como pode ajudá-lo hoje com sua saúde. Seja natural, breve e acolhedora."
+        logger.info("[MediAI] 🎤 Generating initial greeting in PT-BR...")
+        initial_greeting = "Cumprimente o paciente calorosamente pelo nome em PORTUGUÊS BRASILEIRO claro e pergunte como pode ajudá-lo hoje com sua saúde. Seja natural, breve e acolhedora. IMPORTANTE: Fale EXCLUSIVAMENTE em português brasileiro."
         
         # Rastrear como LLM output
         if self.metrics_collector:
@@ -951,6 +970,12 @@ class MediAIAgent(Agent):
             
             message_text = event.transcript
             logger.info(f"[Intent] 🎙️ Patient said: {message_text[:100]}...")
+            
+            # Activate vision on first speech
+            if not self._first_speech_detected:
+                self._first_speech_detected = True
+                self._vision_started = True
+                logger.info("[Vision] 🎬 Patient started speaking - activating vision analysis!")
             
             # Store for analysis
             self.last_transcription = message_text.lower()
@@ -1129,11 +1154,19 @@ class MediAIAgent(Agent):
             traceback.print_exc()
     
     async def _vision_loop(self):
-        """Continuously analyze video frames from patient using REAL Gemini Vision."""
+        """Continuously analyze video frames from patient using REAL Gemini Vision.
+        Only starts processing after patient begins speaking."""
         await asyncio.sleep(5)  # Wait for connection to stabilize
+        
+        logger.info("[Vision] 💤 Vision loop waiting for patient to start speaking...")
         
         while True:
             try:
+                # Wait until patient speaks before starting vision analysis
+                if not self._vision_started:
+                    await asyncio.sleep(2)  # Check every 2 seconds
+                    continue
+                
                 # Analyze every 20 seconds (mais espaçamento para economizar API)
                 await asyncio.sleep(20)
                 
@@ -1171,6 +1204,13 @@ class MediAIAgent(Agent):
                         logger.info(f"[Vision] ✅ REAL visual analysis: {self.visual_context[:100]}...")
                     else:
                         self.visual_context = "Análise visual temporariamente indisponível."
+                    
+                    # Explicitly delete frame to free memory
+                    del frame
+                    del frame_event
+                    del video_stream
+                    import gc
+                    gc.collect()
                         
                 except asyncio.TimeoutError:
                     logger.warning("[Vision] Timeout ao capturar frame")
@@ -1305,11 +1345,12 @@ CONTEXTO VISUAL (o que você vê agora):
     logger.info(f"[MediAI] 🛠️ Configured {len(tools[0]['function_declarations'])} function tools for AI")
     
     # Create AgentSession with integrated Gemini Live model (STT + LLM + TTS)
-    # We'll update instructions dynamically to include visual context
+    # Language is controlled via voice selection and system instructions
+    # Aoede voice is designed for Portuguese (pt-BR)
     session = AgentSession(
         llm=google.beta.realtime.RealtimeModel(
             model="gemini-2.0-flash-live-001",  # Realtime API specific model
-            voice="Aoede",  # Female voice (Portuguese)
+            voice="Aoede",  # Female voice optimized for Portuguese (pt-BR)
             temperature=0.5,  # Lower for more consistent responses and pronunciation
             instructions=system_prompt.replace("{visual_context}", "Aguardando primeira análise visual..."),
         ),
