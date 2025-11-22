@@ -1138,6 +1138,10 @@ async def entrypoint(ctx: JobContext):
     
     logger.info(f"[MediAI] 🤖 Creating Gemini Live API model...")
     
+    # Select Gemini model (native audio or standard realtime)
+    gemini_model = os.getenv('GEMINI_LLM_MODEL', 'gemini-2.0-flash-live-001')
+    logger.info(f"[MediAI] 🎙️ Using Gemini model: {gemini_model}")
+    
     system_prompt = f"""Você é MediAI, uma assistente médica virtual brasileira especializada em triagem de pacientes e orientação de saúde.
 
 CAPACIDADES IMPORTANTES:
@@ -1219,7 +1223,7 @@ CONTEXTO VISUAL (o que você vê agora):
     # Aoede voice is designed for Portuguese (pt-BR)
     session = AgentSession(
         llm=google.beta.realtime.RealtimeModel(
-            model="gemini-2.0-flash-live-001",  # Realtime API specific model
+            model=gemini_model,  # Using selected model (native audio or standard realtime)
             voice="Aoede",  # Female voice optimized for Portuguese (pt-BR)
             temperature=0.5,  # Lower for more consistent responses and pronunciation
             instructions=system_prompt.replace("{visual_context}", "Aguardando primeira análise visual..."),
