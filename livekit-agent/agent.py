@@ -1329,11 +1329,11 @@ CONTEXTO VISUAL (o que você vê agora):
 
     # Create AgentSession with integrated Gemini Live model (STT + LLM + TTS)
     # Language is controlled via voice selection and system instructions
-    # Aoede voice is designed for Portuguese (pt-BR)
+    # Erinome voice is designed for Portuguese (pt-BR)
     session = AgentSession(
         llm=google.beta.realtime.RealtimeModel(
             model=gemini_model,  # Using selected model (native audio or standard realtime)
-            voice="Aoede",  # Female voice optimized for Portuguese (pt-BR)
+            voice="Erinome",  # Female voice optimized for Portuguese (pt-BR)
             temperature=0.5,  # Lower for more consistent responses and pronunciation
             instructions=system_prompt.replace(
                 "{visual_context}", "Aguardando primeira análise visual..."),
