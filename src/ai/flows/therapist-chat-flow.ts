@@ -1,41 +1,48 @@
-'use server';
+"use server";
 
 /**
  * @fileOverview AI flow for therapist chat with comprehensive patient data access
- * 
+ *
  * This flow implements an AI therapist that has access to:
  * - Patient medical history
  * - All exam results and diagnoses
  * - Wellness plans
  * - Conversation history
- * 
+ *
  * It acts as both a therapist and personal health assistant
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-import { getPatientById, getExamsByPatientId } from '@/lib/db-adapter';
+import { ai } from "@/ai/genkit";
+import { z } from "genkit";
+import { getPatientById, getExamsByPatientId } from "@/lib/db-adapter";
 
 const TherapistChatInputSchema = z.object({
-  patientId: z.string().describe('The unique identifier for the patient'),
-  message: z.string().describe('The patient message or question'),
-  conversationHistory: z.array(
-    z.object({
-      role: z.enum(['user', 'assistant']),
-      content: z.string(),
-    })
-  ).optional().describe('Previous messages in the conversation'),
+  patientId: z.string().describe("The unique identifier for the patient"),
+  message: z.string().describe("The patient message or question"),
+  conversationHistory: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string(),
+      }),
+    )
+    .optional()
+    .describe("Previous messages in the conversation"),
 });
 
 export type TherapistChatInput = z.infer<typeof TherapistChatInputSchema>;
 
 const TherapistChatOutputSchema = z.object({
-  response: z.string().describe('The therapist AI empathetic and helpful response'),
+  response: z
+    .string()
+    .describe("The therapist AI empathetic and helpful response"),
 });
 
 export type TherapistChatOutput = z.infer<typeof TherapistChatOutputSchema>;
 
-export async function therapistChat(input: TherapistChatInput): Promise<TherapistChatOutput> {
+export async function therapistChat(
+  input: TherapistChatInput,
+): Promise<TherapistChatOutput> {
   return therapistChatFlow(input);
 }
 
@@ -43,7 +50,7 @@ async function getPatientContext(patientId: string): Promise<string> {
   try {
     const patient = await getPatientById(patientId);
     if (!patient) {
-      return 'Paciente não encontrado.';
+      return "Paciente não encontrado.";
     }
 
     const exams = await getExamsByPatientId(patientId);
@@ -69,7 +76,7 @@ ${patient.conversationHistory.substring(0, 500)}...`;
 
       for (const exam of exams.slice(-5)) {
         context += `\n\n--- Exame: ${exam.type} ---`;
-        context += `\nData: ${new Date(exam.date).toLocaleDateString('pt-BR')}`;
+        context += `\nData: ${new Date(exam.date).toLocaleDateString("pt-BR")}`;
         context += `\nStatus: ${exam.status}`;
 
         if (exam.result) {
@@ -101,24 +108,26 @@ ${patient.conversationHistory.substring(0, 500)}...`;
 
     return context;
   } catch (error) {
-    console.error('Erro ao buscar contexto do paciente:', error);
-    return 'Erro ao acessar dados do paciente.';
+    console.error("Erro ao buscar contexto do paciente:", error);
+    return "Erro ao acessar dados do paciente.";
   }
 }
 
 const therapistPrompt = ai.definePrompt({
-  name: 'therapistChatPrompt',
-  input: { 
+  name: "therapistChatPrompt",
+  input: {
     schema: z.object({
       patientContext: z.string(),
       message: z.string(),
-      conversationHistory: z.array(
-        z.object({
-          role: z.enum(['user', 'assistant']),
-          content: z.string(),
-        })
-      ).optional(),
-    })
+      conversationHistory: z
+        .array(
+          z.object({
+            role: z.enum(["user", "assistant"]),
+            content: z.string(),
+          }),
+        )
+        .optional(),
+    }),
   },
   output: { schema: TherapistChatOutputSchema },
   prompt: `Você é uma terapeuta de IA altamente empática e competente, especializada em saúde mental e bem-estar. 
@@ -158,12 +167,12 @@ DIRETRIZES IMPORTANTES:
 - Nunca dê diagnósticos ou prescreva medicamentos - você pode apenas explicar o que já foi diagnosticado
 
 Forneça sua resposta abaixo:`,
-  model: 'googleai/gemini-2.5-flash',
+  model: "googleai/gemini-2.5-flash-lite",
 });
 
 const therapistChatFlow = ai.defineFlow(
   {
-    name: 'therapistChatFlow',
+    name: "therapistChatFlow",
     inputSchema: TherapistChatInputSchema,
     outputSchema: TherapistChatOutputSchema,
   },
@@ -177,5 +186,5 @@ const therapistChatFlow = ai.defineFlow(
     });
 
     return output!;
-  }
+  },
 );
