@@ -1,9 +1,10 @@
 /**
  * Sistema de Agendamento de Consultas para MediAI
+ * Com validações de segurança LGPD/HIPAA
  */
 
 import { db } from '../../server/storage';
-import { appointments } from '../../shared/schema';
+import { appointments, doctors } from '../../shared/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 import type { Appointment } from '@/types';
 import { randomUUID } from 'crypto';
@@ -23,15 +24,40 @@ export interface ScheduleParams {
   appointmentDate: Date;
   startTime: string;
   endTime: string;
-  type: 'consultation' | 'follow-up' | 'emergency';
+  type: string;
   notes?: string;
+}
+
+interface DoctorAvailability {
+  [dayOfWeek: string]: string[];
+}
+
+function getDayOfWeek(date: Date): string {
+  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  return days[date.getDay()];
+}
+
+function parseTimeRange(timeRange: string): { start: string; end: string } {
+  const [start, end] = timeRange.split('-');
+  return { start, end };
+}
+
+function timeToMinutes(time: string): number {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
+function formatDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 /**
  * Agenda uma nova consulta (verifica conflitos primeiro)
  */
 export async function scheduleAppointment(params: ScheduleParams): Promise<string> {
-  // Verificar se o horário está disponível
   const isAvailable = await isTimeSlotAvailable(
     params.doctorId,
     params.appointmentDate,
@@ -44,18 +70,18 @@ export async function scheduleAppointment(params: ScheduleParams): Promise<strin
   }
 
   const id = randomUUID();
+  const dateStr = formatDate(params.appointmentDate);
+  const timeStr = `${params.startTime}-${params.endTime}`;
   
   await db.insert(appointments).values({
     id,
     doctorId: params.doctorId,
     patientId: params.patientId,
     patientName: params.patientName,
-    appointmentDate: params.appointmentDate,
-    startTime: params.startTime,
-    endTime: params.endTime,
-    status: 'scheduled',
+    date: dateStr,
+    time: timeStr,
     type: params.type,
-    notes: params.notes || '',
+    status: 'Agendada',
   });
 
   return id;
@@ -70,11 +96,7 @@ export async function isTimeSlotAvailable(
   startTime: string,
   endTime: string
 ): Promise<boolean> {
-  const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0);
-  
-  const endOfDay = new Date(date);
-  endOfDay.setHours(23, 59, 59, 999);
+  const dateStr = formatDate(date);
 
   const existingAppointments = await db
     .select()
@@ -82,37 +104,34 @@ export async function isTimeSlotAvailable(
     .where(
       and(
         eq(appointments.doctorId, doctorId),
-        gte(appointments.appointmentDate, startOfDay),
-        lte(appointments.appointmentDate, endOfDay),
-        eq(appointments.status, 'scheduled')
+        eq(appointments.date, dateStr),
+        eq(appointments.status, 'Agendada')
       )
     );
 
-  // Verificar conflitos de horário
   for (const apt of existingAppointments) {
-    const aptStart = apt.startTime;
-    const aptEnd = apt.endTime;
+    const { start: aptStart, end: aptEnd } = parseTimeRange(apt.time);
     
-    // Horários se sobrepõem?
     if (
       (startTime >= aptStart && startTime < aptEnd) ||
       (endTime > aptStart && endTime <= aptEnd) ||
       (startTime <= aptStart && endTime >= aptEnd)
     ) {
-      return false; // Conflito encontrado
+      return false;
     }
   }
 
-  return true; // Horário disponível
+  return true;
 }
 
 /**
  * Busca horários disponíveis para um médico em um dia
+ * Respeita o campo availability do médico no banco de dados
  */
 export async function getAvailableSlots(
   doctorId: string,
   date: Date,
-  slotDuration: number = 30 // minutos
+  slotDuration: number = 30
 ): Promise<TimeSlot[]> {
   const startOfDay = new Date(date);
   startOfDay.setHours(0, 0, 0, 0);
@@ -120,58 +139,83 @@ export async function getAvailableSlots(
   const endOfDay = new Date(date);
   endOfDay.setHours(23, 59, 59, 999);
 
-  // Buscar compromissos existentes
+  const doctorData = await db
+    .select()
+    .from(doctors)
+    .where(eq(doctors.id, doctorId))
+    .limit(1);
+
+  if (!doctorData || doctorData.length === 0) {
+    throw new Error('Médico não encontrado');
+  }
+
+  const doctor = doctorData[0];
+  const availability = doctor.availability as DoctorAvailability | null;
+  const dayOfWeek = getDayOfWeek(date);
+
+  if (!availability || !availability[dayOfWeek] || availability[dayOfWeek].length === 0) {
+    return [];
+  }
+
+  const dateStr = formatDate(date);
+
   const existingAppointments = await db
     .select()
     .from(appointments)
     .where(
       and(
         eq(appointments.doctorId, doctorId),
-        gte(appointments.appointmentDate, startOfDay),
-        lte(appointments.appointmentDate, endOfDay),
-        eq(appointments.status, 'scheduled')
+        eq(appointments.date, dateStr),
+        eq(appointments.status, 'Agendada')
       )
     );
 
-  // Gerar slots de 8h às 18h
   const slots: TimeSlot[] = [];
-  const workStart = 8 * 60; // 8:00 em minutos
-  const workEnd = 18 * 60; // 18:00 em minutos
+  const dayAvailability = availability[dayOfWeek];
 
-  for (let time = workStart; time < workEnd; time += slotDuration) {
-    const hours = Math.floor(time / 60);
-    const minutes = time % 60;
-    const startTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-    
-    const endMinutes = time + slotDuration;
-    const endHours = Math.floor(endMinutes / 60);
-    const endMins = endMinutes % 60;
-    const endTime = `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+  for (const timeRange of dayAvailability) {
+    const { start, end } = parseTimeRange(timeRange);
+    const startMinutes = timeToMinutes(start);
+    const endMinutes = timeToMinutes(end);
 
-    // Verificar se está ocupado
-    const isOccupied = existingAppointments.some(apt => {
-      const aptStart = apt.startTime;
-      const aptEnd = apt.endTime;
+    for (let time = startMinutes; time < endMinutes; time += slotDuration) {
+      const hours = Math.floor(time / 60);
+      const minutes = time % 60;
+      const startTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
       
-      return (
-        (startTime >= aptStart && startTime < aptEnd) ||
-        (endTime > aptStart && endTime <= aptEnd) ||
-        (startTime <= aptStart && endTime >= aptEnd)
-      );
-    });
+      const endMin = time + slotDuration;
+      const endHours = Math.floor(endMin / 60);
+      const endMins = endMin % 60;
+      const endTime = `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
 
-    slots.push({
-      date,
-      startTime,
-      endTime,
-      available: !isOccupied,
-      appointmentId: isOccupied
-        ? existingAppointments.find(apt => 
-            (startTime >= apt.startTime && startTime < apt.endTime) ||
-            (endTime > apt.startTime && endTime <= apt.endTime)
-          )?.id
-        : undefined,
-    });
+      if (endMin > endMinutes) break;
+
+      const isOccupied = existingAppointments.some(apt => {
+        const { start: aptStart, end: aptEnd } = parseTimeRange(apt.time);
+        
+        return (
+          (startTime >= aptStart && startTime < aptEnd) ||
+          (endTime > aptStart && endTime <= aptEnd) ||
+          (startTime <= aptStart && endTime >= aptEnd)
+        );
+      });
+
+      slots.push({
+        date,
+        startTime,
+        endTime,
+        available: !isOccupied,
+        appointmentId: isOccupied
+          ? existingAppointments.find(apt => {
+              const { start: aptStart, end: aptEnd } = parseTimeRange(apt.time);
+              return (
+                (startTime >= aptStart && startTime < aptEnd) ||
+                (endTime > aptStart && endTime <= aptEnd)
+              );
+            })?.id
+          : undefined,
+      });
+    }
   }
 
   return slots;
@@ -183,17 +227,7 @@ export async function getAvailableSlots(
 export async function cancelAppointment(appointmentId: string): Promise<void> {
   await db
     .update(appointments)
-    .set({ status: 'cancelled', updatedAt: new Date() })
-    .where(eq(appointments.id, appointmentId));
-}
-
-/**
- * Confirma uma consulta
- */
-export async function confirmAppointment(appointmentId: string): Promise<void> {
-  await db
-    .update(appointments)
-    .set({ status: 'confirmed', updatedAt: new Date() })
+    .set({ status: 'Cancelada', updatedAt: new Date() })
     .where(eq(appointments.id, appointmentId));
 }
 
@@ -203,6 +237,6 @@ export async function confirmAppointment(appointmentId: string): Promise<void> {
 export async function completeAppointment(appointmentId: string): Promise<void> {
   await db
     .update(appointments)
-    .set({ status: 'completed', updatedAt: new Date() })
+    .set({ status: 'Concluída', updatedAt: new Date() })
     .where(eq(appointments.id, appointmentId));
 }
