@@ -10,13 +10,24 @@ export async function GET(request: NextRequest) {
     const agentSecret = request.headers.get("x-agent-secret");
     const expectedSecret = process.env.AGENT_SECRET;
     
+    console.log("[AI Agent Doctors] 🔍 Debug:", {
+      receivedHeader: agentSecret?.substring(0, 20) + "...",
+      expectedEnv: expectedSecret ? expectedSecret.substring(0, 20) + "..." : "UNDEFINED",
+      hasReceivedHeader: !!agentSecret,
+      hasExpectedEnv: !!expectedSecret,
+      match: agentSecret === expectedSecret
+    });
+    
     if (!agentSecret || agentSecret !== expectedSecret) {
-      console.warn("[AI Agent Doctors] Tentativa de acesso não autorizado");
+      console.warn("[AI Agent Doctors] ❌ Auth failed - either missing header or env var mismatch");
       return NextResponse.json(
         { error: "Não autorizado" },
         { status: 401 }
       );
     }
+    
+    console.log("[AI Agent Doctors] ✅ Auth success");
+    
 
     const searchParams = request.nextUrl.searchParams;
     const specialty = searchParams.get("specialty");
