@@ -8,6 +8,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### November 23, 2025 - AI Consultation Minute Quota Enforcement Complete
+- **Pre-consultation quota verification** - Live consultation page now checks AI minute quotas before allowing access to prevent wasted LiveKit connections
+- **Quota block screen** - When limits are exceeded, patients see clear usage statistics, progress bar, and upgrade/support options
+- **Real-time minutes indicator** - LiveKit consultation interface displays remaining minutes counter in header with auto-update
+- **Unlimited plan handling** - Fixed to show "Tempo ilimitado" badge instead of confusing Infinity values while still tracking actual usage
+- **Usage tracking for unlimited plans** - canUseResource now returns real usage data even for Infinity limits, enabling proper UI display
+- **Trial plan enforcement** - New patients automatically receive 5 AI consultation minutes on registration as part of free trial
+- **Production-ready** - All quota gating flows validated by architect with comprehensive security and UX checks
+
 ### November 23, 2025 - Admin Patient Quota Management System
 - **Custom quota system implemented** - Admins can now override default plan limits for individual patients through the admin panel
 - **Quota types supported** - examAnalysis, aiConsultationMinutes, doctorConsultationMinutes, therapistChat, and trialDurationDays
