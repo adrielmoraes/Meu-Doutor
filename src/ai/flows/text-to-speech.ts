@@ -38,16 +38,17 @@ export async function textToSpeech(
       throw new Error("GEMINI_API_KEY não configurada");
     }
 
-    // Use native Google Generative AI API for TTS
+    // Use native Google Generative AI API for TTS with audio support
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.5-flash-native-audio-preview-09-2025",
     });
 
     // Generate content with audio modality
     const result = await model.generateContent({
       contents: [
         {
+          role: "user",
           parts: [
             {
               text: `Fale em português brasileiro de forma natural e clara: ${input.text}`,
