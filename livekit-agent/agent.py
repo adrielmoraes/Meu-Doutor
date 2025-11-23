@@ -428,125 +428,6 @@ async def get_avatar_provider_config() -> str:
                 logger.warning(f"[MediAI] Error closing connection: {close_err}")
 
 
-class VideoAnalyzer:
-    """Analyzes video frames from patient using Gemini Vision."""
-
-    def __init__(self, metrics_collector: Optional[MetricsCollector] = None):
-        self.vision_model = genai.GenerativeModel(
-            'gemini-2.5-flash')  # Modelo atualizado para Vision
-        self.last_analysis = None
-        self.last_frame_time = 0
-        self.metrics_collector = metrics_collector
-
-    def _process_frame_sync(self, frame: rtc.VideoFrame) -> bytes:
-        """Synchronous image processing - runs in separate thread to avoid blocking event loop."""
-        import io
-        import numpy as np
-        from PIL import Image
-        from livekit.rtc import VideoBufferType
-
-        # Convert to RGBA using LiveKit's built-in convert() method
-        rgba_frame = frame.convert(VideoBufferType.RGBA)
-
-        # Get raw RGBA data
-        rgba_data = rgba_frame.data
-
-        # Create numpy array from RGBA data
-        expected_size = rgba_frame.width * rgba_frame.height * 4
-        if len(rgba_data) != expected_size:
-            raise ValueError(f"RGBA data size mismatch: expected {expected_size}, got {len(rgba_data)}")
-
-        # Reshape into image array
-        rgba_array = np.frombuffer(rgba_data, dtype=np.uint8).reshape(
-            (rgba_frame.height, rgba_frame.width, 4))
-
-        # Convert RGBA to RGB (remove alpha channel)
-        rgb_array = rgba_array[:, :, :3]
-
-        # Create PIL Image
-        img = Image.fromarray(rgb_array, mode='RGB')
-
-        # Convert PIL Image to JPEG bytes
-        img_buffer = io.BytesIO()
-        img.save(img_buffer, format='JPEG', quality=85)
-        frame_bytes = img_buffer.getvalue()
-
-        return frame_bytes
-
-    async def analyze_frame_gemini(self, frame: rtc.VideoFrame) -> str:
-        """Analyze a LiveKit VideoFrame using Gemini Vision - REAL analysis.
-        
-        Uses asyncio.to_thread for image processing to prevent event loop blocking.
-        """
-        try:
-            logger.info(
-                f"[Vision] Converting frame {frame.width}x{frame.height} (type={frame.type}) to JPEG..."
-            )
-
-            # Offload CPU-intensive image processing to separate thread
-            # This prevents blocking the event loop and causing audio stuttering
-            frame_bytes = await asyncio.to_thread(self._process_frame_sync, frame)
-
-            logger.info(
-                f"[Vision] ✅ Frame converted to JPEG ({len(frame_bytes)} bytes)"
-            )
-
-            # Analyze with Gemini Vision (async I/O operation)
-            description = await self.analyze_frame(frame_bytes)
-
-            # Confirm successful analysis
-            if description and not description.startswith(
-                    "Análise") and not description.startswith("Erro"):
-                logger.info(
-                    f"[Vision] 🎉 Real visual analysis completed successfully!")
-
-            return description
-            
-        except Exception as e:
-            logger.error(f"[Vision] ❌ Unexpected error in frame analysis: {e}")
-            import traceback
-            traceback.print_exc()
-            # Don't give up - keep trying on next frame
-            return "Processando próximo frame..."
-
-    async def analyze_frame(self, frame_data: bytes) -> str:
-        """Analyze a video frame and return description with retry."""
-        try:
-            frame_b64 = base64.b64encode(frame_data).decode('utf-8')
-
-            async def gemini_vision_call():
-                """Wrapper function for Gemini Vision API call."""
-                return await asyncio.to_thread(
-                    self.vision_model.generate_content,
-                    [{
-                        'mime_type': 'image/jpeg',
-                        'data': frame_b64
-                    },
-                     """Descreva brevemente o que você vê nesta imagem do paciente em português brasileiro.
-                        Inclua:
-                        - Características físicas visíveis (aparência geral, expressão facial)
-                        - Ambiente/localização
-                        - Qualquer detalhe relevante para um atendimento médico
-                        
-                        Seja objetivo e profissional, em no máximo 3 frases."""
-                     ])
-
-            response = await call_gemini_with_retry(gemini_vision_call)
-
-            description = response.text.strip()
-            self.last_analysis = description
-            logger.info(f"[Vision] ✅ Análise: {description[:100]}...")
-
-            if self.metrics_collector and hasattr(response, 'usage_metadata'):
-                self.metrics_collector.track_vision(response.usage_metadata)
-
-            return description
-
-        except Exception as e:
-            logger.error(f"[Vision] ❌ Failed after retries: {e}")
-            return "Análise visual temporariamente indisponível."
-
-
 # =========================================
 # FUNCTION TOOLS - LiveKit Official Pattern
 # =========================================
@@ -960,10 +841,6 @@ class MediAIAgent(Agent):
             tools=[search_doctors, get_available_slots, schedule_appointment])
         self.room = room
         self.metrics_collector = metrics_collector
-        self.video_analyzer = VideoAnalyzer(
-            metrics_collector=metrics_collector)
-        self.visual_context = "Aguardando análise visual do paciente..."
-        self._vision_task = None
         self._metrics_task = None
         self.base_instructions = instructions
         self.patient_id = patient_id
@@ -971,16 +848,45 @@ class MediAIAgent(Agent):
         self.doctor_search_cache = None
         self.last_doctor_search_time = 0
         self._agent_session = None  # Will be set after session creation
-        self.last_frame_send_time = 0  # For 1 FPS throttling
-        self._vision_started = False  # Start vision only when patient speaks
-        self._first_speech_detected = False  # Track first speech to activate vision
+        self.last_frame_send_time = 0  # For 1 FPS throttling in send_video_frame_to_gemini
+
+    def _process_video_frame_sync(self, rgba_frame):
+        """Process video frame synchronously in separate thread (CPU-bound operations)."""
+        from PIL import Image
+        import numpy as np
+        import io
+        
+        try:
+            # Get numpy array
+            height = rgba_frame.height
+            width = rgba_frame.width
+
+            rgba_array = np.frombuffer(rgba_frame.data, dtype=np.uint8)
+            rgba_array = rgba_array.reshape((height, width, 4))
+
+            # Convert RGBA to RGB
+            rgb_array = rgba_array[:, :, :3]
+
+            # Create PIL Image
+            img = Image.fromarray(rgb_array, 'RGB')
+
+            # Resize to 768x768 (recommended by Gemini Live API)
+            img = img.resize((768, 768), Image.Resampling.LANCZOS)
+
+            # Convert to JPEG bytes
+            img_buffer = io.BytesIO()
+            img.save(img_buffer, format='JPEG', quality=85)
+            frame_bytes = img_buffer.getvalue()
+            
+            return frame_bytes
+        except Exception as e:
+            logger.debug(f"[Vision] Error in sync frame processing: {e}")
+            return None
 
     async def send_video_frame_to_gemini(self):
         """Send video frames to Gemini Live API at 1 FPS for native vision."""
         from livekit.rtc import VideoBufferType
         from google.genai import types
-        from PIL import Image
-        import io
 
         # Throttle to 1 FPS
         current_time = time.time()
@@ -1011,44 +917,28 @@ class MediAIAgent(Agent):
                                                  timeout=2.0)
             frame = frame_event.frame
 
-            # Convert to RGB
-            rgba_frame = None
-            try:
-                rgba_frame = frame.convert(VideoBufferType.RGBA)
+            # Convert to RGB buffer
+            rgba_frame = frame.convert(VideoBufferType.RGBA)
+            
+            # Process frame in separate thread to avoid blocking event loop
+            frame_bytes = await asyncio.to_thread(
+                self._process_video_frame_sync, rgba_frame
+            )
+            
+            if not frame_bytes:
+                return
 
-                # Get numpy array
-                height = rgba_frame.height
-                width = rgba_frame.width
-
-                import numpy as np
-                rgba_array = np.frombuffer(rgba_frame.data, dtype=np.uint8)
-                rgba_array = rgba_array.reshape((height, width, 4))
-
-                # Convert RGBA to RGB
-                rgb_array = rgba_array[:, :, :3]
-
-                # Create PIL Image
-                img = Image.fromarray(rgb_array, 'RGB')
-
-                # Resize to 768x768 (recommended by Gemini Live API)
-                img = img.resize((768, 768), Image.Resampling.LANCZOS)
-
-                # Convert to JPEG bytes
-                img_buffer = io.BytesIO()
-                img.save(img_buffer, format='JPEG', quality=85)
-                frame_bytes = img_buffer.getvalue()
-
-                # Send to Gemini Live API
-                if self._agent_session:
-                    await self._agent_session.send_realtime_input(
-                        video=types.Blob(data=base64.b64encode(
-                            frame_bytes).decode('utf-8'),
-                                         mime_type="image/jpeg"))
-                    logger.info(
-                        f"[Vision] 📹 Sent 768x768 frame to Gemini Live API ({len(frame_bytes)} bytes)"
+            # Send to Gemini Live API
+            if self._agent_session:
+                await self._agent_session.send_realtime_input(
+                    video=types.Blob(
+                        data=base64.b64encode(frame_bytes).decode('utf-8'),
+                        mime_type="image/jpeg"
                     )
-            except Exception as frame_error:
-                logger.debug(f"[Vision] Error processing frame: {frame_error}")
+                )
+                logger.info(
+                    f"[Vision] 📹 Sent 768x768 frame to Gemini Live API ({len(frame_bytes)} bytes)"
+                )
 
         except asyncio.TimeoutError:
             pass  # No frame available, skip
@@ -1063,12 +953,6 @@ class MediAIAgent(Agent):
             "[MediAI] ⏳ Waiting for avatar to be visible and audio/video to sync..."
         )
         await asyncio.sleep(5)
-
-        # Start vision analysis loop (will wait for patient to speak before processing)
-        logger.info(
-            "[MediAI] 👁️ Vision loop ready (will activate when patient speaks)..."
-        )
-        self._vision_task = asyncio.create_task(self._vision_loop())
 
         # Start metrics periodic flush
         if self.metrics_collector:
@@ -1085,7 +969,7 @@ class MediAIAgent(Agent):
         await self._agent_session.generate_reply(instructions=initial_greeting)
 
     async def _handle_user_transcription(self, event):
-        """Handle user transcription event - activates vision and logs speech."""
+        """Handle user transcription event - logs speech and tracks metrics."""
         try:
             # Extract transcript from event
             if not hasattr(event, 'transcript') or not event.transcript:
@@ -1094,14 +978,6 @@ class MediAIAgent(Agent):
             message_text = event.transcript
             logger.info(f"[Patient] 🎙️ {message_text[:100]}...")
 
-            # Activate vision on first speech
-            if not self._first_speech_detected:
-                self._first_speech_detected = True
-                self._vision_started = True
-                logger.info(
-                    "[Vision] 🎬 Patient started speaking - activating vision analysis!"
-                )
-
             # Track input tokens for metrics
             if self.metrics_collector:
                 self.metrics_collector.track_llm(input_text=message_text)
@@ -1109,143 +985,6 @@ class MediAIAgent(Agent):
         except Exception as e:
             logger.error(f"[Patient] Error handling transcription: {e}")
 
-    async def _vision_loop(self):
-        """Continuously analyze video frames from patient using REAL Gemini Vision.
-        Only starts processing after patient begins speaking."""
-        await asyncio.sleep(5)  # Wait for connection to stabilize
-
-        logger.info(
-            "[Vision] 💤 Vision loop waiting for patient to start speaking...")
-
-        while True:
-            try:
-                # Wait until patient speaks before starting vision analysis
-                if not self._vision_started:
-                    await asyncio.sleep(2)  # Check every 2 seconds
-                    continue
-
-                # Analyze every 20 seconds (mais espaçamento para economizar API)
-                await asyncio.sleep(20)
-
-                # Log memory BEFORE processing
-                import psutil
-                process = psutil.Process()
-                mem_before = process.memory_info().rss / 1024 / 1024  # MB
-                logger.info(
-                    f"[Memory] 📊 Antes da captura: {mem_before:.2f} MB")
-
-                # Find patient's video track
-                patient_track = None
-                for participant in self.room.remote_participants.values():
-                    for track_pub in participant.track_publications.values():
-                        if track_pub.track and track_pub.track.kind == rtc.TrackKind.KIND_VIDEO:
-                            patient_track = track_pub.track
-                            break
-                    if patient_track:
-                        break
-
-                if not patient_track:
-                    logger.debug("[Vision] Aguardando vídeo do paciente...")
-                    self.visual_context = "Câmera do paciente não está ativa no momento."
-                    continue
-
-                logger.info("[Vision] 📸 Capturando frame real do paciente...")
-
-                # Get actual video frame (using context manager for proper cleanup)
-                video_stream = None
-                frame_event = None
-                frame = None
-
-                try:
-                    # Create stream for single frame capture
-                    video_stream = rtc.VideoStream(patient_track)
-
-                    # Get a single frame with timeout
-                    frame_event = await asyncio.wait_for(
-                        video_stream.__anext__(), timeout=5.0)
-                    frame = frame_event.frame
-
-                    logger.info(
-                        f"[Vision] Frame captured: {frame.width}x{frame.height}"
-                    )
-
-                    # Analyze with Gemini Vision
-                    description = await self.video_analyzer.analyze_frame_gemini(
-                        frame)
-
-                    if description:
-                        self.visual_context = description
-                        logger.info(
-                            f"[Vision] ✅ REAL visual analysis: {self.visual_context[:100]}..."
-                        )
-                        
-                        # NOTE: O contexto visual é armazenado em self.visual_context
-                        # A IA acessa via send_video_frame_to_gemini() que envia frames 
-                        # diretamente para Gemini Live API com visão nativa integrada
-                        logger.info("[Vision] 🎥 Visual context updated - Gemini Live API handles vision natively")
-                    else:
-                        self.visual_context = "Análise visual temporariamente indisponível."
-
-                except asyncio.TimeoutError:
-                    logger.warning("[Vision] Timeout ao capturar frame")
-                    self.visual_context = "Aguardando sinal de vídeo mais estável..."
-                except StopAsyncIteration:
-                    logger.warning("[Vision] Stream de vídeo encerrado")
-                    break
-                finally:
-                    # CRÍTICO: Fechar stream ANTES de deletar para liberar buffers internos
-                    try:
-                        if video_stream is not None:
-                            await video_stream.aclose()
-                    except Exception as close_err:
-                        logger.debug(
-                            f"[Memory] Erro ao fechar stream: {close_err}")
-
-                    # LIMPEZA AGRESSIVA DE MEMÓRIA
-                    try:
-                        # Deletar objetos na ordem reversa de criação
-                        if frame is not None:
-                            del frame
-                        if frame_event is not None:
-                            del frame_event
-                        if video_stream is not None:
-                            del video_stream
-
-                        # Não manter referência ao track
-                        patient_track = None
-
-                        # Forçar garbage collection TRIPLO para objetos grandes de vídeo
-                        import gc
-                        gc.collect()
-                        gc.collect()
-                        gc.collect()
-
-                        # Log memory AFTER cleanup
-                        mem_after = process.memory_info(
-                        ).rss / 1024 / 1024  # MB
-                        mem_delta = mem_after - mem_before
-                        logger.info(
-                            f"[Memory] 📊 Depois da limpeza: {mem_after:.2f} MB (Δ {mem_delta:+.2f} MB)"
-                        )
-
-                        if mem_delta > 50:  # Alerta se cresceu mais de 50MB
-                            logger.warning(
-                                f"[Memory] ⚠️ Crescimento: +{mem_delta:.2f} MB - forçando limpeza extra..."
-                            )
-                            gc.collect(
-                            )  # Limpeza adicional se houver crescimento grande
-                    except Exception as cleanup_err:
-                        logger.error(
-                            f"[Memory] Erro na limpeza: {cleanup_err}")
-
-            except Exception as e:
-                logger.error(f"[Vision] Erro no loop de visão: {e}")
-                self.visual_context = "Análise visual temporariamente indisponível."
-                await asyncio.sleep(5)
-
-    def get_visual_description(self) -> str:
-        """Return current visual context for the LLM to use."""
-        return self.visual_context
 
 
 async def entrypoint(ctx: JobContext):
@@ -1287,10 +1026,10 @@ async def entrypoint(ctx: JobContext):
     system_prompt = f"""Você é MediAI, uma assistente médica virtual brasileira especializada em triagem de pacientes e orientação de saúde.
 
 CAPACIDADES IMPORTANTES:
-✅ VOCÊ TEM VISÃO REAL - Análise de imagem atualizada a cada 20 segundos via Gemini Vision
-✅ O contexto visual contém descrição REAL da imagem capturada da câmera
-✅ Use APENAS informações do contexto visual - NUNCA invente descrições
-✅ Se contexto visual diz "câmera não ativa", seja honesta sobre isso
+✅ VOCÊ TEM VISÃO EM TEMPO REAL - Gemini Live Native Vision integrada! Você recebe frames da câmera do paciente diretamente via send_realtime_input()
+✅ Você consegue VER o paciente através da câmera dele em tempo real (1 frame por segundo)
+✅ Use suas capacidades de visão integrada quando relevante - não invente o que não vê
+✅ Se não conseguir ver algo claramente, seja honesta sobre isso
 ✅ VOCÊ PODE AGENDAR CONSULTAS - Você tem acesso aos médicos cadastrados na plataforma e pode agendar consultas reais
 ✅ Você pode buscar médicos por especialidade e verificar disponibilidade de horários
 
@@ -1395,24 +1134,23 @@ CONTEXTO VISUAL (o que você vê agora):
     agent._agent_session = session
 
     logger.info("[MediAI] ✅ Session started successfully!")
-    logger.info(
-        "[MediAI] 📹 Using periodic vision analysis (every 20s) instead of continuous streaming"
-    )
-
-    # DISABLED: Continuous video streaming causes memory leak
-    # Vision analysis is handled by _vision_loop() which runs every 20 seconds
-    # This is more memory-efficient and sufficient for medical consultations
-    #
-    # async def stream_video_to_gemini():
-    #     """Background task to continuously send video frames to Gemini."""
-    #     try:
-    #         while True:
-    #             await agent.send_video_frame_to_gemini()
-    #             await asyncio.sleep(1.0)  # 1 FPS
-    #     except asyncio.CancelledError:
-    #         logger.info("[Vision] Video streaming stopped")
-    #
-    # video_streaming_task = asyncio.create_task(stream_video_to_gemini())
+    
+    # Enable Gemini Live Native Vision - sends frames directly to Gemini Live API
+    async def stream_video_to_gemini():
+        """Background task to continuously send video frames to Gemini Live API at 1 FPS."""
+        try:
+            # Wait for patient to join
+            await asyncio.sleep(3)
+            logger.info("[Vision] 📹 Starting Gemini Live native vision streaming at 1 FPS...")
+            
+            while True:
+                await agent.send_video_frame_to_gemini()
+                await asyncio.sleep(1.0)  # 1 FPS
+        except asyncio.CancelledError:
+            logger.info("[Vision] 🛑 Video streaming stopped")
+    
+    video_streaming_task = asyncio.create_task(stream_video_to_gemini())
+    logger.info("[MediAI] 🎥 Gemini Live native vision enabled - AI can see patient in real-time")
 
     # Hook into session events to track metrics
     # Note: Gemini Live API integrates STT/LLM/TTS, so we estimate based on interaction
