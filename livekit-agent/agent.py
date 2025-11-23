@@ -27,6 +27,12 @@ from tenacity import (retry, stop_after_attempt, wait_exponential,
 
 load_dotenv(dotenv_path=Path(__file__).parent / '.env')
 
+# Fail-fast validation: Check critical environment variables before starting
+required_vars = ['GEMINI_API_KEY', 'DATABASE_URL', 'LIVEKIT_URL', 'LIVEKIT_API_KEY', 'LIVEKIT_API_SECRET']
+missing = [var for var in required_vars if not os.getenv(var)]
+if missing:
+    raise RuntimeError(f"CRITICAL: Missing required environment variables: {', '.join(missing)}")
+
 if 'GEMINI_API_KEY' in os.environ and 'GOOGLE_API_KEY' not in os.environ:
     os.environ['GOOGLE_API_KEY'] = os.environ['GEMINI_API_KEY']
 
