@@ -119,16 +119,6 @@ export async function canUseResource(
     ? customQuotaValue 
     : limits[resourceType];
 
-  // Se for ilimitado, permitir
-  if (limit === Infinity) {
-    return {
-      allowed: true,
-      current: 0,
-      limit: Infinity,
-      planId,
-    };
-  }
-
   // Mapear tipo de recurso para tipo de uso no banco
   const usageTypeMap: Record<LimitType, string> = {
     examAnalysis: 'exam_analysis',
@@ -137,7 +127,18 @@ export async function canUseResource(
     therapistChat: 'chat',
   };
 
+  // Sempre calcular o uso atual, mesmo para planos ilimitados
   const current = await getCurrentMonthUsage(patientId, usageTypeMap[resourceType]);
+
+  // Se for ilimitado, permitir mas ainda mostrar o uso atual
+  if (limit === Infinity) {
+    return {
+      allowed: true,
+      current,
+      limit: Infinity,
+      planId,
+    };
+  }
 
   const allowed = current < limit;
 
