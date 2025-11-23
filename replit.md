@@ -1,63 +1,10 @@
 # MediAI - AI-Powered Healthcare Platform
 
 ## Overview
-MediAI is an AI-powered healthcare platform designed to connect patients with medical professionals for AI-assisted diagnosis and real-time communication. It offers both patient and doctor portals, leveraging Google's Gemini AI models for intelligent medical analysis, preliminary diagnoses, and personalized wellness recommendations, all presented in Brazilian Portuguese. The platform aims to innovate healthcare delivery by integrating advanced AI within a robust, user-friendly interface, enhancing the accessibility and quality of medical consultations. The business vision is to provide hospital-grade preliminary diagnoses with specific medication recommendations, exact dosages, treatment protocols, monitoring guidelines, and contraindications, transforming general advice into actionable clinical guidance.
+MediAI is an AI-powered healthcare platform that connects patients with medical professionals for AI-assisted diagnosis and real-time communication. It features both patient and doctor portals, utilizing Google's Gemini AI models for intelligent medical analysis, preliminary diagnoses, and personalized wellness recommendations, all presented in Brazilian Portuguese. The platform aims to provide hospital-grade preliminary diagnoses with specific medication recommendations, exact dosages, treatment protocols, monitoring guidelines, and contraindications, transforming general advice into actionable clinical guidance.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
-
-## Recent Changes
-
-### November 23, 2025 - AI Consultation Minute Quota Enforcement Complete
-- **Pre-consultation quota verification** - Live consultation page now checks AI minute quotas before allowing access to prevent wasted LiveKit connections
-- **Quota block screen** - When limits are exceeded, patients see clear usage statistics, progress bar, and upgrade/support options
-- **Real-time minutes indicator** - LiveKit consultation interface displays remaining minutes counter in header with auto-update
-- **Unlimited plan handling** - Fixed to show "Tempo ilimitado" badge instead of confusing Infinity values while still tracking actual usage
-- **Usage tracking for unlimited plans** - canUseResource now returns real usage data even for Infinity limits, enabling proper UI display
-- **Trial plan enforcement** - New patients automatically receive 5 AI consultation minutes on registration as part of free trial
-- **Production-ready** - All quota gating flows validated by architect with comprehensive security and UX checks
-
-### November 23, 2025 - Admin Patient Quota Management System
-- **Custom quota system implemented** - Admins can now override default plan limits for individual patients through the admin panel
-- **Quota types supported** - examAnalysis, aiConsultationMinutes, doctorConsultationMinutes, therapistChat, and trialDurationDays
-- **Database schema updated** - Added `custom_quotas` JSONB column to patients table for flexible per-patient overrides
-- **Priority logic implemented** - Custom quotas take precedence over default plan limits in `canUseResource` and `getUsageSummary` functions
-- **Admin UI component** - PatientQuotaManager provides intuitive interface for managing quotas with form validation
-- **Secure server actions** - updatePatientQuotas enforces admin authentication and sanitizes null values
-- **Known limitation** - trialDurationDays custom quota is saved but not yet enforced in subscription expiry logic (requires subscription management refactoring)
-
-### November 15, 2025 - Avatar AI Agent: Real Vision & Doctor Recommendations Fixed
-- **Fixed real-time camera vision** - Implemented REAL visual analysis using Gemini Vision API with LiveKit frame.to_image() for universal format compatibility
-- **Fixed doctor recommendations** - AI now queries actual database for doctors instead of hallucinating names; strict anti-hallucination rules enforced in system prompt
-- **Stabilized LiveKit connection** - Resolved port conflicts preventing agent startup; improved process cleanup
-- **Enhanced error recovery** - Vision system continues processing on frame errors instead of permanent failure
-- **Performance validated** - Vision analysis runs every 20 seconds with frame conversion logging for monitoring
-- **Documentation complete** - Comprehensive MELHORIAS_AVATAR_IA.md details all 3 critical fixes with implementation guide
-
-### November 14, 2025 - Gemini Model Migration & LiveKit Realtime API Fix
-- **Migrated all Gemini models to gemini-2.5-flash** - Replaced experimental gemini-2.0-flash-exp and deprecated gemini-1.5-flash with stable gemini-2.5-flash
-- **Updated 15+ files across frontend and backend** - Systematically updated all Gemini API calls throughout the codebase
-- **Fixed quota issues** - Resolved free tier quota limitations by switching from experimental model (limit: 0 RPM) to stable version (10 RPM, 250K TPM)
-- **Fixed LiveKit Realtime API compatibility** - Discovered regular Gemini models (gemini-2.5-flash, gemini-2.0-flash) do NOT support bidiGenerateContent
-- **Switched to correct Realtime model** - Using `gemini-2.0-flash-live-001`, the official model specifically designed for bidirectional audio streaming
-- **Resolved audio errors** - Fixed `models/gemini-2.x-flash is not found for API version v1beta, or is not supported for bidiGenerateContent` error
-- **All systems updated** - Chat/medical flows use gemini-2.5-flash; LiveKit Realtime API uses gemini-2.0-flash-live-001 for real-time audio
-
-### November 12, 2025 - LiveKit Connection Performance Optimization Complete
-- **Implemented LiveKit warmup system** - Pre-fetches connection token in background when patient enters dashboard, enabling instant consultation start
-- **Thread-safe token caching** - 5-minute cache with proactive 1-minute pre-expiration refresh and concurrent request protection
-- **Visual feedback system** - Dashboard displays "Conexão preparada – início instantâneo garantido" when warmup completes
-- **Optimized connection settings** - Enabled adaptive stream, dynacast, and optimized reconnect policies for faster connection
-- **Removed artificial delays** - Eliminated unnecessary waits and streamlined connection flow
-- **Performance verified** - Logs confirm single token fetch, successful caching, and instant connection on consultation entry
-
-### November 12, 2025 - Avatar Upload Fixed & Email Verification System Complete
-- **Fixed avatar upload system** - Migrated from local filesystem to Cloudinary cloud storage to support Vercel serverless environment
-- **Fixed email verification** - Corrected token persistence issue by standardizing function signatures between patient and doctor registration
-- **Fixed contact data persistence** - Resolved bug where phone, city, and state weren't being saved during patient registration
-- **Removed database transactions** - Adapted code to work with neon-http driver limitations using sequential operations with manual rollback
-- **Aligned TypeScript types** - Expanded schema icon unions and added weeklyTasks to eliminate all LSP errors
-- **All systems tested and working** - Comprehensive test suite validates registration, verification, and avatar upload flows
 
 ## System Architecture
 
@@ -77,20 +24,20 @@ Preferred communication style: Simple, everyday language.
 
 ### System Design Choices
 - **UI/UX**: Futuristic dark theme, live consultation banner with video backgrounds, minimalist consultation interfaces, and visual display for specialist findings. Includes gamification features for doctors.
-- **AI Enhancements**: Enhanced AI system with Gemini 2.5 Flash for medical analysis and consultations, including call recording and transcription via Gemini AI. Server-side AI processing ensures medical data security. Implementation of an AI Nutritionist for personalized wellness plans.
-- **Real-time Communication**: LiveKit for WebRTC, Daily.co SDK for Tavus CVI integration, with automatic device detection and noise cancellation.
-- **AI Consultations**: LiveKit + Avatar Providers (Tavus/BEY) + Gemini Architecture for production-grade real-time consultations with vision capabilities. This involves a Python agent orchestrating Google Gemini API for STT, LLM, and TTS, configurable avatar integration (Tavus or Beyond Presence selected via admin panel), and Gemini Vision API for visual patient analysis. A unified voice system ("Aoede" voice, female, pt-BR) is used across all audio generations. The AI can see the patient through their camera and describe their appearance when asked. **Avatar Provider Configuration**: Admins can select between Tavus and Beyond Presence (BEY) avatar providers through the admin panel settings, with the choice stored in the database and automatically applied to all new consultations.
+- **AI Enhancements**: Enhanced AI system with Gemini 2.5 Flash for medical analysis and consultations, including call recording and transcription. Server-side AI processing ensures medical data security. Implementation of an AI Nutritionist for personalized wellness plans.
+- **Real-time Communication**: LiveKit for WebRTC, with automatic device detection and noise cancellation.
+- **AI Consultations**: LiveKit + Avatar Providers (Tavus/BEY) + Gemini Architecture for production-grade real-time consultations with vision capabilities. This involves a Python agent orchestrating Google Gemini API for STT, LLM, and TTS, configurable avatar integration (Tavus or Beyond Presence selected via admin panel), and Gemini Vision API for visual patient analysis. A unified voice system ("Aoede" voice, female, pt-BR) is used across all audio generations. The AI can see the patient through their camera and describe their appearance when asked.
 - **AI Therapist Chat**: Bidirectional voice chat with WhatsApp-style audio features and voice support.
-- **Medical Analysis**: A multi-specialist medical analysis system where exam uploads trigger parallel consultation with up to 15 specialist AI agents, coordinated by an orchestrator AI. This provides deep domain-specific analysis with complete traceability, returning structured data including suggested medications, treatment plans, monitoring protocols, contraindications, and relevant metrics. The orchestrator synthesizes this into an integrated medication plan and detailed recommendations.
+- **Medical Analysis**: A multi-specialist medical analysis system where exam uploads trigger parallel consultation with up to 15 specialist AI agents, coordinated by an orchestrator AI. This provides deep domain-specific analysis with complete traceability, returning structured data including suggested medications, treatment plans, monitoring protocols, contraindications, and relevant metrics.
 - **Data Visualization**: Exam history visualization with interactive time-series graphs using Recharts.
-- **Admin System**: Comprehensive admin panel for platform oversight, including user management, exam review, consultation monitoring, resource usage tracking, and platform settings configuration. Features include secure login, audit logging, email notifications for key events, **avatar provider selection** (Tavus vs Beyond Presence) for AI consultations, and **custom patient quota management** allowing admins to override default plan limits on a per-patient basis for exam analysis, AI consultation minutes, doctor consultation minutes, therapist chat, and trial duration.
+- **Admin System**: Comprehensive admin panel for platform oversight, including user management, exam review, consultation monitoring, resource usage tracking, and platform settings configuration. Features include secure login, audit logging, email notifications, avatar provider selection for AI consultations, and custom patient quota management allowing admins to override default plan limits on a per-patient basis.
 - **Email Verification**: System for patient and doctor email verification with unique CPF/CRM validation and secure token-based verification.
 - **Subscription Management**: Integrated Stripe for handling subscription plans (Trial, Basic, Premium, Family) with usage-based tiers, secure payment processing, and webhook integration. Includes a 7-day free trial.
-- **Security & Monitoring**: Implemented comprehensive security headers (CSP, X-Frame-Options, etc.), Sentry for error tracking, structured logging, and usage tracking for resource consumption per patient.
-- **Performance Optimization**: In-memory cache layer with TTL/LRU eviction, generic pagination system with offset and cursor support, optimized image components with lazy loading.
+- **Security & Monitoring**: Implemented comprehensive security headers, Sentry for error tracking, structured logging, and usage tracking for resource consumption per patient.
+- **Performance Optimization**: In-memory cache layer, generic pagination system, optimized image components.
 - **Real-Time Notifications**: Server-Sent Events (SSE) system for real-time notifications of exam results, appointments, and alerts.
-- **Data Export & LGPD**: Patient data export system supporting JSON and HTML formats for LGPD compliance (data portability rights).
-- **Appointment Scheduling**: Intelligent scheduling system with conflict detection, availability checking, and slot management to prevent double-bookings.
+- **Data Export & LGPD**: Patient data export system supporting JSON and HTML formats for LGPD compliance.
+- **Appointment Scheduling**: Intelligent scheduling system with conflict detection, availability checking, and slot management.
 - **Advanced Search**: Multi-entity search system with filters for patients, doctors, and exams, integrated with pagination.
 
 ## External Dependencies
@@ -124,7 +71,6 @@ Preferred communication style: Simple, everyday language.
 
 ### Email & Notifications
 - Resend (transactional email service for admin notifications and email verification)
-- SendGrid (optional, as an alternative email provider)
 
 ### Monitoring
 - Sentry (for error tracking and performance monitoring)
