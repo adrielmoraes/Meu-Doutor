@@ -1127,8 +1127,7 @@ CONTEXTO DO PACIENTE:
             model=gemini_model,  # Using selected model (native audio or standard realtime)
             voice="Erinome",  # Female voice optimized for Portuguese (pt-BR)
             temperature=0.5,  # Lower for more consistent responses and pronunciation
-            instructions=system_prompt.replace(
-                "{visual_context}", "Aguardando primeira análise visual..."),
+            instructions=system_prompt,
         ), )
 
     logger.info("[MediAI] 🏥 Starting medical consultation session...")
