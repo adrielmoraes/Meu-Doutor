@@ -22,5 +22,5 @@ if (plugins.length === 0) {
 export const ai = genkit({
   plugins,
   // Gemini 2.5 Flash - Modelo estável com ótima quota gratuita
-  model: "googleai/gemini-2.5-flash-lite",
+  model: "googleai/gemini-2.5-flash",
 });
