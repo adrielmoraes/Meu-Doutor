@@ -1,0 +1,75 @@
+ Erros de Codificação e Lógica (Críticos)
+Estes são erros que podem causar falhas em produção ou comportamento inesperado:
+1. Contexto Visual Estático (Bug Crítico de Lógica):
+O Problema: No entrypoint, o system_prompt é criado uma única vez usando f-string: instructions=system_prompt.replace("{visual_context}", "Aguardando...").
+Embora o loop _vision_loop atualize a variável self.visual_context na instância do agente, ele nunca atualiza as instruções da sessão ativa do Gemini Live.
+Consequência: A IA ficará "cega" durante toda a chamada, vendo apenas o texto inicial "Aguardando primeira análise visual...", ignorando todas as análises subsequentes.
+Correção: É necessário chamar um método para atualizar as instruções da sessão ou injetar a descrição visual como uma "mensagem de sistema" oculta no chat context periodicamente.
+2. Bloqueio do Event Loop (CPU Bound):
+O Problema: O método analyze_frame_gemini realiza operações pesadas de processamento de imagem (numpy.frombuffer, Image.fromarray, img.save) diretamente na thread principal do asyncio.
+Consequência: Isso causará picotes no áudio e travamentos momentâneos na voz do agente, pois o Event Loop fica bloqueado enquanto processa a imagem (100ms+ dependendo da CPU).
+Correção: Executar o processamento de imagem dentro de um ThreadPoolExecutor usando asyncio.to_thread.
+3. Conexão Síncrona com Banco de Dados:
+O Problema: A função get_avatar_provider_config usa psycopg2 (biblioteca síncrona/bloqueante).
+Consequência: Se o banco demorar para responder, todo o worker do LiveKit congela antes de aceitar a conexão.
+Correção: Usar asyncpg (como já é usado em get_patient_context) para manter consistência assíncrona.
+4. Race Condition no Agendamento:
+O Problema: Na ferramenta schedule_appointment, o código tenta acessar context.agent.patient_id. Embora o Python permita isso dinamicamente, se por algum motivo o contexto agent não for a instância esperada ou a thread perder a referência, o agendamento falhará silenciosamente ou lançará erro.
+5. Tratamento de Tokens e Custo (Estimativa Imprecisa):
+O código estima tokens baseados em caracteres (len // 4). O Gemini Live usa tokens multimodais (áudio/vídeo). A discrepância entre o custo calculado e o real pode ser enorme, gerando prejuízo no faturamento.
+3. Erros de Tipagem e "TypeScript" (Python Type Hinting)
+O usuário pediu "erros de typescript", mas o código é Python. Vou listar os erros de Type Hinting e aderência a tipos estáticos:
+Argumentos Opcionais Inconsistentes:
+Em _search_doctors_impl, specialty é tipado como str = None, mas o correto seria Optional[str] = None.
+Contexto do LiveKit:
+No método schedule_appointment(context: RunContext, ...), o Python não sabe que context.agent possui o atributo patient_id.
+Correção: Deveria haver um cast ou uma definição de classe:
+code
+Python
+from typing import cast
+# ...
+agent = cast(MediAIAgent, context.agent)
+if not agent.patient_id: ...
+Retorno de Callbacks:
+Funções chamadas via asyncio.create_task (como _vision_loop) não têm seu retorno tipado ou tratado. Se ocorrer uma exceção não tratada dentro do loop infinito (que escape do try/except interno), a task morre silenciosamente.
+4. Melhorias Recomendadas
+A. Arquitetura e Performance
+Offload de Processamento de Imagem:
+Mover a conversão de VideoFrame -> JPEG para uma thread separada para não impactar a latência da voz.
+code
+Python
+# Exemplo de correção
+def _process_image_sync(frame_data, width, height):
+    # ... lógica numpy/PIL ...
+    return jpeg_bytes
+
+# No loop async
+jpeg_bytes = await asyncio.to_thread(_process_image_sync, frame.data, frame.width, frame.height)
+Atualização Dinâmica do Prompt (Correção da Visão):
+Para que a visão funcione, você precisa atualizar a sessão:
+code
+Python
+# Dentro de _vision_loop após conseguir uma descrição:
+self.visual_context = description
+
+# Atualizar as instruções da sessão ativa
+new_instructions = self.base_instructions.replace("{visual_context}", description)
+# Nota: Verificar na doc do plugin LiveKit se session.update_instructions() está disponível 
+# ou enviar como mensagem oculta:
+await self._agent_session.conversation.item.create(
+    role="system", 
+    text=f"ATUALIZAÇÃO VISUAL: {description}"
+)
+Gerenciamento de Conexões de Banco:
+Em vez de abrir/fechar conexão a cada chamada (psycopg2.connect e asyncpg.connect), crie um Pool de Conexões no início do entrypoint e passe-o para as funções. Isso reduz latência drasticamente (de ~200ms para ~5ms por query).
+B. Segurança e Robustez
+Validação de Input nas Tools:
+As funções _schedule_appointment_impl confiam cegamente nos parâmetros passados pela LLM. Adicione validação (ex: verificar se a data não é no passado, se o horário é válido) antes de chamar a API externa.
+Graceful Shutdown:
+O bloco finally no entrypoint é bom, mas certifique-se de fechar as conexões do asyncpg e httpx.AsyncClient explicitamente se eles forem transformados em pools globais.
+C. Funcionalidade
+Feedback de Agendamento:
+Após o agendamento (schedule_appointment), a LLM recebe um JSON de retorno. É importante instruir no prompt do sistema como ela deve confirmar isso verbalmente para o paciente ("Sua consulta foi agendada para dia X...").
+Fallback de Avatar:
+O código espera 5 segundos (await asyncio.sleep(5)) para o avatar carregar. Isso é frágil.
+Melhoria: Escutar o evento participant_connected ou track_subscribed do LiveKit para começar a falar apenas quando o vídeo do avatar estiver realmente chegando para o usuário.

@@ -20,6 +20,7 @@ from livekit.agents.voice import AgentSession
 from livekit.plugins import tavus, bey, google
 from livekit import rtc
 import google.generativeai as genai
+import psycopg2
 import httpx
 
 from tenacity import (retry, stop_after_attempt, wait_exponential,
@@ -386,25 +387,27 @@ class MetricsCollector:
         await self.send_metrics()
 
 
-async def get_avatar_provider_config() -> str:
-    """Fetch avatar provider configuration from database (async version)."""
-    import asyncpg
-    
-    database_url = os.getenv('DATABASE_URL')
-    if not database_url:
-        logger.warning(
-            "[MediAI] DATABASE_URL not found, defaulting to Tavus")
-        return 'tavus'
-
-    conn = None
+def get_avatar_provider_config() -> str:
+    """Fetch avatar provider configuration from database."""
     try:
-        conn = await asyncpg.connect(database_url)
+        database_url = os.getenv('DATABASE_URL')
+        if not database_url:
+            logger.warning(
+                "[MediAI] DATABASE_URL not found, defaulting to Tavus")
+            return 'tavus'
+
+        conn = psycopg2.connect(database_url)
+        cur = conn.cursor()
 
         # Query admin settings for avatar provider
-        result = await conn.fetchrow("SELECT avatar_provider FROM admin_settings LIMIT 1")
+        cur.execute("SELECT avatar_provider FROM admin_settings LIMIT 1")
+        result = cur.fetchone()
 
-        if result and result['avatar_provider']:
-            provider = result['avatar_provider']
+        cur.close()
+        conn.close()
+
+        if result and result[0]:
+            provider = result[0]
             logger.info(f"[MediAI] Avatar provider configured: {provider}")
             return provider
         else:
@@ -418,14 +421,6 @@ async def get_avatar_provider_config() -> str:
             f"[MediAI] Error fetching avatar config from database: {e}")
         logger.info("[MediAI] Defaulting to Tavus")
         return 'tavus'
-    finally:
-        # CRITICAL: Always close connection to prevent leaks
-        if conn is not None:
-            try:
-                await conn.close()
-                logger.debug("[MediAI] Database connection closed")
-            except Exception as close_err:
-                logger.warning(f"[MediAI] Error closing connection: {close_err}")
 
 
 class VideoAnalyzer:
@@ -438,60 +433,66 @@ class VideoAnalyzer:
         self.last_frame_time = 0
         self.metrics_collector = metrics_collector
 
-    def _process_frame_sync(self, frame: rtc.VideoFrame) -> bytes:
-        """Synchronous image processing - runs in separate thread to avoid blocking event loop."""
-        import io
-        import numpy as np
-        from PIL import Image
-        from livekit.rtc import VideoBufferType
-
-        # Convert to RGBA using LiveKit's built-in convert() method
-        rgba_frame = frame.convert(VideoBufferType.RGBA)
-
-        # Get raw RGBA data
-        rgba_data = rgba_frame.data
-
-        # Create numpy array from RGBA data
-        expected_size = rgba_frame.width * rgba_frame.height * 4
-        if len(rgba_data) != expected_size:
-            raise ValueError(f"RGBA data size mismatch: expected {expected_size}, got {len(rgba_data)}")
-
-        # Reshape into image array
-        rgba_array = np.frombuffer(rgba_data, dtype=np.uint8).reshape(
-            (rgba_frame.height, rgba_frame.width, 4))
-
-        # Convert RGBA to RGB (remove alpha channel)
-        rgb_array = rgba_array[:, :, :3]
-
-        # Create PIL Image
-        img = Image.fromarray(rgb_array, mode='RGB')
-
-        # Convert PIL Image to JPEG bytes
-        img_buffer = io.BytesIO()
-        img.save(img_buffer, format='JPEG', quality=85)
-        frame_bytes = img_buffer.getvalue()
-
-        return frame_bytes
-
     async def analyze_frame_gemini(self, frame: rtc.VideoFrame) -> str:
-        """Analyze a LiveKit VideoFrame using Gemini Vision - REAL analysis.
-        
-        Uses asyncio.to_thread for image processing to prevent event loop blocking.
-        """
+        """Analyze a LiveKit VideoFrame using Gemini Vision - REAL analysis."""
+        rgba_frame = None
         try:
+            import io
+            import numpy as np
+            from PIL import Image
+            from livekit.rtc import VideoBufferType
+
             logger.info(
                 f"[Vision] Converting frame {frame.width}x{frame.height} (type={frame.type}) to JPEG..."
             )
 
-            # Offload CPU-intensive image processing to separate thread
-            # This prevents blocking the event loop and causing audio stuttering
-            frame_bytes = await asyncio.to_thread(self._process_frame_sync, frame)
+            # Convert LiveKit VideoFrame to RGBA format for universal compatibility
+            try:
+                # Convert to RGBA using LiveKit's built-in convert() method
+                rgba_frame = frame.convert(VideoBufferType.RGBA)
+
+                # Get raw RGBA data
+                rgba_data = rgba_frame.data
+
+                # Create numpy array from RGBA data
+                # RGBA has 4 bytes per pixel
+                expected_size = rgba_frame.width * rgba_frame.height * 4
+                if len(rgba_data) != expected_size:
+                    logger.error(
+                        f"[Vision] RGBA data size mismatch: expected {expected_size}, got {len(rgba_data)}"
+                    )
+                    return "Erro no tamanho do frame..."
+
+                # Reshape into image array
+                rgba_array = np.frombuffer(rgba_data, dtype=np.uint8).reshape(
+                    (rgba_frame.height, rgba_frame.width, 4))
+
+                # Convert RGBA to RGB (remove alpha channel)
+                rgb_array = rgba_array[:, :, :3]
+
+                # Create PIL Image
+                img = Image.fromarray(rgb_array, mode='RGB')
+
+                logger.info(
+                    f"[Vision] ✅ Converted to RGB via RGBA successfully")
+
+            except Exception as convert_err:
+                logger.error(
+                    f"[Vision] Frame conversion failed: {convert_err}")
+                import traceback
+                traceback.print_exc()
+                return "Erro na conversão do frame..."
+
+            # Convert PIL Image to JPEG bytes
+            img_buffer = io.BytesIO()
+            img.save(img_buffer, format='JPEG', quality=85)
+            frame_bytes = img_buffer.getvalue()
 
             logger.info(
                 f"[Vision] ✅ Frame converted to JPEG ({len(frame_bytes)} bytes)"
             )
 
-            # Analyze with Gemini Vision (async I/O operation)
+            # Analyze with Gemini Vision
             description = await self.analyze_frame(frame_bytes)
 
             # Confirm successful analysis
@@ -501,13 +502,33 @@ class VideoAnalyzer:
                     f"[Vision] 🎉 Real visual analysis completed successfully!")
 
             return description
-            
         except Exception as e:
             logger.error(f"[Vision] ❌ Unexpected error in frame analysis: {e}")
             import traceback
             traceback.print_exc()
             # Don't give up - keep trying on next frame
             return "Processando próximo frame..."
+        finally:
+            # Explicitly free memory to prevent leaks
+            try:
+                if 'rgba_frame' in locals() and rgba_frame:
+                    del rgba_frame
+                if 'rgba_data' in locals():
+                    del rgba_data
+                if 'rgba_array' in locals():
+                    del rgba_array
+                if 'rgb_array' in locals():
+                    del rgb_array
+                if 'img' in locals():
+                    del img
+                if 'img_buffer' in locals():
+                    del img_buffer
+                if 'frame_bytes' in locals():
+                    del frame_bytes
+                import gc
+                gc.collect()
+            except:
+                pass
 
     async def analyze_frame(self, frame_data: bytes) -> str:
         """Analyze a video frame and return description with retry."""
@@ -772,42 +793,6 @@ async def _schedule_appointment_impl(doctor_id: str,
     Returns:
         Confirmação do agendamento
     """
-    # Validação de entrada para prevenir erros
-    try:
-        from datetime import datetime as dt
-        # Validar formato de data
-        parsed_date = dt.strptime(date, '%Y-%m-%d')
-        
-        # Validar que a data não é no passado
-        today = dt.now().date()
-        if parsed_date.date() < today:
-            logger.warning(f"[Schedule] Tentativa de agendar no passado: {date}")
-            return {
-                "success": False, 
-                "error": "Não é possível agendar consultas em datas passadas. Por favor, escolha uma data futura."
-            }
-        
-        # Validar formato de horários
-        dt.strptime(start_time, '%H:%M')
-        dt.strptime(end_time, '%H:%M')
-        
-        # Validar que end_time é após start_time
-        start_dt = dt.strptime(start_time, '%H:%M')
-        end_dt = dt.strptime(end_time, '%H:%M')
-        if end_dt <= start_dt:
-            logger.warning(f"[Schedule] Horário de término antes do início: {start_time} - {end_time}")
-            return {
-                "success": False,
-                "error": "O horário de término deve ser posterior ao horário de início."
-            }
-            
-    except ValueError as ve:
-        logger.error(f"[Schedule] Validação de entrada falhou: {ve}")
-        return {
-            "success": False,
-            "error": f"Formato de data ou horário inválido. Use YYYY-MM-DD para data e HH:MM para horários."
-        }
-    
     if not AGENT_SECRET:
         logger.warning(
             "[AI Tools] Cannot schedule appointment - AGENT_SECRET not configured"
@@ -910,11 +895,6 @@ async def schedule_appointment(context: RunContext,
     
     NUNCA agende sem confirmação explícita do paciente!
     
-    Após o agendamento, confirme verbalmente ao paciente:
-    - Nome do médico escolhido
-    - Data e horário da consulta
-    - Como se preparar para a consulta (se aplicável)
-    
     Args:
         doctor_id: ID do médico escolhido (obtido da busca de médicos)
         patient_name: Nome completo do paciente
@@ -923,19 +903,13 @@ async def schedule_appointment(context: RunContext,
         end_time: Horário de término no formato HH:MM em formato 24h (ex: 15:00)
         notes: Notas ou motivo da consulta fornecidas pelo paciente (opcional)
     """
-    # Obter patient_id do agent instance com validação de tipo segura
-    try:
-        # Type-safe cast to access patient_id attribute
-        from typing import cast
-        agent = cast(MediAIAgent, context.agent)
-        patient_id = agent.patient_id
-        
-        if not patient_id:
-            raise ValueError("Patient ID is None")
-            
-    except (AttributeError, ValueError) as e:
-        logger.error(f"[Tools] Patient ID not available in agent context: {e}")
-        return {"success": False, "error": "Erro interno: ID do paciente não disponível"}
+    # Obter patient_id do agent instance (thread-safe)
+    agent = context.agent
+    patient_id = getattr(agent, 'patient_id', None)
+
+    if not patient_id:
+        logger.error("[Tools] Patient ID not found in agent context!")
+        return {"success": False, "error": "Patient ID not available"}
 
     return await _schedule_appointment_impl(doctor_id=doctor_id,
                                             patient_id=patient_id,
@@ -1178,11 +1152,6 @@ class MediAIAgent(Agent):
                         logger.info(
                             f"[Vision] ✅ REAL visual analysis: {self.visual_context[:100]}..."
                         )
-                        
-                        # NOTE: O contexto visual é armazenado em self.visual_context
-                        # A IA acessa via send_video_frame_to_gemini() que envia frames 
-                        # diretamente para Gemini Live API com visão nativa integrada
-                        logger.info("[Vision] 🎥 Visual context updated - Gemini Live API handles vision natively")
                     else:
                         self.visual_context = "Análise visual temporariamente indisponível."
 
@@ -1439,8 +1408,8 @@ CONTEXTO VISUAL (o que você vê agora):
     # Start background tracking
     tracking_task = asyncio.create_task(track_conversation())
 
-    # Get avatar provider configuration from database (async call)
-    avatar_provider = await get_avatar_provider_config()
+    # Get avatar provider configuration from database
+    avatar_provider = get_avatar_provider_config()
     logger.info(f"[MediAI] 🎭 Avatar provider selected: {avatar_provider}")
 
     # Initialize avatar based on configuration
