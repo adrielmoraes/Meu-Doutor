@@ -14,9 +14,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Texto não fornecido' }, { status: 400 });
     }
 
-    // Usar Gemini 2.5 Flash para gerar áudio em português brasileiro
+    // Usar Gemini 2.5 Flash TTS para gerar áudio em português brasileiro
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.5-flash-preview-tts',
       contents: [{ 
         parts: [{ text: `Fale em português brasileiro de forma natural e clara: ${text}` }] 
       }],
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
         speechConfig: {
           voiceConfig: {
             prebuiltVoiceConfig: {
-              voiceName: 'Aoede'
+              voiceName: 'Erinome'
             }
           }
         }

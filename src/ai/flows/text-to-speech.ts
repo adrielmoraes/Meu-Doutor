@@ -1,14 +1,14 @@
 "use server";
 /**
  * @fileOverview Converts text to speech using Google Gemini TTS API.
- * Uses the native Google Generative AI API for audio generation.
+ * Uses the Google GenAI API with gemini-2.5-flash-preview-tts model.
  *
  * - textToSpeech - A function that handles the text-to-speech conversion.
  * - TextToSpeechInput - The input type for the textToSpeech function.
  * - TextToSpeechOutput - The return type for the textToSpeech function.
  */
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import { z } from "genkit";
 import wav from "wav";
 
@@ -38,37 +38,28 @@ export async function textToSpeech(
       throw new Error("GEMINI_API_KEY não configurada");
     }
 
-    // Use native Google Generative AI API for TTS with audio support
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash-native-audio-preview-09-2025",
+    // Use Google GenAI API with gemini-2.5-flash-preview-tts model
+    const ai = new GoogleGenAI({ 
+      apiKey: process.env.GEMINI_API_KEY
     });
 
-    // Generate content with audio modality
-    const result = await model.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [
-            {
-              text: `Fale em português brasileiro de forma natural e clara: ${input.text}`,
-            },
-          ],
-        },
-      ],
-      generationConfig: {
-        responseModalities: ["AUDIO"],
+    // Generate content with audio modality using TTS model
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-preview-tts',
+      contents: [{ 
+        parts: [{ text: `Fale em português brasileiro de forma natural e clara: ${input.text}` }] 
+      }],
+      config: {
+        responseModalities: ['AUDIO'],
         speechConfig: {
           voiceConfig: {
             prebuiltVoiceConfig: {
-              voiceName: "Erinome",
-            },
-          },
-        },
-      },
+              voiceName: 'Erinome'
+            }
+          }
+        }
+      }
     });
-
-    const response = await result.response;
 
     // Extract audio data from response
     const audioPart = response.candidates?.[0]?.content?.parts?.[0];
