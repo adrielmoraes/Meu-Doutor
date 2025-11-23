@@ -1,0 +1,86 @@
+ Erros de Codificação e Lógica Restantes
+Apesar das melhorias, ainda existem pontos que podem causar problemas em produção:
+Gargalo de Conversão de Vídeo (Main Thread):
+O Erro: Na função send_video_frame_to_gemini, a linha:
+code
+Python
+rgba_frame = frame.convert(VideoBufferType.RGBA)
+é executada antes do asyncio.to_thread.
+Impacto: A conversão de YUV (padrão WebRTC) para RGBA envolve cópia de memória e cálculos matemáticos. Em resoluções altas (HD/Full HD), isso pode bloquear o Event Loop por 10-30ms, causando "soluços" no áudio da IA.
+Correção: Mover frame.convert para dentro da função _process_video_frame_sync (dentro da thread).
+Prompt Inconsistente com Visão Nativa:
+O Erro: O system_prompt ainda contém:
+code
+Text
+CONTEXTO VISUAL (o que você vê agora):
+{{visual_context}}
+E o código faz: .replace("{visual_context}", "Aguardando...").
+Impacto: Como agora você usa Visão Nativa (enviando frames binários), o modelo não precisa desse texto placeholder. Na verdade, isso pode confundir a IA ("Por que diz que está aguardando se eu estou vendo a imagem?").
+Correção: Remover a seção de "CONTEXTO VISUAL" do prompt de texto. O Gemini Live entende a imagem implicitamente.
+Gerenciamento de Conexões de Banco (Churning):
+O Erro: As funções get_avatar_provider_config e get_patient_context abrem e fecham uma nova conexão TCP/SSL com o Postgres (await asyncpg.connect) a cada execução.
+Impacto: Latência desnecessária (handshake SSL custoso) e risco de exaurir o pool de conexões do banco sob carga.
+Correção: Criar um asyncpg.create_pool no início do entrypoint e passar o objeto pool para as funções e para o agente.
+Vazamento de Task no Shutdown:
+O Erro: A task video_streaming_task é criada com create_task mas não é explicitamente cancelada no bloco finally.
+Impacto: Embora o fim do processo mate a task, em um ambiente de workers persistentes, isso pode gerar warnings de "Task was destroyed but it is pending".
+3. Análise de Tipagem (Python Type Hinting)
+Tipagem de Funções Utilitárias:
+call_gemini_with_retry(fn): O argumento fn deve ser tipado como Callable[[], Awaitable[Any]].
+MetricsCollector.track_vision: usage_metadata está sem tipo (deveria ser o tipo do objeto retornado pela lib do Gemini, ex: genai.types.UsageMetadata).
+Retorno Opcional:
+Em _process_video_frame_sync, o retorno é bytes ou None. A assinatura da função deveria indicar -> Optional[bytes].
+LiveKit Frames:
+O objeto frame dentro de send_video_frame_to_gemini nem sempre garante ter dados válidos se o stream for interrompido abruptamente. Adicionar verificação if frame is None após o wait_for é prudente.
+4. Melhorias Recomendadas (Refinamento Final)
+A. Otimização do Pipeline de Vídeo
+Mover toda a manipulação pesada para a thread secundária.
+code
+Python
+def _process_video_frame_sync(frame: rtc.VideoFrame) -> Optional[bytes]:
+    # Importações dentro da função ou no topo
+    from livekit.rtc import VideoBufferType
+    from PIL import Image
+    import io
+    import numpy as np
+
+    try:
+        # A conversão pesada acontece AQUI, na thread, não no event loop
+        rgba_frame = frame.convert(VideoBufferType.RGBA)
+        
+        # ... resto do código de redimensionamento e compressão ...
+        return frame_bytes
+    except Exception:
+        return None
+
+# No async loop:
+# Passa o frame bruto para a thread
+frame_bytes = await asyncio.to_thread(_process_video_frame_sync, frame)
+B. Pool de Conexões de Banco de Dados
+Para escalabilidade, use um pool compartilhado.
+code
+Python
+# No entrypoint
+pool = await asyncpg.create_pool(os.getenv('DATABASE_URL'))
+
+try:
+    # Passa o pool para as funções
+    patient_context = await get_patient_context(pool, patient_id)
+    avatar_config = await get_avatar_provider_config(pool)
+    # ...
+finally:
+    await pool.close()
+C. Métricas de Custo de Vídeo
+O MetricsCollector atual conta tokens de texto, mas ignora o custo massivo do vídeo.
+Gemini Flash/Pro: Vídeo é cobrado por segundo ou por tokens de imagem.
+Você está enviando 1 FPS. Cada imagem 768x768 consome tokens (aprox. 258 tokens por imagem no Gemini 1.5, precisa verificar a tabela do 2.0 Flash Live).
+Melhoria: Adicionar self.vision_input_tokens += 258 (valor estimado) a cada chamada bem sucedida de send_video_frame_to_gemini.
+D. Feedback Visual no Prompt
+Embora tenhamos removido o placeholder de texto, ajuda adicionar uma "Dica de Sistema" estática no prompt:
+code
+Python
+system_prompt = """...
+CAPACIDADES VISUAIS:
+Você recebe um fluxo de vídeo ao vivo do paciente. Se notar algo visualmente relevante (expressão de dor, ferimento visível, dificuldade de respiração), mencione isso com tato.
+...""" 
+# Sem placeholders {{...}}

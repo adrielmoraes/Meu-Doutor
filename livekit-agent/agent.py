@@ -386,46 +386,37 @@ class MetricsCollector:
         await self.send_metrics()
 
 
-async def get_avatar_provider_config() -> str:
-    """Fetch avatar provider configuration from database (async version)."""
-    import asyncpg
+async def get_avatar_provider_config(pool) -> str:
+    """Fetch avatar provider configuration from database using connection pool.
     
-    database_url = os.getenv('DATABASE_URL')
-    if not database_url:
+    Args:
+        pool: asyncpg connection pool (shared across all operations)
+    """
+    if not pool:
         logger.warning(
-            "[MediAI] DATABASE_URL not found, defaulting to Tavus")
+            "[MediAI] No database pool available, defaulting to Tavus")
         return 'tavus'
 
-    conn = None
     try:
-        conn = await asyncpg.connect(database_url)
+        async with pool.acquire() as conn:
+            # Query admin settings for avatar provider
+            result = await conn.fetchrow("SELECT avatar_provider FROM admin_settings LIMIT 1")
 
-        # Query admin settings for avatar provider
-        result = await conn.fetchrow("SELECT avatar_provider FROM admin_settings LIMIT 1")
-
-        if result and result['avatar_provider']:
-            provider = result['avatar_provider']
-            logger.info(f"[MediAI] Avatar provider configured: {provider}")
-            return provider
-        else:
-            logger.info(
-                "[MediAI] No avatar provider config found, defaulting to Tavus"
-            )
-            return 'tavus'
+            if result and result['avatar_provider']:
+                provider = result['avatar_provider']
+                logger.info(f"[MediAI] Avatar provider configured: {provider}")
+                return provider
+            else:
+                logger.info(
+                    "[MediAI] No avatar provider config found, defaulting to Tavus"
+                )
+                return 'tavus'
 
     except Exception as e:
         logger.error(
             f"[MediAI] Error fetching avatar config from database: {e}")
         logger.info("[MediAI] Defaulting to Tavus")
         return 'tavus'
-    finally:
-        # CRITICAL: Always close connection to prevent leaks
-        if conn is not None:
-            try:
-                await conn.close()
-                logger.debug("[MediAI] Database connection closed")
-            except Exception as close_err:
-                logger.warning(f"[MediAI] Error closing connection: {close_err}")
 
 
 # =========================================
@@ -434,43 +425,42 @@ async def get_avatar_provider_config() -> str:
 # Seguindo padrão oficial: https://docs.livekit.io/agents/build/tools/
 
 
-async def get_patient_context(patient_id: str) -> str:
-    """Get complete patient context for the AI."""
-    import asyncpg
-
-    database_url = os.getenv('DATABASE_URL')
-    if not database_url:
+async def get_patient_context(pool, patient_id: str) -> str:
+    """Get complete patient context for the AI.
+    
+    Args:
+        pool: asyncpg connection pool (shared across all operations)
+        patient_id: Patient ID to fetch context for
+    """
+    if not pool:
         return "Erro: Database não configurado"
 
     try:
-        conn = await asyncpg.connect(database_url)
+        async with pool.acquire() as conn:
+            patient = await conn.fetchrow(
+                """
+                SELECT name, email, age, reported_symptoms, doctor_notes, exam_results
+                FROM patients WHERE id = $1
+                """, patient_id)
 
-        patient = await conn.fetchrow(
-            """
-            SELECT name, email, age, reported_symptoms, doctor_notes, exam_results
-            FROM patients WHERE id = $1
-        """, patient_id)
+            exams = await conn.fetch(
+                """
+                SELECT type, status, result, preliminary_diagnosis, created_at::text as date
+                FROM exams 
+                WHERE patient_id = $1
+                ORDER BY created_at DESC
+                LIMIT 3
+                """, patient_id)
 
-        exams = await conn.fetch(
-            """
-            SELECT type, status, result, preliminary_diagnosis, created_at::text as date
-            FROM exams 
-            WHERE patient_id = $1
-            ORDER BY created_at DESC
-            LIMIT 3
-        """, patient_id)
+            wellness = await conn.fetchrow(
+                """
+                SELECT wellness_plan FROM patients WHERE id = $1
+                """, patient_id)
 
-        wellness = await conn.fetchrow(
-            """
-            SELECT wellness_plan FROM patients WHERE id = $1
-        """, patient_id)
+            if not patient:
+                return "Erro: Paciente não encontrado"
 
-        await conn.close()
-
-        if not patient:
-            return "Erro: Paciente não encontrado"
-
-        context = f"""
+            context = f"""
 INFORMAÇÕES DO PACIENTE:
 - Nome: {patient['name']}
 - Idade: {patient['age'] if patient['age'] else 'Não informada'} anos
@@ -481,31 +471,31 @@ INFORMAÇÕES DO PACIENTE:
 EXAMES RECENTES ({len(exams)}):
 """
 
-        for i, exam in enumerate(exams, 1):
-            context += f"\n{i}. {exam['type']} - {exam['date']}"
-            context += f"\n   Status: {exam['status']}"
-            context += f"\n   Resultado: {exam['result']}"
-            if exam['preliminary_diagnosis']:
-                context += f"\n   Diagnóstico Preliminar: {exam['preliminary_diagnosis']}"
-            context += "\n"
+            for i, exam in enumerate(exams, 1):
+                context += f"\n{i}. {exam['type']} - {exam['date']}"
+                context += f"\n   Status: {exam['status']}"
+                context += f"\n   Resultado: {exam['result']}"
+                if exam['preliminary_diagnosis']:
+                    context += f"\n   Diagnóstico Preliminar: {exam['preliminary_diagnosis']}"
+                context += "\n"
 
-        if wellness and wellness['wellness_plan']:
-            try:
-                if isinstance(wellness['wellness_plan'], str):
-                    import json
-                    wp = json.loads(wellness['wellness_plan'])
-                else:
-                    wp = wellness['wellness_plan']
+            if wellness and wellness['wellness_plan']:
+                try:
+                    if isinstance(wellness['wellness_plan'], str):
+                        import json
+                        wp = json.loads(wellness['wellness_plan'])
+                    else:
+                        wp = wellness['wellness_plan']
 
-                context += f"\n\nPLANO DE BEM-ESTAR:"
-                if wp.get('dietaryPlan'):
-                    context += f"\nDieta: {wp['dietaryPlan'][:200]}..."
-                if wp.get('exercisePlan'):
-                    context += f"\nExercícios: {wp['exercisePlan'][:200]}..."
-            except:
-                pass
+                    context += f"\n\nPLANO DE BEM-ESTAR:"
+                    if wp.get('dietaryPlan'):
+                        context += f"\nDieta: {wp['dietaryPlan'][:200]}..."
+                    if wp.get('exercisePlan'):
+                        context += f"\nExercícios: {wp['exercisePlan'][:200]}..."
+                except:
+                    pass
 
-        return context
+            return context
 
     except Exception as e:
         logger.error(f"get_patient_context error: {e}")
@@ -850,13 +840,22 @@ class MediAIAgent(Agent):
         self._agent_session = None  # Will be set after session creation
         self.last_frame_send_time = 0  # For 1 FPS throttling in send_video_frame_to_gemini
 
-    def _process_video_frame_sync(self, rgba_frame):
-        """Process video frame synchronously in separate thread (CPU-bound operations)."""
+    def _process_video_frame_sync(self, frame: rtc.VideoFrame) -> Optional[bytes]:
+        """Process video frame synchronously in separate thread (ALL CPU-bound operations).
+        
+        CRITICAL: This runs in a separate thread to avoid blocking the event loop.
+        ALL heavy operations (YUV->RGBA conversion, numpy, PIL, resize, JPEG encoding) happen here.
+        """
         from PIL import Image
         import numpy as np
         import io
+        from livekit.rtc import VideoBufferType
         
         try:
+            # CRITICAL: Convert YUV to RGBA HERE (in thread), not in main event loop
+            # This operation can take 10-30ms on HD frames and would block audio
+            rgba_frame = frame.convert(VideoBufferType.RGBA)
+            
             # Get numpy array
             height = rgba_frame.height
             width = rgba_frame.width
@@ -885,7 +884,6 @@ class MediAIAgent(Agent):
 
     async def send_video_frame_to_gemini(self):
         """Send video frames to Gemini Live API at 1 FPS for native vision."""
-        from livekit.rtc import VideoBufferType
         from google.genai import types
 
         # Throttle to 1 FPS
@@ -916,13 +914,16 @@ class MediAIAgent(Agent):
             frame_event = await asyncio.wait_for(frame_stream.__anext__(),
                                                  timeout=2.0)
             frame = frame_event.frame
-
-            # Convert to RGB buffer
-            rgba_frame = frame.convert(VideoBufferType.RGBA)
             
-            # Process frame in separate thread to avoid blocking event loop
+            # Validate frame
+            if frame is None:
+                logger.debug("[Vision] Received null frame, skipping")
+                return
+            
+            # CRITICAL: Process ENTIRE frame (including YUV->RGBA conversion) in separate thread
+            # This prevents blocking the event loop (which would cause audio stuttering)
             frame_bytes = await asyncio.to_thread(
-                self._process_video_frame_sync, rgba_frame
+                self._process_video_frame_sync, frame
             )
             
             if not frame_bytes:
@@ -939,6 +940,10 @@ class MediAIAgent(Agent):
                 logger.info(
                     f"[Vision] 📹 Sent 768x768 frame to Gemini Live API ({len(frame_bytes)} bytes)"
                 )
+                
+                # Track vision input cost (approx. 258 tokens per 768x768 image)
+                if self.metrics_collector:
+                    self.metrics_collector.vision_input_tokens += 258
 
         except asyncio.TimeoutError:
             pass  # No frame available, skip
@@ -1005,6 +1010,23 @@ async def entrypoint(ctx: JobContext):
 
     logger.info(f"[MediAI] 🎯 Starting agent for patient: {patient_id}")
 
+    # Create database connection pool (prevents connection churning)
+    import asyncpg
+    database_url = os.getenv('DATABASE_URL')
+    
+    pool = None
+    if database_url:
+        try:
+            pool = await asyncpg.create_pool(
+                database_url,
+                min_size=1,
+                max_size=5,
+                command_timeout=10
+            )
+            logger.info("[MediAI] 💾 Database connection pool created")
+        except Exception as pool_error:
+            logger.error(f"[MediAI] Failed to create database pool: {pool_error}")
+
     # Criar MetricsCollector
     session_id = ctx.room.name or f"session-{int(time.time())}"
     metrics_collector = MetricsCollector(patient_id=patient_id,
@@ -1013,7 +1035,7 @@ async def entrypoint(ctx: JobContext):
         f"[Metrics] 📊 Iniciado coletor de métricas para sessão {session_id}")
 
     logger.info(f"[MediAI] 📋 Loading patient context...")
-    patient_context = await get_patient_context(patient_id)
+    patient_context = await get_patient_context(pool, patient_id)
     logger.info(
         f"[MediAI] ✅ Patient context loaded ({len(patient_context)} chars)")
 
@@ -1081,11 +1103,11 @@ PROTOCOLO DE CONVERSA:
 
 IMPORTANTE: Mantenha suas respostas curtas e objetivas. Faça perguntas uma de cada vez e aguarde a resposta do paciente antes de continuar. Seja natural e conversacional.
 
+CAPACIDADES VISUAIS EM TEMPO REAL:
+Você recebe frames de vídeo ao vivo do paciente (1 frame por segundo) através da sua capacidade de visão integrada. Se notar algo visualmente relevante para o atendimento médico (expressão de dor, ferimento visível, dificuldade de respiração, sinais físicos), mencione com tato e profissionalismo quando apropriado.
+
 CONTEXTO DO PACIENTE:
 {patient_context}
-
-CONTEXTO VISUAL (o que você vê agora):
-{{visual_context}}
 """
 
     logger.info(f"[MediAI] 🎙️ Creating agent session with Gemini Live API...")
@@ -1149,6 +1171,7 @@ CONTEXTO VISUAL (o que você vê agora):
         except asyncio.CancelledError:
             logger.info("[Vision] 🛑 Video streaming stopped")
     
+    # Store task reference for cleanup in finally block
     video_streaming_task = asyncio.create_task(stream_video_to_gemini())
     logger.info("[MediAI] 🎥 Gemini Live native vision enabled - AI can see patient in real-time")
 
@@ -1177,8 +1200,8 @@ CONTEXTO VISUAL (o que você vê agora):
     # Start background tracking
     tracking_task = asyncio.create_task(track_conversation())
 
-    # Get avatar provider configuration from database (async call)
-    avatar_provider = await get_avatar_provider_config()
+    # Get avatar provider configuration from database (async call with pool)
+    avatar_provider = await get_avatar_provider_config(pool)
     logger.info(f"[MediAI] 🎭 Avatar provider selected: {avatar_provider}")
 
     # Initialize avatar based on configuration
@@ -1251,8 +1274,17 @@ CONTEXTO VISUAL (o que você vê agora):
         # Cleanup and send final metrics
         logger.info("[MediAI] 🛑 Session ending, cleaning up...")
 
+        # Stop video streaming task
+        if 'video_streaming_task' in locals() and video_streaming_task:
+            logger.info("[Vision] Stopping video streaming...")
+            video_streaming_task.cancel()
+            try:
+                await video_streaming_task
+            except asyncio.CancelledError:
+                pass
+
         # Stop tracking task
-        if tracking_task:
+        if 'tracking_task' in locals() and tracking_task:
             tracking_task.cancel()
             try:
                 await tracking_task
@@ -1260,8 +1292,13 @@ CONTEXTO VISUAL (o que você vê agora):
                 pass
 
         # Stop metrics collector and send final metrics
-        if metrics_collector:
+        if 'metrics_collector' in locals() and metrics_collector:
             await metrics_collector.stop()
+
+        # Close database connection pool
+        if 'pool' in locals() and pool:
+            logger.info("[MediAI] 💾 Closing database connection pool...")
+            await pool.close()
 
         logger.info("[MediAI] ✅ Cleanup complete")
 
