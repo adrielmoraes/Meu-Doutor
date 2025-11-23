@@ -11,6 +11,7 @@ import os
 import asyncio
 import base64
 import time
+import io
 from typing import Optional
 from pathlib import Path
 from datetime import datetime
@@ -19,8 +20,12 @@ from livekit.agents import JobContext, WorkerOptions, cli, Agent, llm, function_
 from livekit.agents.voice import AgentSession
 from livekit.plugins import tavus, bey, google
 from livekit import rtc
+from livekit.rtc import VideoBufferType
 import google.generativeai as genai
+from google.genai import types
 import httpx
+import numpy as np
+from PIL import Image
 
 from tenacity import (retry, stop_after_attempt, wait_exponential,
                       retry_if_exception_type, before_sleep_log)
@@ -28,7 +33,8 @@ from tenacity import (retry, stop_after_attempt, wait_exponential,
 load_dotenv(dotenv_path=Path(__file__).parent / '.env')
 
 # Fail-fast validation: Check critical environment variables before starting
-required_vars = ['GEMINI_API_KEY', 'DATABASE_URL', 'LIVEKIT_URL', 'LIVEKIT_API_KEY', 'LIVEKIT_API_SECRET']
+# Note: Only GEMINI_API_KEY is truly required; DATABASE_URL is optional (agent can run without metrics)
+required_vars = ['GEMINI_API_KEY']
 missing = [var for var in required_vars if not os.getenv(var)]
 if missing:
     raise RuntimeError(f"CRITICAL: Missing required environment variables: {', '.join(missing)}")
@@ -852,11 +858,6 @@ class MediAIAgent(Agent):
         CRITICAL: This runs in a separate thread to avoid blocking the event loop.
         ALL heavy operations (YUV->RGBA conversion, numpy, PIL, resize, JPEG encoding) happen here.
         """
-        from PIL import Image
-        import numpy as np
-        import io
-        from livekit.rtc import VideoBufferType
-        
         try:
             # CRITICAL: Convert YUV to RGBA HERE (in thread), not in main event loop
             # This operation can take 10-30ms on HD frames and would block audio
@@ -890,8 +891,6 @@ class MediAIAgent(Agent):
 
     async def send_video_frame_to_gemini(self):
         """Send video frames to Gemini Live API at 1 FPS for native vision."""
-        from google.genai import types
-
         # Throttle to 1 FPS
         current_time = time.time()
         if current_time - self.last_frame_send_time < 1.0:
