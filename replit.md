@@ -8,6 +8,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### November 23, 2025 - Admin Patient Quota Management System
+- **Custom quota system implemented** - Admins can now override default plan limits for individual patients through the admin panel
+- **Quota types supported** - examAnalysis, aiConsultationMinutes, doctorConsultationMinutes, therapistChat, and trialDurationDays
+- **Database schema updated** - Added `custom_quotas` JSONB column to patients table for flexible per-patient overrides
+- **Priority logic implemented** - Custom quotas take precedence over default plan limits in `canUseResource` and `getUsageSummary` functions
+- **Admin UI component** - PatientQuotaManager provides intuitive interface for managing quotas with form validation
+- **Secure server actions** - updatePatientQuotas enforces admin authentication and sanitizes null values
+- **Known limitation** - trialDurationDays custom quota is saved but not yet enforced in subscription expiry logic (requires subscription management refactoring)
+
 ### November 15, 2025 - Avatar AI Agent: Real Vision & Doctor Recommendations Fixed
 - **Fixed real-time camera vision** - Implemented REAL visual analysis using Gemini Vision API with LiveKit frame.to_image() for universal format compatibility
 - **Fixed doctor recommendations** - AI now queries actual database for doctors instead of hallucinating names; strict anti-hallucination rules enforced in system prompt
@@ -65,7 +74,7 @@ Preferred communication style: Simple, everyday language.
 - **AI Therapist Chat**: Bidirectional voice chat with WhatsApp-style audio features and voice support.
 - **Medical Analysis**: A multi-specialist medical analysis system where exam uploads trigger parallel consultation with up to 15 specialist AI agents, coordinated by an orchestrator AI. This provides deep domain-specific analysis with complete traceability, returning structured data including suggested medications, treatment plans, monitoring protocols, contraindications, and relevant metrics. The orchestrator synthesizes this into an integrated medication plan and detailed recommendations.
 - **Data Visualization**: Exam history visualization with interactive time-series graphs using Recharts.
-- **Admin System**: Comprehensive admin panel for platform oversight, including user management, exam review, consultation monitoring, resource usage tracking, and platform settings configuration. Features include secure login, audit logging, email notifications for key events, and **avatar provider selection** (Tavus vs Beyond Presence) for AI consultations.
+- **Admin System**: Comprehensive admin panel for platform oversight, including user management, exam review, consultation monitoring, resource usage tracking, and platform settings configuration. Features include secure login, audit logging, email notifications for key events, **avatar provider selection** (Tavus vs Beyond Presence) for AI consultations, and **custom patient quota management** allowing admins to override default plan limits on a per-patient basis for exam analysis, AI consultation minutes, doctor consultation minutes, therapist chat, and trial duration.
 - **Email Verification**: System for patient and doctor email verification with unique CPF/CRM validation and secure token-based verification.
 - **Subscription Management**: Integrated Stripe for handling subscription plans (Trial, Basic, Premium, Family) with usage-based tiers, secure payment processing, and webhook integration. Includes a 7-day free trial.
 - **Security & Monitoring**: Implemented comprehensive security headers (CSP, X-Frame-Options, etc.), Sentry for error tracking, structured logging, and usage tracking for resource consumption per patient.
