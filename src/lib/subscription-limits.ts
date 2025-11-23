@@ -11,7 +11,7 @@ export const PLAN_LIMITS = {
     aiConsultationMinutes: 5,
     doctorConsultationMinutes: 0,
     therapistChat: Infinity, // ilimitado
-    durationDays: 7,
+    trialDurationDays: 7,
   },
   basico: {
     examAnalysis: 20,
@@ -110,7 +110,14 @@ export async function canUseResource(
   }
 
   const limits = PLAN_LIMITS[planId];
-  const limit = limits[resourceType];
+  
+  const { getPatientById } = await import('./db-adapter');
+  const patient = await getPatientById(patientId);
+  
+  const customQuotaValue = patient?.customQuotas?.[resourceType];
+  const limit = customQuotaValue !== undefined && customQuotaValue !== null 
+    ? customQuotaValue 
+    : limits[resourceType];
 
   // Se for ilimitado, permitir
   if (limit === Infinity) {
@@ -196,6 +203,13 @@ export async function getUsageSummary(patientId: string) {
   }
 
   const limits = PLAN_LIMITS[planId];
+  
+  const { getPatientById } = await import('./db-adapter');
+  const patient = await getPatientById(patientId);
+  
+  const examLimit = patient?.customQuotas?.examAnalysis ?? limits.examAnalysis;
+  const aiMinLimit = patient?.customQuotas?.aiConsultationMinutes ?? limits.aiConsultationMinutes;
+  const doctorMinLimit = patient?.customQuotas?.doctorConsultationMinutes ?? limits.doctorConsultationMinutes;
 
   const [examAnalysis, aiMinutes, doctorMinutes] = await Promise.all([
     getCurrentMonthUsage(patientId, 'exam_analysis'),
@@ -206,20 +220,21 @@ export async function getUsageSummary(patientId: string) {
   return {
     planId,
     planName: getPlanName(planId),
+    hasCustomQuotas: !!patient?.customQuotas,
     examAnalysis: {
       current: examAnalysis,
-      limit: limits.examAnalysis,
-      percentage: limits.examAnalysis === Infinity ? 0 : (examAnalysis / limits.examAnalysis) * 100,
+      limit: examLimit,
+      percentage: examLimit === Infinity ? 0 : (examAnalysis / examLimit) * 100,
     },
     aiConsultation: {
       current: aiMinutes,
-      limit: limits.aiConsultationMinutes,
-      percentage: limits.aiConsultationMinutes === Infinity ? 0 : (aiMinutes / limits.aiConsultationMinutes) * 100,
+      limit: aiMinLimit,
+      percentage: aiMinLimit === Infinity ? 0 : (aiMinutes / aiMinLimit) * 100,
     },
     doctorConsultation: {
       current: doctorMinutes,
-      limit: limits.doctorConsultationMinutes,
-      percentage: limits.doctorConsultationMinutes === Infinity ? 0 : (doctorMinutes / limits.doctorConsultationMinutes) * 100,
+      limit: doctorMinLimit,
+      percentage: doctorMinLimit === Infinity ? 0 : (doctorMinutes / doctorMinLimit) * 100,
     },
   };
 }

@@ -4,12 +4,15 @@ import { ArrowLeft, User, Mail, Phone, MapPin, CalendarDays, FileText, MessageSq
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import PatientQuotaManager from "@/components/admin/patient-quota-manager";
+import { getSubscriptionByPatientId } from "@/lib/subscription-adapter";
 
 export default async function AdminPatientDetailPage({ params }: { params: { id: string } }) {
-  const [patient, exams, consultations] = await Promise.all([
+  const [patient, exams, consultations, subscription] = await Promise.all([
     getPatientById(params.id),
     getExamsByPatientId(params.id),
-    getConsultationsByPatient(params.id)
+    getConsultationsByPatient(params.id),
+    getSubscriptionByPatientId(params.id)
   ]);
 
   if (!patient) {
@@ -126,6 +129,13 @@ export default async function AdminPatientDetailPage({ params }: { params: { id:
           </CardContent>
         </Card>
       </div>
+
+      {/* Patient Quota Manager */}
+      <PatientQuotaManager 
+        patientId={patient.id}
+        customQuotas={patient.customQuotas}
+        currentPlan={subscription?.planId || 'trial'}
+      />
 
       {/* Exams List */}
       <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-green-500/20">

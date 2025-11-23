@@ -57,6 +57,13 @@ export const patients = pgTable('patients', {
     }>;
     lastUpdated: string;
   }>(),
+  customQuotas: json('custom_quotas').$type<{
+    examAnalysis?: number;
+    aiConsultationMinutes?: number;
+    doctorConsultationMinutes?: number;
+    therapistChat?: number;
+    trialDurationDays?: number;
+  }>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

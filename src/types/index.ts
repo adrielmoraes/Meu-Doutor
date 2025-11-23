@@ -69,6 +69,13 @@ export type Patient = {
     }>;
     lastUpdated: string;
   };
+  customQuotas?: {
+    examAnalysis?: number;
+    aiConsultationMinutes?: number;
+    doctorConsultationMinutes?: number;
+    therapistChat?: number;
+    trialDurationDays?: number;
+  };
 };
 
 // Type for authentication that includes the hashed password
