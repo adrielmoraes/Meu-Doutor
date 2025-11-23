@@ -1,15 +1,16 @@
 "use server";
 /**
- * @fileOverview Converts text to speech using Google Cloud Text-to-Speech API.
- * Specialized service for high-quality audio generation in Portuguese (Brazil).
+ * @fileOverview Converts text to speech using Google Gemini TTS API.
+ * Uses the native Google Generative AI API for audio generation.
  *
  * - textToSpeech - A function that handles the text-to-speech conversion.
  * - TextToSpeechInput - The input type for the textToSpeech function.
  * - TextToSpeechOutput - The return type for the textToSpeech function.
  */
 
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { z } from "genkit";
-import fetch from "node-fetch";
+import wav from "wav";
 
 const TextToSpeechInputSchema = z.object({
   text: z.string().describe("The text to be converted to speech."),
@@ -20,7 +21,7 @@ const TextToSpeechOutputSchema = z.object({
   audioDataUri: z
     .string()
     .describe(
-      "The generated audio as a data URI. Expected format: 'data:audio/mp3;base64,<encoded_data>'.",
+      "The generated audio as a data URI. Expected format: 'data:audio/wav;base64,<encoded_data>'.",
     ),
 });
 export type TextToSpeechOutput = z.infer<typeof TextToSpeechOutputSchema>;
@@ -37,91 +38,88 @@ export async function textToSpeech(
       throw new Error("GEMINI_API_KEY não configurada");
     }
 
-    // Use Google Cloud Text-to-Speech API via REST
-    const apiUrl = "https://texttospeech.googleapis.com/v1/text:synthesize";
-    
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        input: {
-          text: input.text,
+    // Use native Google Generative AI API for TTS with audio support
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash-native-audio-preview-09-2025",
+    });
+
+    // Generate content with audio modality
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `Fale em português brasileiro de forma natural e clara: ${input.text}`,
+            },
+          ],
         },
-        voice: {
-          languageCode: "pt-BR",
-          name: "pt-BR-Neural2-C", // Female voice, neural quality
+      ],
+      generationConfig: {
+        responseModalities: ["AUDIO"],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: {
+              voiceName: "Erinome",
+            },
+          },
         },
-        audioConfig: {
-          audioEncoding: "MP3",
-          pitch: 0,
-          speakingRate: 1,
-        },
-      }),
-      // @ts-ignore
-      query: {
-        key: process.env.GEMINI_API_KEY,
       },
     });
 
-    // Add API key as query parameter
-    const urlWithKey = `${apiUrl}?key=${process.env.GEMINI_API_KEY}`;
-    
-    const ttsResponse = await fetch(urlWithKey, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        input: {
-          text: input.text,
-        },
-        voice: {
-          languageCode: "pt-BR",
-          name: "pt-BR-Neural2-C", // Female voice, neural quality
-        },
-        audioConfig: {
-          audioEncoding: "MP3",
-          pitch: 0,
-          speakingRate: 1,
-        },
-      }),
+    const response = await result.response;
+
+    // Extract audio data from response
+    const audioPart = response.candidates?.[0]?.content?.parts?.[0];
+
+    if (!audioPart || !audioPart.inlineData?.data) {
+      console.error(
+        "[TTS Flow] No audio in response:",
+        JSON.stringify(response, null, 2),
+      );
+      throw new Error(
+        "TTS model did not return audio. The text might be too long or contain unsupported characters.",
+      );
+    }
+
+    // Convert PCM audio to WAV format
+    const audioBuffer = Buffer.from(audioPart.inlineData.data, "base64");
+
+    const wavBase64 = await new Promise<string>((resolve, reject) => {
+      const writer = new wav.Writer({
+        channels: 1,
+        sampleRate: 24000,
+        bitDepth: 16,
+      });
+      const bufs: any[] = [];
+      writer.on("data", (chunk) => bufs.push(chunk));
+      writer.on("end", () => resolve(Buffer.concat(bufs).toString("base64")));
+      writer.on("error", reject);
+      writer.end(audioBuffer);
     });
 
-    if (!ttsResponse.ok) {
-      const errorData = await ttsResponse.text();
-      console.error("[TTS Flow] API Error:", errorData);
-      throw new Error(`TTS API error: ${ttsResponse.status} ${ttsResponse.statusText}`);
-    }
-
-    const data = await ttsResponse.json() as any;
-
-    if (!data.audioContent) {
-      throw new Error("TTS API did not return audio content.");
-    }
-
-    // Audio content is already base64 encoded from the API
     return {
-      audioDataUri: `data:audio/mp3;base64,${data.audioContent}`,
+      audioDataUri: "data:audio/wav;base64," + wavBase64,
     };
   } catch (error) {
     console.error("[TTS Flow] TTS generation failed:", error);
 
     if (error instanceof Error) {
-      if (error.message.includes("403")) {
+      if (
+        error.message.includes("403") &&
+        (error.message.includes("API_KEY_SERVICE_BLOCKED") ||
+          error.message.includes(
+            "generativelanguage.googleapis.com are blocked",
+          ))
+      ) {
         throw new Error(
-          `A API Text-to-Speech não está habilitada. Ative-a no Google Cloud Console.`,
+          `A API Generative Language não está habilitada no seu projeto do Google Cloud. Por favor, ative-a e tente novamente.`,
         );
       }
-      if (error.message.includes("404")) {
+      if (error.message.includes("404 Not Found")) {
         throw new Error(
-          `Voz PT-BR não encontrada. Verifique a configuração da voz.`,
-        );
-      }
-      if (error.message.includes("UNAUTHENTICATED")) {
-        throw new Error(
-          `Erro de autenticação. Verifique a GEMINI_API_KEY.`,
+          `Falha na geração de áudio: O modelo de TTS especificado não foi encontrado. Verifique o nome do modelo.`,
         );
       }
       throw new Error(`Falha na geração de áudio: ${error.message}`);
