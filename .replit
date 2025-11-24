@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "python-3.11", "bash", "web", "postgresql-16"]
+modules = ["nodejs-20", "python-3.11", "bash", "web"]
 [agent]
 expertMode = true
 integrations = ["resend:1.0.0"]
@@ -12,7 +12,7 @@ run = ["npm", "run", "start"]
 build = ["npm", "run", "build"]
 
 [workflows]
-runButton = "Avatar AI Agent"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
