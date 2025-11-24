@@ -210,24 +210,24 @@ export default function PatientDetailView({
                                         )}
 
                                         <div className="p-4 bg-muted/50 rounded-lg">
-                                            <h4 className="font-semibold text-sm mb-2 text-primary">Análise Preliminar da IA</h4>
-                                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{exam.preliminaryDiagnosis}</p>
+                                            <h4 className="font-semibold text-lg mb-3 text-primary">Análise Preliminar da IA</h4>
+                                            <p className="text-base text-white whitespace-pre-wrap leading-relaxed">{exam.preliminaryDiagnosis}</p>
                                         </div>
                                         
                                         <div className="p-4 border rounded-lg">
-                                            <h3 className="font-semibold mb-2">Seu Diagnóstico e Validação</h3>
-                                            <Button onClick={() => handleGenerateDiagnosis(exam.id)} disabled={state?.isGenerating} className="mb-4 w-full">
-                                                {state?.isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                                            <h3 className="font-bold text-xl mb-3 text-white">Seu Diagnóstico e Validação</h3>
+                                            <Button onClick={() => handleGenerateDiagnosis(exam.id)} disabled={state?.isGenerating} className="mb-4 w-full text-base">
+                                                {state?.isGenerating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
                                                 {state?.isGenerating ? "Consultando Especialistas..." : "Gerar Parecer da Equipe de IAs"}
                                             </Button>
 
                                             {state?.generatedDiagnosis && (
-                                                <div className="p-3 bg-muted/50 rounded-lg mb-4">
-                                                    <h4 className="font-semibold text-sm mb-2 text-primary">Pareceres da Equipe de IAs</h4>
-                                                    <ul className="space-y-2 text-xs">
+                                                <div className="p-4 bg-muted/50 rounded-lg mb-4">
+                                                    <h4 className="font-bold text-lg mb-3 text-primary">Pareceres da Equipe de IAs</h4>
+                                                    <ul className="space-y-3 text-base">
                                                         {state.generatedDiagnosis.structuredFindings.map(finding => (
-                                                            <li key={finding.specialist} className="border-l-2 pl-2">
-                                                                <span className="font-bold">{finding.specialist}:</span> {finding.findings}
+                                                            <li key={finding.specialist} className="border-l-2 pl-3 text-white leading-relaxed">
+                                                                <span className="font-bold text-white">{finding.specialist}:</span> {finding.findings}
                                                             </li>
                                                         ))}
                                                     </ul>
@@ -327,19 +327,19 @@ export default function PatientDetailView({
         <div className="lg:col-span-1">
             <Card>
                 <CardHeader>
-                <CardTitle className="flex items-center gap-2"><User className="h-5 w-5"/>Resumo do Paciente</CardTitle>
-                <CardDescription>
+                <CardTitle className="flex items-center gap-2 text-xl"><User className="h-6 w-6"/>Resumo do Paciente</CardTitle>
+                <CardDescription className="text-base">
                     Gerado pela IA a partir das interações do paciente.
                 </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <ScrollArea className="h-48">
-                        <p className="whitespace-pre-wrap leading-relaxed text-sm text-muted-foreground pr-4">{summary}</p>
+                        <p className="whitespace-pre-wrap leading-relaxed text-base text-white pr-4">{summary}</p>
                     </ScrollArea>
                     <Separator className="my-4" />
-                     <h4 className="font-semibold mb-2 text-sm">Dados Brutos Combinados</h4>
+                     <h4 className="font-bold mb-3 text-base text-white">Dados Brutos Combinados</h4>
                      <ScrollArea className="h-48">
-                        <pre className="p-2 bg-muted rounded-md text-xs text-muted-foreground overflow-x-auto pr-4">
+                        <pre className="p-3 bg-muted rounded-md text-sm text-white overflow-x-auto pr-4 leading-relaxed">
                             <code>{patient.examResults || "Nenhum dado bruto registrado."}</code>
                         </pre>
                     </ScrollArea>
