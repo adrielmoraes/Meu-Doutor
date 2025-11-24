@@ -7,6 +7,11 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle, Clock, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 
+// Force dynamic rendering to always fetch fresh quota data
+// This ensures custom quotas set by admin are immediately reflected
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function LiveConsultationPage() {
   const session = await getSession();
 

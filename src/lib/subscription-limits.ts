@@ -97,9 +97,67 @@ export async function canUseResource(
   planId: string;
   message?: string;
 }> {
+  console.log(`[canUseResource] 🔍 Verificando recurso "${resourceType}" para paciente ${patientId}`);
+  
+  // PASSO 1: Buscar paciente e verificar customQuotas PRIMEIRO
+  const { getPatientById } = await import('./db-adapter');
+  const patient = await getPatientById(patientId);
+  
+  console.log(`[canUseResource] customQuotas do paciente:`, JSON.stringify(patient?.customQuotas));
+  
+  const customQuotaValue = patient?.customQuotas?.[resourceType];
+  
+  // PASSO 2: Se houver cota customizada, usar ela e IGNORAR verificação de subscrição
+  if (customQuotaValue !== undefined && customQuotaValue !== null) {
+    console.log(`[canUseResource] ✅ COTA CUSTOMIZADA ENCONTRADA: ${customQuotaValue}`);
+    console.log(`[canUseResource] Ignorando verificação de subscrição (admin override)`);
+    
+    const limit = customQuotaValue;
+    
+    // Mapear tipo de recurso para tipo de uso no banco
+    const usageTypeMap: Record<LimitType, string> = {
+      examAnalysis: 'exam_analysis',
+      aiConsultationMinutes: 'ai_call',
+      doctorConsultationMinutes: 'doctor_call',
+      therapistChat: 'chat',
+    };
+
+    const current = await getCurrentMonthUsage(patientId, usageTypeMap[resourceType]);
+    
+    console.log(`[canUseResource] Uso atual: ${current}, Limite customizado: ${limit}`);
+    
+    // Se for ilimitado, permitir
+    if (limit === Infinity) {
+      return {
+        allowed: true,
+        current,
+        limit: Infinity,
+        planId: 'custom',
+      };
+    }
+
+    const allowed = current < limit;
+    
+    console.log(`[canUseResource] Resultado: allowed=${allowed}`);
+
+    return {
+      allowed,
+      current,
+      limit,
+      planId: 'custom',
+      message: allowed
+        ? undefined
+        : `Você atingiu o limite de ${limit} ${getLimitLabel(resourceType)} definido pelo administrador.`,
+    };
+  }
+  
+  // PASSO 3: Se NÃO houver cota customizada, verificar subscrição normalmente
+  console.log(`[canUseResource] ℹ️ Nenhuma cota customizada. Verificando subscrição...`);
+  
   const { hasActive, planId, subscription } = await checkActiveSubscription(patientId);
 
   if (!hasActive || !planId) {
+    console.log(`[canUseResource] ❌ Sem subscrição ativa e sem customQuotas`);
     return {
       allowed: false,
       current: 0,
@@ -110,21 +168,9 @@ export async function canUseResource(
   }
 
   const limits = PLAN_LIMITS[planId];
+  const limit = limits[resourceType];
   
-  const { getPatientById } = await import('./db-adapter');
-  const patient = await getPatientById(patientId);
-  
-  console.log(`[canUseResource] Paciente ${patientId}, Recurso: ${resourceType}`);
-  console.log(`[canUseResource] Plano atual: ${planId}, Limite padrão: ${limits[resourceType]}`);
-  console.log(`[canUseResource] customQuotas do paciente:`, patient?.customQuotas);
-  
-  const customQuotaValue = patient?.customQuotas?.[resourceType];
-  const limit = customQuotaValue !== undefined && customQuotaValue !== null 
-    ? customQuotaValue 
-    : limits[resourceType];
-  
-  console.log(`[canUseResource] Cota customizada para ${resourceType}:`, customQuotaValue);
-  console.log(`[canUseResource] Limite FINAL aplicado:`, limit);
+  console.log(`[canUseResource] Plano: ${planId}, Limite padrão: ${limit}`);
 
   // Mapear tipo de recurso para tipo de uso no banco
   const usageTypeMap: Record<LimitType, string> = {
