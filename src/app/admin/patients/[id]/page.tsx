@@ -7,6 +7,11 @@ import { notFound } from "next/navigation";
 import PatientQuotaManager from "@/components/admin/patient-quota-manager";
 import { getSubscriptionByPatientId } from "@/lib/subscription-adapter";
 
+// Force dynamic rendering to always fetch fresh data from database
+// This prevents Next.js from caching the patient data, ensuring custom quotas are always up-to-date
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminPatientDetailPage({ params }: { params: { id: string } }) {
   const [patient, exams, consultations, subscription] = await Promise.all([
     getPatientById(params.id),

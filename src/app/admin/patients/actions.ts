@@ -28,6 +28,9 @@ export async function updatePatientQuotas(
       };
     }
 
+    console.log('[updatePatientQuotas] Iniciando atualização de cotas para paciente:', patientId);
+    console.log('[updatePatientQuotas] Cotas recebidas:', JSON.stringify(quotas, null, 2));
+
     const cleanedQuotas: Record<string, number> = {};
     
     for (const [key, value] of Object.entries(quotas)) {
@@ -40,6 +43,8 @@ export async function updatePatientQuotas(
       ? cleanedQuotas 
       : null;
 
+    console.log('[updatePatientQuotas] Cotas a serem salvas no banco:', JSON.stringify(customQuotasToSave, null, 2));
+
     await db
       .update(patients)
       .set({
@@ -48,15 +53,23 @@ export async function updatePatientQuotas(
       })
       .where(eq(patients.id, patientId));
 
-    revalidatePath(`/admin/patients/${patientId}`);
-    revalidatePath('/admin/patients');
+    // Verificar se foi salvo corretamente
+    const updatedPatient = await db.select().from(patients).where(eq(patients.id, patientId)).limit(1);
+    console.log('[updatePatientQuotas] Cotas salvas no banco (verificação):', JSON.stringify(updatedPatient[0]?.customQuotas, null, 2));
+
+    // Revalidação agressiva de cache
+    revalidatePath(`/admin/patients/${patientId}`, 'page');
+    revalidatePath('/admin/patients', 'page');
+    revalidatePath('/api/check-limit', 'page');
+
+    console.log('[updatePatientQuotas] ✅ Cotas atualizadas e cache invalidado com sucesso!');
 
     return {
       success: true,
       message: 'Cotas atualizadas com sucesso!',
     };
   } catch (error: any) {
-    console.error('[updatePatientQuotas] Error:', error);
+    console.error('[updatePatientQuotas] ❌ Erro ao atualizar cotas:', error);
     return {
       success: false,
       message: error.message || 'Erro ao atualizar cotas do paciente.',

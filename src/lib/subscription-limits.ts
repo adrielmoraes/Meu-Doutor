@@ -114,10 +114,17 @@ export async function canUseResource(
   const { getPatientById } = await import('./db-adapter');
   const patient = await getPatientById(patientId);
   
+  console.log(`[canUseResource] Paciente ${patientId}, Recurso: ${resourceType}`);
+  console.log(`[canUseResource] Plano atual: ${planId}, Limite padrão: ${limits[resourceType]}`);
+  console.log(`[canUseResource] customQuotas do paciente:`, patient?.customQuotas);
+  
   const customQuotaValue = patient?.customQuotas?.[resourceType];
   const limit = customQuotaValue !== undefined && customQuotaValue !== null 
     ? customQuotaValue 
     : limits[resourceType];
+  
+  console.log(`[canUseResource] Cota customizada para ${resourceType}:`, customQuotaValue);
+  console.log(`[canUseResource] Limite FINAL aplicado:`, limit);
 
   // Mapear tipo de recurso para tipo de uso no banco
   const usageTypeMap: Record<LimitType, string> = {
