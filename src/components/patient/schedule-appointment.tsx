@@ -34,8 +34,11 @@ export default function ScheduleAppointment({ doctor, patientId, doctorAvailabil
   const initialState = { message: null, errors: {}, success: false };
   const [state, formAction] = useActionState(scheduleAppointmentAction, initialState);
 
+  // Garantir que doctorAvailability seja sempre um array válido
+  const availability = Array.isArray(doctorAvailability) ? doctorAvailability : [];
+
   // Destaque os dias com disponibilidade no calendário
-  const availableDays = doctorAvailability
+  const availableDays = availability
     .filter(slot => slot.available) // Apenas slots disponíveis
     .map(slot => parseISO(slot.date)); // Converter string para Date para o Calendar
 
