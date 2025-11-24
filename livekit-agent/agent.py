@@ -1308,4 +1308,8 @@ CONTEXTO DO PACIENTE:
 
 
 if __name__ == "__main__":
-    cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint, ))
+    cli.run_app(WorkerOptions(
+        entrypoint_fnc=entrypoint,
+        num_idle_processes=0,  # Reduced from 4 to 0 to optimize memory usage in Replit
+        job_memory_warn_mb=1500,  # Increased threshold to reduce warnings
+    ))
