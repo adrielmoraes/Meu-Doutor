@@ -1,0 +1,144 @@
+spark
+Gemini 3 Pro Preview
+New
+gemini-3-pro-preview
+info
+Our most intelligent model with SOTA reasoning and multimodal understanding, and powerful agentic and vibe coding capabilities
+attach_money
+<=200K tokens • Input: $2,00 / Output: $12,00
+attach_money
+> 200K tokens • Input: $4,00 / Output: $18,00
+network_intelligence_history
+Knowledge cut off: jan. 2025
+
+Nano Banana Pro
+New
+gemini-3-pro-image-preview
+spark
+Gemini 3 Pro Image Preview
+info
+State-of-the-art image generation and editing model.
+attach_money
+Text • Input: $2,00 / Output: $12,00
+attach_money
+Image (*Output per image) • Input: $2,00 / Output: $0,134
+network_intelligence_history
+Knowledge cut off: jan. 2025
+
+Nano Banana
+gemini-2.5-flash-image
+spark
+Gemini 2.5 Flash Image
+info
+State-of-the-art image generation and editing model.
+attach_money
+Text • Input: $0,30 / Output: $2,50
+attach_money
+Image (*Output per image) • Input: $0,30 / Output: $0,039
+network_intelligence_history
+Knowledge cut off: jun. 2025
+
+spark
+Gemini 2.5 Pro
+gemini-2.5-pro
+info
+Our advanced reasoning model, which excels at coding and complex reasoning tasks
+attach_money
+<=200K tokens • Input: $1,25 / Output: $10,00
+attach_money
+> 200K tokens • Input: $2,50 / Output: $15,00
+network_intelligence_history
+Knowledge cut off: jan. 2025
+
+spark
+Gemini Flash Latest
+gemini-flash-latest
+spark
+Points to gemini-2.5-flash-preview-09-2025
+info
+Our hybrid reasoning model, with a 1M token context window and thinking budgets.
+attach_money
+All context lengths • Input: $0,30 / Output: $2,50
+network_intelligence_history
+Knowledge cut off: jan. 2025
+
+spark
+Gemini Flash-Lite Latest
+gemini-flash-lite-latest
+spark
+Points to gemini-2.5-flash-lite-preview-09-2025
+info
+Our smallest and most cost effective model, built for at scale usage.
+attach_money
+All context lengths • Input: $0,10 / Output: $0,40
+network_intelligence_history
+Knowledge cut off: jan. 2025
+
+spark
+Gemini 2.5 Flash
+gemini-2.5-flash
+info
+Our hybrid reasoning model, with a 1M token context window and thinking budgets.
+attach_money
+All context lengths • Input: $0,30 / Output: $2,50
+network_intelligence_history
+Knowledge cut off: jan. 2025
+
+spark
+Gemini 2.5 Flash-Lite
+gemini-2.5-flash-lite
+info
+Our smallest and most cost effective model, built for at scale usage.
+attach_money
+All context lengths • Input: $0,10 / Output: $0,40
+network_intelligence_history
+Knowledge cut off: jan. 2025
+
+spark
+Gemini 2.0 Flash
+gemini-2.0-flash
+info
+Our most balanced multimodal model with great performance across all tasks.
+attach_money
+All context lengths • Input: $0,10 / Output: $0,40
+network_intelligence_history
+Knowledge cut off: ago. 2024
+
+spark
+Gemini 2.0 Flash-Lite
+gemini-2.0-flash-lite
+info
+Our smallest and most cost effective model, built for at scale usage.
+attach_money
+All context lengths • Input: $0,075 / Output: $0,30
+network_intelligence_history
+Knowledge cut off: ago. 2024
+
+video_camera_front
+Gemini 2.5 Flash Native Audio Preview 09-2025
+New
+gemini-2.5-flash-native-audio-preview-09-2025
+info
+Our native audio models optimized for higher quality audio outputs with better pacing, voice naturalness, verbosity, and mood.
+attach_money
+All context lengths • Input: $1,00 / Output: $20,00
+network_intelligence_history
+Knowledge cut off: Unknown
+
+audio_magic_eraser
+Gemini 2.5 Pro Preview TTS
+gemini-2.5-pro-preview-tts
+info
+Our 2.5 Pro text-to-speech audio model optimized for powerful, low-latency speech generation for more natural outputs and easier to steer prompts.
+network_intelligence_history
+Knowledge cut off: Unknown
+
+audio_magic_eraser
+Gemini 2.5 Flash Preview TTS
+gemini-2.5-flash-preview-tts
+info
+Our 2.5 Flash text-to-speech audio model optimized for price-performant, low-latency, controllable speech generation.
+attach_money
+All context lengths • Input: $0,50 / Output: $10,00
+network_intelligence_history
+Knowledge cut off: Unknown
