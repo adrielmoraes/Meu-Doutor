@@ -1060,14 +1060,13 @@ async def entrypoint(ctx: JobContext):
     # Select Gemini model (native audio or standard realtime)
     gemini_model = os.getenv('GEMINI_LLM_MODEL', 'gemini-2.5-flash')
     logger.info(f"[MediAI] 🎙️ Using Gemini model: {gemini_model}")
+    
+    # Check if vision is enabled
+    vision_enabled = os.getenv('ENABLE_VISION', 'false').lower() == 'true'
 
     system_prompt = f"""Você é MediAI, uma assistente médica virtual brasileira especializada em triagem de pacientes e orientação de saúde.
 
 CAPACIDADES IMPORTANTES:
-✅ VOCÊ TEM VISÃO EM TEMPO REAL - Gemini Live Native Vision integrada! Você recebe frames da câmera do paciente diretamente via send_realtime_input()
-✅ Você consegue VER o paciente através da câmera dele em tempo real (1 frame por segundo)
-✅ Use suas capacidades de visão integrada quando relevante - não invente o que não vê
-✅ Se não conseguir ver algo claramente, seja honesta sobre isso
 ✅ VOCÊ PODE AGENDAR CONSULTAS - Você tem acesso aos médicos cadastrados na plataforma e pode agendar consultas reais
 ✅ Você pode buscar médicos por especialidade e verificar disponibilidade de horários
 
@@ -1082,7 +1081,6 @@ PERSONALIDADE:
 - Tranquilizadora mas honesta
 - Demonstra genuíno cuidado pelo bem-estar do paciente
 - Natural e conversacional (como uma conversa presencial)
-- Você pode VER o paciente, então mencione isso naturalmente se relevante
 
 DIRETRIZES MÉDICAS IMPORTANTES:
 1. NUNCA faça diagnósticos definitivos - você faz avaliação preliminar
@@ -1090,7 +1088,6 @@ DIRETRIZES MÉDICAS IMPORTANTES:
 3. Em casos de emergência, instrua o paciente a procurar atendimento IMEDIATO
 4. Seja clara sobre suas limitações como assistente virtual
 5. Mantenha tom profissional mas acolhedor
-6. Use informações visuais quando relevante (ex: "Vejo que você está...")
 
 🚨 REGRA CRÍTICA - MÉDICOS REAIS APENAS:
 ❌ NUNCA invente nomes de médicos (como "Dr. Silva", "Dra. Santos", etc.)
@@ -1113,14 +1110,10 @@ PROTOCOLO DE CONVERSA:
 2. Pergunte sobre o motivo da consulta de hoje
 3. Investigue sintomas: quando começaram, intensidade, frequência
 4. Relacione com histórico médico quando relevante
-5. Use o contexto visual para enriquecer a avaliação
-6. Ao final, resuma o que foi discutido e forneça orientações preliminares
-7. Se apropriado, ofereça agendar consulta com especialista
+5. Ao final, resuma o que foi discutido e forneça orientações preliminares
+6. Se apropriado, ofereça agendar consulta com especialista
 
 IMPORTANTE: Mantenha suas respostas curtas e objetivas. Faça perguntas uma de cada vez e aguarde a resposta do paciente antes de continuar. Seja natural e conversacional.
-
-CAPACIDADES VISUAIS EM TEMPO REAL:
-Você recebe frames de vídeo ao vivo do paciente (1 frame por segundo) através da sua capacidade de visão integrada. Se notar algo visualmente relevante para o atendimento médico (expressão de dor, ferimento visível, dificuldade de respiração, sinais físicos), mencione com tato e profissionalismo quando apropriado.
 
 CONTEXTO DO PACIENTE:
 {patient_context}
@@ -1172,22 +1165,29 @@ CONTEXTO DO PACIENTE:
 
     logger.info("[MediAI] ✅ Session started successfully!")
     
-    async def stream_video_to_gemini():
-        """Background task to send video frames to Gemini Live API at 0.5 FPS (every 2s)."""
-        try:
-            await asyncio.sleep(5)
-            logger.info("[Vision] 📹 Starting vision streaming at 0.5 FPS (memory optimized)...")
-            
-            while True:
-                await agent.send_video_frame_to_gemini()
-                await asyncio.sleep(2.0)
-                gc.collect()
-        except asyncio.CancelledError:
-            logger.info("[Vision] 🛑 Video streaming stopped")
+    # Vision is disabled by default to save memory on resource-limited environments
+    # Set ENABLE_VISION=true to enable vision (requires more memory)
+    enable_vision = os.getenv('ENABLE_VISION', 'false').lower() == 'true'
+    video_streaming_task = None
     
-    # Store task reference for cleanup in finally block
-    video_streaming_task = asyncio.create_task(stream_video_to_gemini())
-    logger.info("[MediAI] 🎥 Gemini Live native vision enabled - AI can see patient in real-time")
+    if enable_vision:
+        async def stream_video_to_gemini():
+            """Background task to send video frames to Gemini Live API at 0.5 FPS (every 2s)."""
+            try:
+                await asyncio.sleep(5)
+                logger.info("[Vision] 📹 Starting vision streaming at 0.5 FPS...")
+                
+                while True:
+                    await agent.send_video_frame_to_gemini()
+                    await asyncio.sleep(2.0)
+                    gc.collect()
+            except asyncio.CancelledError:
+                logger.info("[Vision] 🛑 Video streaming stopped")
+        
+        video_streaming_task = asyncio.create_task(stream_video_to_gemini())
+        logger.info("[MediAI] 🎥 Vision enabled - AI can see patient in real-time")
+    else:
+        logger.info("[MediAI] 👁️ Vision disabled (set ENABLE_VISION=true to enable)")
 
     # Hook into session events to track metrics
     # Note: Gemini Live API integrates STT/LLM/TTS, so we estimate based on interaction
