@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { scheduleAppointment, getAvailableSlots } from "@/lib/scheduling";
-import { getPatientById } from "@/lib/db-adapter";
+import { getPatientById, getDoctorById } from "@/lib/db-adapter";
+import { sendAppointmentConfirmationEmail } from "@/lib/email-service";
 
 function sanitizeErrorMessage(error: Error): string {
   const safeMessages = [
@@ -56,12 +57,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const patient = await getPatientById(patientId);
+    const [patient, doctor] = await Promise.all([
+      getPatientById(patientId),
+      getDoctorById(doctorId)
+    ]);
 
     if (!patient) {
       console.warn(`[Schedule API] Tentativa de agendar para paciente inexistente`);
       return NextResponse.json(
         { error: "Paciente não encontrado" },
+        { status: 404 }
+      );
+    }
+
+    if (!doctor) {
+      console.warn(`[Schedule API] Tentativa de agendar com médico inexistente`);
+      return NextResponse.json(
+        { error: "Médico não encontrado" },
         { status: 404 }
       );
     }
@@ -87,6 +99,29 @@ export async function POST(request: NextRequest) {
     });
 
     console.log(`[Schedule API] ✅ Consulta agendada: ${appointmentId.substring(0, 8)}...`);
+
+    if (patient.email) {
+      sendAppointmentConfirmationEmail({
+        patientEmail: patient.email,
+        patientName: patientName || patient.name,
+        doctorName: doctor.name,
+        doctorSpecialty: doctor.specialty || 'Clínico Geral',
+        date,
+        startTime,
+        endTime,
+        appointmentId,
+      }).then(sent => {
+        if (sent) {
+          console.log(`[Schedule API] 📧 Email de confirmação enviado para ${patient.email}`);
+        } else {
+          console.warn(`[Schedule API] ⚠️ Falha ao enviar email de confirmação`);
+        }
+      }).catch(err => {
+        console.error(`[Schedule API] ❌ Erro ao enviar email:`, err);
+      });
+    } else {
+      console.warn(`[Schedule API] ⚠️ Paciente sem email cadastrado, confirmação não enviada`);
+    }
 
     return NextResponse.json({
       success: true,
