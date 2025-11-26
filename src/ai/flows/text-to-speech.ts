@@ -39,26 +39,32 @@ export async function textToSpeech(
     }
 
     // Use Google GenAI API with gemini-2.5-flash-preview-tts model
-    const ai = new GoogleGenAI({ 
-      apiKey: process.env.GEMINI_API_KEY
+    const ai = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
     });
 
     // Generate content with audio modality using TTS model
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-preview-tts',
-      contents: [{ 
-        parts: [{ text: `Fale em português brasileiro de forma natural e clara: ${input.text}` }] 
-      }],
+      model: "gemini-2.5-flash-preview-tts",
+      contents: [
+        {
+          parts: [
+            {
+              text: `Fale em português brasileiro de forma natural e clara: ${input.text}`,
+            },
+          ],
+        },
+      ],
       config: {
-        responseModalities: ['AUDIO'],
+        responseModalities: ["AUDIO"],
         speechConfig: {
           voiceConfig: {
             prebuiltVoiceConfig: {
-              voiceName: 'Erinome'
-            }
-          }
-        }
-      }
+              voiceName: "Aeode",
+            },
+          },
+        },
+      },
     });
 
     // Extract audio data from response

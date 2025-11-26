@@ -602,21 +602,21 @@ def _normalize_doctor_name(name: str) -> str:
     Trata: "Dr.", "Dr", "Dra.", "Dra", "Doutor", "Doutora", "Doctor" etc.
     """
     import re
-    
+
     normalized = name.lower().strip()
-    
+
     prefixes = [
         r'\bdra?\.\s*',
         r'\bdra?\s+',
         r'\bdoutor[a]?\s*',
         r'\bdoctor\s*',
     ]
-    
+
     for prefix in prefixes:
         normalized = re.sub(prefix, '', normalized, flags=re.IGNORECASE)
-    
+
     normalized = re.sub(r'\s+', ' ', normalized).strip()
-    
+
     return normalized
 
 
@@ -632,31 +632,40 @@ async def _resolve_doctor_id(doctor_name_or_id: str) -> tuple[str, str]:
     """
     if _is_valid_uuid(doctor_name_or_id):
         return (doctor_name_or_id, None)
-    
-    logger.info(f"[AI Tools] Resolvendo nome do médico '{doctor_name_or_id}' para ID...")
-    
+
+    logger.info(
+        f"[AI Tools] Resolvendo nome do médico '{doctor_name_or_id}' para ID..."
+    )
+
     search_name = _normalize_doctor_name(doctor_name_or_id)
-    
+
     if len(search_name) < 3:
-        logger.warning(f"[AI Tools] Nome muito curto ou apenas prefixo: '{doctor_name_or_id}'")
-        return (None, "Por favor, informe o nome do médico. Exemplo: 'Dr. Mizael' ou apenas 'Mizael'.")
-    
+        logger.warning(
+            f"[AI Tools] Nome muito curto ou apenas prefixo: '{doctor_name_or_id}'"
+        )
+        return (
+            None,
+            "Por favor, informe o nome do médico. Exemplo: 'Dr. Mizael' ou apenas 'Mizael'."
+        )
+
     result = await _search_doctors_impl(specialty=None, limit=50)
-    
+
     if not result.get('doctors'):
         return (None, "Não encontrei médicos cadastrados no sistema.")
-    
+
     logger.info(f"[AI Tools] Nome normalizado para busca: '{search_name}'")
-    
+
     for doctor in result['doctors']:
         db_name = _normalize_doctor_name(doctor.get('name', ''))
-        
+
         if search_name in db_name or db_name in search_name:
             doctor_id = doctor.get('id')
             doctor_full_name = doctor.get('name')
-            logger.info(f"[AI Tools] ✅ Encontrado: {doctor_full_name} (ID: {doctor_id})")
+            logger.info(
+                f"[AI Tools] ✅ Encontrado: {doctor_full_name} (ID: {doctor_id})"
+            )
             return (doctor_id, doctor_full_name)
-        
+
         search_parts = search_name.split()
         db_parts = db_name.split()
         for s_part in search_parts:
@@ -665,12 +674,19 @@ async def _resolve_doctor_id(doctor_name_or_id: str) -> tuple[str, str]:
                     if s_part in d_part or d_part in s_part:
                         doctor_id = doctor.get('id')
                         doctor_full_name = doctor.get('name')
-                        logger.info(f"[AI Tools] ✅ Encontrado (parcial): {doctor_full_name} (ID: {doctor_id})")
+                        logger.info(
+                            f"[AI Tools] ✅ Encontrado (parcial): {doctor_full_name} (ID: {doctor_id})"
+                        )
                         return (doctor_id, doctor_full_name)
-    
+
     available_names = [d.get('name') for d in result['doctors']]
-    logger.warning(f"[AI Tools] ❌ Médico '{doctor_name_or_id}' não encontrado. Disponíveis: {available_names}")
-    return (None, f"Não encontrei o médico '{doctor_name_or_id}' no sistema. Médicos disponíveis: {', '.join(available_names[:5])}")
+    logger.warning(
+        f"[AI Tools] ❌ Médico '{doctor_name_or_id}' não encontrado. Disponíveis: {available_names}"
+    )
+    return (
+        None,
+        f"Não encontrei o médico '{doctor_name_or_id}' no sistema. Médicos disponíveis: {', '.join(available_names[:5])}"
+    )
 
 
 async def _get_available_slots_impl(doctor_id: str, date: str) -> dict:
@@ -696,14 +712,14 @@ async def _get_available_slots_impl(doctor_id: str, date: str) -> dict:
         }
 
     resolved_id, doctor_name_or_error = await _resolve_doctor_id(doctor_id)
-    
+
     if not resolved_id:
         return {
             "success": False,
             "error": doctor_name_or_error,
             "availableSlots": []
         }
-    
+
     actual_doctor_id = resolved_id
 
     try:
@@ -722,10 +738,10 @@ async def _get_available_slots_impl(doctor_id: str, date: str) -> dict:
             response.raise_for_status()
 
             data = response.json()
-            
+
             if doctor_name_or_error:
                 data['doctorName'] = doctor_name_or_error
-                
+
             logger.info(
                 f"[AI Tools] ✅ Encontrados {data.get('totalAvailable', 0)} horários disponíveis"
             )
@@ -965,10 +981,10 @@ async def look_at_patient(context: RunContext) -> dict:
     Não faça comentários sobre aparência física que não sejam relevantes para a saúde.
     """
     global _current_agent_instance
-    
+
     try:
         agent = _current_agent_instance
-        
+
         if agent is None:
             logger.error("[Vision] No agent instance available")
             return {
@@ -1021,7 +1037,7 @@ class MediAIAgent(Agent):
                  metrics_collector: Optional[MetricsCollector] = None,
                  patient_id: str = None):
         global _current_agent_instance
-        
+
         super().__init__(instructions=instructions,
                          tools=[
                              search_doctors, get_available_slots,
@@ -1039,7 +1055,7 @@ class MediAIAgent(Agent):
         self.last_frame_send_time = 0
         self._video_stream = None
         self._current_video_track = None
-        
+
         _current_agent_instance = self
         logger.info("[MediAI] Agent instance registered for vision tools")
 
@@ -1085,82 +1101,32 @@ class MediAIAgent(Agent):
             gc.collect()
             return None
 
-    async def send_video_frame_to_gemini(self):
-        """Send video frames to Gemini Live API at 0.5 FPS (every 2 seconds) for native vision.
-        
-        MEMORY OPTIMIZATION: Reuses VideoStream, cleans up buffers after sending.
-        """
-        current_time = time.time()
-        if current_time - self.last_frame_send_time < 2.0:
-            return
-
-        self.last_frame_send_time = current_time
-        frame_bytes = None
-
+    async def cleanup_video_stream(self):
+        """Properly cleanup video stream resources."""
         try:
-            if not self.room.remote_participants:
-                return
-
-            participant = list(self.room.remote_participants.values())[0]
-            video_track = None
-
-            for track_pub in participant.track_publications.values():
-                if track_pub.kind == rtc.TrackKind.KIND_VIDEO and track_pub.subscribed:
-                    video_track = track_pub.track
-                    break
-
-            if not video_track:
-                return
-
-            if self._current_video_track != video_track or self._video_stream is None:
-                self._video_stream = rtc.VideoStream(video_track)
-                self._current_video_track = video_track
-                logger.info("[Vision] Created new VideoStream for track")
-
-            frame_event = await asyncio.wait_for(
-                self._video_stream.__anext__(), timeout=3.0)
-            frame = frame_event.frame
-
-            if frame is None:
-                return
-
-            frame_bytes = await asyncio.to_thread(
-                self._process_video_frame_sync, frame)
-
-            if not frame_bytes:
-                return
-
-            if self._agent_session:
-                encoded_data = base64.b64encode(frame_bytes).decode('utf-8')
-                await self._agent_session.send_realtime_input(
-                    video=types.Blob(data=encoded_data, mime_type="image/jpeg")
-                )
-                del encoded_data
-                logger.info(
-                    f"[Vision] 📹 Sent 480x480 frame to Gemini ({len(frame_bytes)} bytes)"
-                )
-
-                if self.metrics_collector:
-                    self.metrics_collector.vision_input_tokens += 130
-
-        except asyncio.TimeoutError:
-            pass
-        except Exception as e:
-            logger.debug(f"[Vision] Error sending frame: {e}")
-        finally:
-            del frame_bytes
+            if self._video_stream is not None:
+                try:
+                    await self._video_stream.aclose()
+                except Exception:
+                    pass
+                self._video_stream = None
+            self._current_video_track = None
             gc.collect()
+        except Exception as e:
+            logger.debug(f"[Vision] Error cleaning up video stream: {e}")
 
     async def capture_and_analyze_patient(self) -> Optional[str]:
         """Capture a single frame from the patient's camera and analyze it with Gemini Vision.
         
         This is an ON-DEMAND vision function - only captures when requested by the patient.
         After analysis, memory is cleaned up to prevent leaks.
+        Uses async context manager for proper resource cleanup.
         
         Returns:
             Description of what was seen, or None if capture/analysis failed.
         """
         frame_bytes = None
+        temp_stream = None
 
         try:
             if not self.room.remote_participants:
@@ -1193,6 +1159,8 @@ class MediAIAgent(Agent):
 
                 frame_bytes = await asyncio.to_thread(
                     self._process_video_frame_sync, frame)
+                
+                frame = None
 
                 if not frame_bytes:
                     logger.warning("[Vision] Failed to process frame")
@@ -1205,6 +1173,8 @@ class MediAIAgent(Agent):
                 vision_model = genai.GenerativeModel('gemini-2.0-flash')
 
                 img = Image.open(io.BytesIO(frame_bytes))
+                
+                frame_bytes = None
 
                 prompt = """Você é uma assistente médica virtual brasileira. Descreva brevemente o que você vê nesta imagem do paciente.
 
@@ -1229,6 +1199,7 @@ Descreva o que você vê:"""
                         description) // 4
 
                 img = None
+                response = None
 
                 logger.info(f"[Vision] ✅ Analysis complete")
                 return description
@@ -1241,6 +1212,11 @@ Descreva o que você vê:"""
             logger.error(f"[Vision] Error in capture_and_analyze_patient: {e}")
             return None
         finally:
+            if temp_stream is not None:
+                try:
+                    await temp_stream.aclose()
+                except Exception:
+                    pass
             frame_bytes = None
             gc.collect()
 
@@ -1452,30 +1428,16 @@ CONTEXTO DO PACIENTE:
 
     logger.info("[MediAI] ✅ Session started successfully!")
 
-    # Vision is disabled by default to save memory on resource-limited environments
-    # Set ENABLE_VISION=true to enable vision (requires more memory)
+    # Vision capability - ON-DEMAND ONLY to prevent memory leaks
+    # The AI can use look_at_patient() tool when patient asks to be seen
+    # No continuous streaming - much lower memory footprint
     enable_vision = os.getenv('ENABLE_VISION', 'false').lower() == 'true'
-    video_streaming_task = None
 
     if enable_vision:
-
-        async def stream_video_to_gemini():
-            """Background task to send video frames to Gemini Live API at 0.5 FPS (every 2s)."""
-            try:
-                await asyncio.sleep(5)
-                logger.info(
-                    "[Vision] 📹 Starting vision streaming at 0.5 FPS...")
-
-                while True:
-                    await agent.send_video_frame_to_gemini()
-                    await asyncio.sleep(2.0)
-                    gc.collect()
-            except asyncio.CancelledError:
-                logger.info("[Vision] 🛑 Video streaming stopped")
-
-        video_streaming_task = asyncio.create_task(stream_video_to_gemini())
         logger.info(
-            "[MediAI] 🎥 Vision enabled - AI can see patient in real-time")
+            "[MediAI] 👁️ Vision enabled (on-demand) - AI can see patient when requested")
+        logger.info(
+            "[MediAI] 💡 Patient can ask 'você consegue me ver?' to trigger vision analysis")
     else:
         logger.info(
             "[MediAI] 👁️ Vision disabled (set ENABLE_VISION=true to enable)")
@@ -1579,20 +1541,9 @@ CONTEXTO DO PACIENTE:
         # Cleanup and send final metrics
         logger.info("[MediAI] 🛑 Session ending, cleaning up...")
 
-        # Stop video streaming task and cleanup VideoStream
-        if 'video_streaming_task' in locals() and video_streaming_task:
-            logger.info("[Vision] Stopping video streaming...")
-            video_streaming_task.cancel()
-            try:
-                await video_streaming_task
-            except asyncio.CancelledError:
-                pass
-
-        # Cleanup VideoStream cache
+        # Cleanup VideoStream cache (on-demand vision only - no streaming task)
         if 'agent' in locals() and agent:
-            agent._video_stream = None
-            agent._current_video_track = None
-            gc.collect()
+            await agent.cleanup_video_stream()
 
         # Stop tracking task
         if 'tracking_task' in locals() and tracking_task:
@@ -1610,6 +1561,11 @@ CONTEXTO DO PACIENTE:
         if 'pool' in locals() and pool:
             logger.info("[MediAI] 💾 Closing database connection pool...")
             await pool.close()
+        
+        # Clear global agent instance reference to allow GC
+        global _current_agent_instance
+        _current_agent_instance = None
+        gc.collect()
 
         logger.info("[MediAI] ✅ Cleanup complete")
 
@@ -1619,6 +1575,6 @@ if __name__ == "__main__":
         WorkerOptions(
             entrypoint_fnc=entrypoint,
             num_idle_processes=0,
-            job_memory_warn_mb=800,
-            job_memory_limit_mb=1500,
+            job_memory_warn_mb=400,
+            job_memory_limit_mb=2000,
         ))
