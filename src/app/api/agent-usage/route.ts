@@ -32,19 +32,32 @@ export async function POST(request: NextRequest) {
                         request.headers.get('Authorization')?.replace('Bearer ', '');
     const expectedSecret = process.env.AGENT_SECRET;
 
-    // Require AGENT_SECRET to be configured - no hardcoded fallback for security
+    // Log auth attempt for debugging
+    const hasSecret = !!agentSecret;
+    const hasExpected = !!expectedSecret;
+    console.log(`[Agent Usage] Auth check - agent sent secret: ${hasSecret}, server has AGENT_SECRET: ${hasExpected}`);
+
+    // Require AGENT_SECRET to be configured
     if (!expectedSecret) {
-      console.error('[Agent Usage] AGENT_SECRET não configurado no ambiente');
+      console.error('[Agent Usage] AGENT_SECRET não configurado no ambiente - configure a variável de ambiente');
       return NextResponse.json(
-        { success: false, error: 'Configuração do servidor inválida' },
+        { success: false, error: 'AGENT_SECRET não configurado no servidor' },
         { status: 500 }
       );
     }
 
-    if (!agentSecret || agentSecret !== expectedSecret) {
-      console.warn('[Agent Usage] Tentativa de acesso não autorizado');
+    if (!agentSecret) {
+      console.warn('[Agent Usage] Requisição sem header x-agent-secret');
       return NextResponse.json(
-        { success: false, error: 'Não autorizado' },
+        { success: false, error: 'Header x-agent-secret ausente' },
+        { status: 401 }
+      );
+    }
+
+    if (agentSecret !== expectedSecret) {
+      console.warn('[Agent Usage] Secret inválido - verifique se AGENT_SECRET é o mesmo no agente e no servidor');
+      return NextResponse.json(
+        { success: false, error: 'Secret inválido' },
         { status: 401 }
       );
     }
