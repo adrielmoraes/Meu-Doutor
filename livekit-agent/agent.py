@@ -807,9 +807,7 @@ async def schedule_appointment(context: RunContext,
         end_time: Horário de término no formato HH:MM em formato 24h (ex: 15:00)
         notes: Notas ou motivo da consulta fornecidas pelo paciente (opcional)
     """
-    # Obter patient_id do agent instance com validação de tipo segura
     try:
-        # Type-safe cast to access patient_id attribute
         from typing import cast
         agent = cast(MediAIAgent, context.agent)
         patient_id = agent.patient_id
@@ -830,18 +828,66 @@ async def schedule_appointment(context: RunContext,
                                             notes=notes)
 
 
+@function_tool()
+async def look_at_patient(context: RunContext) -> dict:
+    """Olha para o paciente através da câmera e descreve o que vê.
+    
+    Use quando o paciente perguntar:
+    - "Você consegue me ver?"
+    - "O que você está vendo?"
+    - "Pode me descrever?"
+    - "Olhe para mim"
+    - Ou quando precisar observar algo visualmente (ferimento, expressão, etc.)
+    
+    Esta função captura uma imagem da câmera do paciente, analisa com IA,
+    e retorna uma descrição do que foi observado.
+    
+    IMPORTANTE: Use esta capacidade com tato e profissionalismo.
+    Não faça comentários sobre aparência física que não sejam relevantes para a saúde.
+    """
+    try:
+        from typing import cast
+        agent = cast(MediAIAgent, context.agent)
+        
+        logger.info("[Vision] 👁️ Patient requested visual analysis - capturing frame...")
+        
+        description = await agent.capture_and_analyze_patient()
+        
+        if description:
+            logger.info(f"[Vision] ✅ Visual analysis complete: {description[:100]}...")
+            return {
+                "success": True,
+                "description": description,
+                "message": "Análise visual concluída com sucesso"
+            }
+        else:
+            logger.warning("[Vision] ❌ Could not capture or analyze patient image")
+            return {
+                "success": False,
+                "description": None,
+                "message": "Não foi possível capturar a imagem. Verifique se a câmera está ativada."
+            }
+            
+    except Exception as e:
+        logger.error(f"[Vision] Error in look_at_patient: {e}")
+        return {
+            "success": False,
+            "description": None,
+            "message": f"Erro ao analisar imagem: {str(e)}"
+        }
+
+
 class MediAIAgent(Agent):
-    """MediAI Voice Agent with Gemini Live Native Vision"""
+    """MediAI Voice Agent with On-Demand Vision"""
 
     def __init__(self,
                  instructions: str,
                  room: rtc.Room,
                  metrics_collector: Optional[MetricsCollector] = None,
                  patient_id: str = None):
-        # Register function tools with the Agent
         super().__init__(
             instructions=instructions,
-            tools=[search_doctors, get_available_slots, schedule_appointment])
+            tools=[search_doctors, get_available_slots, schedule_appointment, look_at_patient])
         self.room = room
         self.metrics_collector = metrics_collector
         self._metrics_task = None
@@ -850,10 +896,10 @@ class MediAIAgent(Agent):
         self.last_transcription = ""
         self.doctor_search_cache = None
         self.last_doctor_search_time = 0
-        self._agent_session = None  # Will be set after session creation
-        self.last_frame_send_time = 0  # For 0.5 FPS throttling (2 seconds between frames)
-        self._video_stream = None  # Cached VideoStream to avoid recreating each frame
-        self._current_video_track = None  # Track the current video track
+        self._agent_session = None
+        self.last_frame_send_time = 0
+        self._video_stream = None
+        self._current_video_track = None
 
     def _process_video_frame_sync(self, frame: rtc.VideoFrame) -> Optional[bytes]:
         """Process video frame synchronously in separate thread (ALL CPU-bound operations).
@@ -966,6 +1012,96 @@ class MediAIAgent(Agent):
             del frame_bytes
             gc.collect()
 
+    async def capture_and_analyze_patient(self) -> Optional[str]:
+        """Capture a single frame from the patient's camera and analyze it with Gemini Vision.
+        
+        This is an ON-DEMAND vision function - only captures when requested by the patient.
+        After analysis, memory is cleaned up to prevent leaks.
+        
+        Returns:
+            Description of what was seen, or None if capture/analysis failed.
+        """
+        frame_bytes = None
+        
+        try:
+            if not self.room.remote_participants:
+                logger.warning("[Vision] No remote participants found")
+                return None
+
+            participant = list(self.room.remote_participants.values())[0]
+            video_track = None
+
+            for track_pub in participant.track_publications.values():
+                if track_pub.kind == rtc.TrackKind.KIND_VIDEO and track_pub.subscribed:
+                    video_track = track_pub.track
+                    break
+
+            if not video_track:
+                logger.warning("[Vision] No video track available from patient")
+                return None
+
+            temp_stream = rtc.VideoStream(video_track)
+            
+            try:
+                frame_event = await asyncio.wait_for(temp_stream.__anext__(), timeout=5.0)
+                frame = frame_event.frame
+                
+                if frame is None:
+                    logger.warning("[Vision] Received null frame")
+                    return None
+                
+                frame_bytes = await asyncio.to_thread(
+                    self._process_video_frame_sync, frame
+                )
+                
+                if not frame_bytes:
+                    logger.warning("[Vision] Failed to process frame")
+                    return None
+
+                logger.info(f"[Vision] 👁️ Captured frame ({len(frame_bytes)} bytes), analyzing with Gemini...")
+                
+                vision_model = genai.GenerativeModel('gemini-2.0-flash')
+                
+                img = Image.open(io.BytesIO(frame_bytes))
+                
+                prompt = """Você é uma assistente médica virtual brasileira. Descreva brevemente o que você vê nesta imagem do paciente.
+
+REGRAS:
+- Responda em português brasileiro
+- Seja breve (2-3 frases)
+- Foque em aspectos relevantes para saúde (expressão facial, postura, sinais visíveis)
+- Seja profissional e respeitosa
+- NÃO faça diagnósticos
+- Se não conseguir ver algo claramente, diga isso
+
+Descreva o que você vê:"""
+
+                response = await asyncio.to_thread(
+                    lambda: vision_model.generate_content([prompt, img])
+                )
+                
+                description = response.text if response.text else "Não foi possível analisar a imagem."
+                
+                if self.metrics_collector:
+                    self.metrics_collector.vision_input_tokens += 258
+                    self.metrics_collector.vision_output_tokens += len(description) // 4
+                
+                img = None
+                
+                logger.info(f"[Vision] ✅ Analysis complete")
+                return description
+                
+            except asyncio.TimeoutError:
+                logger.warning("[Vision] Timeout waiting for video frame")
+                return None
+                
+        except Exception as e:
+            logger.error(f"[Vision] Error in capture_and_analyze_patient: {e}")
+            return None
+        finally:
+            frame_bytes = None
+            gc.collect()
+
     async def on_enter(self):
         """Called when agent enters the session - generates initial greeting"""
 
@@ -1067,8 +1203,17 @@ async def entrypoint(ctx: JobContext):
     system_prompt = f"""Você é MediAI, uma assistente médica virtual brasileira especializada em triagem de pacientes e orientação de saúde.
 
 CAPACIDADES IMPORTANTES:
+✅ VOCÊ PODE VER O PACIENTE - Quando solicitado, você pode olhar para o paciente através da câmera usando a função look_at_patient
+✅ Use a função look_at_patient quando o paciente perguntar "você consegue me ver?", "olhe para mim", ou quando precisar observar algo visualmente
 ✅ VOCÊ PODE AGENDAR CONSULTAS - Você tem acesso aos médicos cadastrados na plataforma e pode agendar consultas reais
 ✅ Você pode buscar médicos por especialidade e verificar disponibilidade de horários
+
+VISÃO SOB DEMANDA:
+- Você NÃO está vendo o paciente continuamente (para economizar recursos)
+- Quando o paciente pedir para você olhar, use a função look_at_patient
+- A função captura uma imagem, analisa, e te dá uma descrição do que vê
+- Use essa capacidade com tato e profissionalismo
+- Após usar a função, descreva naturalmente o que viu ao paciente
 
 IDIOMA E COMUNICAÇÃO:
 - Fale EXCLUSIVAMENTE em português brasileiro claro e natural
