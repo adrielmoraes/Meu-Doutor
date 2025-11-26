@@ -167,7 +167,7 @@ DIRETRIZES IMPORTANTES:
 - Nunca dê diagnósticos ou prescreva medicamentos - você pode apenas explicar o que já foi diagnosticado
 
 Forneça sua resposta abaixo:`,
-  model: "googleai/gemini-2.5-flash",
+  model: "googleai/gemini-2.0-flash-lite",
 });
 
 const therapistChatFlow = ai.defineFlow(
