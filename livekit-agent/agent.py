@@ -635,12 +635,17 @@ async def _resolve_doctor_id(doctor_name_or_id: str) -> tuple[str, str]:
     
     logger.info(f"[AI Tools] Resolvendo nome do médico '{doctor_name_or_id}' para ID...")
     
+    search_name = _normalize_doctor_name(doctor_name_or_id)
+    
+    if len(search_name) < 3:
+        logger.warning(f"[AI Tools] Nome muito curto ou apenas prefixo: '{doctor_name_or_id}'")
+        return (None, "Por favor, informe o nome do médico. Exemplo: 'Dr. Mizael' ou apenas 'Mizael'.")
+    
     result = await _search_doctors_impl(specialty=None, limit=50)
     
     if not result.get('doctors'):
         return (None, "Não encontrei médicos cadastrados no sistema.")
     
-    search_name = _normalize_doctor_name(doctor_name_or_id)
     logger.info(f"[AI Tools] Nome normalizado para busca: '{search_name}'")
     
     for doctor in result['doctors']:
