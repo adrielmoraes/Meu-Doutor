@@ -12,6 +12,7 @@ import asyncio
 import base64
 import time
 import io
+import gc
 from typing import Optional
 from pathlib import Path
 from datetime import datetime
@@ -850,56 +851,64 @@ class MediAIAgent(Agent):
         self.doctor_search_cache = None
         self.last_doctor_search_time = 0
         self._agent_session = None  # Will be set after session creation
-        self.last_frame_send_time = 0  # For 1 FPS throttling in send_video_frame_to_gemini
+        self.last_frame_send_time = 0  # For 0.5 FPS throttling (2 seconds between frames)
+        self._video_stream = None  # Cached VideoStream to avoid recreating each frame
+        self._current_video_track = None  # Track the current video track
 
     def _process_video_frame_sync(self, frame: rtc.VideoFrame) -> Optional[bytes]:
         """Process video frame synchronously in separate thread (ALL CPU-bound operations).
         
         CRITICAL: This runs in a separate thread to avoid blocking the event loop.
         ALL heavy operations (YUV->RGBA conversion, numpy, PIL, resize, JPEG encoding) happen here.
+        
+        MEMORY OPTIMIZATION: Explicitly delete large objects and force garbage collection.
         """
         try:
-            # CRITICAL: Convert YUV to RGBA HERE (in thread), not in main event loop
-            # This operation can take 10-30ms on HD frames and would block audio
             rgba_frame = frame.convert(VideoBufferType.RGBA)
             
-            # Get numpy array
             height = rgba_frame.height
             width = rgba_frame.width
 
             rgba_array = np.frombuffer(rgba_frame.data, dtype=np.uint8)
             rgba_array = rgba_array.reshape((height, width, 4))
 
-            # Convert RGBA to RGB
-            rgb_array = rgba_array[:, :, :3]
-
-            # Create PIL Image
+            rgb_array = rgba_array[:, :, :3].copy()
+            rgba_array = None
+            
             img = Image.fromarray(rgb_array, 'RGB')
+            rgb_array = None
+            
+            img = img.resize((480, 480), Image.Resampling.BILINEAR)
 
-            # Resize to 768x768 (recommended by Gemini Live API)
-            img = img.resize((768, 768), Image.Resampling.LANCZOS)
-
-            # Convert to JPEG bytes
             img_buffer = io.BytesIO()
-            img.save(img_buffer, format='JPEG', quality=85)
+            img.save(img_buffer, format='JPEG', quality=60)
             frame_bytes = img_buffer.getvalue()
             
+            img_buffer.close()
+            img = None
+            rgba_frame = None
+            
+            gc.collect()
             return frame_bytes
+            
         except Exception as e:
             logger.debug(f"[Vision] Error in sync frame processing: {e}")
+            gc.collect()
             return None
 
     async def send_video_frame_to_gemini(self):
-        """Send video frames to Gemini Live API at 1 FPS for native vision."""
-        # Throttle to 1 FPS
+        """Send video frames to Gemini Live API at 0.5 FPS (every 2 seconds) for native vision.
+        
+        MEMORY OPTIMIZATION: Reuses VideoStream, cleans up buffers after sending.
+        """
         current_time = time.time()
-        if current_time - self.last_frame_send_time < 1.0:
+        if current_time - self.last_frame_send_time < 2.0:
             return
 
         self.last_frame_send_time = current_time
+        frame_bytes = None
 
         try:
-            # Get video track from remote participant (patient)
             if not self.room.remote_participants:
                 return
 
@@ -914,19 +923,18 @@ class MediAIAgent(Agent):
             if not video_track:
                 return
 
-            # Get frame from video track
-            frame_stream = rtc.VideoStream(video_track)
-            frame_event = await asyncio.wait_for(frame_stream.__anext__(),
-                                                 timeout=2.0)
+            if self._current_video_track != video_track or self._video_stream is None:
+                self._video_stream = rtc.VideoStream(video_track)
+                self._current_video_track = video_track
+                logger.info("[Vision] Created new VideoStream for track")
+
+            frame_event = await asyncio.wait_for(self._video_stream.__anext__(),
+                                                 timeout=3.0)
             frame = frame_event.frame
             
-            # Validate frame
             if frame is None:
-                logger.debug("[Vision] Received null frame, skipping")
                 return
             
-            # CRITICAL: Process ENTIRE frame (including YUV->RGBA conversion) in separate thread
-            # This prevents blocking the event loop (which would cause audio stuttering)
             frame_bytes = await asyncio.to_thread(
                 self._process_video_frame_sync, frame
             )
@@ -934,26 +942,29 @@ class MediAIAgent(Agent):
             if not frame_bytes:
                 return
 
-            # Send to Gemini Live API
             if self._agent_session:
+                encoded_data = base64.b64encode(frame_bytes).decode('utf-8')
                 await self._agent_session.send_realtime_input(
                     video=types.Blob(
-                        data=base64.b64encode(frame_bytes).decode('utf-8'),
+                        data=encoded_data,
                         mime_type="image/jpeg"
                     )
                 )
+                del encoded_data
                 logger.info(
-                    f"[Vision] 📹 Sent 768x768 frame to Gemini Live API ({len(frame_bytes)} bytes)"
+                    f"[Vision] 📹 Sent 480x480 frame to Gemini ({len(frame_bytes)} bytes)"
                 )
                 
-                # Track vision input cost (approx. 258 tokens per 768x768 image)
                 if self.metrics_collector:
-                    self.metrics_collector.vision_input_tokens += 258
+                    self.metrics_collector.vision_input_tokens += 130
 
         except asyncio.TimeoutError:
-            pass  # No frame available, skip
+            pass
         except Exception as e:
-            logger.debug(f"[Vision] Error sending frame to Gemini: {e}")
+            logger.debug(f"[Vision] Error sending frame: {e}")
+        finally:
+            del frame_bytes
+            gc.collect()
 
     async def on_enter(self):
         """Called when agent enters the session - generates initial greeting"""
@@ -1161,17 +1172,16 @@ CONTEXTO DO PACIENTE:
 
     logger.info("[MediAI] ✅ Session started successfully!")
     
-    # Enable Gemini Live Native Vision - sends frames directly to Gemini Live API
     async def stream_video_to_gemini():
-        """Background task to continuously send video frames to Gemini Live API at 1 FPS."""
+        """Background task to send video frames to Gemini Live API at 0.5 FPS (every 2s)."""
         try:
-            # Wait for patient to join
-            await asyncio.sleep(3)
-            logger.info("[Vision] 📹 Starting Gemini Live native vision streaming at 1 FPS...")
+            await asyncio.sleep(5)
+            logger.info("[Vision] 📹 Starting vision streaming at 0.5 FPS (memory optimized)...")
             
             while True:
                 await agent.send_video_frame_to_gemini()
-                await asyncio.sleep(1.0)  # 1 FPS
+                await asyncio.sleep(2.0)
+                gc.collect()
         except asyncio.CancelledError:
             logger.info("[Vision] 🛑 Video streaming stopped")
     
@@ -1278,7 +1288,7 @@ CONTEXTO DO PACIENTE:
         # Cleanup and send final metrics
         logger.info("[MediAI] 🛑 Session ending, cleaning up...")
 
-        # Stop video streaming task
+        # Stop video streaming task and cleanup VideoStream
         if 'video_streaming_task' in locals() and video_streaming_task:
             logger.info("[Vision] Stopping video streaming...")
             video_streaming_task.cancel()
@@ -1286,6 +1296,12 @@ CONTEXTO DO PACIENTE:
                 await video_streaming_task
             except asyncio.CancelledError:
                 pass
+        
+        # Cleanup VideoStream cache
+        if 'agent' in locals() and agent:
+            agent._video_stream = None
+            agent._current_video_track = None
+            gc.collect()
 
         # Stop tracking task
         if 'tracking_task' in locals() and tracking_task:
@@ -1310,6 +1326,7 @@ CONTEXTO DO PACIENTE:
 if __name__ == "__main__":
     cli.run_app(WorkerOptions(
         entrypoint_fnc=entrypoint,
-        num_idle_processes=0,  # Reduced from 4 to 0 to optimize memory usage in Replit
-        job_memory_warn_mb=1500,  # Increased threshold to reduce warnings
+        num_idle_processes=0,
+        job_memory_warn_mb=800,
+        job_memory_limit_mb=1500,
     ))
