@@ -7,39 +7,35 @@
 >
   <defs>
     <linearGradient
-      id="logo-gradient"
+      id="heart-gradient"
       x1="0%"
       y1="0%"
       x2="100%"
       y2="100%"
     >
-      <stop offset="0%" stop-color="#f774c0" />
-      <stop offset="50%" stop-color="#e85fb8" />
-      <stop offset="100%" stop-color="#d94aaf" />
+      <stop offset="0%" stop-color="#ff6eb4" />
+      <stop offset="50%" stop-color="#f754b3" />
+      <stop offset="100%" stop-color="#e83fa5" />
     </linearGradient>
   </defs>
 
   <path
-    d="M50 85C50 85 15 65 15 40C15 30 20 20 30 20C37 20 43 25 50 32C57 25 63 20 70 20C80 20 85 30 85 40C85 65 50 85 50 85Z"
-    fill="url(#logo-gradient)"
+    d="M50 82C50 82 12 58 12 35C12 22 22 14 34 14C42 14 48 20 50 25C52 20 58 14 66 14C78 14 88 22 88 35C88 58 50 82 50 82Z"
+    fill="url(#heart-gradient)"
   />
 
-  <rect x="47" y="35" width="6" height="30" rx="1.5" fill="white" />
-  <rect x="35" y="47" width="30" height="6" rx="1.5" fill="white" />
+  <rect x="46" y="32" width="8" height="28" rx="2" fill="white" />
+  <rect x="36" y="42" width="28" height="8" rx="2" fill="white" />
 
-  <circle cx="35" cy="28" r="2.5" fill="#ffffff" />
-  <circle cx="65" cy="28" r="2.5" fill="#ffffff" />
-  <circle cx="25" cy="45" r="2.5" fill="#ffffff" />
-  <circle cx="75" cy="45" r="2.5" fill="#ffffff" />
-  <circle cx="40" cy="70" r="2.5" fill="#ffffff" />
-  <circle cx="60" cy="70" r="2.5" fill="#ffffff" />
+  <circle cx="30" cy="24" r="3" fill="white" opacity="0.7" />
+  <circle cx="70" cy="24" r="3" fill="white" opacity="0.7" />
+  <circle cx="18" cy="42" r="2.5" fill="white" opacity="0.7" />
+  <circle cx="82" cy="42" r="2.5" fill="white" opacity="0.7" />
 
-  <g opacity="0.25" stroke="white" stroke-width="1.5">
-    <line x1="35" y1="28" x2="47" y2="40" />
-    <line x1="65" y1="28" x2="53" y2="40" />
-    <line x1="25" y1="45" x2="40" y2="50" />
-    <line x1="75" y1="45" x2="60" y2="50" />
-    <line x1="40" y1="70" x2="47" y2="60" />
-    <line x1="60" y1="70" x2="53" y2="60" />
+  <g opacity="0.2" stroke="white" stroke-width="1.2">
+    <line x1="30" y1="24" x2="44" y2="38" />
+    <line x1="70" y1="24" x2="56" y2="38" />
+    <line x1="18" y1="42" x2="36" y2="46" />
+    <line x1="82" y1="42" x2="64" y2="46" />
   </g>
 </svg>
