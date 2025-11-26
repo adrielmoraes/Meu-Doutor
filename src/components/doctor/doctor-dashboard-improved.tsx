@@ -10,12 +10,21 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Users, Calendar, History, Sparkles, Activity, TrendingUp, Clock, 
   AlertTriangle, FileWarning, Search, Video, ArrowRight, 
-  Timer, CheckCircle, BarChart3, Zap, Bell, Heart, UserCircle, Settings
+  Timer, CheckCircle, BarChart3, Zap, Bell, Heart, UserCircle, Settings,
+  Menu, LogOut, User
 } from "lucide-react";
 import Link from "next/link";
 import { OnlineStatusToggle } from "@/components/doctor/online-status-toggle";
 import type { Doctor } from "@/types";
 import MediAILogo from "@/components/layout/mediai-logo";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface PendingExam {
   id: string;
@@ -136,40 +145,72 @@ export default function DoctorDashboardImproved({
       <div className="relative z-10 p-4 md:p-8">
         <div className="mb-8 space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-sm">
-              <Sparkles className="h-4 w-4 text-cyan-400" />
-              <span className="text-sm text-cyan-300 font-medium">Portal do Médico</span>
+            <div className="flex items-center gap-4">
+              <MediAILogo className="h-10 w-auto" />
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-sm">
+                <Sparkles className="h-4 w-4 text-cyan-400" />
+                <span className="text-sm text-cyan-300 font-medium">Portal do Médico</span>
+              </div>
             </div>
-            <MediAILogo className="h-10 w-auto" />
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className="flex items-center gap-3 px-3 py-2 h-auto bg-slate-800/50 border border-cyan-500/20 hover:bg-slate-700/50 hover:border-cyan-500/40 rounded-full"
+                >
+                  <Avatar className="h-8 w-8 border border-cyan-500/50">
+                    <AvatarImage src={doctor.avatar || ''} alt={doctor.name} />
+                    <AvatarFallback className="bg-gradient-to-br from-cyan-600 to-blue-600 text-white text-xs font-bold">
+                      {doctor.name.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm text-cyan-200 hidden sm:inline">{doctor.name.split(' ')[0]}</span>
+                  <Menu className="h-4 w-4 text-cyan-400" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                align="end" 
+                className="w-56 bg-slate-900/95 backdrop-blur-xl border-cyan-500/30 text-white"
+              >
+                <DropdownMenuLabel className="text-cyan-300">
+                  <div className="flex flex-col gap-1">
+                    <span className="font-medium">{doctor.name}</span>
+                    <span className="text-xs text-blue-300/70">{doctor.specialty}</span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-cyan-500/20" />
+                <DropdownMenuItem asChild>
+                  <Link href="/doctor/profile" className="flex items-center gap-2 cursor-pointer hover:bg-cyan-500/20">
+                    <User className="h-4 w-4 text-cyan-400" />
+                    <span>Meu Perfil</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/doctor/settings" className="flex items-center gap-2 cursor-pointer hover:bg-cyan-500/20">
+                    <Settings className="h-4 w-4 text-cyan-400" />
+                    <span>Configurações</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-cyan-500/20" />
+                <DropdownMenuItem asChild>
+                  <Link href="/api/auth/logout" className="flex items-center gap-2 cursor-pointer hover:bg-red-500/20 text-red-300">
+                    <LogOut className="h-4 w-4" />
+                    <span>Sair</span>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Link 
-                href="/doctor/profile" 
-                className="group relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 rounded-full"
-                aria-label="Abrir meu perfil"
-                title="Editar perfil"
-              >
-                <Avatar className="h-16 w-16 border-2 border-cyan-500/50 group-hover:border-cyan-400 transition-all shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40">
-                  <AvatarImage src={doctor.avatar || ''} alt={`Foto de ${doctor.name}`} />
-                  <AvatarFallback className="bg-gradient-to-br from-cyan-600 to-blue-600 text-white text-xl font-bold">
-                    {doctor.name.substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="absolute -bottom-1 -right-1 p-1 bg-slate-800 rounded-full border border-cyan-500/50 group-hover:bg-cyan-600 transition-colors">
-                  <Settings className="h-3 w-3 text-cyan-400 group-hover:text-white" />
-                </div>
-                <span className="sr-only">Abrir perfil do médico</span>
-              </Link>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
-                  Bem-vindo, Dr. {doctor.name.split(' ')[0]}
-                </h1>
-                <p className="text-base text-blue-200/70 mt-1">
-                  {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
-                </p>
-              </div>
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
+                Bem-vindo, Dr. {doctor.name.split(' ')[0]}
+              </h1>
+              <p className="text-base text-blue-200/70 mt-1">
+                {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </p>
             </div>
             <OnlineStatusToggle initialStatus={doctor.online || false} doctorName={doctor.name} />
           </div>
