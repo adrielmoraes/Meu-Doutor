@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Users, Calendar, History, Sparkles, Activity, TrendingUp, Clock, 
   AlertTriangle, FileWarning, Search, Video, ArrowRight, 
-  Timer, CheckCircle, BarChart3, Zap, Bell, Heart
+  Timer, CheckCircle, BarChart3, Zap, Bell, Heart, UserCircle, Settings
 } from "lucide-react";
 import Link from "next/link";
 import { OnlineStatusToggle } from "@/components/doctor/online-status-toggle";
@@ -144,13 +144,26 @@ export default function DoctorDashboardImproved({
           </div>
 
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
-                Bem-vindo, Dr. {doctor.name.split(' ')[0]}
-              </h1>
-              <p className="text-base text-blue-200/70 mt-1">
-                {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
-              </p>
+            <div className="flex items-center gap-4">
+              <Link href="/doctor/profile" className="group relative">
+                <Avatar className="h-16 w-16 border-2 border-cyan-500/50 group-hover:border-cyan-400 transition-all shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40">
+                  <AvatarImage src={doctor.avatar || ''} alt={doctor.name} />
+                  <AvatarFallback className="bg-gradient-to-br from-cyan-600 to-blue-600 text-white text-xl font-bold">
+                    {doctor.name.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute -bottom-1 -right-1 p-1 bg-slate-800 rounded-full border border-cyan-500/50 group-hover:bg-cyan-600 transition-colors">
+                  <Settings className="h-3 w-3 text-cyan-400 group-hover:text-white" />
+                </div>
+              </Link>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
+                  Bem-vindo, Dr. {doctor.name.split(' ')[0]}
+                </h1>
+                <p className="text-base text-blue-200/70 mt-1">
+                  {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </p>
+              </div>
             </div>
             <OnlineStatusToggle initialStatus={doctor.online || false} doctorName={doctor.name} />
           </div>
@@ -425,7 +438,7 @@ export default function DoctorDashboardImproved({
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-cyan-500/30 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/20 overflow-hidden transform hover:scale-[1.02]">
             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <Link href="/doctor/patients" className="block h-full relative">
@@ -466,6 +479,21 @@ export default function DoctorDashboardImproved({
               <CardContent>
                 <p className="text-sm text-blue-200/70">
                   Revise seus atendimentos e diagnósticos passados.
+                </p>
+              </CardContent>
+            </Link>
+          </Card>
+
+          <Card className="group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-pink-500/30 hover:border-pink-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-pink-500/20 overflow-hidden transform hover:scale-[1.02]">
+            <div className="absolute inset-0 bg-gradient-to-br from-pink-500/20 to-rose-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <Link href="/doctor/profile" className="block h-full relative">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xl font-bold text-pink-300">Meu Perfil</CardTitle>
+                <UserCircle className="h-8 w-8 text-pink-400" />
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-blue-200/70">
+                  Gerencie suas informações profissionais e foto.
                 </p>
               </CardContent>
             </Link>
