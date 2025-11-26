@@ -9,8 +9,9 @@ import { PatientHeader } from './patient-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { MediAILogo } from "./medi-ai-logo"; // Assuming MediAILogo is in a component file
+import { MediAILogo } from "./medi-ai-logo";
 import { useLiveKitWarmup } from '@/hooks/use-livekit-warmup';
+import IncomingCallBanner from './incoming-call-banner';
 
 
 
@@ -130,6 +131,9 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
 
   return (
     <div className="bg-gradient-to-br from-[#fce7f5] via-[#f9d5ed] to-[#fce7f5] dark:from-slate-950 dark:via-blue-950 dark:to-slate-900 min-h-screen relative overflow-hidden">
+      {/* Incoming Call Banner - shows when doctor is calling */}
+      <IncomingCallBanner patientId={patient.id || ''} />
+      
       {/* Header with Menu */}
       <PatientHeader patient={patient} />
 
