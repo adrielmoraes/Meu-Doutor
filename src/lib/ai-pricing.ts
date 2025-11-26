@@ -180,9 +180,13 @@ export function calculateLiveKitCost(
   return durationMinutes * AI_PRICING.livekit.audioPerMinute;
 }
 
+// Default exchange rate: 5.0 (can be configured via EXCHANGE_RATE env)
+const DEFAULT_EXCHANGE_RATE = 5.0;
+
 // Convert USD to BRL cents for storage
-export function usdToBRLCents(usdAmount: number, exchangeRate: number = 5.50): number {
-  return Math.round(usdAmount * exchangeRate * 100);
+export function usdToBRLCents(usdAmount: number, exchangeRate?: number): number {
+  const rate = exchangeRate || parseFloat(process.env.EXCHANGE_RATE || '') || DEFAULT_EXCHANGE_RATE;
+  return Math.round(usdAmount * rate * 100);
 }
 
 // Format cost for display

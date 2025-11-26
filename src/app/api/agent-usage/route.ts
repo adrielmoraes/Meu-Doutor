@@ -30,7 +30,16 @@ export async function POST(request: NextRequest) {
     // Autenticação via header x-agent-secret ou Authorization Bearer
     const agentSecret = request.headers.get('x-agent-secret') || 
                         request.headers.get('Authorization')?.replace('Bearer ', '');
-    const expectedSecret = process.env.AGENT_SECRET || 'mediai-agent-secret-2024';
+    const expectedSecret = process.env.AGENT_SECRET;
+
+    // Require AGENT_SECRET to be configured - no hardcoded fallback for security
+    if (!expectedSecret) {
+      console.error('[Agent Usage] AGENT_SECRET não configurado no ambiente');
+      return NextResponse.json(
+        { success: false, error: 'Configuração do servidor inválida' },
+        { status: 500 }
+      );
+    }
 
     if (!agentSecret || agentSecret !== expectedSecret) {
       console.warn('[Agent Usage] Tentativa de acesso não autorizado');
@@ -63,15 +72,36 @@ export async function POST(request: NextRequest) {
     const NATIVE_AUDIO_INPUT_PRICE = 1.00; // per 1M tokens
     const NATIVE_AUDIO_OUTPUT_PRICE = 20.00; // per 1M tokens
     
-    // Salvar métricas STT (usando Native Audio pricing)
+    // Calculate all costs upfront
+    const sttCostUSD = (validatedData.sttTokens / 1_000_000) * NATIVE_AUDIO_INPUT_PRICE;
+    const ttsCostUSD = (validatedData.ttsTokens / 1_000_000) * NATIVE_AUDIO_OUTPUT_PRICE;
+    const llmCost = calculateLLMCost(
+      'gemini-2.5-flash',
+      validatedData.llmInputTokens,
+      validatedData.llmOutputTokens
+    );
+    const totalVisionTokens = validatedData.visionInputTokens + validatedData.visionOutputTokens;
+    const visionCost = calculateLLMCost(
+      'gemini-2.5-flash',
+      validatedData.visionInputTokens || validatedData.visionTokens || 0,
+      validatedData.visionOutputTokens || 0
+    );
+    const avatarCostUSD = calculateAvatarCost(
+      validatedData.avatarProvider,
+      validatedData.activeSeconds / 60
+    );
+    
+    // Total cost calculated from components
+    const totalCostUSD = sttCostUSD + ttsCostUSD + llmCost.totalCost + visionCost.totalCost + avatarCostUSD;
+    
+    // Salvar métricas STT (durationSeconds=0 to avoid double counting)
     if (validatedData.sttTokens > 0) {
-      const sttCostUSD = (validatedData.sttTokens / 1_000_000) * NATIVE_AUDIO_INPUT_PRICE;
       await trackUsage({
         patientId: validatedData.patientId,
         usageType: 'stt',
         resourceName: 'Gemini 2.5 Flash Native Audio (STT)',
         tokensUsed: validatedData.sttTokens,
-        durationSeconds: validatedData.activeSeconds,
+        durationSeconds: 0, // Don't duplicate duration - only record on ai_call
         cost: usdToBRLCents(sttCostUSD),
         metadata: {
           sessionId: validatedData.sessionId,
@@ -82,21 +112,15 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Salvar métricas LLM (usando pricing do Gemini 2.5 Flash: $0.30 input, $2.50 output)
+    // Salvar métricas LLM (durationSeconds=0 to avoid double counting)
     const totalLlmTokens = validatedData.llmInputTokens + validatedData.llmOutputTokens;
     if (totalLlmTokens > 0) {
-      const llmCost = calculateLLMCost(
-        'gemini-2.5-flash',
-        validatedData.llmInputTokens,
-        validatedData.llmOutputTokens
-      );
-      
       await trackUsage({
         patientId: validatedData.patientId,
         usageType: 'llm',
         resourceName: 'Gemini 2.5 Flash',
         tokensUsed: totalLlmTokens,
-        durationSeconds: validatedData.activeSeconds,
+        durationSeconds: 0, // Don't duplicate duration
         cost: usdToBRLCents(llmCost.totalCost),
         metadata: {
           sessionId: validatedData.sessionId,
@@ -109,15 +133,14 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Salvar métricas TTS (usando Native Audio pricing)
+    // Salvar métricas TTS (durationSeconds=0 to avoid double counting)
     if (validatedData.ttsTokens > 0) {
-      const ttsCostUSD = (validatedData.ttsTokens / 1_000_000) * NATIVE_AUDIO_OUTPUT_PRICE;
       await trackUsage({
         patientId: validatedData.patientId,
         usageType: 'tts',
         resourceName: 'Gemini 2.5 Flash Native Audio (TTS)',
         tokensUsed: validatedData.ttsTokens,
-        durationSeconds: validatedData.activeSeconds,
+        durationSeconds: 0, // Don't duplicate duration
         cost: usdToBRLCents(ttsCostUSD),
         metadata: {
           sessionId: validatedData.sessionId,
@@ -128,21 +151,14 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Salvar métricas de Visão (usando pricing do Gemini 2.5 Flash)
-    const totalVisionTokens = validatedData.visionInputTokens + validatedData.visionOutputTokens;
+    // Salvar métricas de Visão (durationSeconds=0 to avoid double counting)
     if (totalVisionTokens > 0 || validatedData.visionTokens > 0) {
-      const visionCost = calculateLLMCost(
-        'gemini-2.5-flash',
-        validatedData.visionInputTokens || validatedData.visionTokens,
-        validatedData.visionOutputTokens || 0
-      );
-      
       await trackUsage({
         patientId: validatedData.patientId,
         usageType: 'vision',
         resourceName: 'Gemini 2.5 Flash Vision',
         tokensUsed: totalVisionTokens || validatedData.visionTokens,
-        durationSeconds: 0,
+        durationSeconds: 0, // Don't duplicate duration
         cost: usdToBRLCents(visionCost.totalCost),
         metadata: {
           sessionId: validatedData.sessionId,
@@ -156,19 +172,14 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Salvar métricas do Avatar (BeyondPresence: $0.175/min)
+    // Salvar métricas do Avatar (durationSeconds=0, cost tracked separately)
     if (validatedData.activeSeconds > 0) {
-      const avatarCostUSD = calculateAvatarCost(
-        validatedData.avatarProvider,
-        validatedData.activeSeconds / 60
-      );
-      
       await trackUsage({
         patientId: validatedData.patientId,
         usageType: 'avatar',
         resourceName: AI_PRICING.avatars[validatedData.avatarProvider].name,
         tokensUsed: 0,
-        durationSeconds: validatedData.activeSeconds,
+        durationSeconds: 0, // Don't duplicate duration - only record on ai_call
         cost: usdToBRLCents(avatarCostUSD),
         metadata: {
           sessionId: validatedData.sessionId,
@@ -180,28 +191,36 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Salvar métricas consolidadas da consulta ao vivo
+    // Salvar métricas consolidadas da chamada IA (único registro com duration, cost=0 para evitar duplicação)
+    // Os custos individuais são registrados nas linhas acima
     if (validatedData.activeSeconds > 0) {
       const totalTokensUsed = validatedData.sttTokens + validatedData.llmInputTokens + 
                               validatedData.llmOutputTokens + validatedData.ttsTokens + totalVisionTokens;
       
       await trackUsage({
         patientId: validatedData.patientId,
-        usageType: 'live_consultation',
+        usageType: 'ai_call',
         resourceName: 'Consulta IA ao Vivo',
         tokensUsed: totalTokensUsed,
-        durationSeconds: validatedData.activeSeconds,
-        cost: validatedData.costCents || 0,
+        durationSeconds: validatedData.activeSeconds, // Duration only recorded here
+        cost: 0, // Costs already recorded in component rows above
         metadata: {
           sessionId: validatedData.sessionId,
           avatarProvider: validatedData.avatarProvider,
           totalTokens: totalTokensUsed,
+          totalCostUSD: totalCostUSD,
+          totalCostBRL: usdToBRLCents(totalCostUSD) / 100,
           breakdown: {
             sttTokens: validatedData.sttTokens,
+            sttCostUSD: sttCostUSD,
             llmInputTokens: validatedData.llmInputTokens,
             llmOutputTokens: validatedData.llmOutputTokens,
+            llmCostUSD: llmCost.totalCost,
             ttsTokens: validatedData.ttsTokens,
-            visionTokens: totalVisionTokens,
+            ttsCostUSD: ttsCostUSD,
+            visionTokens: totalVisionTokens || validatedData.visionTokens,
+            visionCostUSD: visionCost.totalCost,
+            avatarCostUSD: avatarCostUSD,
           },
           ...validatedData.metadata,
         },

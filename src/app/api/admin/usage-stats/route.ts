@@ -68,23 +68,25 @@ export async function GET(request: NextRequest) {
       .limit(500);
 
     // Calculate summary statistics
+    // Note: duration only comes from ai_call and doctor_call types to avoid double counting
     const summary = await db
       .select({
         totalCost: sql<number>`COALESCE(SUM(${usageTracking.cost}), 0)`,
         totalTokens: sql<number>`COALESCE(SUM(${usageTracking.tokensUsed}), 0)`,
-        totalDuration: sql<number>`COALESCE(SUM(${usageTracking.durationSeconds}), 0)`,
+        totalDuration: sql<number>`COALESCE(SUM(CASE WHEN ${usageTracking.usageType} IN ('ai_call', 'doctor_call') THEN ${usageTracking.durationSeconds} ELSE 0 END), 0)`,
         totalRecords: sql<number>`COUNT(*)`,
       })
       .from(usageTracking)
       .where(and(...conditions));
 
     // Get breakdown by usage type
+    // Note: duration is relevant only for ai_call and doctor_call types
     const breakdownByType = await db
       .select({
         usageType: usageTracking.usageType,
         totalCost: sql<number>`COALESCE(SUM(${usageTracking.cost}), 0)`,
         totalTokens: sql<number>`COALESCE(SUM(${usageTracking.tokensUsed}), 0)`,
-        totalDuration: sql<number>`COALESCE(SUM(${usageTracking.durationSeconds}), 0)`,
+        totalDuration: sql<number>`COALESCE(SUM(CASE WHEN ${usageTracking.usageType} IN ('ai_call', 'doctor_call') THEN ${usageTracking.durationSeconds} ELSE 0 END), 0)`,
         count: sql<number>`COUNT(*)`,
       })
       .from(usageTracking)
