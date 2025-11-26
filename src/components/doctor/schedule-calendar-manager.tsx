@@ -8,6 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Video, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ManageAvailability from '@/components/doctor/manage-availability';
+import StartVideoCallButton from '@/components/doctor/start-video-call-button';
+import CancelAppointmentButton from '@/components/ui/cancel-appointment-button';
 import type { Appointment, Doctor } from "@/types";
 import { isSameDay, format, parseISO } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -63,9 +65,14 @@ export default function ScheduleCalendarManager({ appointments, doctor }: Schedu
                             <p className="font-semibold text-lg">{appt.time} - {appt.patientName}</p>
                             <p className="text-sm text-muted-foreground">{appt.type}</p>
                         </div>
-                        <Button size="icon" variant="ghost">
-                            <Video className="h-5 w-5 text-primary" />
-                        </Button>
+                        {appt.status === 'Agendada' && appt.type.includes('Vídeo') && (
+                            <StartVideoCallButton 
+                                patientId={appt.patientId}
+                                appointmentId={appt.id}
+                                patientName={appt.patientName}
+                            />
+                        )}
+                        <CancelAppointmentButton appointment={appt} />
                     </Card>
                 ))
             ) : (
