@@ -63,6 +63,8 @@ if not AGENT_SECRET:
 else:
     logger.info(f"[AI Tools] ✅ API configurada: {NEXT_PUBLIC_URL}")
 
+_current_agent_instance: Optional['MediAIAgent'] = None
+
 
 @retry(stop=stop_after_attempt(3),
        wait=wait_exponential(multiplier=1, min=1, max=10),
@@ -584,13 +586,95 @@ async def _search_doctors_impl(specialty: str = None, limit: int = 5) -> dict:
         return {"success": False, "error": str(e), "doctors": []}
 
 
+def _is_valid_uuid(value: str) -> bool:
+    """Verifica se uma string é um UUID válido."""
+    import re
+    uuid_pattern = re.compile(
+        r'^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$'
+    )
+    return bool(uuid_pattern.match(value))
+
+
+def _normalize_doctor_name(name: str) -> str:
+    """
+    Normaliza o nome do médico removendo prefixos e variações.
+    
+    Trata: "Dr.", "Dr", "Dra.", "Dra", "Doutor", "Doutora", "Doctor" etc.
+    """
+    import re
+    
+    normalized = name.lower().strip()
+    
+    prefixes = [
+        r'\bdra?\.\s*',
+        r'\bdra?\s+',
+        r'\bdoutor[a]?\s*',
+        r'\bdoctor\s*',
+    ]
+    
+    for prefix in prefixes:
+        normalized = re.sub(prefix, '', normalized, flags=re.IGNORECASE)
+    
+    normalized = re.sub(r'\s+', ' ', normalized).strip()
+    
+    return normalized
+
+
+async def _resolve_doctor_id(doctor_name_or_id: str) -> tuple[str, str]:
+    """
+    Resolve o nome do médico para seu ID real.
+    
+    Args:
+        doctor_name_or_id: Nome do médico (ex: "Mizael", "Dr. Mizael", "Dr Mizael") ou ID UUID
+        
+    Returns:
+        Tuple (doctor_id, doctor_name) ou (None, error_message)
+    """
+    if _is_valid_uuid(doctor_name_or_id):
+        return (doctor_name_or_id, None)
+    
+    logger.info(f"[AI Tools] Resolvendo nome do médico '{doctor_name_or_id}' para ID...")
+    
+    result = await _search_doctors_impl(specialty=None, limit=50)
+    
+    if not result.get('doctors'):
+        return (None, "Não encontrei médicos cadastrados no sistema.")
+    
+    search_name = _normalize_doctor_name(doctor_name_or_id)
+    logger.info(f"[AI Tools] Nome normalizado para busca: '{search_name}'")
+    
+    for doctor in result['doctors']:
+        db_name = _normalize_doctor_name(doctor.get('name', ''))
+        
+        if search_name in db_name or db_name in search_name:
+            doctor_id = doctor.get('id')
+            doctor_full_name = doctor.get('name')
+            logger.info(f"[AI Tools] ✅ Encontrado: {doctor_full_name} (ID: {doctor_id})")
+            return (doctor_id, doctor_full_name)
+        
+        search_parts = search_name.split()
+        db_parts = db_name.split()
+        for s_part in search_parts:
+            for d_part in db_parts:
+                if len(s_part) >= 3 and len(d_part) >= 3:
+                    if s_part in d_part or d_part in s_part:
+                        doctor_id = doctor.get('id')
+                        doctor_full_name = doctor.get('name')
+                        logger.info(f"[AI Tools] ✅ Encontrado (parcial): {doctor_full_name} (ID: {doctor_id})")
+                        return (doctor_id, doctor_full_name)
+    
+    available_names = [d.get('name') for d in result['doctors']]
+    logger.warning(f"[AI Tools] ❌ Médico '{doctor_name_or_id}' não encontrado. Disponíveis: {available_names}")
+    return (None, f"Não encontrei o médico '{doctor_name_or_id}' no sistema. Médicos disponíveis: {', '.join(available_names[:5])}")
+
+
 async def _get_available_slots_impl(doctor_id: str, date: str) -> dict:
     """
     Busca horários disponíveis de um médico para uma data específica.
     Use esta função após o paciente escolher um médico e antes de agendar.
     
     Args:
-        doctor_id: ID do médico escolhido
+        doctor_id: ID do médico escolhido OU nome do médico (será resolvido automaticamente)
         date: Data desejada no formato YYYY-MM-DD (ex: 2025-11-20)
     
     Returns:
@@ -606,14 +690,25 @@ async def _get_available_slots_impl(doctor_id: str, date: str) -> dict:
             "availableSlots": []
         }
 
+    resolved_id, doctor_name_or_error = await _resolve_doctor_id(doctor_id)
+    
+    if not resolved_id:
+        return {
+            "success": False,
+            "error": doctor_name_or_error,
+            "availableSlots": []
+        }
+    
+    actual_doctor_id = resolved_id
+
     try:
         async with httpx.AsyncClient() as client:
             url = f"{NEXT_PUBLIC_URL}/api/ai-agent/schedule"
-            params = {"doctorId": doctor_id, "date": date}
+            params = {"doctorId": actual_doctor_id, "date": date}
             headers = {"x-agent-secret": AGENT_SECRET}
 
             logger.info(
-                f"[AI Tools] Buscando horários: {url} (médico={doctor_id}, data={date})"
+                f"[AI Tools] Buscando horários: {url} (médico_id={actual_doctor_id}, data={date})"
             )
             response = await client.get(url,
                                         params=params,
@@ -622,6 +717,10 @@ async def _get_available_slots_impl(doctor_id: str, date: str) -> dict:
             response.raise_for_status()
 
             data = response.json()
+            
+            if doctor_name_or_error:
+                data['doctorName'] = doctor_name_or_error
+                
             logger.info(
                 f"[AI Tools] ✅ Encontrados {data.get('totalAvailable', 0)} horários disponíveis"
             )
@@ -860,9 +959,18 @@ async def look_at_patient(context: RunContext) -> dict:
     IMPORTANTE: Use esta capacidade com tato e profissionalismo.
     Não faça comentários sobre aparência física que não sejam relevantes para a saúde.
     """
+    global _current_agent_instance
+    
     try:
-        from typing import cast
-        agent = cast(MediAIAgent, context.agent)
+        agent = _current_agent_instance
+        
+        if agent is None:
+            logger.error("[Vision] No agent instance available")
+            return {
+                "success": False,
+                "description": None,
+                "message": "Sistema de visão não está disponível no momento."
+            }
 
         logger.info(
             "[Vision] 👁️ Patient requested visual analysis - capturing frame..."
@@ -907,6 +1015,8 @@ class MediAIAgent(Agent):
                  room: rtc.Room,
                  metrics_collector: Optional[MetricsCollector] = None,
                  patient_id: str = None):
+        global _current_agent_instance
+        
         super().__init__(instructions=instructions,
                          tools=[
                              search_doctors, get_available_slots,
@@ -924,6 +1034,9 @@ class MediAIAgent(Agent):
         self.last_frame_send_time = 0
         self._video_stream = None
         self._current_video_track = None
+        
+        _current_agent_instance = self
+        logger.info("[MediAI] Agent instance registered for vision tools")
 
     def _process_video_frame_sync(self,
                                   frame: rtc.VideoFrame) -> Optional[bytes]:
