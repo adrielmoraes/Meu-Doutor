@@ -77,14 +77,21 @@ async function getDashboardData(doctorId: string): Promise<DashboardData> {
         const today = new Date().toISOString().split('T')[0];
         const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
+        const doctorPatientIds = db
+          .selectDistinct({ patientId: appointments.patientId })
+          .from(appointments)
+          .where(eq(appointments.doctorId, doctorId));
+
         const [
           totalPatientsResult,
           upcomingAppointmentsResult,
           completedConsultationsResult,
           pendingExamsResult,
+          pendingExamsCountResult,
           urgentPatientsResult,
           todayAppointmentsResult,
-          weeklyConsultationsResult
+          weeklyConsultationsResult,
+          urgentExamCountsResult
         ] = await Promise.all([
           db.select({ count: sql<number>`COUNT(DISTINCT ${appointments.patientId})` })
             .from(appointments)
@@ -113,17 +120,25 @@ async function getDashboardData(doctorId: string): Promise<DashboardData> {
             })
             .from(exams)
             .innerJoin(patients, eq(exams.patientId, patients.id))
-            .innerJoin(appointments, eq(patients.id, appointments.patientId))
             .where(
               and(
-                eq(appointments.doctorId, doctorId),
+                sql`${exams.patientId} IN (${doctorPatientIds})`,
                 eq(exams.status, 'Requer Validação')
               )
             )
             .orderBy(desc(exams.createdAt))
             .limit(10),
           
-          db.select({
+          db.select({ count: sql<number>`COUNT(DISTINCT ${exams.id})` })
+            .from(exams)
+            .where(
+              and(
+                sql`${exams.patientId} IN (${doctorPatientIds})`,
+                eq(exams.status, 'Requer Validação')
+              )
+            ),
+          
+          db.selectDistinct({
               id: patients.id,
               name: patients.name,
               priority: patients.priority,
@@ -170,26 +185,26 @@ async function getDashboardData(doctorId: string): Promise<DashboardData> {
                 gte(consultations.createdAt, new Date(oneWeekAgo))
               )
             ),
+          
+          db.select({
+              patientId: exams.patientId,
+              count: sql<number>`COUNT(*)`.as('count'),
+            })
+            .from(exams)
+            .where(eq(exams.status, 'Requer Validação'))
+            .groupBy(exams.patientId),
         ]);
 
-        const urgentCasesWithExams = await Promise.all(
-          urgentPatientsResult.map(async (p) => {
-            const pendingExamsCount = await db
-              .select({ count: count() })
-              .from(exams)
-              .where(
-                and(
-                  eq(exams.patientId, p.id),
-                  eq(exams.status, 'Requer Validação')
-                )
-              );
-            return {
-              ...p,
-              priority: p.priority || 'Normal',
-              pendingExams: Number(pendingExamsCount[0]?.count) || 0,
-            };
-          })
-        );
+        const examCountMap = new Map<string, number>();
+        urgentExamCountsResult.forEach(row => {
+          examCountMap.set(row.patientId, Number(row.count) || 0);
+        });
+
+        const urgentCasesWithExams = urgentPatientsResult.map(p => ({
+          ...p,
+          priority: p.priority || 'Normal',
+          pendingExams: examCountMap.get(p.id) || 0,
+        }));
 
         return { 
           doctor,
@@ -204,10 +219,10 @@ async function getDashboardData(doctorId: string): Promise<DashboardData> {
             date: e.date,
             createdAt: e.createdAt,
           })),
-          pendingExamsCount: pendingExamsResult.length,
+          pendingExamsCount: Number(pendingExamsCountResult[0]?.count) || 0,
           urgentCases: urgentCasesWithExams,
           todayAppointments: todayAppointmentsResult,
-          avgValidationTime: 24,
+          avgValidationTime: 0,
           weeklyConsultations: Number(weeklyConsultationsResult[0]?.count) || 0,
         };
     } catch (e: any) {
