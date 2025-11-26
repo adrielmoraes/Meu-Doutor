@@ -52,7 +52,13 @@ export default function MediAILogo({
             </feMerge>
           </filter>
           <filter id="soft-shadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#e83fa5" floodOpacity="0.4" />
+            <feDropShadow
+              dx="0"
+              dy="2"
+              stdDeviation="3"
+              floodColor="#e83fa5"
+              floodOpacity="0.4"
+            />
           </filter>
         </defs>
 
@@ -70,10 +76,38 @@ export default function MediAILogo({
         </g>
 
         <g opacity="0.7">
-          <circle cx="30" cy="24" r="3" fill="white" className="animate-pulse" style={{ animationDuration: "2.5s" }} />
-          <circle cx="70" cy="24" r="3" fill="white" className="animate-pulse" style={{ animationDelay: "0.4s", animationDuration: "2.5s" }} />
-          <circle cx="18" cy="42" r="2.5" fill="white" className="animate-pulse" style={{ animationDelay: "0.8s", animationDuration: "2.5s" }} />
-          <circle cx="82" cy="42" r="2.5" fill="white" className="animate-pulse" style={{ animationDelay: "1.2s", animationDuration: "2.5s" }} />
+          <circle
+            cx="30"
+            cy="24"
+            r="3"
+            fill="white"
+            className="animate-pulse"
+            style={{ animationDuration: "2.5s" }}
+          />
+          <circle
+            cx="70"
+            cy="24"
+            r="3"
+            fill="white"
+            className="animate-pulse"
+            style={{ animationDelay: "0.4s", animationDuration: "2.5s" }}
+          />
+          <circle
+            cx="18"
+            cy="42"
+            r="2.5"
+            fill="white"
+            className="animate-pulse"
+            style={{ animationDelay: "0.8s", animationDuration: "2.5s" }}
+          />
+          <circle
+            cx="82"
+            cy="42"
+            r="2.5"
+            fill="white"
+            className="animate-pulse"
+            style={{ animationDelay: "1.2s", animationDuration: "2.5s" }}
+          />
         </g>
 
         <g opacity="0.2" stroke="white" strokeWidth="1.2">
@@ -90,26 +124,32 @@ export default function MediAILogo({
             currentSize.text,
             "font-semibold tracking-tight transition-all leading-none",
           )}
-          style={{ 
-            fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-            letterSpacing: "-0.02em"
+          style={{
+            fontFamily:
+              "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+            letterSpacing: "-0.03em",
           }}
         >
-          <span style={{ 
-            background: "linear-gradient(135deg, #ff6eb4 0%, #f754b3 50%, #e83fa5 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-          }}>
+          <span
+            style={{
+              background:
+                "linear-gradient(135deg, #ff6eb4 0%, #f754b3 50%, #e83fa5 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
             edi
           </span>
-          <span style={{ 
-            background: "linear-gradient(135deg, #e83fa5 0%, #d42d99 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-            fontWeight: 700,
-          }}>
+          <span
+            style={{
+              background: "linear-gradient(135deg, #e83fa5 0%, #d42d99 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              fontWeight: 700,
+            }}
+          >
             .AI
           </span>
         </span>
