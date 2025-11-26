@@ -156,6 +156,10 @@ async function getDashboardData(doctorId: string): Promise<DashboardData> {
                 )
               )
             )
+            .orderBy(
+              sql`CASE ${patients.priority} WHEN 'Crítica' THEN 1 WHEN 'Alta' THEN 2 ELSE 3 END`,
+              desc(patients.lastVisit)
+            )
             .limit(5),
           
           db.select({
@@ -191,7 +195,12 @@ async function getDashboardData(doctorId: string): Promise<DashboardData> {
               count: sql<number>`COUNT(*)`.as('count'),
             })
             .from(exams)
-            .where(eq(exams.status, 'Requer Validação'))
+            .where(
+              and(
+                sql`${exams.patientId} IN (${doctorPatientIds})`,
+                eq(exams.status, 'Requer Validação')
+              )
+            )
             .groupBy(exams.patientId),
         ]);
 
