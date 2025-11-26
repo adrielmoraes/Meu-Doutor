@@ -939,19 +939,38 @@ async def schedule_appointment(context: RunContext,
         end_time: Horário de término no formato HH:MM em formato 24h (ex: 15:00)
         notes: Notas ou motivo da consulta fornecidas pelo paciente (opcional)
     """
+    global _current_agent_instance
+    
+    patient_id = None
+    
     try:
-        from typing import cast
-        agent = cast(MediAIAgent, context.agent)
-        patient_id = agent.patient_id
-
+        agent = _current_agent_instance
+        
+        if agent is not None:
+            patient_id = agent.patient_id
+            if patient_id:
+                logger.info(f"[Schedule] Using patient_id from agent instance: {patient_id}")
+        
+        if not patient_id and agent is not None and hasattr(agent, 'room'):
+            try:
+                import json
+                room_metadata = agent.room.metadata
+                if room_metadata:
+                    metadata = json.loads(room_metadata)
+                    patient_id = metadata.get('patient_id')
+                    if patient_id:
+                        logger.info(f"[Schedule] Using patient_id from room metadata: {patient_id}")
+            except (json.JSONDecodeError, Exception) as json_err:
+                logger.debug(f"[Schedule] Could not parse room metadata: {json_err}")
+        
         if not patient_id:
-            raise ValueError("Patient ID is None")
+            raise ValueError("Patient ID not found in agent or room metadata")
 
     except (AttributeError, ValueError) as e:
-        logger.error(f"[Tools] Patient ID not available in agent context: {e}")
+        logger.error(f"[Tools] Patient ID not available: {e}")
         return {
             "success": False,
-            "error": "Erro interno: ID do paciente não disponível"
+            "error": "Erro interno: ID do paciente não disponível. Por favor, tente novamente."
         }
 
     return await _schedule_appointment_impl(doctor_id=doctor_id,
@@ -1122,6 +1141,8 @@ class MediAIAgent(Agent):
         After analysis, memory is cleaned up to prevent leaks.
         Uses async context manager for proper resource cleanup.
         
+        IMPORTANT: Discards buffered frames to get the most recent frame.
+        
         Returns:
             Description of what was seen, or None if capture/analysis failed.
         """
@@ -1134,11 +1155,14 @@ class MediAIAgent(Agent):
                 return None
 
             participant = list(self.room.remote_participants.values())[0]
+            logger.info(f"[Vision] Patient participant: {participant.identity}")
+            
             video_track = None
 
             for track_pub in participant.track_publications.values():
                 if track_pub.kind == rtc.TrackKind.KIND_VIDEO and track_pub.subscribed:
                     video_track = track_pub.track
+                    logger.info(f"[Vision] Found video track: {track_pub.sid}")
                     break
 
             if not video_track:
@@ -1149,18 +1173,67 @@ class MediAIAgent(Agent):
             temp_stream = rtc.VideoStream(video_track)
 
             try:
-                frame_event = await asyncio.wait_for(temp_stream.__anext__(),
-                                                     timeout=5.0)
-                frame = frame_event.frame
+                latest_frame = None
+                latest_timestamp = 0
+                frames_discarded = 0
+                
+                start_time = asyncio.get_event_loop().time()
+                current_time_us = int(time.time() * 1_000_000)
+                
+                while True:
+                    try:
+                        frame_event = await asyncio.wait_for(
+                            temp_stream.__anext__(), 
+                            timeout=0.2
+                        )
+                        frame = frame_event.frame
+                        
+                        if frame is not None and frame.width > 0 and frame.height > 0:
+                            frame_timestamp = getattr(frame_event, 'timestamp_us', 0) or getattr(frame, 'timestamp_us', 0) or 0
+                            
+                            if frame_timestamp == 0 or frame_timestamp > latest_timestamp:
+                                latest_frame = frame
+                                latest_timestamp = frame_timestamp
+                                frames_discarded += 1
+                        
+                        if asyncio.get_event_loop().time() - start_time > 1.0:
+                            break
+                            
+                    except asyncio.TimeoutError:
+                        break
+                
+                if frames_discarded > 1:
+                    logger.info(f"[Vision] Discarded {frames_discarded - 1} buffered frames, using latest")
+                    if latest_timestamp > 0:
+                        age_ms = (current_time_us - latest_timestamp) / 1000
+                        logger.info(f"[Vision] Frame timestamp: {latest_timestamp}, age: ~{age_ms:.0f}ms")
+                
+                if latest_frame is None:
+                    logger.info("[Vision] No frames in buffer, waiting for fresh frame...")
+                    try:
+                        frame_event = await asyncio.wait_for(
+                            temp_stream.__anext__(), 
+                            timeout=5.0
+                        )
+                        latest_frame = frame_event.frame
+                    except asyncio.TimeoutError:
+                        logger.warning("[Vision] Timeout waiting for video frame")
+                        return None
 
-                if frame is None:
+                if latest_frame is None:
                     logger.warning("[Vision] Received null frame")
                     return None
+                    
+                if latest_frame.width <= 0 or latest_frame.height <= 0:
+                    logger.warning(f"[Vision] Invalid frame dimensions: {latest_frame.width}x{latest_frame.height}")
+                    return None
+
+                logger.info(f"[Vision] Frame dimensions: {latest_frame.width}x{latest_frame.height}")
 
                 frame_bytes = await asyncio.to_thread(
-                    self._process_video_frame_sync, frame)
+                    self._process_video_frame_sync, latest_frame)
                 
-                frame = None
+                latest_frame = None
 
                 if not frame_bytes:
                     logger.warning("[Vision] Failed to process frame")
@@ -1173,25 +1246,30 @@ class MediAIAgent(Agent):
                 vision_model = genai.GenerativeModel('gemini-2.0-flash')
 
                 img = Image.open(io.BytesIO(frame_bytes))
+                logger.info(f"[Vision] Image size: {img.size}, mode: {img.mode}")
                 
                 frame_bytes = None
 
-                prompt = """Você é uma assistente médica virtual brasileira. Descreva brevemente o que você vê nesta imagem do paciente.
+                prompt = """Você é uma assistente médica virtual brasileira. Descreva EXATAMENTE o que você vê nesta imagem do paciente.
 
-REGRAS:
+REGRAS IMPORTANTES:
 - Responda em português brasileiro
+- Descreva APENAS o que você realmente vê na imagem - NÃO invente ou suponha detalhes
+- Seja específica sobre cores de roupas, características visíveis, ambiente
+- Se algo não está claro, diga que não consegue ver bem
 - Seja breve (2-3 frases)
 - Foque em aspectos relevantes para saúde (expressão facial, postura, sinais visíveis)
 - Seja profissional e respeitosa
 - NÃO faça diagnósticos
-- Se não conseguir ver algo claramente, diga isso
 
-Descreva o que você vê:"""
+Descreva PRECISAMENTE o que você vê nesta imagem:"""
 
                 response = await asyncio.to_thread(
                     lambda: vision_model.generate_content([prompt, img]))
 
                 description = response.text if response.text else "Não foi possível analisar a imagem."
+                
+                logger.info(f"[Vision] Gemini response: {description}")
 
                 if self.metrics_collector:
                     self.metrics_collector.vision_input_tokens += 258
@@ -1210,6 +1288,8 @@ Descreva o que você vê:"""
 
         except Exception as e:
             logger.error(f"[Vision] Error in capture_and_analyze_patient: {e}")
+            import traceback
+            logger.error(f"[Vision] Traceback: {traceback.format_exc()}")
             return None
         finally:
             if temp_stream is not None:
