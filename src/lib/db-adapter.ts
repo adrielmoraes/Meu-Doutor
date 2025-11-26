@@ -697,10 +697,40 @@ export async function getAuditLogsByAction(action: string, limit: number = 50): 
 
 // ========== Usage Tracking Functions ==========
 
+import {
+  calculateLLMCost,
+  calculateTTSCost,
+  calculateAvatarCost,
+  calculateLiveKitCost,
+  usdToBRLCents,
+  estimateTokens,
+  AI_PRICING,
+} from './ai-pricing';
+
+export type UsageType = 
+  | 'exam_analysis'
+  | 'stt'
+  | 'llm'
+  | 'tts'
+  | 'ai_call'
+  | 'doctor_call'
+  | 'chat'
+  | 'consultation_flow'
+  | 'live_consultation'
+  | 'diagnosis'
+  | 'wellness_plan'
+  | 'vision'
+  | 'avatar';
+
 export async function trackUsage(usageData: {
   patientId: string;
-  usageType: 'exam_analysis' | 'stt' | 'llm' | 'tts' | 'ai_call' | 'doctor_call' | 'chat';
+  usageType: UsageType;
   resourceName?: string;
+  model?: string;
+  inputTokens?: number;
+  outputTokens?: number;
+  inputText?: string;
+  outputText?: string;
   tokensUsed?: number;
   durationSeconds?: number;
   cost?: number;
@@ -708,16 +738,92 @@ export async function trackUsage(usageData: {
 }): Promise<void> {
   const { usageTracking } = await import('../../shared/schema');
 
+  // Estimate tokens if text provided but not token counts
+  let inputTokens = usageData.inputTokens || 0;
+  let outputTokens = usageData.outputTokens || 0;
+  
+  if (usageData.inputText && !usageData.inputTokens) {
+    inputTokens = estimateTokens(usageData.inputText);
+  }
+  if (usageData.outputText && !usageData.outputTokens) {
+    outputTokens = estimateTokens(usageData.outputText);
+  }
+  
+  const totalTokens = inputTokens + outputTokens + (usageData.tokensUsed || 0);
+  
+  // Calculate cost if not provided
+  let costCents = usageData.cost || 0;
+  let resourceName = usageData.resourceName || '';
+  const model = usageData.model || 'gemini-2.5-flash';
+  
+  if (!usageData.cost && (inputTokens > 0 || outputTokens > 0 || usageData.durationSeconds)) {
+    let costUSD = 0;
+    
+    switch (usageData.usageType) {
+      case 'chat':
+      case 'exam_analysis':
+      case 'consultation_flow':
+      case 'diagnosis':
+      case 'wellness_plan':
+      case 'vision':
+      case 'llm':
+        const llmCost = calculateLLMCost(model, inputTokens, outputTokens);
+        costUSD = llmCost.totalCost;
+        resourceName = resourceName || AI_PRICING.models[model as keyof typeof AI_PRICING.models]?.name || model;
+        break;
+        
+      case 'tts':
+        costUSD = calculateTTSCost(model, outputTokens);
+        resourceName = resourceName || 'Gemini TTS';
+        break;
+        
+      case 'stt':
+        costUSD = (usageData.durationSeconds || 0) / 60 * 0.006;
+        resourceName = resourceName || 'Gemini STT';
+        break;
+        
+      case 'ai_call':
+      case 'live_consultation':
+        const avatarProvider = usageData.metadata?.avatarProvider as 'beyondpresence' | 'tavus' || 'beyondpresence';
+        const llmLiveCost = calculateLLMCost(model, inputTokens, outputTokens);
+        const avatarCost = calculateAvatarCost(avatarProvider, (usageData.durationSeconds || 0) / 60);
+        costUSD = llmLiveCost.totalCost + avatarCost;
+        resourceName = resourceName || `Live Consultation (${AI_PRICING.avatars[avatarProvider].name})`;
+        break;
+        
+      case 'avatar':
+        const provider = usageData.metadata?.avatarProvider as 'beyondpresence' | 'tavus' || 'beyondpresence';
+        costUSD = calculateAvatarCost(provider, (usageData.durationSeconds || 0) / 60);
+        resourceName = resourceName || AI_PRICING.avatars[provider].name;
+        break;
+        
+      case 'doctor_call':
+        costUSD = calculateLiveKitCost((usageData.durationSeconds || 0) / 60, true);
+        resourceName = resourceName || 'LiveKit Video Call';
+        break;
+    }
+    
+    costCents = usdToBRLCents(costUSD);
+  }
+
   await db.insert(usageTracking).values({
     id: randomUUID(),
     patientId: usageData.patientId,
     usageType: usageData.usageType,
-    resourceName: usageData.resourceName || null,
-    tokensUsed: usageData.tokensUsed || 0,
+    resourceName: resourceName || usageData.usageType,
+    tokensUsed: totalTokens,
     durationSeconds: usageData.durationSeconds || 0,
-    cost: usageData.cost || 0,
-    metadata: usageData.metadata || null,
+    cost: costCents,
+    metadata: {
+      model,
+      inputTokens,
+      outputTokens,
+      costUSD: costCents / 100 / 5.50, // Convert back to USD for reference
+      ...usageData.metadata,
+    },
   });
+  
+  console.log(`[Usage Tracker] ${usageData.usageType}: ${resourceName}, tokens: ${totalTokens}, cost: R$${(costCents / 100).toFixed(4)}`);
 }
 
 export async function getPatientUsageStats(patientId: string): Promise<PatientUsageStats | null> {

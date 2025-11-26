@@ -36,11 +36,17 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Track chat usage
+    // Track chat usage with real cost calculation
     trackUsage({
       patientId,
       usageType: 'chat',
-      resourceName: 'Therapist Chat',
+      model: 'gemini-2.5-flash',
+      inputText: message,
+      outputText: chatResponse.response,
+      metadata: { 
+        conversationHistoryLength: conversationHistory?.length || 0,
+        messageType: 'therapist_chat'
+      },
     }).catch(error => {
       console.error('[Usage Tracking] Failed to track therapist chat:', error);
     });
@@ -49,11 +55,13 @@ export async function POST(req: NextRequest) {
       const audioResponse = await textToSpeech({ text: chatResponse.response });
       
       if (audioResponse && audioResponse.audioDataUri) {
-        // Track TTS usage separately
+        // Track TTS usage with real cost calculation
         trackUsage({
           patientId,
           usageType: 'tts',
-          resourceName: 'Therapist Audio Response',
+          model: 'gemini-2.5-flash-preview-tts',
+          outputText: chatResponse.response,
+          metadata: { textLength: chatResponse.response.length },
         }).catch(error => {
           console.error('[Usage Tracking] Failed to track TTS:', error);
         });
