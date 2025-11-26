@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "python-3.11", "bash", "web"]
+modules = ["nodejs-20", "python-3.11", "bash", "web", "postgresql-16"]
 [agent]
 expertMode = true
 integrations = ["resend:1.0.0"]
@@ -113,3 +113,8 @@ externalPort = 6000
 [[ports]]
 localPort = 60255
 externalPort = 9000
+
+[userenv]
+
+[userenv.shared]
+ENABLE_VISION = "true"

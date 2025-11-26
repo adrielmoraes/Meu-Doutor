@@ -32,6 +32,12 @@ interface DoctorAvailability {
   [dayOfWeek: string]: string[];
 }
 
+interface DateSlot {
+  date: string;
+  time: string;
+  available: boolean;
+}
+
 function getDayOfWeek(date: Date): string {
   const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
   return days[date.getDay()];
@@ -125,8 +131,25 @@ export async function isTimeSlotAvailable(
 }
 
 /**
+ * Detecta se a disponibilidade está no formato de slots por data
+ * Ex: [{"date":"2025-11-26","time":"09:00","available":true}]
+ */
+function isDateSlotFormat(availability: unknown): availability is DateSlot[] {
+  return Array.isArray(availability) && 
+    availability.length > 0 && 
+    typeof availability[0] === 'object' &&
+    availability[0] !== null &&
+    'date' in availability[0] && 
+    'time' in availability[0];
+}
+
+/**
  * Busca horários disponíveis para um médico em um dia
  * Respeita o campo availability do médico no banco de dados
+ * 
+ * Suporta dois formatos de disponibilidade:
+ * 1. Por dia da semana: {"monday": ["09:00-12:00", "14:00-18:00"]}
+ * 2. Por data específica: [{"date":"2025-11-26","time":"09:00","available":true}]
  */
 export async function getAvailableSlots(
   doctorId: string,
@@ -150,13 +173,8 @@ export async function getAvailableSlots(
   }
 
   const doctor = doctorData[0];
-  const availability = doctor.availability as DoctorAvailability | null;
+  const availability = doctor.availability;
   const dayOfWeek = getDayOfWeek(date);
-
-  if (!availability || !availability[dayOfWeek] || availability[dayOfWeek].length === 0) {
-    return [];
-  }
-
   const dateStr = formatDate(date);
 
   const existingAppointments = await db
@@ -171,7 +189,58 @@ export async function getAvailableSlots(
     );
 
   const slots: TimeSlot[] = [];
-  const dayAvailability = availability[dayOfWeek];
+
+  if (isDateSlotFormat(availability)) {
+    const dateSlots = availability.filter(slot => slot.date === dateStr);
+    
+    const appointmentDuration = 60;
+
+    for (const slot of dateSlots) {
+      const startTime = slot.time;
+      const startMinutes = timeToMinutes(startTime);
+      const endMinutes = startMinutes + appointmentDuration;
+      const endHours = Math.floor(endMinutes / 60);
+      const endMins = endMinutes % 60;
+      const endTime = `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+
+      const isOccupied = existingAppointments.some(apt => {
+        const { start: aptStart, end: aptEnd } = parseTimeRange(apt.time);
+        return (
+          (startTime >= aptStart && startTime < aptEnd) ||
+          (endTime > aptStart && endTime <= aptEnd) ||
+          (startTime <= aptStart && endTime >= aptEnd)
+        );
+      });
+
+      const slotAvailable = slot.available === true && !isOccupied;
+
+      slots.push({
+        date,
+        startTime,
+        endTime,
+        available: slotAvailable,
+        appointmentId: isOccupied
+          ? existingAppointments.find(apt => {
+              const { start: aptStart, end: aptEnd } = parseTimeRange(apt.time);
+              return (
+                (startTime >= aptStart && startTime < aptEnd) ||
+                (endTime > aptStart && endTime <= aptEnd)
+              );
+            })?.id
+          : undefined,
+      });
+    }
+
+    return slots;
+  }
+
+  const weeklyAvailability = availability as DoctorAvailability | null;
+  
+  if (!weeklyAvailability || !weeklyAvailability[dayOfWeek] || weeklyAvailability[dayOfWeek].length === 0) {
+    return [];
+  }
+
+  const dayAvailability = weeklyAvailability[dayOfWeek];
 
   for (const timeRange of dayAvailability) {
     const { start, end } = parseTimeRange(timeRange);
