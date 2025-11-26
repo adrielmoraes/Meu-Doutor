@@ -38,7 +38,9 @@ load_dotenv(dotenv_path=Path(__file__).parent / '.env')
 required_vars = ['GEMINI_API_KEY']
 missing = [var for var in required_vars if not os.getenv(var)]
 if missing:
-    raise RuntimeError(f"CRITICAL: Missing required environment variables: {', '.join(missing)}")
+    raise RuntimeError(
+        f"CRITICAL: Missing required environment variables: {', '.join(missing)}"
+    )
 
 if 'GEMINI_API_KEY' in os.environ and 'GOOGLE_API_KEY' not in os.environ:
     os.environ['GOOGLE_API_KEY'] = os.environ['GEMINI_API_KEY']
@@ -413,7 +415,8 @@ async def get_avatar_provider_config(pool) -> str:
     try:
         async with pool.acquire() as conn:
             # Query admin settings for avatar provider
-            result = await conn.fetchrow("SELECT avatar_provider FROM admin_settings LIMIT 1")
+            result = await conn.fetchrow(
+                "SELECT avatar_provider FROM admin_settings LIMIT 1")
 
             if result and result['avatar_provider']:
                 provider = result['avatar_provider']
@@ -661,37 +664,46 @@ async def _schedule_appointment_impl(doctor_id: str,
         from datetime import datetime as dt
         # Validar formato de data
         parsed_date = dt.strptime(date, '%Y-%m-%d')
-        
+
         # Validar que a data não é no passado
         today = dt.now().date()
         if parsed_date.date() < today:
-            logger.warning(f"[Schedule] Tentativa de agendar no passado: {date}")
+            logger.warning(
+                f"[Schedule] Tentativa de agendar no passado: {date}")
             return {
-                "success": False, 
-                "error": "Não é possível agendar consultas em datas passadas. Por favor, escolha uma data futura."
+                "success":
+                False,
+                "error":
+                "Não é possível agendar consultas em datas passadas. Por favor, escolha uma data futura."
             }
-        
+
         # Validar formato de horários
         dt.strptime(start_time, '%H:%M')
         dt.strptime(end_time, '%H:%M')
-        
+
         # Validar que end_time é após start_time
         start_dt = dt.strptime(start_time, '%H:%M')
         end_dt = dt.strptime(end_time, '%H:%M')
         if end_dt <= start_dt:
-            logger.warning(f"[Schedule] Horário de término antes do início: {start_time} - {end_time}")
+            logger.warning(
+                f"[Schedule] Horário de término antes do início: {start_time} - {end_time}"
+            )
             return {
-                "success": False,
-                "error": "O horário de término deve ser posterior ao horário de início."
+                "success":
+                False,
+                "error":
+                "O horário de término deve ser posterior ao horário de início."
             }
-            
+
     except ValueError as ve:
         logger.error(f"[Schedule] Validação de entrada falhou: {ve}")
         return {
-            "success": False,
-            "error": f"Formato de data ou horário inválido. Use YYYY-MM-DD para data e HH:MM para horários."
+            "success":
+            False,
+            "error":
+            f"Formato de data ou horário inválido. Use YYYY-MM-DD para data e HH:MM para horários."
         }
-    
+
     if not AGENT_SECRET:
         logger.warning(
             "[AI Tools] Cannot schedule appointment - AGENT_SECRET not configured"
@@ -811,13 +823,16 @@ async def schedule_appointment(context: RunContext,
         from typing import cast
         agent = cast(MediAIAgent, context.agent)
         patient_id = agent.patient_id
-        
+
         if not patient_id:
             raise ValueError("Patient ID is None")
-            
+
     except (AttributeError, ValueError) as e:
         logger.error(f"[Tools] Patient ID not available in agent context: {e}")
-        return {"success": False, "error": "Erro interno: ID do paciente não disponível"}
+        return {
+            "success": False,
+            "error": "Erro interno: ID do paciente não disponível"
+        }
 
     return await _schedule_appointment_impl(doctor_id=doctor_id,
                                             patient_id=patient_id,
@@ -848,26 +863,33 @@ async def look_at_patient(context: RunContext) -> dict:
     try:
         from typing import cast
         agent = cast(MediAIAgent, context.agent)
-        
-        logger.info("[Vision] 👁️ Patient requested visual analysis - capturing frame...")
-        
+
+        logger.info(
+            "[Vision] 👁️ Patient requested visual analysis - capturing frame..."
+        )
+
         description = await agent.capture_and_analyze_patient()
-        
+
         if description:
-            logger.info(f"[Vision] ✅ Visual analysis complete: {description[:100]}...")
+            logger.info(
+                f"[Vision] ✅ Visual analysis complete: {description[:100]}...")
             return {
                 "success": True,
                 "description": description,
                 "message": "Análise visual concluída com sucesso"
             }
         else:
-            logger.warning("[Vision] ❌ Could not capture or analyze patient image")
+            logger.warning(
+                "[Vision] ❌ Could not capture or analyze patient image")
             return {
-                "success": False,
-                "description": None,
-                "message": "Não foi possível capturar a imagem. Verifique se a câmera está ativada."
+                "success":
+                False,
+                "description":
+                None,
+                "message":
+                "Não foi possível capturar a imagem. Verifique se a câmera está ativada."
             }
-            
+
     except Exception as e:
         logger.error(f"[Vision] Error in look_at_patient: {e}")
         return {
@@ -885,9 +907,11 @@ class MediAIAgent(Agent):
                  room: rtc.Room,
                  metrics_collector: Optional[MetricsCollector] = None,
                  patient_id: str = None):
-        super().__init__(
-            instructions=instructions,
-            tools=[search_doctors, get_available_slots, schedule_appointment, look_at_patient])
+        super().__init__(instructions=instructions,
+                         tools=[
+                             search_doctors, get_available_slots,
+                             schedule_appointment, look_at_patient
+                         ])
         self.room = room
         self.metrics_collector = metrics_collector
         self._metrics_task = None
@@ -901,7 +925,8 @@ class MediAIAgent(Agent):
         self._video_stream = None
         self._current_video_track = None
 
-    def _process_video_frame_sync(self, frame: rtc.VideoFrame) -> Optional[bytes]:
+    def _process_video_frame_sync(self,
+                                  frame: rtc.VideoFrame) -> Optional[bytes]:
         """Process video frame synchronously in separate thread (ALL CPU-bound operations).
         
         CRITICAL: This runs in a separate thread to avoid blocking the event loop.
@@ -911,7 +936,7 @@ class MediAIAgent(Agent):
         """
         try:
             rgba_frame = frame.convert(VideoBufferType.RGBA)
-            
+
             height = rgba_frame.height
             width = rgba_frame.width
 
@@ -920,23 +945,23 @@ class MediAIAgent(Agent):
 
             rgb_array = rgba_array[:, :, :3].copy()
             rgba_array = None
-            
+
             img = Image.fromarray(rgb_array, 'RGB')
             rgb_array = None
-            
+
             img = img.resize((480, 480), Image.Resampling.BILINEAR)
 
             img_buffer = io.BytesIO()
             img.save(img_buffer, format='JPEG', quality=60)
             frame_bytes = img_buffer.getvalue()
-            
+
             img_buffer.close()
             img = None
             rgba_frame = None
-            
+
             gc.collect()
             return frame_bytes
-            
+
         except Exception as e:
             logger.debug(f"[Vision] Error in sync frame processing: {e}")
             gc.collect()
@@ -974,33 +999,29 @@ class MediAIAgent(Agent):
                 self._current_video_track = video_track
                 logger.info("[Vision] Created new VideoStream for track")
 
-            frame_event = await asyncio.wait_for(self._video_stream.__anext__(),
-                                                 timeout=3.0)
+            frame_event = await asyncio.wait_for(
+                self._video_stream.__anext__(), timeout=3.0)
             frame = frame_event.frame
-            
+
             if frame is None:
                 return
-            
+
             frame_bytes = await asyncio.to_thread(
-                self._process_video_frame_sync, frame
-            )
-            
+                self._process_video_frame_sync, frame)
+
             if not frame_bytes:
                 return
 
             if self._agent_session:
                 encoded_data = base64.b64encode(frame_bytes).decode('utf-8')
                 await self._agent_session.send_realtime_input(
-                    video=types.Blob(
-                        data=encoded_data,
-                        mime_type="image/jpeg"
-                    )
+                    video=types.Blob(data=encoded_data, mime_type="image/jpeg")
                 )
                 del encoded_data
                 logger.info(
                     f"[Vision] 📹 Sent 480x480 frame to Gemini ({len(frame_bytes)} bytes)"
                 )
-                
+
                 if self.metrics_collector:
                     self.metrics_collector.vision_input_tokens += 130
 
@@ -1022,7 +1043,7 @@ class MediAIAgent(Agent):
             Description of what was seen, or None if capture/analysis failed.
         """
         frame_bytes = None
-        
+
         try:
             if not self.room.remote_participants:
                 logger.warning("[Vision] No remote participants found")
@@ -1037,33 +1058,36 @@ class MediAIAgent(Agent):
                     break
 
             if not video_track:
-                logger.warning("[Vision] No video track available from patient")
+                logger.warning(
+                    "[Vision] No video track available from patient")
                 return None
 
             temp_stream = rtc.VideoStream(video_track)
-            
+
             try:
-                frame_event = await asyncio.wait_for(temp_stream.__anext__(), timeout=5.0)
+                frame_event = await asyncio.wait_for(temp_stream.__anext__(),
+                                                     timeout=5.0)
                 frame = frame_event.frame
-                
+
                 if frame is None:
                     logger.warning("[Vision] Received null frame")
                     return None
-                
+
                 frame_bytes = await asyncio.to_thread(
-                    self._process_video_frame_sync, frame
-                )
-                
+                    self._process_video_frame_sync, frame)
+
                 if not frame_bytes:
                     logger.warning("[Vision] Failed to process frame")
                     return None
 
-                logger.info(f"[Vision] 👁️ Captured frame ({len(frame_bytes)} bytes), analyzing with Gemini...")
-                
+                logger.info(
+                    f"[Vision] 👁️ Captured frame ({len(frame_bytes)} bytes), analyzing with Gemini..."
+                )
+
                 vision_model = genai.GenerativeModel('gemini-2.0-flash')
-                
+
                 img = Image.open(io.BytesIO(frame_bytes))
-                
+
                 prompt = """Você é uma assistente médica virtual brasileira. Descreva brevemente o que você vê nesta imagem do paciente.
 
 REGRAS:
@@ -1077,24 +1101,24 @@ REGRAS:
 Descreva o que você vê:"""
 
                 response = await asyncio.to_thread(
-                    lambda: vision_model.generate_content([prompt, img])
-                )
-                
+                    lambda: vision_model.generate_content([prompt, img]))
+
                 description = response.text if response.text else "Não foi possível analisar a imagem."
-                
+
                 if self.metrics_collector:
                     self.metrics_collector.vision_input_tokens += 258
-                    self.metrics_collector.vision_output_tokens += len(description) // 4
-                
+                    self.metrics_collector.vision_output_tokens += len(
+                        description) // 4
+
                 img = None
-                
+
                 logger.info(f"[Vision] ✅ Analysis complete")
                 return description
-                
+
             except asyncio.TimeoutError:
                 logger.warning("[Vision] Timeout waiting for video frame")
                 return None
-                
+
         except Exception as e:
             logger.error(f"[Vision] Error in capture_and_analyze_patient: {e}")
             return None
@@ -1143,7 +1167,6 @@ Descreva o que você vê:"""
             logger.error(f"[Patient] Error handling transcription: {e}")
 
 
-
 async def entrypoint(ctx: JobContext):
     """Main entrypoint for the LiveKit agent with Tavus avatar."""
 
@@ -1165,19 +1188,18 @@ async def entrypoint(ctx: JobContext):
     # Create database connection pool (prevents connection churning)
     import asyncpg
     database_url = os.getenv('DATABASE_URL')
-    
+
     pool = None
     if database_url:
         try:
-            pool = await asyncpg.create_pool(
-                database_url,
-                min_size=1,
-                max_size=5,
-                command_timeout=10
-            )
+            pool = await asyncpg.create_pool(database_url,
+                                             min_size=1,
+                                             max_size=5,
+                                             command_timeout=10)
             logger.info("[MediAI] 💾 Database connection pool created")
         except Exception as pool_error:
-            logger.error(f"[MediAI] Failed to create database pool: {pool_error}")
+            logger.error(
+                f"[MediAI] Failed to create database pool: {pool_error}")
 
     # Criar MetricsCollector
     session_id = ctx.room.name or f"session-{int(time.time())}"
@@ -1196,7 +1218,7 @@ async def entrypoint(ctx: JobContext):
     # Select Gemini model (native audio or standard realtime)
     gemini_model = os.getenv('GEMINI_LLM_MODEL', 'gemini-2.5-flash')
     logger.info(f"[MediAI] 🎙️ Using Gemini model: {gemini_model}")
-    
+
     # Check if vision is enabled
     vision_enabled = os.getenv('ENABLE_VISION', 'false').lower() == 'true'
 
@@ -1278,9 +1300,11 @@ CONTEXTO DO PACIENTE:
     # Erinome voice is designed for Portuguese (pt-BR)
     session = AgentSession(
         llm=google.beta.realtime.RealtimeModel(
-            model=gemini_model,  # Using selected model (native audio or standard realtime)
-            voice="Erinome",  # Female voice optimized for Portuguese (pt-BR)
-            temperature=0.5,  # Lower for more consistent responses and pronunciation
+            model=
+            gemini_model,  # Using selected model (native audio or standard realtime)
+            voice="Despina",  # Female voice optimized for Portuguese (pt-BR)
+            temperature=
+            0.5,  # Lower for more consistent responses and pronunciation
             instructions=system_prompt,
         ), )
 
@@ -1309,30 +1333,34 @@ CONTEXTO DO PACIENTE:
     agent._agent_session = session
 
     logger.info("[MediAI] ✅ Session started successfully!")
-    
+
     # Vision is disabled by default to save memory on resource-limited environments
     # Set ENABLE_VISION=true to enable vision (requires more memory)
     enable_vision = os.getenv('ENABLE_VISION', 'false').lower() == 'true'
     video_streaming_task = None
-    
+
     if enable_vision:
+
         async def stream_video_to_gemini():
             """Background task to send video frames to Gemini Live API at 0.5 FPS (every 2s)."""
             try:
                 await asyncio.sleep(5)
-                logger.info("[Vision] 📹 Starting vision streaming at 0.5 FPS...")
-                
+                logger.info(
+                    "[Vision] 📹 Starting vision streaming at 0.5 FPS...")
+
                 while True:
                     await agent.send_video_frame_to_gemini()
                     await asyncio.sleep(2.0)
                     gc.collect()
             except asyncio.CancelledError:
                 logger.info("[Vision] 🛑 Video streaming stopped")
-        
+
         video_streaming_task = asyncio.create_task(stream_video_to_gemini())
-        logger.info("[MediAI] 🎥 Vision enabled - AI can see patient in real-time")
+        logger.info(
+            "[MediAI] 🎥 Vision enabled - AI can see patient in real-time")
     else:
-        logger.info("[MediAI] 👁️ Vision disabled (set ENABLE_VISION=true to enable)")
+        logger.info(
+            "[MediAI] 👁️ Vision disabled (set ENABLE_VISION=true to enable)")
 
     # Hook into session events to track metrics
     # Note: Gemini Live API integrates STT/LLM/TTS, so we estimate based on interaction
@@ -1441,7 +1469,7 @@ CONTEXTO DO PACIENTE:
                 await video_streaming_task
             except asyncio.CancelledError:
                 pass
-        
+
         # Cleanup VideoStream cache
         if 'agent' in locals() and agent:
             agent._video_stream = None
@@ -1469,9 +1497,10 @@ CONTEXTO DO PACIENTE:
 
 
 if __name__ == "__main__":
-    cli.run_app(WorkerOptions(
-        entrypoint_fnc=entrypoint,
-        num_idle_processes=0,
-        job_memory_warn_mb=800,
-        job_memory_limit_mb=1500,
-    ))
+    cli.run_app(
+        WorkerOptions(
+            entrypoint_fnc=entrypoint,
+            num_idle_processes=0,
+            job_memory_warn_mb=800,
+            job_memory_limit_mb=1500,
+        ))
