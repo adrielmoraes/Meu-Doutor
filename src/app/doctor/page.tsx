@@ -138,7 +138,7 @@ async function getDashboardData(doctorId: string): Promise<DashboardData> {
               )
             ),
           
-          db.selectDistinct({
+          db.select({
               id: patients.id,
               name: patients.name,
               priority: patients.priority,
@@ -156,6 +156,7 @@ async function getDashboardData(doctorId: string): Promise<DashboardData> {
                 )
               )
             )
+            .groupBy(patients.id, patients.name, patients.priority, patients.lastVisit, patients.avatar)
             .orderBy(
               sql`CASE ${patients.priority} WHEN 'Crítica' THEN 1 WHEN 'Alta' THEN 2 ELSE 3 END`,
               desc(patients.lastVisit)

@@ -145,9 +145,14 @@ export default function DoctorDashboardImproved({
 
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-4">
-              <Link href="/doctor/profile" className="group relative">
+              <Link 
+                href="/doctor/profile" 
+                className="group relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 rounded-full"
+                aria-label="Abrir meu perfil"
+                title="Editar perfil"
+              >
                 <Avatar className="h-16 w-16 border-2 border-cyan-500/50 group-hover:border-cyan-400 transition-all shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40">
-                  <AvatarImage src={doctor.avatar || ''} alt={doctor.name} />
+                  <AvatarImage src={doctor.avatar || ''} alt={`Foto de ${doctor.name}`} />
                   <AvatarFallback className="bg-gradient-to-br from-cyan-600 to-blue-600 text-white text-xl font-bold">
                     {doctor.name.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
@@ -155,6 +160,7 @@ export default function DoctorDashboardImproved({
                 <div className="absolute -bottom-1 -right-1 p-1 bg-slate-800 rounded-full border border-cyan-500/50 group-hover:bg-cyan-600 transition-colors">
                   <Settings className="h-3 w-3 text-cyan-400 group-hover:text-white" />
                 </div>
+                <span className="sr-only">Abrir perfil do médico</span>
               </Link>
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
