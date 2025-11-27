@@ -18,6 +18,8 @@ import { Separator } from "../ui/separator";
 import { generatePreliminaryDiagnosis } from "@/ai/flows/generate-preliminary-diagnosis";
 import type { GeneratePreliminaryDiagnosisOutput } from "@/ai/flows/generate-preliminary-diagnosis";
 import { Textarea } from "../ui/textarea";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type PatientDetailViewProps = {
   patient: Patient;
@@ -45,7 +47,23 @@ function AIAnalysisCollapsible({ exam }: { exam: Exam }) {
       </CollapsibleTrigger>
       <CollapsibleContent>
         <div className="p-4 bg-slate-800/30">
-          <p className="text-base text-white whitespace-pre-wrap leading-relaxed">{exam.preliminaryDiagnosis}</p>
+          <ScrollArea className="max-h-[600px]">
+            <div className="prose prose-invert prose-sm max-w-none 
+              prose-headings:text-cyan-300 prose-headings:font-bold prose-headings:mt-4 prose-headings:mb-2
+              prose-h1:text-xl prose-h2:text-lg prose-h3:text-base
+              prose-p:text-white prose-p:leading-relaxed prose-p:my-2
+              prose-strong:text-cyan-200 prose-strong:font-semibold
+              prose-ul:my-2 prose-ul:pl-4 prose-li:text-white prose-li:my-1
+              prose-ol:my-2 prose-ol:pl-4
+              prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline
+              prose-code:text-cyan-300 prose-code:bg-slate-700/50 prose-code:px-1 prose-code:rounded
+              prose-blockquote:border-l-cyan-500 prose-blockquote:text-blue-200
+              prose-hr:border-slate-600">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {exam.preliminaryDiagnosis || "Nenhuma análise disponível."}
+              </ReactMarkdown>
+            </div>
+          </ScrollArea>
         </div>
       </CollapsibleContent>
     </Collapsible>
@@ -248,15 +266,29 @@ export default function PatientDetailView({
                                             </Button>
 
                                             {state?.generatedDiagnosis && (
-                                                <div className="p-4 bg-muted/50 rounded-lg mb-4">
-                                                    <h4 className="font-bold text-lg mb-3 text-primary">Pareceres da Equipe de IAs</h4>
-                                                    <ul className="space-y-3 text-base">
+                                                <div className="p-4 bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-lg mb-4 border border-purple-500/30">
+                                                    <h4 className="font-bold text-lg mb-4 text-purple-300 flex items-center gap-2">
+                                                        <Sparkles className="h-5 w-5" />
+                                                        Pareceres da Equipe de IAs
+                                                    </h4>
+                                                    <div className="space-y-4">
                                                         {state.generatedDiagnosis.structuredFindings.map(finding => (
-                                                            <li key={finding.specialist} className="border-l-2 pl-3 text-white leading-relaxed">
-                                                                <span className="font-bold text-white">{finding.specialist}:</span> {finding.findings}
-                                                            </li>
+                                                            <div key={finding.specialist} className="border-l-4 border-purple-500/50 pl-4 py-2 bg-slate-800/30 rounded-r-lg">
+                                                                <h5 className="font-bold text-purple-200 mb-2">{finding.specialist}</h5>
+                                                                <div className="prose prose-invert prose-sm max-w-none 
+                                                                  prose-headings:text-purple-300 prose-headings:font-bold prose-headings:mt-2 prose-headings:mb-1
+                                                                  prose-p:text-white prose-p:leading-relaxed prose-p:my-1
+                                                                  prose-strong:text-purple-200 prose-strong:font-semibold
+                                                                  prose-ul:my-1 prose-ul:pl-4 prose-li:text-white prose-li:my-0.5
+                                                                  prose-ol:my-1 prose-ol:pl-4
+                                                                  prose-code:text-purple-300 prose-code:bg-slate-700/50 prose-code:px-1 prose-code:rounded">
+                                                                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                                    {finding.findings}
+                                                                  </ReactMarkdown>
+                                                                </div>
+                                                            </div>
                                                         ))}
-                                                    </ul>
+                                                    </div>
                                                 </div>
                                             )}
 
