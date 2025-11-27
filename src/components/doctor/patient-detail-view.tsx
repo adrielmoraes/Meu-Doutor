@@ -47,7 +47,8 @@ function AIAnalysisCollapsible({ exam }: { exam: Exam }) {
       </CollapsibleTrigger>
       <CollapsibleContent>
         <div className="p-4 bg-slate-800/30">
-          <ScrollArea className="max-h-[600px]">
+          <div className="max-h-[500px] overflow-y-auto pr-3 scrollbar-thin scrollbar-thumb-cyan-500/50 scrollbar-track-slate-700/30 hover:scrollbar-thumb-cyan-500/70"
+               style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(6, 182, 212, 0.5) rgba(51, 65, 85, 0.3)' }}>
             <div className="prose prose-invert prose-sm max-w-none 
               prose-headings:text-cyan-300 prose-headings:font-bold prose-headings:mt-4 prose-headings:mb-2
               prose-h1:text-xl prose-h2:text-lg prose-h3:text-base
@@ -63,7 +64,7 @@ function AIAnalysisCollapsible({ exam }: { exam: Exam }) {
                 {exam.preliminaryDiagnosis || "Nenhuma análise disponível."}
               </ReactMarkdown>
             </div>
-          </ScrollArea>
+          </div>
         </div>
       </CollapsibleContent>
     </Collapsible>
@@ -383,24 +384,36 @@ export default function PatientDetailView({
 
         {/* Right column for patient summary */}
         <div className="lg:col-span-1">
-            <Card>
+            <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-slate-700/50">
                 <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-xl"><User className="h-6 w-6"/>Resumo do Paciente</CardTitle>
-                <CardDescription className="text-base">
+                <CardTitle className="flex items-center gap-2 text-xl text-cyan-300"><User className="h-6 w-6"/>Resumo do Paciente</CardTitle>
+                <CardDescription className="text-base text-blue-200/70">
                     Gerado pela IA a partir das interações do paciente.
                 </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <ScrollArea className="h-48">
-                        <p className="whitespace-pre-wrap leading-relaxed text-base text-white pr-4">{summary}</p>
-                    </ScrollArea>
-                    <Separator className="my-4" />
-                     <h4 className="font-bold mb-3 text-base text-white">Dados Brutos Combinados</h4>
-                     <ScrollArea className="h-48">
-                        <pre className="p-3 bg-muted rounded-md text-sm text-white overflow-x-auto pr-4 leading-relaxed">
+                    <div className="max-h-[300px] overflow-y-auto pr-3"
+                         style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(6, 182, 212, 0.5) rgba(51, 65, 85, 0.3)' }}>
+                        <div className="prose prose-invert prose-sm max-w-none 
+                          prose-headings:text-cyan-300 prose-headings:font-bold prose-headings:mt-3 prose-headings:mb-1
+                          prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
+                          prose-p:text-white prose-p:leading-relaxed prose-p:my-1.5
+                          prose-strong:text-cyan-200 prose-strong:font-semibold
+                          prose-ul:my-1 prose-ul:pl-4 prose-li:text-white prose-li:my-0.5
+                          prose-ol:my-1 prose-ol:pl-4">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {summary || "Nenhum resumo disponível."}
+                          </ReactMarkdown>
+                        </div>
+                    </div>
+                    <Separator className="my-4 bg-slate-600/50" />
+                     <h4 className="font-bold mb-3 text-base text-cyan-300">Dados Brutos Combinados</h4>
+                     <div className="max-h-[200px] overflow-y-auto"
+                          style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(6, 182, 212, 0.5) rgba(51, 65, 85, 0.3)' }}>
+                        <pre className="p-3 bg-slate-900/50 rounded-md text-sm text-white overflow-x-auto pr-4 leading-relaxed border border-slate-700/30">
                             <code>{patient.examResults || "Nenhum dado bruto registrado."}</code>
                         </pre>
-                    </ScrollArea>
+                    </div>
                 </CardContent>
             </Card>
         </div>
