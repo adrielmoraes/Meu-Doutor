@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bot, FileText, User, Pen, CheckCircle, Send, Loader2, FileWarning, Files, Sparkles } from "lucide-react";
+import { Bot, FileText, User, Pen, CheckCircle, Send, Loader2, FileWarning, Files, Sparkles, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Patient, Exam } from "@/types";
 import { validateExamDiagnosisAction, saveDraftNotesAction } from "@/app/doctor/patients/[id]/actions";
@@ -29,7 +28,7 @@ type PatientDetailViewProps = {
 
 function AIAnalysisCollapsible({ exam }: { exam: Exam }) {
   const [isOpen, setIsOpen] = useState(true);
-  
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="rounded-lg border border-cyan-500/30 overflow-hidden">
       <CollapsibleTrigger asChild>
@@ -49,7 +48,7 @@ function AIAnalysisCollapsible({ exam }: { exam: Exam }) {
         <div className="p-4 bg-slate-800/30">
           <div className="max-h-[500px] overflow-y-auto pr-3 scrollbar-thin scrollbar-thumb-cyan-500/50 scrollbar-track-slate-700/30 hover:scrollbar-thumb-cyan-500/70"
                style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(6, 182, 212, 0.5) rgba(51, 65, 85, 0.3)' }}>
-            <div className="prose prose-invert prose-sm max-w-none 
+            <div className="prose prose-invert prose-sm max-w-none
               prose-headings:text-cyan-300 prose-headings:font-bold prose-headings:mt-4 prose-headings:mb-2
               prose-h1:text-xl prose-h2:text-lg prose-h3:text-base
               prose-p:text-white prose-p:leading-relaxed prose-p:my-2
@@ -118,7 +117,7 @@ export default function PatientDetailView({
             patientHistory: summary,
             examResults: examToAnalyze.preliminaryDiagnosis + "\n\n" + examToAnalyze.explanation
         });
-        
+
         setValidationState(prev => ({
             ...prev,
             [examId]: {
@@ -258,10 +257,14 @@ export default function PatientDetailView({
                                         )}
 
                                         <AIAnalysisCollapsible exam={exam} />
-                                        
+
                                         <div className="p-4 border rounded-lg bg-slate-800/50">
                                             <h3 className="font-bold text-xl mb-3 text-cyan-300">Seu Diagnóstico e Validação</h3>
-                                            <Button onClick={() => handleGenerateDiagnosis(exam.id)} disabled={state?.isGenerating} className="mb-4 w-full text-base">
+                                            <Button
+                                                onClick={() => handleGenerateDiagnosis(exam.id)}
+                                                disabled={state?.isGenerating}
+                                                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-lg shadow-purple-500/30 transition-all mb-4 w-full text-base"
+                                            >
                                                 {state?.isGenerating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
                                                 {state?.isGenerating ? "Consultando Especialistas..." : "Gerar Parecer da Equipe de IAs"}
                                             </Button>
@@ -276,7 +279,7 @@ export default function PatientDetailView({
                                                         {state.generatedDiagnosis.structuredFindings.map(finding => (
                                                             <div key={finding.specialist} className="border-l-4 border-purple-500/50 pl-4 py-2 bg-slate-800/30 rounded-r-lg">
                                                                 <h5 className="font-bold text-purple-200 mb-2">{finding.specialist}</h5>
-                                                                <div className="prose prose-invert prose-sm max-w-none 
+                                                                <div className="prose prose-invert prose-sm max-w-none
                                                                   prose-headings:text-purple-300 prose-headings:font-bold prose-headings:mt-2 prose-headings:mb-1
                                                                   prose-p:text-white prose-p:leading-relaxed prose-p:my-1
                                                                   prose-strong:text-purple-200 prose-strong:font-semibold
@@ -293,15 +296,19 @@ export default function PatientDetailView({
                                                 </div>
                                             )}
 
-                                            <Textarea 
-                                                placeholder="Clique em 'Gerar Parecer' para que a IA crie um rascunho. Edite o diagnóstico e adicione sua prescrição oficial aqui..." 
+                                            <Textarea
+                                                placeholder="Clique em 'Gerar Parecer' para que a IA crie um rascunho. Edite o diagnóstico e adicione sua prescrição oficial aqui..."
                                                 rows={8}
                                                 value={state?.notes || ''}
                                                 onChange={(e) => handleNotesChange(exam.id, e.target.value)}
                                             />
                                             <div className="flex gap-2 mt-4">
-                                                <Button onClick={() => handleSaveDraft(exam.id)} disabled={state?.isSaving || !state?.notes}>
-                                                    {state?.isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Pen className="mr-2 h-4 w-4" />}
+                                                <Button
+                                                    onClick={() => handleSaveDraft(exam.id)}
+                                                    disabled={state?.isSaving || !state?.notes}
+                                                    className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-lg shadow-cyan-500/30 transition-all"
+                                                >
+                                                    {state?.isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                                                     {state?.isSaving ? "Salvando..." : "Salvar Rascunho"}
                                                 </Button>
                                                 <Button onClick={() => handleValidateDiagnosis(exam.id)} variant="secondary" disabled={state?.isValidating || !state?.notes}>
@@ -394,7 +401,7 @@ export default function PatientDetailView({
                 <CardContent>
                     <div className="max-h-[300px] overflow-y-auto pr-3"
                          style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(6, 182, 212, 0.5) rgba(51, 65, 85, 0.3)' }}>
-                        <div className="prose prose-invert prose-sm max-w-none 
+                        <div className="prose prose-invert prose-sm max-w-none
                           prose-headings:text-cyan-300 prose-headings:font-bold prose-headings:mt-3 prose-headings:mb-1
                           prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
                           prose-p:text-white prose-p:leading-relaxed prose-p:my-1.5
