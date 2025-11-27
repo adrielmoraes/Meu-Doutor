@@ -9,7 +9,7 @@ const CancelAppointmentSchema = z.object({
     appointmentId: z.string().min(1),
     doctorId: z.string().min(1),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    time: z.string().regex(/^\d{2}:\d{2}$/),
+    time: z.string().regex(/^\d{2}:\d{2}(-\d{2}:\d{2})?$/),
 });
 
 export async function cancelAppointmentAction(prevState: any, formData: FormData) {

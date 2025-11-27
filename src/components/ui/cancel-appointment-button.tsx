@@ -26,8 +26,8 @@ type CancelAppointmentButtonProps = {
 
 export default function CancelAppointmentButton({ appointment }: CancelAppointmentButtonProps) {
   const { toast } = useToast();
-  const initialState = { message: null, success: false };
-  const [state, formAction] = useActionState(cancelAppointmentAction, initialState);
+  const initialState = { message: '', success: false };
+  const [state, formAction, isPending] = useActionState(cancelAppointmentAction, initialState);
 
   useEffect(() => {
     if (state.message) {
@@ -65,14 +65,14 @@ export default function CancelAppointmentButton({ appointment }: CancelAppointme
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Cancelamento</AlertDialogTitle>
             <AlertDialogDescription>
-              Você tem certeza que deseja cancelar a consulta com {appointment.doctorName || appointment.patientName} em {new Date(appointment.date).toLocaleDateString('pt-BR')} às {appointment.time}?
+              Você tem certeza que deseja cancelar a consulta com {appointment.patientName} em {new Date(appointment.date).toLocaleDateString('pt-BR')} às {appointment.time}?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Voltar</AlertDialogCancel>
             <AlertDialogAction asChild>
-                <Button type="submit" variant="destructive" disabled={state.pending}>
-                  {state.pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button type="submit" variant="destructive" disabled={isPending}>
+                  {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Confirmar Cancelamento
                 </Button>
             </AlertDialogAction>
