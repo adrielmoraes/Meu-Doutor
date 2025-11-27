@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,12 +79,22 @@ export default function DoctorDashboardImproved({
   todayAppointments,
   weeklyConsultations
 }: DoctorDashboardImprovedProps) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [formattedDate, setFormattedDate] = useState('');
 
   useEffect(() => {
     setFormattedDate(new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }));
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/logout', { method: 'POST' });
+      router.push('/');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
+  };
 
   const stats = [
     {
@@ -198,11 +209,12 @@ export default function DoctorDashboardImproved({
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-cyan-500/20" />
-                <DropdownMenuItem asChild>
-                  <Link href="/api/auth/logout" className="flex items-center gap-2 cursor-pointer hover:bg-red-500/20 text-red-300">
-                    <LogOut className="h-4 w-4" />
-                    <span>Sair</span>
-                  </Link>
+                <DropdownMenuItem 
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 cursor-pointer hover:bg-red-500/20 text-red-300"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Sair</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
