@@ -11,6 +11,8 @@ import type { Patient, Exam } from "@/types";
 import { validateExamDiagnosisAction, saveDraftNotesAction } from "@/app/doctor/patients/[id]/actions";
 import { Badge } from "../ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
 import { generatePreliminaryDiagnosis } from "@/ai/flows/generate-preliminary-diagnosis";
@@ -22,6 +24,33 @@ type PatientDetailViewProps = {
   summary: string;
   exams: Exam[];
 };
+
+function AIAnalysisCollapsible({ exam }: { exam: Exam }) {
+  const [isOpen, setIsOpen] = useState(true);
+  
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="rounded-lg border border-cyan-500/30 overflow-hidden">
+      <CollapsibleTrigger asChild>
+        <button className="w-full p-4 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 transition-colors flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Bot className="h-5 w-5 text-cyan-400" />
+            <h4 className="font-semibold text-lg text-cyan-300">Análise Preliminar da IA</h4>
+          </div>
+          {isOpen ? (
+            <ChevronUp className="h-5 w-5 text-cyan-400" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-cyan-400" />
+          )}
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="p-4 bg-slate-800/30">
+          <p className="text-base text-white whitespace-pre-wrap leading-relaxed">{exam.preliminaryDiagnosis}</p>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
 
 type ExamValidationState = {
   [examId: string]: {
@@ -209,13 +238,10 @@ export default function PatientDetailView({
                                             </div>
                                         )}
 
-                                        <div className="p-4 bg-muted/50 rounded-lg">
-                                            <h4 className="font-semibold text-lg mb-3 text-primary">Análise Preliminar da IA</h4>
-                                            <p className="text-base text-white whitespace-pre-wrap leading-relaxed">{exam.preliminaryDiagnosis}</p>
-                                        </div>
+                                        <AIAnalysisCollapsible exam={exam} />
                                         
-                                        <div className="p-4 border rounded-lg">
-                                            <h3 className="font-bold text-xl mb-3 text-white">Seu Diagnóstico e Validação</h3>
+                                        <div className="p-4 border rounded-lg bg-slate-800/50">
+                                            <h3 className="font-bold text-xl mb-3 text-cyan-300">Seu Diagnóstico e Validação</h3>
                                             <Button onClick={() => handleGenerateDiagnosis(exam.id)} disabled={state?.isGenerating} className="mb-4 w-full text-base">
                                                 {state?.isGenerating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
                                                 {state?.isGenerating ? "Consultando Especialistas..." : "Gerar Parecer da Equipe de IAs"}
