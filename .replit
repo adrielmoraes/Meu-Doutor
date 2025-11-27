@@ -5,6 +5,7 @@ integrations = ["resend:1.0.0"]
 
 [nix]
 channel = "stable-25_05"
+packages = ["imagemagick"]
 
 [deployment]
 deploymentTarget = "vm"
@@ -96,6 +97,10 @@ externalPort = 8099
 [[ports]]
 localPort = 43787
 externalPort = 3002
+
+[[ports]]
+localPort = 44417
+externalPort = 3000
 
 [[ports]]
 localPort = 44603
