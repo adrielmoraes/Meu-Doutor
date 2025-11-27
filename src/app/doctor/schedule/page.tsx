@@ -166,15 +166,23 @@ export default async function SchedulePage() {
   );
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Agenda e Disponibilidade</h1>
-        <p className="text-muted-foreground">
-          Visualize suas consultas e gerencie seus horários de atendimento.
-        </p>
+    <div className="bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 min-h-screen relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
+      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
+      <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
+      
+      <div className="relative z-10 p-4 sm:p-6 lg:p-8">
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
+            Agenda e Disponibilidade
+          </h1>
+          <p className="text-blue-200/70 mt-2">
+            Visualize suas consultas e gerencie seus horários de atendimento.
+          </p>
+        </div>
+        <ScheduleCalendarManager appointments={appointments} doctor={doctor} />
       </div>
-      {/* Renderizar o novo Client Component com o calendário unificado */}
-      <ScheduleCalendarManager appointments={appointments} doctor={doctor} />
     </div>
   );
 }
