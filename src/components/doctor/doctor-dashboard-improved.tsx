@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,6 +79,11 @@ export default function DoctorDashboardImproved({
   weeklyConsultations
 }: DoctorDashboardImprovedProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [formattedDate, setFormattedDate] = useState('');
+
+  useEffect(() => {
+    setFormattedDate(new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }));
+  }, []);
 
   const stats = [
     {
@@ -209,7 +214,7 @@ export default function DoctorDashboardImproved({
                 Bem-vindo, Dr. {doctor.name.split(' ')[0]}
               </h1>
               <p className="text-base text-blue-200/70 mt-1">
-                {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                {formattedDate}
               </p>
             </div>
             <OnlineStatusToggle initialStatus={doctor.online || false} doctorName={doctor.name} />

@@ -1,0 +1,61 @@
+Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+See more info here: https://nextjs.org/docs/messages/react-hydration-error
+
+
+  ...
+    <InnerScrollAndFocusHandler segmentPath={[...]} focusAndScrollRef={{apply:false, ...}}>
+      <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+        <LoadingBoundary loading={null}>
+          <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>
+            <RedirectBoundary>
+              <RedirectErrorBoundary router={{...}}>
+                <InnerLayoutRouter url="/doctor" tree={[...]} cacheNode={{lazyData:null, ...}} segmentPath={[...]}>
+                  <DoctorDashboardPage>
+                    <DoctorDashboardImproved doctor={{id:"802e36...", ...}} totalPatients={0} upcomingAppointments={0} ...>
+                      <div className="bg-gradien...">
+                        <div>
+                        <div>
+                        <div>
+                        <div>
+                        <div className="relative z...">
+                          <div className="mb-8 space...">
+                            <div>
+                            <div className="flex flex-...">
+                              <div>
+                                <h1>
+                                <p className="text-base text-blue-200/70 mt-1">
++                                 quarta-feira, 26 de novembro
+-                                 quinta-feira, 27 de novembro
+                              ...
+                            ...
+                          ...
+                  ...
+src/components/doctor/doctor-dashboard-improved.tsx (211:15) @ DoctorDashboardImproved
+
+
+  209 |                 Bem-vindo, Dr. {doctor.name.split(' ')[0]}
+  210 |               </h1>
+> 211 |               <p className="text-base text-blue-200/70 mt-1">
+      |               ^
+  212 |                 {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+  213 |               </p>
+  214 |             </div>
+Call Stack
+14
+
+Show 11 ignore-listed frame(s)
+p
+<anonymous> (0:0)
+DoctorDashboardImproved
+src/components/doctor/doctor-dashboard-improved.tsx (211:15)
+DoctorDashboardPage
+src/app/doctor/page.tsx (277:13)
