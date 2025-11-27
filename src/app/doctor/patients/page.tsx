@@ -10,11 +10,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  AlertTriangle, 
-  Eye, 
-  ShieldAlert, 
-  ArrowUp, 
+import {
+  AlertTriangle,
+  Eye,
+  ShieldAlert,
+  ArrowUp,
   ArrowDown,
   Users,
   Clock,
@@ -150,7 +150,7 @@ async function getPatientsWithSpecialty(): Promise<{ patients: PatientWithSpecia
     const patientsWithSpecialty: PatientWithSpecialty[] = patientsData.map(patient => {
       const patientExams = examsData.filter(exam => exam.patientId === patient.id);
       const examTypes = [...new Set(patientExams.map(e => e.type))];
-      
+
       const specialties = examTypes.map(type => getSpecialtyFromExamType(type));
       const uniqueSpecialties = [...new Set(specialties)];
       const primarySpecialty = uniqueSpecialties[0] || 'Geral';
@@ -204,7 +204,7 @@ export default async function PatientsPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-yellow-500/30">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -216,7 +216,7 @@ export default async function PatientsPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-green-500/30">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -228,7 +228,7 @@ export default async function PatientsPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-red-500/30">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -268,8 +268,8 @@ export default async function PatientsPage() {
                 const specialtyStyle = getSpecialtyStyle(patient.specialty);
 
                 return (
-                  <TableRow 
-                    key={patient.id} 
+                  <TableRow
+                    key={patient.id}
                     className={`border-slate-700/30 hover:bg-slate-800/50 transition-colors ${
                       isInvalidated && priorityInfo.level === 1 ? 'bg-red-500/5' : ''
                     }`}
@@ -294,8 +294,8 @@ export default async function PatientsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge 
-                        variant="outline" 
+                      <Badge
+                        variant="outline"
                         className={`flex items-center gap-1.5 w-fit ${specialtyStyle.bgColor} ${specialtyStyle.color} border-transparent`}
                       >
                         <SpecialtyIcon specialty={patient.specialty} />
@@ -307,8 +307,8 @@ export default async function PatientsPage() {
                     </TableCell>
                     <TableCell>
                       {isInvalidated ? (
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className={`flex items-center gap-1.5 w-fit ${priorityInfo.className}`}
                         >
                           {priorityInfo.icon}
@@ -319,10 +319,10 @@ export default async function PatientsPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge 
+                      <Badge
                         variant="outline"
-                        className={patient.status === 'Validado' 
-                          ? 'bg-green-500/20 text-green-300 border-green-500/30' 
+                        className={patient.status === 'Validado'
+                          ? 'bg-green-500/20 text-green-300 border-green-500/30'
                           : 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
                         }
                       >
@@ -330,9 +330,9 @@ export default async function PatientsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        asChild 
-                        variant="ghost" 
+                      <Button
+                        asChild
+                        variant="ghost"
                         size="sm"
                         className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20"
                       >
