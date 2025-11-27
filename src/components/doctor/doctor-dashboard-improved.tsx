@@ -536,20 +536,6 @@ export default function DoctorDashboardImproved({
             </Link>
           </Card>
 
-          <Card className="group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-pink-500/30 hover:border-pink-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-pink-500/20 overflow-hidden transform hover:scale-[1.02]">
-            <div className="absolute inset-0 bg-gradient-to-br from-pink-500/20 to-rose-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <Link href="/doctor/profile" className="block h-full relative">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xl font-bold text-pink-300">Meu Perfil</CardTitle>
-                <UserCircle className="h-8 w-8 text-pink-400" />
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-blue-200/70">
-                  Gerencie suas informações profissionais e foto.
-                </p>
-              </CardContent>
-            </Link>
-          </Card>
         </div>
       </div>
     </div>
