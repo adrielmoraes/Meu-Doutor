@@ -451,34 +451,44 @@ async def get_patient_context(pool, patient_id: str) -> str:
         patient_id: Patient ID to fetch context for
     """
     if not pool:
-        return "Erro: Database não configurado"
+        logger.warning("[MediAI] No database pool - returning default context")
+        return "Paciente não identificado no banco de dados. Pergunte o nome do paciente."
 
     try:
-        async with pool.acquire() as conn:
-            patient = await conn.fetchrow(
-                """
-                SELECT name, email, age, reported_symptoms, doctor_notes, exam_results
-                FROM patients WHERE id = $1
-                """, patient_id)
+        logger.info(f"[MediAI] 🔍 Acquiring database connection for patient {patient_id}...")
+        
+        # Add timeout to prevent hanging
+        async with asyncio.timeout(15):
+            async with pool.acquire() as conn:
+                logger.info("[MediAI] ✅ Database connection acquired")
+                
+                patient = await conn.fetchrow(
+                    """
+                    SELECT name, email, age, reported_symptoms, doctor_notes, exam_results
+                    FROM patients WHERE id = $1
+                    """, patient_id)
 
-            exams = await conn.fetch(
-                """
-                SELECT type, status, result, preliminary_diagnosis, created_at::text as date
-                FROM exams 
-                WHERE patient_id = $1
-                ORDER BY created_at DESC
-                LIMIT 3
-                """, patient_id)
+                logger.info(f"[MediAI] 📋 Patient query result: {patient is not None}")
 
-            wellness = await conn.fetchrow(
-                """
-                SELECT wellness_plan FROM patients WHERE id = $1
-                """, patient_id)
+                exams = await conn.fetch(
+                    """
+                    SELECT type, status, result, preliminary_diagnosis, created_at::text as date
+                    FROM exams 
+                    WHERE patient_id = $1
+                    ORDER BY created_at DESC
+                    LIMIT 3
+                    """, patient_id)
 
-            if not patient:
-                return "Erro: Paciente não encontrado"
+                wellness = await conn.fetchrow(
+                    """
+                    SELECT wellness_plan FROM patients WHERE id = $1
+                    """, patient_id)
 
-            context = f"""
+                if not patient:
+                    logger.warning(f"[MediAI] ⚠️ Patient not found: {patient_id}")
+                    return "Paciente não encontrado no sistema. Pergunte o nome do paciente."
+
+                context = f"""
 INFORMAÇÕES DO PACIENTE:
 - Nome: {patient['name']}
 - Idade: {patient['age'] if patient['age'] else 'Não informada'} anos
@@ -489,34 +499,39 @@ INFORMAÇÕES DO PACIENTE:
 EXAMES RECENTES ({len(exams)}):
 """
 
-            for i, exam in enumerate(exams, 1):
-                context += f"\n{i}. {exam['type']} - {exam['date']}"
-                context += f"\n   Status: {exam['status']}"
-                context += f"\n   Resultado: {exam['result']}"
-                if exam['preliminary_diagnosis']:
-                    context += f"\n   Diagnóstico Preliminar: {exam['preliminary_diagnosis']}"
-                context += "\n"
+                for i, exam in enumerate(exams, 1):
+                    context += f"\n{i}. {exam['type']} - {exam['date']}"
+                    context += f"\n   Status: {exam['status']}"
+                    context += f"\n   Resultado: {exam['result']}"
+                    if exam['preliminary_diagnosis']:
+                        context += f"\n   Diagnóstico Preliminar: {exam['preliminary_diagnosis']}"
+                    context += "\n"
 
-            if wellness and wellness['wellness_plan']:
-                try:
-                    if isinstance(wellness['wellness_plan'], str):
-                        import json
-                        wp = json.loads(wellness['wellness_plan'])
-                    else:
-                        wp = wellness['wellness_plan']
+                if wellness and wellness['wellness_plan']:
+                    try:
+                        if isinstance(wellness['wellness_plan'], str):
+                            import json
+                            wp = json.loads(wellness['wellness_plan'])
+                        else:
+                            wp = wellness['wellness_plan']
 
-                    context += f"\n\nPLANO DE BEM-ESTAR:"
-                    if wp.get('dietaryPlan'):
-                        context += f"\nDieta: {wp['dietaryPlan'][:200]}..."
-                    if wp.get('exercisePlan'):
-                        context += f"\nExercícios: {wp['exercisePlan'][:200]}..."
-                except:
-                    pass
+                        context += f"\n\nPLANO DE BEM-ESTAR:"
+                        if wp.get('dietaryPlan'):
+                            context += f"\nDieta: {wp['dietaryPlan'][:200]}..."
+                        if wp.get('exercisePlan'):
+                            context += f"\nExercícios: {wp['exercisePlan'][:200]}..."
+                    except:
+                        pass
 
-            return context
+                logger.info(f"[MediAI] ✅ Patient context built: {len(context)} chars")
+                return context
 
+    except asyncio.TimeoutError:
+        logger.error(f"[MediAI] ⏱️ Database query timeout for patient {patient_id}")
+        return "Erro de timeout ao carregar dados. Pergunte o nome do paciente."
+        
     except Exception as e:
-        logger.error(f"get_patient_context error: {e}")
+        logger.error(f"[MediAI] ❌ get_patient_context error: {e}")
         return f"Erro ao carregar contexto: {str(e)}"
 
 
