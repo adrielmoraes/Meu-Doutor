@@ -113,6 +113,24 @@ export default function ScheduleCalendarManager({ appointments, doctor }: Schedu
                         </CardContent>
                     </Card>
 
+                    <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl border-emerald-500/20">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="flex items-center gap-2 text-emerald-300">
+                                <Clock className="h-5 w-5" />
+                                Gerenciar Disponibilidade
+                            </CardTitle>
+                            <CardDescription className="text-slate-400">
+                                Defina seus horários para {selectedCalendarDate ? format(selectedCalendarDate, 'dd/MM/yyyy') : 'a data selecionada'}
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <ManageAvailability 
+                                initialAvailability={doctor.availability || []} 
+                                selectedDate={selectedCalendarDate}
+                            />
+                        </CardContent>
+                    </Card>
+
                     <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl border-purple-500/20">
                         <CardHeader className="pb-3">
                             <CardTitle className="flex items-center gap-2 text-purple-300 text-lg">
@@ -244,24 +262,6 @@ export default function ScheduleCalendarManager({ appointments, doctor }: Schedu
                                     </p>
                                 </div>
                             )}
-                        </CardContent>
-                    </Card>
-
-                    <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl border-emerald-500/20">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-emerald-300">
-                                <Clock className="h-5 w-5" />
-                                Gerenciar Disponibilidade
-                            </CardTitle>
-                            <CardDescription className="text-slate-400">
-                                Defina seus horários para {selectedCalendarDate ? format(selectedCalendarDate, 'dd/MM/yyyy') : 'a data selecionada'}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <ManageAvailability 
-                                initialAvailability={doctor.availability || []} 
-                                selectedDate={selectedCalendarDate}
-                            />
                         </CardContent>
                     </Card>
                 </div>
