@@ -89,34 +89,34 @@ export default function DoctorDashboardImproved({
     {
       title: "Total de Pacientes",
       value: totalPatients,
-      icon: <Users className="h-5 w-5 text-cyan-400" />,
-      gradient: "from-cyan-500/20 to-blue-500/20",
-      borderColor: "border-cyan-500/30",
-      textColor: "text-cyan-300"
+      icon: <Users className="h-6 w-6 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]" />,
+      gradient: "from-cyan-500/30 to-blue-500/30",
+      borderColor: "border-cyan-400/50",
+      textColor: "text-cyan-300 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]"
     },
     {
       title: "Consultas Agendadas",
       value: upcomingAppointments,
-      icon: <Clock className="h-5 w-5 text-purple-400" />,
-      gradient: "from-purple-500/20 to-pink-500/20",
-      borderColor: "border-purple-500/30",
-      textColor: "text-purple-300"
+      icon: <Clock className="h-6 w-6 text-violet-400 drop-shadow-[0_0_8px_rgba(167,139,250,0.6)]" />,
+      gradient: "from-violet-500/30 to-fuchsia-500/30",
+      borderColor: "border-violet-400/50",
+      textColor: "text-violet-300 drop-shadow-[0_0_10px_rgba(167,139,250,0.5)]"
     },
     {
       title: "Consultas Realizadas",
       value: completedConsultations,
-      icon: <TrendingUp className="h-5 w-5 text-green-400" />,
-      gradient: "from-green-500/20 to-emerald-500/20",
-      borderColor: "border-green-500/30",
-      textColor: "text-green-300"
+      icon: <TrendingUp className="h-6 w-6 text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]" />,
+      gradient: "from-emerald-500/30 to-teal-500/30",
+      borderColor: "border-emerald-400/50",
+      textColor: "text-emerald-300 drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]"
     },
     {
       title: "Exames Pendentes",
       value: pendingExamsCount,
-      icon: <FileWarning className="h-5 w-5 text-amber-400" />,
-      gradient: "from-amber-500/20 to-orange-500/20",
-      borderColor: "border-amber-500/30",
-      textColor: "text-amber-300",
+      icon: <FileWarning className="h-6 w-6 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]" />,
+      gradient: "from-amber-500/30 to-orange-500/30",
+      borderColor: "border-amber-400/50",
+      textColor: "text-amber-300 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]",
       alert: pendingExamsCount > 0
     }
   ];
@@ -313,13 +313,13 @@ export default function DoctorDashboardImproved({
             </Card>
           )}
 
-          <Card className={`${urgentCases.length > 0 ? 'lg:col-span-1' : 'lg:col-span-2'} bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-purple-500/30`}>
+          <Card className={`${urgentCases.length > 0 ? 'lg:col-span-1' : 'lg:col-span-2'} bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-violet-400/50`}>
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-purple-300">
-                <Calendar className="h-5 w-5 text-purple-400" />
+              <CardTitle className="flex items-center gap-2 text-violet-200 font-bold">
+                <Calendar className="h-6 w-6 text-violet-400 drop-shadow-[0_0_8px_rgba(167,139,250,0.6)]" />
                 Consultas de Hoje
               </CardTitle>
-              <CardDescription className="text-purple-200/60">
+              <CardDescription className="text-violet-300/80">
                 {todayAppointments.length} consulta(s) agendada(s)
               </CardDescription>
             </CardHeader>
@@ -377,13 +377,13 @@ export default function DoctorDashboardImproved({
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-1 bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-amber-500/30">
+          <Card className="lg:col-span-1 bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-amber-400/50">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-amber-300">
-                <FileWarning className="h-5 w-5 text-amber-400" />
+              <CardTitle className="flex items-center gap-2 text-amber-200 font-bold">
+                <FileWarning className="h-6 w-6 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
                 Exames Pendentes
               </CardTitle>
-              <CardDescription className="text-amber-200/60">
+              <CardDescription className="text-amber-300/80">
                 {pendingExamsCount} exame(s) aguardando validação
               </CardDescription>
             </CardHeader>
@@ -424,112 +424,112 @@ export default function DoctorDashboardImproved({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-blue-500/30">
+          <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-blue-400/50">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-blue-500/20">
-                  <BarChart3 className="h-5 w-5 text-blue-400" />
+                <div className="p-3 rounded-xl bg-blue-500/30">
+                  <BarChart3 className="h-6 w-6 text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.6)]" />
                 </div>
                 <div>
-                  <p className="text-xs text-blue-200/60">Consultas esta semana</p>
-                  <p className="text-2xl font-bold text-blue-300">{weeklyConsultations}</p>
+                  <p className="text-sm text-blue-300/80 font-medium">Consultas esta semana</p>
+                  <p className="text-3xl font-bold text-blue-300 drop-shadow-[0_0_10px_rgba(96,165,250,0.5)]">{weeklyConsultations}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-green-500/30">
+          <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-emerald-400/50">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-green-500/20">
-                  <Timer className="h-5 w-5 text-green-400" />
+                <div className="p-3 rounded-xl bg-emerald-500/30">
+                  <Timer className="h-6 w-6 text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
                 </div>
                 <div>
-                  <p className="text-xs text-blue-200/60">Validações</p>
-                  <p className="text-2xl font-bold text-green-300">{doctor.validations || 0}</p>
+                  <p className="text-sm text-emerald-300/80 font-medium">Validações</p>
+                  <p className="text-3xl font-bold text-emerald-300 drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]">{doctor.validations || 0}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-pink-500/30">
+          <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-fuchsia-400/50">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-pink-500/20">
-                  <Zap className="h-5 w-5 text-pink-400" />
+                <div className="p-3 rounded-xl bg-fuchsia-500/30">
+                  <Zap className="h-6 w-6 text-fuchsia-400 drop-shadow-[0_0_8px_rgba(232,121,249,0.6)]" />
                 </div>
                 <div>
-                  <p className="text-xs text-blue-200/60">Nível</p>
-                  <p className="text-2xl font-bold text-pink-300">{doctor.level || 1}</p>
+                  <p className="text-sm text-fuchsia-300/80 font-medium">Nível</p>
+                  <p className="text-3xl font-bold text-fuchsia-300 drop-shadow-[0_0_10px_rgba(232,121,249,0.5)]">{doctor.level || 1}</p>
                 </div>
               </div>
-              <div className="mt-2 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+              <div className="mt-2 h-2 bg-slate-700 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"
+                  className="h-full bg-gradient-to-r from-fuchsia-500 to-violet-500 rounded-full shadow-[0_0_10px_rgba(232,121,249,0.5)]"
                   style={{ width: `${((doctor.xp || 0) / (doctor.xpToNextLevel || 100)) * 100}%` }}
                 />
               </div>
-              <p className="text-xs text-blue-200/40 mt-1">
+              <p className="text-xs text-fuchsia-300/70 mt-1 font-medium">
                 {doctor.xp || 0} / {doctor.xpToNextLevel || 100} XP
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-cyan-500/30">
+          <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-rose-400/50">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-cyan-500/20">
-                  <Heart className="h-5 w-5 text-cyan-400" />
+                <div className="p-3 rounded-xl bg-rose-500/30">
+                  <Heart className="h-6 w-6 text-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.6)]" />
                 </div>
                 <div>
-                  <p className="text-xs text-blue-200/60">Pacientes atendidos</p>
-                  <p className="text-2xl font-bold text-cyan-300">{totalPatients}</p>
+                  <p className="text-sm text-rose-300/80 font-medium">Pacientes atendidos</p>
+                  <p className="text-3xl font-bold text-rose-300 drop-shadow-[0_0_10px_rgba(251,113,133,0.5)]">{totalPatients}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-cyan-500/30 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/20 overflow-hidden transform hover:scale-[1.02]">
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card className="group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-cyan-400/50 hover:border-cyan-400/80 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/30 overflow-hidden transform hover:scale-[1.02]">
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/30 to-blue-500/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <Link href="/doctor/patients" className="block h-full relative">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xl font-bold text-cyan-300">Meus Pacientes</CardTitle>
-                <Users className="h-8 w-8 text-cyan-400" />
+                <CardTitle className="text-xl font-bold text-cyan-200">Meus Pacientes</CardTitle>
+                <Users className="h-8 w-8 text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.6)]" />
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-blue-200/70">
+                <p className="text-sm text-cyan-300/80">
                   Veja e gerencie a lista de seus pacientes.
                 </p>
               </CardContent>
             </Link>
           </Card>
 
-          <Card className="group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-purple-500/30 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20 overflow-hidden transform hover:scale-[1.02]">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <Card className="group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-violet-400/50 hover:border-violet-400/80 transition-all duration-300 hover:shadow-2xl hover:shadow-violet-500/30 overflow-hidden transform hover:scale-[1.02]">
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/30 to-fuchsia-500/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <Link href="/doctor/schedule" className="block h-full relative">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xl font-bold text-purple-300">Consultas e Agenda</CardTitle>
-                <Calendar className="h-8 w-8 text-purple-400" />
+                <CardTitle className="text-xl font-bold text-violet-200">Consultas e Agenda</CardTitle>
+                <Calendar className="h-8 w-8 text-violet-400 drop-shadow-[0_0_10px_rgba(167,139,250,0.6)]" />
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-blue-200/70">
+                <p className="text-sm text-violet-300/80">
                   Acesse sua agenda e consultas virtuais.
                 </p>
               </CardContent>
             </Link>
           </Card>
 
-          <Card className="group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-blue-500/30 hover:border-blue-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/20 overflow-hidden transform hover:scale-[1.02]">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <Card className="group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-indigo-400/50 hover:border-indigo-400/80 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/30 overflow-hidden transform hover:scale-[1.02]">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/30 to-blue-500/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <Link href="/doctor/history" className="block h-full relative">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xl font-bold text-blue-300">Histórico</CardTitle>
-                <History className="h-8 w-8 text-blue-400" />
+                <CardTitle className="text-xl font-bold text-indigo-200">Histórico</CardTitle>
+                <History className="h-8 w-8 text-indigo-400 drop-shadow-[0_0_10px_rgba(129,140,248,0.6)]" />
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-blue-200/70">
+                <p className="text-sm text-indigo-300/80">
                   Revise seus atendimentos e diagnósticos passados.
                 </p>
               </CardContent>
