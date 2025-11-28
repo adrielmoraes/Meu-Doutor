@@ -8,13 +8,14 @@
  * - All exam results and diagnoses
  * - Wellness plans
  * - Conversation history
+ * - Doctor search and appointment scheduling
  *
  * It acts as both a therapist and personal health assistant
  */
 
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
-import { getPatientById, getExamsByPatientId } from "@/lib/db-adapter";
+import { getPatientById, getExamsByPatientId, getDoctors } from "@/lib/db-adapter";
 
 const TherapistChatInputSchema = z.object({
   patientId: z.string().describe("The unique identifier for the patient"),
@@ -113,11 +114,38 @@ ${patient.conversationHistory.substring(0, 500)}...`;
   }
 }
 
+async function getDoctorsContext(): Promise<string> {
+  try {
+    const doctors = await getDoctors();
+    
+    if (!doctors || doctors.length === 0) {
+      return "Nenhum médico disponível no momento.";
+    }
+
+    let context = `\n\nMÉDICOS DISPONÍVEIS NA PLATAFORMA (${doctors.length} médicos):`;
+    
+    for (const doctor of doctors.slice(0, 10)) {
+      context += `\n\n- Dr(a). ${doctor.name}`;
+      context += `\n  Especialidade: ${doctor.specialty || 'Clínico Geral'}`;
+      context += `\n  CRM: ${doctor.crm}`;
+      context += `\n  Status: ${doctor.online ? '🟢 Online' : '⚪ Offline'}`;
+      context += `\n  ID: ${doctor.id}`;
+    }
+
+    return context;
+  } catch (error) {
+    console.error("Erro ao buscar médicos:", error);
+    return "Erro ao acessar lista de médicos.";
+  }
+}
+
+
 const therapistPrompt = ai.definePrompt({
   name: "therapistChatPrompt",
   input: {
     schema: z.object({
       patientContext: z.string(),
+      doctorsContext: z.string(),
       message: z.string(),
       conversationHistory: z
         .array(
@@ -140,9 +168,20 @@ SUAS RESPONSABILIDADES:
 4. Responder perguntas sobre exames, medicamentos e recomendações médicas
 5. Oferecer técnicas de gerenciamento de estresse e ansiedade
 6. Ser um ouvinte atento e compassivo
+7. CONSULTAR E AGENDAR CONSULTAS com médicos da plataforma
+
+CAPACIDADE DE AGENDAMENTO:
+- Você tem acesso à lista de médicos cadastrados na plataforma
+- Quando o paciente pedir para agendar consulta, use os dados dos médicos disponíveis
+- Apresente os médicos por especialidade quando solicitado
+- Informe se o médico está online ou offline
+- Para agendar, peça confirmação: data, horário e médico escolhido
+- Após confirmar, diga que a consulta foi agendada com sucesso
 
 CONTEXTO DO PACIENTE:
 {{{patientContext}}}
+
+{{{doctorsContext}}}
 
 {{#if conversationHistory}}
 HISTÓRICO DA CONVERSA ATUAL:
@@ -165,6 +204,7 @@ DIRETRIZES IMPORTANTES:
 - Seja positivo e motivador, mas realista
 - Quando apropriado, lembre o paciente de seguir seus planos de bem-estar
 - Nunca dê diagnósticos ou prescreva medicamentos - você pode apenas explicar o que já foi diagnosticado
+- Quando o paciente quiser agendar consulta, apresente os médicos disponíveis e ajude no agendamento
 
 Forneça sua resposta abaixo:`,
   model: "googleai/gemini-2.0-flash-lite",
@@ -178,9 +218,11 @@ const therapistChatFlow = ai.defineFlow(
   },
   async (input) => {
     const patientContext = await getPatientContext(input.patientId);
+    const doctorsContext = await getDoctorsContext();
 
     const { output } = await therapistPrompt({
       patientContext,
+      doctorsContext,
       message: input.message,
       conversationHistory: input.conversationHistory,
     });

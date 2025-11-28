@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useActionState } from 'react';
+import { useState, useEffect, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Button } from "@/components/ui/button"
 import {
@@ -13,10 +13,11 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { createPatientAction } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, User } from 'lucide-react';
+import { Loader2, Eye, EyeOff, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 function SubmitButton() {
@@ -45,6 +46,10 @@ export default function PatientRegisterPage() {
   const router = useRouter();
   const initialState = { message: null, errors: null, success: false };
   const [state, dispatch] = useActionState(createPatientAction, initialState);
+  
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   useEffect(() => {
     if (!state) return;
@@ -203,29 +208,80 @@ export default function PatientRegisterPage() {
 
               <div className="grid gap-2">
                 <Label htmlFor="password" className="text-blue-100">Senha</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-400 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
                 {state?.errors?.password && <p className="text-xs text-red-400">{state.errors.password[0]}</p>}
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="confirmPassword" className="text-blue-100">Confirmar Senha</Label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white"
-                />
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    required
+                    className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-400 transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
                 {state?.errors?.confirmPassword && <p className="text-xs text-red-400">{state.errors.confirmPassword[0]}</p>}
               </div>
 
-              <SubmitButton />
+              <div className="flex items-start space-x-3 pt-2">
+                <Checkbox
+                  id="terms"
+                  checked={acceptedTerms}
+                  onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                  className="border-cyan-500/50 data-[state=checked]:bg-cyan-500 data-[state=checked]:border-cyan-500 mt-0.5"
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <label
+                    htmlFor="terms"
+                    className="text-sm text-blue-200/80 cursor-pointer"
+                  >
+                    Li e aceito os{" "}
+                    <Link href="/termos" target="_blank" className="text-cyan-400 hover:text-cyan-300 underline">
+                      Termos de Uso
+                    </Link>{" "}
+                    e a{" "}
+                    <Link href="/termos" target="_blank" className="text-cyan-400 hover:text-cyan-300 underline">
+                      Política de Privacidade
+                    </Link>
+                  </label>
+                </div>
+              </div>
+              {!acceptedTerms && state?.errors?.terms && (
+                <p className="text-xs text-red-400">{state.errors.terms[0]}</p>
+              )}
+
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold shadow-lg shadow-cyan-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
+                disabled={!acceptedTerms}
+              >
+                Finalizar Cadastro
+              </Button>
             </div>
           </form>
           
