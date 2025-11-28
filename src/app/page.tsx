@@ -173,47 +173,26 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Hero Image */}
-              <div className="relative lg:ml-8">
+              {/* Hero VSL Video */}
+              <div id="demo" className="relative lg:ml-8">
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 to-blue-500/30 rounded-3xl blur-3xl transform rotate-3"></div>
-                <div className="relative">
-                  <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-3xl blur-2xl"></div>
-                  <div className="relative rounded-3xl overflow-hidden border border-cyan-500/30 shadow-2xl shadow-cyan-500/20">
-                    <Image
-                      src="/images/holographic_medical_interface_dashboard.png"
-                      alt="Interface médica holográfica futurista"
-                      width={800}
-                      height={450}
-                      className="w-full h-auto object-cover"
-                      priority
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
-                    
-                    {/* Floating Cards on Image */}
-                    <div className="absolute bottom-6 left-6 right-6 flex gap-4">
-                      <div className="flex-1 bg-slate-900/80 backdrop-blur-xl rounded-2xl p-4 border border-cyan-500/30">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                            <Brain className="h-5 w-5 text-cyan-400" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-bold text-white">IA Analisando</div>
-                            <div className="text-xs text-cyan-300/70">15 especialistas ativos</div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex-1 bg-slate-900/80 backdrop-blur-xl rounded-2xl p-4 border border-emerald-500/30">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                            <Activity className="h-5 w-5 text-emerald-400" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-bold text-white">Status</div>
-                            <div className="text-xs text-emerald-300/70">Tudo normal</div>
-                          </div>
-                        </div>
-                      </div>
+                <div className="relative group">
+                  <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-3xl blur-2xl group-hover:opacity-80 transition-opacity"></div>
+                  <div className="relative rounded-2xl overflow-hidden border border-cyan-500/30 shadow-2xl shadow-cyan-500/20 bg-slate-900/50 backdrop-blur-sm">
+                    <div className="aspect-video">
+                      <iframe
+                        src="https://drive.google.com/file/d/1BVY75ME-q2vRmQKSlboCwgFVdmNynZGvaOJRv4olDUk/preview"
+                        className="w-full h-full"
+                        allow="autoplay; encrypted-media"
+                        allowFullScreen
+                      ></iframe>
                     </div>
+                    
+                    {/* Decorative Corner Elements */}
+                    <div className="absolute top-0 left-0 w-16 h-16 border-l-2 border-t-2 border-cyan-500/50 rounded-tl-2xl pointer-events-none"></div>
+                    <div className="absolute top-0 right-0 w-16 h-16 border-r-2 border-t-2 border-purple-500/50 rounded-tr-2xl pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 w-16 h-16 border-l-2 border-b-2 border-purple-500/50 rounded-bl-2xl pointer-events-none"></div>
+                    <div className="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 border-cyan-500/50 rounded-br-2xl pointer-events-none"></div>
                   </div>
                 </div>
               </div>
@@ -225,79 +204,6 @@ export default function LandingPage() {
             <span className="text-xs uppercase tracking-wider">Role para explorar</span>
             <div className="w-6 h-10 rounded-full border-2 border-cyan-400/30 flex items-start justify-center p-1">
               <div className="w-1.5 h-3 bg-cyan-400/50 rounded-full animate-bounce"></div>
-            </div>
-          </div>
-        </section>
-
-        {/* VSL Section */}
-        <section id="demo" className="relative w-full py-20 md:py-28 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-blue-950/30 to-slate-950"></div>
-          
-          {/* Glowing Orbs */}
-          <div className="absolute top-1/2 left-1/4 w-[400px] h-[400px] bg-cyan-500/10 rounded-full blur-[120px]"></div>
-          <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[120px]"></div>
-          
-          <div className="container px-4 md:px-6 relative z-10">
-            <div className="max-w-4xl mx-auto text-center space-y-8">
-              {/* Section Header */}
-              <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 backdrop-blur-sm">
-                  <Play className="h-4 w-4 text-purple-400" />
-                  <span className="text-sm font-medium text-purple-300">Veja Como Funciona</span>
-                </div>
-                
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold">
-                  <span className="bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
-                    Descubra o Poder da
-                  </span>
-                  <br />
-                  <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    Medicina Inteligente
-                  </span>
-                </h2>
-                
-                <p className="text-lg text-blue-100/70 max-w-2xl mx-auto">
-                  Assista e veja como a MediAI revoluciona o cuidado com sua saúde através de inteligência artificial avançada
-                </p>
-              </div>
-              
-              {/* Video Container */}
-              <div className="relative group">
-                {/* Glow Effect */}
-                <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/30 via-blue-500/30 to-purple-500/30 rounded-3xl blur-2xl opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
-                
-                {/* Video Frame */}
-                <div className="relative rounded-2xl overflow-hidden border border-cyan-500/30 shadow-2xl shadow-cyan-500/20 bg-slate-900/50 backdrop-blur-sm">
-                  <div className="aspect-video">
-                    <iframe
-                      src="https://drive.google.com/file/d/1BVY75ME-q2vRmQKSlboCwgFVdmNynZGvaOJRv4olDUk/preview"
-                      className="w-full h-full"
-                      allow="autoplay; encrypted-media"
-                      allowFullScreen
-                    ></iframe>
-                  </div>
-                  
-                  {/* Decorative Corner Elements */}
-                  <div className="absolute top-0 left-0 w-20 h-20 border-l-2 border-t-2 border-cyan-500/50 rounded-tl-2xl pointer-events-none"></div>
-                  <div className="absolute top-0 right-0 w-20 h-20 border-r-2 border-t-2 border-purple-500/50 rounded-tr-2xl pointer-events-none"></div>
-                  <div className="absolute bottom-0 left-0 w-20 h-20 border-l-2 border-b-2 border-purple-500/50 rounded-bl-2xl pointer-events-none"></div>
-                  <div className="absolute bottom-0 right-0 w-20 h-20 border-r-2 border-b-2 border-cyan-500/50 rounded-br-2xl pointer-events-none"></div>
-                </div>
-              </div>
-              
-              {/* CTA After Video */}
-              <div className="pt-6">
-                <Button
-                  asChild
-                  size="lg"
-                  className="h-14 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-lg px-10 rounded-2xl shadow-2xl shadow-cyan-500/30 transition-all duration-300 transform hover:scale-105 hover:shadow-cyan-500/50 group"
-                >
-                  <Link href="/register" className="flex items-center gap-3">
-                    Começar Agora
-                    <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </Button>
-              </div>
             </div>
           </div>
         </section>
