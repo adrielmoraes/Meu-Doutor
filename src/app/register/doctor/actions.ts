@@ -9,12 +9,16 @@ import type { Doctor } from '@/types';
 
 const DoctorSchema = z.object({
   fullName: z.string().min(3, { message: "O nome completo é obrigatório." }),
-  crm: z.string().min(5, { message: "O CRM é obrigatório." }),
+  crm: z.string().min(4, { message: "O CRM deve ter no mínimo 4 caracteres." }),
   specialty: z.string().min(1, { message: "A especialidade é obrigatória." }),
   city: z.string().min(2, { message: "A cidade é obrigatória." }),
   state: z.string().length(2, { message: "O estado (UF) é obrigatório." }),
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
   password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres." }),
+  confirmPassword: z.string().min(1, { message: "Confirme sua senha." }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "As senhas não coincidem.",
+  path: ["confirmPassword"],
 });
 
 export async function createDoctorAction(prevState: any, formData: FormData) {
