@@ -93,31 +93,32 @@ export default function LandingPage() {
           <div className="absolute bottom-20 right-10 w-[500px] h-[500px] bg-blue-500/15 rounded-full blur-[120px] animate-pulse delay-1000"></div>
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[150px] animate-pulse delay-500"></div>
 
-          <div className="container px-4 md:px-6 relative z-10 py-20">
-            <div className="grid gap-12 lg:grid-cols-2 lg:gap-20 items-center">
-              <div className="space-y-8">
+          <div className="container px-4 md:px-6 relative z-10 py-16">
+            <div className="flex flex-col items-center text-center space-y-10">
+              {/* Header Content */}
+              <div className="space-y-6 max-w-4xl">
                 {/* Badge */}
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 backdrop-blur-sm">
                   <Sparkles className="h-4 w-4 text-cyan-400" />
                   <span className="text-sm font-medium text-cyan-300">Tecnologia de Ponta em Saúde</span>
                 </div>
 
-                <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl xl:text-7xl leading-tight">
+                <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl xl:text-6xl leading-tight">
                   <span className="bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
                     O Futuro da
                   </span>
-                  <br />
+                  {" "}
                   <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(34,211,238,0.3)]">
                     Saúde Está Aqui
                   </span>
                 </h1>
 
-                <p className="max-w-[600px] text-xl text-blue-100/80 leading-relaxed">
+                <p className="max-w-[700px] mx-auto text-lg text-blue-100/80 leading-relaxed">
                   Diagnósticos instantâneos com IA de última geração. Consultas em tempo real com avatar médico inteligente. Sua saúde revolucionada.
                 </p>
 
                 {/* Feature Pills */}
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap justify-center gap-3">
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20">
                     <CheckCircle2 className="h-4 w-4 text-cyan-400" />
                     <span className="text-sm text-cyan-300">45+ Especialistas IA</span>
@@ -131,51 +132,11 @@ export default function LandingPage() {
                     <span className="text-sm text-emerald-300">100% Seguro</span>
                   </div>
                 </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  <Button
-                    asChild
-                    size="lg"
-                    className="h-14 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-lg px-8 rounded-2xl shadow-2xl shadow-cyan-500/30 transition-all duration-300 transform hover:scale-105 hover:shadow-cyan-500/50 group"
-                  >
-                    <Link href="/register" className="flex items-center gap-3">
-                      Começar Gratuitamente
-                      <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="lg"
-                    className="h-14 border-2 border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/10 hover:border-cyan-400 font-semibold text-lg px-8 rounded-2xl backdrop-blur-sm group"
-                  >
-                    <Link href="#demo" className="flex items-center gap-3">
-                      <Play className="h-5 w-5 group-hover:scale-110 transition-transform" />
-                      Ver Demonstração
-                    </Link>
-                  </Button>
-                </div>
-
-                {/* Stats Row */}
-                <div className="flex flex-wrap gap-8 pt-8 border-t border-cyan-500/20">
-                  <div className="space-y-1">
-                    <div className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(34,211,238,0.4)]">45+</div>
-                    <div className="text-sm text-blue-200/70">Especialistas IA</div>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(168,85,247,0.4)]">24/7</div>
-                    <div className="text-sm text-blue-200/70">Disponibilidade</div>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(52,211,153,0.4)]">99.9%</div>
-                    <div className="text-sm text-blue-200/70">Precisão</div>
-                  </div>
-                </div>
               </div>
 
-              {/* Hero VSL Video */}
-              <div id="demo" className="relative lg:ml-8">
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 to-blue-500/30 rounded-3xl blur-3xl transform rotate-3"></div>
+              {/* Hero VSL Video - Centered */}
+              <div id="demo" className="relative w-full max-w-4xl mx-auto">
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 to-blue-500/30 rounded-3xl blur-3xl transform rotate-1"></div>
                 <div className="relative group">
                   <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-3xl blur-2xl group-hover:opacity-80 transition-opacity"></div>
                   <div className="relative rounded-2xl overflow-hidden border border-cyan-500/30 shadow-2xl shadow-cyan-500/20 bg-slate-900/50 backdrop-blur-sm">
@@ -194,6 +155,47 @@ export default function LandingPage() {
                     <div className="absolute bottom-0 left-0 w-16 h-16 border-l-2 border-b-2 border-purple-500/50 rounded-bl-2xl pointer-events-none"></div>
                     <div className="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 border-cyan-500/50 rounded-br-2xl pointer-events-none"></div>
                   </div>
+                </div>
+              </div>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button
+                  asChild
+                  size="lg"
+                  className="h-14 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-lg px-8 rounded-2xl shadow-2xl shadow-cyan-500/30 transition-all duration-300 transform hover:scale-105 hover:shadow-cyan-500/50 group"
+                >
+                  <Link href="/register" className="flex items-center gap-3">
+                    Começar Gratuitamente
+                    <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="h-14 border-2 border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/10 hover:border-cyan-400 font-semibold text-lg px-8 rounded-2xl backdrop-blur-sm group"
+                >
+                  <Link href="/register" className="flex items-center gap-3">
+                    <Play className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                    Criar Conta Grátis
+                  </Link>
+                </Button>
+              </div>
+
+              {/* Stats Row */}
+              <div className="flex flex-wrap justify-center gap-8 pt-6 border-t border-cyan-500/20 w-full max-w-2xl">
+                <div className="space-y-1 text-center">
+                  <div className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(34,211,238,0.4)]">45+</div>
+                  <div className="text-sm text-blue-200/70">Especialistas IA</div>
+                </div>
+                <div className="space-y-1 text-center">
+                  <div className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(168,85,247,0.4)]">24/7</div>
+                  <div className="text-sm text-blue-200/70">Disponibilidade</div>
+                </div>
+                <div className="space-y-1 text-center">
+                  <div className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(52,211,153,0.4)]">99.9%</div>
+                  <div className="text-sm text-blue-200/70">Precisão</div>
                 </div>
               </div>
             </div>
