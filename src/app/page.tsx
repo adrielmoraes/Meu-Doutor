@@ -216,32 +216,37 @@ export default function LandingPage() {
           
           <div className="container px-4 md:px-6 relative z-10">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
-              {/* AI Doctor Image */}
+              {/* AI Doctor Video */}
               <div className="relative order-2 lg:order-1">
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-full blur-[80px]"></div>
-                <div className="relative flex justify-center">
-                  <div className="relative">
-                    <div className="absolute -inset-8 bg-gradient-to-r from-cyan-500/30 via-blue-500/20 to-purple-500/30 rounded-full blur-2xl animate-pulse"></div>
-                    <div className="relative w-80 h-80 md:w-96 md:h-96 rounded-full overflow-hidden border-4 border-cyan-500/30 shadow-2xl shadow-cyan-500/30">
-                      <Image
-                        src="/images/futuristic_ai_doctor_avatar.png"
-                        alt="Dra. Sofia - Assistente Médica IA"
-                        fill
-                        sizes="(max-width: 768px) 320px, 384px"
-                        className="object-cover"
-                      />
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-3xl blur-[80px]"></div>
+                <div className="relative group">
+                  <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-3xl blur-2xl group-hover:opacity-80 transition-opacity"></div>
+                  <div className="relative rounded-2xl overflow-hidden border border-cyan-500/30 shadow-2xl shadow-cyan-500/20 bg-slate-900/50 backdrop-blur-sm">
+                    <div className="aspect-video">
+                      <iframe
+                        src="https://drive.google.com/file/d/1DyYf-wU1u61l1zkR0Rj4vvruWWGcup_Plk7zUtmCkwk/preview"
+                        className="w-full h-full"
+                        allow="autoplay; encrypted-media"
+                        allowFullScreen
+                      ></iframe>
                     </div>
                     
-                    {/* Floating Elements */}
-                    <div className="absolute -top-4 -right-4 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-3 shadow-lg shadow-cyan-500/30 animate-bounce">
-                      <Mic className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="absolute -bottom-4 -left-4 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-3 shadow-lg shadow-purple-500/30 animate-bounce delay-300">
-                      <Camera className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="absolute top-1/2 -right-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-3 shadow-lg shadow-emerald-500/30 animate-bounce delay-500">
-                      <HeartPulse className="h-6 w-6 text-white" />
-                    </div>
+                    {/* Decorative Corner Elements */}
+                    <div className="absolute top-0 left-0 w-16 h-16 border-l-2 border-t-2 border-cyan-500/50 rounded-tl-2xl pointer-events-none"></div>
+                    <div className="absolute top-0 right-0 w-16 h-16 border-r-2 border-t-2 border-purple-500/50 rounded-tr-2xl pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 w-16 h-16 border-l-2 border-b-2 border-purple-500/50 rounded-bl-2xl pointer-events-none"></div>
+                    <div className="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 border-cyan-500/50 rounded-br-2xl pointer-events-none"></div>
+                  </div>
+                  
+                  {/* Floating Elements */}
+                  <div className="absolute -top-4 -right-4 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-3 shadow-lg shadow-cyan-500/30 animate-bounce z-10">
+                    <Mic className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="absolute -bottom-4 -left-4 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-3 shadow-lg shadow-purple-500/30 animate-bounce delay-300 z-10">
+                    <Camera className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="absolute top-1/2 -right-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-3 shadow-lg shadow-emerald-500/30 animate-bounce delay-500 z-10">
+                    <HeartPulse className="h-6 w-6 text-white" />
                   </div>
                 </div>
               </div>
