@@ -71,9 +71,14 @@ export default function LandingPage() {
       <main className="flex-1">
         {/* Hero Section - Ultra Futuristic */}
         <section className="relative w-full min-h-screen flex items-center overflow-hidden">
-          {/* Animated Background */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/30 via-transparent to-transparent"></div>
-          <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:60px_60px]"></div>
+          {/* Realistic Background Image */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: "url('/images/futuristic_medical_tech_background.png')" }}
+          ></div>
+          {/* Overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/70 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/50"></div>
           
           {/* Floating Particles */}
           <div className="absolute inset-0 overflow-hidden">
