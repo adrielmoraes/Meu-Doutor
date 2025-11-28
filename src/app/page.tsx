@@ -142,9 +142,9 @@ export default function LandingPage() {
                   <div className="relative rounded-2xl overflow-hidden border border-cyan-500/30 shadow-2xl shadow-cyan-500/20 bg-slate-900/50 backdrop-blur-sm">
                     <div className="aspect-video">
                       <iframe
-                        src="https://drive.google.com/file/d/1BVY75ME-q2vRmQKSlboCwgFVdmNynZGvaOJRv4olDUk/preview"
+                        src="https://drive.google.com/file/d/1BVY75ME-q2vRmQKSlboCwgFVdmNynZGvaOJRv4olDUk/preview?autoplay=1"
                         className="w-full h-full"
-                        allow="autoplay; encrypted-media"
+                        allow="autoplay; encrypted-media; fullscreen"
                         allowFullScreen
                       ></iframe>
                     </div>
@@ -224,9 +224,9 @@ export default function LandingPage() {
                   <div className="relative rounded-2xl overflow-hidden border border-cyan-500/30 shadow-2xl shadow-cyan-500/20 bg-slate-900/50 backdrop-blur-sm">
                     <div className="aspect-video">
                       <iframe
-                        src="https://drive.google.com/file/d/1DyYf-wU1u61l1zkR0Rj4vvruWWGcup_Plk7zUtmCkwk/preview"
+                        src="https://drive.google.com/file/d/1DyYf-wU1u61l1zkR0Rj4vvruWWGcup_Plk7zUtmCkwk/preview?autoplay=1"
                         className="w-full h-full"
-                        allow="autoplay; encrypted-media"
+                        allow="autoplay; encrypted-media; fullscreen"
                         allowFullScreen
                       ></iframe>
                     </div>
