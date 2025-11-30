@@ -38,6 +38,7 @@ import { useRouter } from "next/navigation";
 export default function LandingPage() {
   const router = useRouter();
   const [scrollY, setScrollY] = useState(0);
+  const [videoStarted, setVideoStarted] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -140,13 +141,62 @@ export default function LandingPage() {
                 <div className="relative group">
                   <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-3xl blur-2xl group-hover:opacity-80 transition-opacity"></div>
                   <div className="relative rounded-2xl overflow-hidden border border-cyan-500/30 shadow-2xl shadow-cyan-500/20 bg-slate-900/50 backdrop-blur-sm">
-                    <div className="aspect-video">
+                    <div className="aspect-video relative">
+                      {/* Video Iframe */}
                       <iframe
-                        src="https://drive.google.com/file/d/1BVY75ME-q2vRmQKSlboCwgFVdmNynZGvaOJRv4olDUk/preview?autoplay=1"
+                        src={videoStarted ? "https://drive.google.com/file/d/1BVY75ME-q2vRmQKSlboCwgFVdmNynZGvaOJRv4olDUk/preview?autoplay=1" : "about:blank"}
                         className="w-full h-full"
                         allow="autoplay; encrypted-media; fullscreen"
                         allowFullScreen
                       ></iframe>
+                      
+                      {/* Animated Play Overlay */}
+                      {!videoStarted && (
+                        <div 
+                          onClick={() => setVideoStarted(true)}
+                          className="absolute inset-0 bg-gradient-to-br from-slate-900/95 via-blue-950/90 to-slate-900/95 cursor-pointer flex flex-col items-center justify-center gap-6 transition-all duration-500 hover:from-slate-900/90 hover:via-blue-950/85 hover:to-slate-900/90 group/overlay"
+                        >
+                          {/* Animated Background Rings */}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="absolute w-32 h-32 md:w-48 md:h-48 rounded-full border-2 border-cyan-500/20 animate-ping"></div>
+                            <div className="absolute w-40 h-40 md:w-56 md:h-56 rounded-full border border-purple-500/10 animate-pulse"></div>
+                            <div className="absolute w-48 h-48 md:w-64 md:h-64 rounded-full border border-blue-500/10 animate-pulse delay-300"></div>
+                          </div>
+                          
+                          {/* Play Button */}
+                          <div className="relative z-10">
+                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full blur-xl opacity-60 animate-pulse"></div>
+                            <div className="relative w-20 h-20 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-cyan-500/50 transform group-hover/overlay:scale-110 transition-all duration-300">
+                              <div className="absolute inset-1 rounded-full bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-500 opacity-80"></div>
+                              <Play className="relative z-10 h-8 w-8 md:h-12 md:w-12 text-white fill-white ml-1" />
+                            </div>
+                          </div>
+                          
+                          {/* Text */}
+                          <div className="relative z-10 text-center space-y-2">
+                            <p className="text-lg md:text-2xl font-bold bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent animate-pulse">
+                              Clique para Assistir
+                            </p>
+                            <p className="text-sm md:text-base text-blue-200/70">
+                              Descubra como a IA pode transformar sua saúde
+                            </p>
+                          </div>
+                          
+                          {/* Floating Icons */}
+                          <div className="absolute top-8 left-8 text-cyan-400/40 animate-bounce">
+                            <Stethoscope className="h-6 w-6 md:h-8 md:w-8" />
+                          </div>
+                          <div className="absolute top-8 right-8 text-purple-400/40 animate-bounce delay-300">
+                            <Brain className="h-6 w-6 md:h-8 md:w-8" />
+                          </div>
+                          <div className="absolute bottom-8 left-8 text-blue-400/40 animate-bounce delay-500">
+                            <HeartPulse className="h-6 w-6 md:h-8 md:w-8" />
+                          </div>
+                          <div className="absolute bottom-8 right-8 text-emerald-400/40 animate-bounce delay-700">
+                            <Activity className="h-6 w-6 md:h-8 md:w-8" />
+                          </div>
+                        </div>
+                      )}
                     </div>
                     
                     {/* Decorative Corner Elements */}
