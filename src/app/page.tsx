@@ -313,16 +313,16 @@ export default function LandingPage() {
 
                 <h2 className="text-4xl md:text-5xl font-bold">
                   <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-                    Conheça a
+                    Conheça a sua
                   </span>
                   <br />
                   <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                    Dra. Sofia
+                    Assistente Médica
                   </span>
                 </h2>
 
                 <p className="text-xl text-blue-100/80 leading-relaxed">
-                  Sua assistente médica IA com avatar hiper-realista. Converse por voz e vídeo, mostre sintomas pela câmera e receba diagnósticos instantâneos.
+                  Converse por voz e vídeo, mostre sintomas pela câmera e receba diagnósticos instantâneos.
                 </p>
 
                 <div className="space-y-4">
