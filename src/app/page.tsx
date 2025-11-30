@@ -273,12 +273,15 @@ export default function LandingPage() {
                   <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-3xl blur-2xl group-hover:opacity-80 transition-opacity"></div>
                   <div className="relative rounded-2xl overflow-hidden border border-cyan-500/30 shadow-2xl shadow-cyan-500/20 bg-slate-900/50 backdrop-blur-sm">
                     <div className="aspect-video">
-                      <iframe
-                        src="https://drive.google.com/file/d/1DyYf-wU1u61l1zkR0Rj4vvruWWGcup_Plk7zUtmCkwk/preview?autoplay=1"
-                        className="w-full h-full"
-                        allow="autoplay; encrypted-media; fullscreen"
-                        allowFullScreen
-                      ></iframe>
+                      <video
+                        src="/Presence.MP4"
+                        className="w-full h-full object-cover"
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        controls
+                      />
                     </div>
                     
                     {/* Decorative Corner Elements */}
