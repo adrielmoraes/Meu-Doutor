@@ -189,11 +189,20 @@ export async function addPatientWithAuth(
     tokenExpiry: tokenExpiry
   });
 
+  // Cota inicial gratuita para novos pacientes: 5 minutos de consulta com IA
+  const initialQuotas = {
+    examAnalysis: 5,
+    aiConsultationMinutes: 5,
+    doctorConsultationMinutes: 0,
+    therapistChat: 999999, // ilimitado
+  };
+
   try {
-    // Inserir paciente
+    // Inserir paciente com cotas iniciais
     await db.insert(patients).values({
       id: patientId,
       ...patient,
+      customQuotas: initialQuotas,
       verificationToken: verificationToken || null,
       tokenExpiry: tokenExpiry || null,
       emailVerified: false,
