@@ -234,7 +234,7 @@ export default function LandingPage() {
               </div>
 
               {/* Stats Row */}
-              <div className="flex flex-wrap justify-center gap-8 pt-6 border-t border-cyan-500/20 w-full max-w-2xl">
+              <div className="flex flex-wrap justify-center gap-8 pt-6 border-t border-cyan-500/20 w-full max-w-2xl relative z-20">
                 <div className="space-y-1 text-center">
                   <div className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(34,211,238,0.4)]">45+</div>
                   <div className="text-sm text-blue-200/70">Especialistas IA</div>
@@ -251,8 +251,8 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Scroll Indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-cyan-400/50">
+          {/* Scroll Indicator - hidden on smaller screens to avoid overlapping stats */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 text-cyan-400/50 z-0 hidden xl:flex">
             <span className="text-xs uppercase tracking-wider">Role para explorar</span>
             <div className="w-6 h-10 rounded-full border-2 border-cyan-400/30 flex items-start justify-center p-1">
               <div className="w-1.5 h-3 bg-cyan-400/50 rounded-full animate-bounce"></div>
