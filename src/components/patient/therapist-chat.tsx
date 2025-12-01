@@ -277,7 +277,7 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`rounded-2xl p-3 shadow-md ${
+                className={`rounded-2xl px-4 py-3 shadow-md ${
                   message.role === 'user'
                     ? 'bg-gradient-to-br from-pink-500 to-pink-600 dark:from-primary dark:to-primary/90 text-white'
                     : 'bg-card text-foreground border border-border'
@@ -291,8 +291,8 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
                   />
                 ) : (
                   <div className="flex-1">
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{message.content}</p>
-                    <p className={`text-xs mt-1 ${
+                    <p className="text-[15px] md:text-[17px] leading-[1.4] whitespace-pre-wrap break-words">{message.content}</p>
+                    <p className={`text-[11px] md:text-xs mt-1.5 ${
                       message.role === 'user' ? 'text-white/70' : 'text-muted-foreground'
                     }`}>
                       {formatTime(message.timestamp)}
@@ -340,7 +340,7 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendTextMessage()}
                 placeholder="Digite sua mensagem..."
-                className="flex-1 bg-background border-border text-foreground placeholder:text-muted-foreground text-sm md:text-base"
+                className="flex-1 bg-background border-border text-foreground placeholder:text-muted-foreground text-[15px] md:text-[17px] py-3"
                 disabled={isProcessing}
               />
               <Button
