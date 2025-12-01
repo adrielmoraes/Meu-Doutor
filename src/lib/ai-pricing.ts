@@ -206,6 +206,21 @@ export function calculateTTSCost(
   return (outputTokens / 1_000_000) * pricing.output;
 }
 
+// Helper function to calculate STT cost (based on audio input tokens)
+// Uses Gemini 2.5 Flash multimodal audio input pricing: $1.00 per 1M tokens
+export function calculateSTTCost(
+  audioTokens: number
+): number {
+  // Audio input tokens: $1.00 per 1M tokens
+  return (audioTokens / 1_000_000) * 1.00;
+}
+
+// Estimate tokens from audio duration
+// Approximately 25 tokens per second of audio (16kHz, mono)
+export function estimateAudioTokens(durationSeconds: number): number {
+  return Math.ceil(durationSeconds * 25);
+}
+
 // Helper function to calculate avatar cost
 export function calculateAvatarCost(
   provider: 'beyondpresence' | 'tavus',

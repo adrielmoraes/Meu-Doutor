@@ -7,11 +7,13 @@ import { db } from '../../server/storage';
 import { usageTracking } from '../../shared/schema';
 import { 
   calculateLLMCost, 
-  calculateTTSCost, 
+  calculateTTSCost,
+  calculateSTTCost,
   calculateAvatarCost,
   calculateLiveKitCost,
   usdToBRLCents,
   estimateTokens,
+  estimateAudioTokens,
   AI_PRICING
 } from './ai-pricing';
 
@@ -83,9 +85,10 @@ export async function trackAIUsage({
         break;
 
       case 'stt':
-        // STT costs based on audio duration (approximate)
-        costUSD = (durationSeconds / 60) * 0.006; // ~$0.006/min for STT
-        resourceName = 'Gemini STT';
+        // STT costs based on audio tokens (Gemini multimodal audio input: $1.00/1M tokens)
+        const audioTokens = estimateAudioTokens(durationSeconds);
+        costUSD = calculateSTTCost(audioTokens);
+        resourceName = 'Gemini 2.5 Flash STT';
         break;
 
       case 'live_consultation':
