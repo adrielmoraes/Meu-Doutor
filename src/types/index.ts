@@ -36,6 +36,9 @@ export type Patient = {
     dietaryPlan: string;
     exercisePlan: string;
     mentalWellnessPlan: string;
+    dietaryPlanAudioUri?: string;
+    exercisePlanAudioUri?: string;
+    mentalWellnessPlanAudioUri?: string;
     weeklyMealPlan?: Array<{
       day: string;
       breakfast: string;

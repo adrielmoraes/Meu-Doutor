@@ -41,6 +41,9 @@ export const patients = pgTable('patients', {
     dietaryPlan: string;
     exercisePlan: string;
     mentalWellnessPlan: string;
+    dietaryPlanAudioUri?: string;
+    exercisePlanAudioUri?: string;
+    mentalWellnessPlanAudioUri?: string;
     dailyReminders: Array<{
       icon: 'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell' | 'Apple' | 'Heart' | 'Sun' | 'Moon' | 'Activity' | 'Utensils' | 'Brain' | 'Smile' | 'Wind' | 'Leaf';
       title: string;
