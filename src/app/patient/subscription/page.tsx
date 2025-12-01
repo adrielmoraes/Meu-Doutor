@@ -3,16 +3,14 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Loader2, CreditCard, Calendar, X, DollarSign } from "lucide-react";
+import { Check, Loader2, CreditCard, Calendar, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { CostTransparency } from "@/components/pricing/cost-transparency";
 
 const plans = [
   {
     id: 'trial',
     name: 'Teste Grátis',
     price: 0,
-    realCost: 232, // R$ 2,32 (custo real absorvido)
     interval: '7 dias',
     description: 'Experimente a plataforma sem compromisso',
     features: [
@@ -40,7 +38,6 @@ const plans = [
     id: 'basico',
     name: 'Básico',
     price: 9790,
-    realCost: 482, // R$ 4,82 (custo real de IA)
     interval: 'mês',
     description: 'Acesso essencial à plataforma com limites mensais',
     features: [
@@ -64,7 +61,6 @@ const plans = [
     id: 'premium',
     name: 'Premium',
     price: 19790,
-    realCost: 1517, // R$ 15,17 (custo real de IA + estimativa médico)
     interval: 'mês',
     description: 'Acesso completo com consultas IA e médicos reais',
     features: [
@@ -366,81 +362,6 @@ export default function SubscriptionPage() {
             );
           })}
         </div>
-
-        {/* Cost Transparency Section */}
-        <div className="max-w-4xl mx-auto">
-          <CostTransparency />
-        </div>
-
-        {/* Value Breakdown */}
-        <Card className="bg-white dark:bg-gradient-to-br dark:from-slate-800/80 dark:to-slate-900/80 border-gray-300 dark:border-slate-600/70">
-          <CardHeader>
-            <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-green-500" />
-              Por Que Nossos Preços São Justos?
-            </CardTitle>
-            <CardDescription className="text-gray-700 dark:text-slate-300">
-              Entenda o valor real que você recebe
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-3 gap-4 text-center">
-              <div className="p-4 rounded-lg border border-blue-500/20 bg-blue-500/5">
-                <div className="text-3xl font-bold text-blue-500 mb-2">
-                  {plans.find(p => p.id === 'basico')?.realCost ? 
-                    `R$ ${(plans.find(p => p.id === 'basico')!.realCost / 100).toFixed(2)}` : 
-                    'N/A'}
-                </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Custo Real IA (Básico)</div>
-                <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">20 análises + 5 min consultas</div>
-              </div>
-              <div className="p-4 rounded-lg border border-purple-500/20 bg-purple-500/5">
-                <div className="text-3xl font-bold text-purple-500 mb-2">
-                  {plans.find(p => p.id === 'premium')?.realCost ? 
-                    `R$ ${(plans.find(p => p.id === 'premium')!.realCost / 100).toFixed(2)}` : 
-                    'N/A'}
-                </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Custo Real IA (Premium)</div>
-                <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">50 análises + 30 min consultas</div>
-              </div>
-              <div className="p-4 rounded-lg border border-green-500/20 bg-green-500/5">
-                <div className="text-3xl font-bold text-green-500 mb-2">
-                  19.3x
-                </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Margem Plano Básico</div>
-                <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">Cobre infraestrutura + equipe</div>
-              </div>
-            </div>
-            
-            <div className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
-              <p className="flex items-start gap-2">
-                <Check className="h-4 w-4 text-green-500 mt-0.5" />
-                <span>
-                  <strong>Infraestrutura de ponta:</strong> Servidores LiveKit, armazenamento seguro, 
-                  CDN global para baixa latência
-                </span>
-              </p>
-              <p className="flex items-start gap-2">
-                <Check className="h-4 w-4 text-green-500 mt-0.5" />
-                <span>
-                  <strong>Desenvolvimento contínuo:</strong> Equipe dedicada melhorando a plataforma 24/7
-                </span>
-              </p>
-              <p className="flex items-start gap-2">
-                <Check className="h-4 w-4 text-green-500 mt-0.5" />
-                <span>
-                  <strong>Suporte especializado:</strong> Atendimento humano para dúvidas e problemas
-                </span>
-              </p>
-              <p className="flex items-start gap-2">
-                <Check className="h-4 w-4 text-green-500 mt-0.5" />
-                <span>
-                  <strong>Conformidade LGPD:</strong> Segurança e privacidade dos seus dados médicos
-                </span>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Footer Info */}
         <Card className="bg-white dark:bg-gradient-to-br dark:from-slate-800/80 dark:to-slate-900/80 border-gray-300 dark:border-slate-600/70">
