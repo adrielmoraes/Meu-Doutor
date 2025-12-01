@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
+import { getSession } from '@/lib/session';
+import { trackTTS } from '@/lib/usage-tracker';
 
 const ai = new GoogleGenAI({ 
   apiKey: process.env.GEMINI_API_KEY || '' 
@@ -7,6 +9,11 @@ const ai = new GoogleGenAI({
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session?.userId) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { text } = body;
 
@@ -14,7 +21,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Texto não fornecido' }, { status: 400 });
     }
 
-    // Usar Gemini 2.5 Flash TTS para gerar áudio em português brasileiro
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-preview-tts',
       contents: [{ 
@@ -32,7 +38,6 @@ export async function POST(request: NextRequest) {
       }
     });
     
-    // Extrair o áudio em base64 da resposta
     const audioPart = response.candidates?.[0]?.content?.parts?.[0];
     
     if (!audioPart || !audioPart.inlineData?.data) {
@@ -40,7 +45,10 @@ export async function POST(request: NextRequest) {
       throw new Error('Nenhum áudio gerado pelo Gemini');
     }
 
-    // Retornar áudio PCM em base64 (formato esperado pelo TalkingHead)
+    trackTTS(session.userId, text, 'gemini-2.5-flash-preview-tts').catch((err) => {
+      console.error('[TTS Cost Tracking] Error:', err);
+    });
+
     return NextResponse.json({
       audioContent: audioPart.inlineData.data,
       mimeType: 'audio/pcm',
