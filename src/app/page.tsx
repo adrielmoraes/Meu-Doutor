@@ -222,9 +222,8 @@ export default function LandingPage() {
                 </Button>
                 <Button
                   asChild
-                  variant="outline"
                   size="lg"
-                  className="h-14 border-2 border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/10 hover:border-cyan-400 font-semibold text-lg px-8 rounded-2xl backdrop-blur-sm group"
+                  className="h-14 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-lg px-8 rounded-2xl shadow-2xl shadow-purple-500/30 transition-all duration-300 transform hover:scale-105 hover:shadow-purple-500/50 group"
                 >
                   <Link href="/register" className="flex items-center gap-3">
                     <Play className="h-5 w-5 group-hover:scale-110 transition-transform" />
