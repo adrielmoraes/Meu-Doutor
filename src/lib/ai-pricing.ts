@@ -6,6 +6,8 @@
 
 export const AI_PRICING = {
   // Gemini Models - LLM (per 1M tokens)
+  // Official pricing from: https://ai.google.dev/gemini-api/docs/pricing
+  // Last updated: December 2025
   models: {
     'gemini-3-pro-preview': {
       name: 'Gemini 3 Pro Preview',
@@ -21,8 +23,10 @@ export const AI_PRICING = {
     },
     'gemini-2.5-flash': {
       name: 'Gemini 2.5 Flash',
-      input: { all: 0.30 },
-      output: { all: 2.50 },
+      // Input: $0.30 (text/image/video), $1.00 (audio)
+      // Output: $0.60 (no thinking), $3.50 (with thinking)
+      input: { all: 0.30, audio: 1.00 },
+      output: { all: 0.60, withThinking: 3.50 },
       knowledgeCutoff: '2025-01',
     },
     'gemini-2.5-flash-lite': {
@@ -62,18 +66,20 @@ export const AI_PRICING = {
     'gemini-2.5-flash-image': {
       name: 'Gemini 2.5 Flash Image',
       textInput: 0.30,
-      textOutput: 2.50,
+      textOutput: 0.60,
       imageOutput: 0.039,
     },
   },
 
-  // Audio Models (per 1M tokens)
+  // Audio Models (per 1M tokens) - Official pricing Dec 2025
   audioModels: {
+    // Native Audio - Natural voice with better pacing, voice naturalness, mood
     'gemini-2.5-flash-native-audio-preview-09-2025': {
       name: 'Gemini 2.5 Flash Native Audio Preview',
-      input: 1.00,
-      output: 20.00,
+      input: 1.00,   // $1.00 per 1M tokens
+      output: 20.00, // $20.00 per 1M tokens
     },
+    // Standard TTS
     'gemini-2.5-flash-preview-tts': {
       name: 'Gemini 2.5 Flash Preview TTS',
       input: 0.50,
@@ -84,6 +90,13 @@ export const AI_PRICING = {
       input: 0.50,
       output: 10.00,
     },
+  },
+  
+  // Live API Native Audio (for real-time consultations)
+  liveApiAudio: {
+    // Gemini 2.5 Flash Native Audio (Live API)
+    input: 1.00,   // $1.00 per 1M audio input tokens
+    output: 20.00, // $20.00 per 1M audio output tokens
   },
 
   // Avatar Providers (per minute)
@@ -110,24 +123,42 @@ export function calculateLLMCost(
   model: string,
   inputTokens: number,
   outputTokens: number,
-  contextLength: number = 0
+  options: {
+    contextLength?: number;
+    hasAudioInput?: boolean;
+    hasThinking?: boolean;
+  } = {}
 ): { inputCost: number; outputCost: number; totalCost: number } {
   const pricing = AI_PRICING.models[model as keyof typeof AI_PRICING.models];
   
   if (!pricing) {
     console.warn(`[AI Pricing] Unknown model: ${model}, using gemini-2.5-flash pricing`);
-    return calculateLLMCost('gemini-2.5-flash', inputTokens, outputTokens, contextLength);
+    return calculateLLMCost('gemini-2.5-flash', inputTokens, outputTokens, options);
   }
 
+  const { contextLength = 0, hasAudioInput = false, hasThinking = false } = options;
   const isOver200k = contextLength > 200000;
   
   let inputPrice: number;
   let outputPrice: number;
 
   if ('all' in pricing.input) {
-    inputPrice = pricing.input.all;
-    outputPrice = (pricing.output as { all: number }).all;
+    // For models with flat pricing (Flash, etc)
+    // Check if audio input pricing is available
+    if (hasAudioInput && 'audio' in pricing.input) {
+      inputPrice = (pricing.input as { all: number; audio: number }).audio;
+    } else {
+      inputPrice = pricing.input.all;
+    }
+    
+    // Check if thinking output pricing is available
+    if (hasThinking && 'withThinking' in pricing.output) {
+      outputPrice = (pricing.output as { all: number; withThinking: number }).withThinking;
+    } else {
+      outputPrice = (pricing.output as { all: number }).all;
+    }
   } else {
+    // For models with tiered pricing (Pro, etc)
     inputPrice = isOver200k ? pricing.input.over200k : pricing.input.upTo200k;
     outputPrice = isOver200k 
       ? (pricing.output as { upTo200k: number; over200k: number }).over200k 
@@ -138,6 +169,21 @@ export function calculateLLMCost(
   const inputCost = (inputTokens / 1_000_000) * inputPrice;
   const outputCost = (outputTokens / 1_000_000) * outputPrice;
 
+  return {
+    inputCost,
+    outputCost,
+    totalCost: inputCost + outputCost,
+  };
+}
+
+// Calculate Live API audio costs (real-time consultations with Native Audio)
+export function calculateLiveApiAudioCost(
+  inputAudioTokens: number,
+  outputAudioTokens: number
+): { inputCost: number; outputCost: number; totalCost: number } {
+  const inputCost = (inputAudioTokens / 1_000_000) * AI_PRICING.liveApiAudio.input;
+  const outputCost = (outputAudioTokens / 1_000_000) * AI_PRICING.liveApiAudio.output;
+  
   return {
     inputCost,
     outputCost,

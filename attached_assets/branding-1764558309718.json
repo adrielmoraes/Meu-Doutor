@@ -1,0 +1,117 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "Noto Sans",
+      "role": "body"
+    },
+    {
+      "family": "Google Sans",
+      "role": "body"
+    },
+    {
+      "family": "Roboto",
+      "role": "body"
+    },
+    {
+      "family": "Noto Sans JP",
+      "role": "body"
+    },
+    {
+      "family": "Noto Sans KR",
+      "role": "body"
+    }
+  ],
+  "colors": {
+    "primary": "#1A73E8",
+    "accent": "#E8F0FE",
+    "background": "#E8EAED",
+    "textPrimary": "#202124",
+    "link": "#E8F0FE"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "Noto Sans",
+      "heading": "Noto Sans"
+    },
+    "fontStacks": {
+      "heading": [
+        "Google Sans",
+        "Noto Sans",
+        "Noto Naskh Arabic",
+        "sans-serif"
+      ],
+      "body": [
+        "Roboto",
+        "Noto Sans",
+        "Noto Naskh Arabic",
+        "sans-serif"
+      ],
+      "paragraph": [
+        "Roboto",
+        "Noto Sans",
+        "Noto Naskh Arabic",
+        "sans-serif"
+      ]
+    },
+    "fontSizes": {
+      "h1": "32px",
+      "h2": "24px",
+      "body": "16px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 8,
+    "borderRadius": "0px"
+  },
+  "components": {
+    "input": {
+      "borderColor": "#CCCCCC",
+      "borderRadius": "0px"
+    },
+    "buttonPrimary": {
+      "background": "#FFFFFF",
+      "textColor": "#1A73E8",
+      "borderRadius": "4px",
+      "shadow": "none"
+    }
+  },
+  "images": {
+    "logo": "https://ai.google.dev/_static/googledevai/images/gemini-api-logo.svg?hl=pt-br",
+    "favicon": "File saved at: attached_assets/favicon.png",
+    "ogImage": "https://ai.google.dev/static/site-assets/images/share-gemini-api-2.png?hl=pt-br"
+  },
+  "__framework_hints": [],
+  "__llm_logo_reasoning": {
+    "selectedIndex": 0,
+    "reasoning": "Logo #0 visually represents the brand name 'Google AI for Developers' and is located in the header, linking to the homepage, making it the primary brand logo.",
+    "confidence": 0.95
+  },
+  "__llm_button_reasoning": {
+    "primary": {
+      "index": 9,
+      "text": "Fazer login",
+      "reasoning": "Button #9 ('Fazer login') has a vibrant text color (#1A73E8) which aligns with the brand's primary color, making it the most prominent call-to-action. It also has a clear action-oriented text indicating a user action."
+    },
+    "secondary": {
+      "index": 0,
+      "text": "Envie comentários",
+      "reasoning": "Button #0 ('Envie comentários') is a less prominent action with a white background and a less vibrant text color (#1A73E8), making it suitable as a secondary action. It is different from the primary button's context and color."
+    },
+    "confidence": 0.9
+  },
+  "personality": {
+    "tone": "professional",
+    "energy": "medium",
+    "targetAudience": "developers and technical users interested in AI tools and APIs."
+  },
+  "designSystem": {
+    "framework": "custom",
+    "componentLibrary": null
+  },
+  "confidence": {
+    "buttons": 0.9,
+    "colors": 0.95,
+    "overall": 0.925
+  }
+}

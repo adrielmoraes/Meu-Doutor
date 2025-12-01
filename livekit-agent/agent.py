@@ -247,21 +247,22 @@ class MetricsCollector:
         # Conversão USD -> BRL (≈ 5.0)
         usd_to_brl = 5.0
 
-        # Gemini 2.5 Flash prices (Official GA Pricing 2025)
-        # https://ai.google.dev/gemini-api/docs/pricing
+        # Gemini 2.5 Flash Native Audio (Live API) - Official Pricing Dec 2025
+        # https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash-native-audio
+        # 
         # Audio Input (STT): $1.00/1M tokens
+        # Audio Output (TTS - Native Audio): $20.00/1M tokens (natural voice)
         # LLM Text Input: $0.30/1M tokens
-        # LLM Text Output: $2.50/1M tokens
-        # Audio Output (TTS): $2.50/1M tokens (same as text output)
-        # Vision/Image Input: $0.30/1M tokens (same as text input)
-        # Vision Output: $2.50/1M tokens (same as text output)
+        # LLM Text Output (no thinking): $0.60/1M tokens
+        # Vision/Image Input: $0.30/1M tokens
+        # Vision Output (no thinking): $0.60/1M tokens
 
-        stt_cost_usd = (self.stt_tokens / 1_000_000) * 1.00
-        llm_input_cost_usd = (self.llm_input_tokens / 1_000_000) * 0.30
-        llm_output_cost_usd = (self.llm_output_tokens / 1_000_000) * 2.50
-        tts_cost_usd = (self.tts_tokens / 1_000_000) * 2.50
+        stt_cost_usd = (self.stt_tokens / 1_000_000) * 1.00       # Audio input
+        llm_input_cost_usd = (self.llm_input_tokens / 1_000_000) * 0.30    # Text input
+        llm_output_cost_usd = (self.llm_output_tokens / 1_000_000) * 0.60  # Text output (no thinking)
+        tts_cost_usd = (self.tts_tokens / 1_000_000) * 20.00      # Native Audio output!
         vision_input_cost_usd = (self.vision_input_tokens / 1_000_000) * 0.30
-        vision_output_cost_usd = (self.vision_output_tokens / 1_000_000) * 2.50
+        vision_output_cost_usd = (self.vision_output_tokens / 1_000_000) * 0.60
 
         total_usd = (stt_cost_usd + llm_input_cost_usd + llm_output_cost_usd +
                      tts_cost_usd + vision_input_cost_usd +
@@ -298,14 +299,14 @@ class MetricsCollector:
                 "[Metrics] Nenhuma mudança desde último envio - pulando")
             return
 
-        # Calcular custo apenas dos deltas (Gemini 2.5 Flash GA Pricing 2025)
+        # Calcular custo apenas dos deltas (Gemini 2.5 Flash Native Audio - Dec 2025)
         usd_to_brl = 5.0
-        delta_stt_cost_usd = (delta_stt / 1_000_000) * 1.00  # Audio input
-        delta_llm_input_cost_usd = (delta_llm_input / 1_000_000) * 0.30  # Text input
-        delta_llm_output_cost_usd = (delta_llm_output / 1_000_000) * 2.50  # Text output
-        delta_tts_cost_usd = (delta_tts / 1_000_000) * 2.50  # Audio output
-        delta_vision_input_cost_usd = (delta_vision_input / 1_000_000) * 0.30  # Image input
-        delta_vision_output_cost_usd = (delta_vision_output / 1_000_000) * 2.50  # Vision output
+        delta_stt_cost_usd = (delta_stt / 1_000_000) * 1.00       # Audio input: $1.00/1M
+        delta_llm_input_cost_usd = (delta_llm_input / 1_000_000) * 0.30    # Text input: $0.30/1M
+        delta_llm_output_cost_usd = (delta_llm_output / 1_000_000) * 0.60  # Text output: $0.60/1M
+        delta_tts_cost_usd = (delta_tts / 1_000_000) * 20.00      # Native Audio: $20.00/1M
+        delta_vision_input_cost_usd = (delta_vision_input / 1_000_000) * 0.30  # Image: $0.30/1M
+        delta_vision_output_cost_usd = (delta_vision_output / 1_000_000) * 0.60  # Vision: $0.60/1M
 
         delta_cost_usd = (delta_stt_cost_usd + delta_llm_input_cost_usd +
                           delta_llm_output_cost_usd + delta_tts_cost_usd +

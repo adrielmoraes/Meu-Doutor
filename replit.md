@@ -74,3 +74,29 @@ Preferred communication style: Simple, everyday language.
 
 ### Monitoring
 - Sentry (for error tracking and performance monitoring)
+
+## AI Pricing Configuration (December 2025)
+
+### Gemini 2.5 Flash - Standard
+Official pricing from https://ai.google.dev/gemini-api/docs/pricing
+- **Text/Image/Video Input**: $0.30 per 1M tokens
+- **Audio Input (STT)**: $1.00 per 1M tokens
+- **Text Output (no thinking)**: $0.60 per 1M tokens
+- **Text Output (with thinking)**: $3.50 per 1M tokens
+
+### Gemini 2.5 Flash Native Audio (Live API)
+For real-time voice consultations with natural voice
+- **Audio Input**: $1.00 per 1M tokens
+- **Audio Output (Natural TTS)**: $20.00 per 1M tokens
+
+### Avatar Providers
+- **BeyondPresence**: $0.175 per minute
+- **Tavus CVI**: $0.10 per minute (estimated)
+
+### LiveKit (estimated)
+- **Video per participant**: $0.004 per minute
+- **Audio per participant**: $0.001 per minute
+
+### Cost Display
+- AI costs are visible only in the Admin Dashboard
+- Patients see usage limits (minutes/exams) without cost details
