@@ -62,7 +62,7 @@ export async function textToSpeech(
         speechConfig: {
           voiceConfig: {
             prebuiltVoiceConfig: {
-              voiceName: "Aeode",
+              voiceName: "aoede",
             },
           },
         },
