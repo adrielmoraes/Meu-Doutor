@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import type { Appointment, Exam } from "@/types";
 import { regeneratePatientWellnessPlan } from "@/ai/flows/update-wellness-plan";
 import { getSession } from "@/lib/session";
+import { estimateTokens, calculateLLMCost, usdToBRLCents } from "@/lib/ai-pricing";
 
 interface ExamAnalysisData {
     preliminaryDiagnosis: string;
@@ -34,14 +35,49 @@ export async function saveExamAnalysisAction(patientId: string, analysisData: Ex
             specialistFindings: analysisData.specialistFindings || [],
         });
 
-        // Track exam analysis usage
+        // Calculate token estimates based on output text
+        // Input: ~15K tokens for context + exam + specialist instructions (based on TOKEN_ESTIMATES)
+        // Output: calculated from actual response text
+        const outputText = [
+            analysisData.preliminaryDiagnosis,
+            analysisData.explanation,
+            analysisData.suggestions,
+            ...(analysisData.specialistFindings || []).map(f => 
+                `${f.specialist}: ${f.findings} ${f.clinicalAssessment} ${f.recommendations}`
+            ),
+        ].join(' ');
+        
+        const outputTokens = estimateTokens(outputText);
+        const inputTokens = 15000; // Estimated based on context + documents + specialist prompts
+        const specialistCount = analysisData.specialistFindings?.length || 1;
+        
+        // Calculate cost
+        const model = 'gemini-2.5-flash';
+        const { totalCost } = calculateLLMCost(model, inputTokens, outputTokens);
+        const costCents = usdToBRLCents(totalCost);
+
+        // Track exam analysis usage with token estimates
         trackUsage({
             patientId,
             usageType: 'exam_analysis',
             resourceName: analysisData.fileName,
+            model,
+            inputTokens,
+            outputTokens,
+            tokensUsed: inputTokens + outputTokens,
+            cost: costCents,
+            metadata: {
+                examId: newExamId,
+                specialistCount,
+                inputTokens,
+                outputTokens,
+                costUSD: totalCost,
+            },
         }).catch(error => {
             console.error('[Usage Tracking] Failed to track exam analysis:', error);
         });
+
+        console.log(`[Exam Analysis] Tracked usage - Input: ${inputTokens}, Output: ${outputTokens}, Cost: R$${(costCents / 100).toFixed(2)}`);
 
         // Trigger wellness plan update in the background (fire-and-forget)
         regeneratePatientWellnessPlan(patientId).catch(error => {
