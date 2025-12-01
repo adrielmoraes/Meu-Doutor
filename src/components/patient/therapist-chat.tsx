@@ -36,6 +36,7 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
   
   const audioChunks = useRef<Blob[]>([]);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -56,11 +57,13 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
     };
   }, [audioStream]);
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
-  }, [messages]);
+    scrollToBottom();
+  }, [messages, isProcessing]);
 
   const sendTextMessage = async () => {
     if (!inputText.trim() || isProcessing) return;
@@ -309,6 +312,7 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
               </div>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
 
