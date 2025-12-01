@@ -456,7 +456,7 @@ export async function getSecurityStats(): Promise<{
 /**
  * Helper para extrair IP de headers
  */
-export function extractClientIP(headers: Headers): string | undefined {
+export async function extractClientIP(headers: Headers): Promise<string | undefined> {
   return headers.get('x-forwarded-for')?.split(',')[0]?.trim() 
     || headers.get('x-real-ip') 
     || undefined;
@@ -465,6 +465,6 @@ export function extractClientIP(headers: Headers): string | undefined {
 /**
  * Helper para extrair User-Agent de headers
  */
-export function extractUserAgent(headers: Headers): string | undefined {
+export async function extractUserAgent(headers: Headers): Promise<string | undefined> {
   return headers.get('user-agent') || undefined;
 }
