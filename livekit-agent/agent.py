@@ -1234,7 +1234,23 @@ class MediAIAgent(Agent):
                 logger.warning("[Vision] No remote participants found")
                 return None
 
-            participant = list(self.room.remote_participants.values())[0]
+            # Filter out avatar agents - we want the real patient, not the avatar
+            avatar_identities = ['bey-avatar-agent', 'tavus-avatar', 'avatar-agent']
+            patient_participant = None
+            
+            for p in self.room.remote_participants.values():
+                # Skip avatar agents
+                if p.identity.lower() in avatar_identities or 'avatar' in p.identity.lower():
+                    logger.info(f"[Vision] Skipping avatar participant: {p.identity}")
+                    continue
+                patient_participant = p
+                break
+            
+            if not patient_participant:
+                logger.warning("[Vision] No patient participant found (only avatar agents)")
+                return None
+                
+            participant = patient_participant
             logger.info(f"[Vision] Patient participant: {participant.identity}")
             
             video_track = None
