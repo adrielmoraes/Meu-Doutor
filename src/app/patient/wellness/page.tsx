@@ -1,9 +1,9 @@
 import { getPatientById } from "@/lib/db-adapter";
 import { notFound, redirect } from "next/navigation";
 import WellnessReminders from "@/components/patient/wellness-reminders";
-import { FileText, Dumbbell, BrainCircuit, HeartPulse, AlertTriangle, Sparkles, Calendar, ChefHat, Apple } from "lucide-react"; // Import Apple and Brain
+import { FileText, Dumbbell, BrainCircuit, HeartPulse, AlertTriangle, Sparkles, Calendar, ChefHat, Apple } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import AudioPlayback from "@/components/patient/audio-playback";
+import WellnessAudioPlayback from "@/components/patient/wellness-audio-playback";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Patient } from "@/types";
 import { getSession } from "@/lib/session";
@@ -118,30 +118,45 @@ export default async function WellnessPlanPage() {
           })
         : 'Data não disponível';
 
-    const planSections = [
+    const planSections: Array<{
+        title: string;
+        icon: React.ReactNode;
+        content: string;
+        section: 'dietary' | 'exercise' | 'mental';
+        audioUri?: string;
+        border: string;
+        iconBg: string;
+        titleColor: string;
+    }> = [
         {
             title: "Plano Alimentar",
             icon: <Apple className="h-6 w-6 text-white" />,
             content: wellnessPlan.dietaryPlan,
+            section: 'dietary',
+            audioUri: wellnessPlan.dietaryPlanAudioUri,
             border: "border-green-500/30",
             iconBg: "bg-gradient-to-br from-green-500 to-emerald-600",
             titleColor: "bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent"
         },
         {
             title: "Plano de Exercícios",
-            icon: <Dumbbell className="h-6 w-6 text-white" />, // Changed icon color
+            icon: <Dumbbell className="h-6 w-6 text-white" />,
             content: wellnessPlan.exercisePlan,
-            border: "border-orange-500/30", // Changed border color
-            iconBg: "bg-gradient-to-br from-orange-500 to-red-600", // Changed icon background
-            titleColor: "bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent" // Changed title color
+            section: 'exercise',
+            audioUri: wellnessPlan.exercisePlanAudioUri,
+            border: "border-orange-500/30",
+            iconBg: "bg-gradient-to-br from-orange-500 to-red-600",
+            titleColor: "bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent"
         },
         {
             title: "Bem-Estar Mental",
-            icon: <BrainCircuit className="h-6 w-6 text-white" />, // Changed icon color
+            icon: <BrainCircuit className="h-6 w-6 text-white" />,
             content: wellnessPlan.mentalWellnessPlan,
-            border: "border-purple-500/30", // Changed border color
-            iconBg: "bg-gradient-to-br from-purple-500 to-pink-600", // Changed icon background
-            titleColor: "bg-gradient-to-r from-purple-500 to-pink-600 bg-clip-text text-transparent" // Changed title color
+            section: 'mental',
+            audioUri: wellnessPlan.mentalWellnessPlanAudioUri,
+            border: "border-purple-500/30",
+            iconBg: "bg-gradient-to-br from-purple-500 to-pink-600",
+            titleColor: "bg-gradient-to-r from-purple-500 to-pink-600 bg-clip-text text-transparent"
         },
     ];
 
@@ -182,7 +197,11 @@ export default async function WellnessPlanPage() {
                             <p className="whitespace-pre-wrap leading-relaxed text-black dark:text-foreground mb-4">
                                 {section.content}
                             </p>
-                            <AudioPlayback textToSpeak={section.content} />
+                            <WellnessAudioPlayback 
+                                textToSpeak={section.content} 
+                                section={section.section}
+                                preGeneratedAudioUri={section.audioUri}
+                            />
                         </div>
                     ))}
                 </div>
