@@ -433,3 +433,87 @@ export const paymentsRelations = relations(payments, ({ one }) => ({
     references: [patients.id],
   }),
 }));
+
+// LGPD User Activity Logs - Rastreamento de atividades do usuário
+export const userActivityLogs = pgTable('user_activity_logs', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  userType: text('user_type').notNull(), // 'patient', 'doctor', 'admin'
+  userEmail: text('user_email'),
+  action: text('action').notNull(), // 'login', 'logout', 'view_data', 'update_profile', 'export_data', 'delete_request', etc
+  resource: text('resource'), // Recurso acessado (ex: 'patient_profile', 'exam_results', 'medical_records')
+  resourceId: text('resource_id'), // ID do recurso acessado
+  details: json('details').$type<{
+    description?: string;
+    changedFields?: string[];
+    oldValues?: Record<string, any>;
+    newValues?: Record<string, any>;
+    reason?: string;
+    [key: string]: any;
+  }>(),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  sessionId: text('session_id'),
+  success: boolean('success').default(true),
+  errorMessage: text('error_message'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// LGPD Consent Records - Registro de consentimentos
+export const consentRecords = pgTable('consent_records', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  userType: text('user_type').notNull(), // 'patient', 'doctor'
+  userEmail: text('user_email').notNull(),
+  consentType: text('consent_type').notNull(), // 'privacy_policy', 'terms_of_service', 'data_processing', 'marketing', 'health_data_sharing'
+  consentVersion: text('consent_version').notNull(), // Versão do documento consentido
+  granted: boolean('granted').notNull(), // true = consentido, false = revogado
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  grantedAt: timestamp('granted_at'),
+  revokedAt: timestamp('revoked_at'),
+  metadata: json('metadata').$type<{
+    documentUrl?: string;
+    documentHash?: string;
+    reason?: string;
+    [key: string]: any;
+  }>(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// LGPD Data Access Logs - Acesso a dados sensíveis
+export const dataAccessLogs = pgTable('data_access_logs', {
+  id: text('id').primaryKey(),
+  accessorId: text('accessor_id').notNull(), // Quem acessou
+  accessorType: text('accessor_type').notNull(), // 'patient', 'doctor', 'admin', 'system'
+  accessorEmail: text('accessor_email'),
+  dataOwnerId: text('data_owner_id').notNull(), // Dono dos dados acessados
+  dataOwnerType: text('data_owner_type').notNull(), // 'patient'
+  dataType: text('data_type').notNull(), // 'personal_info', 'medical_records', 'exam_results', 'prescriptions', 'wellness_plan'
+  dataId: text('data_id'), // ID específico do registro acessado
+  accessType: text('access_type').notNull(), // 'view', 'download', 'export', 'print', 'share'
+  purpose: text('purpose'), // Motivo do acesso
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// LGPD Data Breach Incidents - Incidentes de segurança
+export const securityIncidents = pgTable('security_incidents', {
+  id: text('id').primaryKey(),
+  incidentType: text('incident_type').notNull(), // 'data_breach', 'unauthorized_access', 'suspicious_activity', 'failed_login_attempts'
+  severity: text('severity').notNull(), // 'low', 'medium', 'high', 'critical'
+  affectedUsers: json('affected_users').$type<string[]>(),
+  affectedDataTypes: json('affected_data_types').$type<string[]>(),
+  description: text('description').notNull(),
+  detectedAt: timestamp('detected_at').notNull(),
+  reportedToANPD: boolean('reported_to_anpd').default(false),
+  reportedAt: timestamp('reported_at'),
+  resolvedAt: timestamp('resolved_at'),
+  resolution: text('resolution'),
+  preventiveMeasures: text('preventive_measures'),
+  reportedBy: text('reported_by'),
+  metadata: json('metadata').$type<Record<string, any>>(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
