@@ -170,6 +170,11 @@ class MetricsCollector:
         self.session_start = time.time()
         self.is_active = True
         self._flush_task = None
+        
+        # Avatar tracking (custo separado do Gemini)
+        self.avatar_provider = None  # 'bey' ou 'tavus'
+        self.avatar_start_time = None
+        self.avatar_seconds = 0
 
         # Últimos valores enviados (para calcular deltas)
         self.last_sent_stt = 0
@@ -179,6 +184,7 @@ class MetricsCollector:
         self.last_sent_vision_input = 0
         self.last_sent_vision_output = 0
         self.last_sent_active_seconds = 0
+        self.last_sent_avatar_seconds = 0
 
         # Configurações
         self.next_public_url = os.getenv('NEXT_PUBLIC_BASE_URL') or os.getenv(
@@ -241,15 +247,34 @@ class MetricsCollector:
         current_time = time.time()
         elapsed = current_time - self.session_start
         self.active_seconds = int(elapsed)
+        
+        # Atualiza tempo do avatar se estiver ativo
+        if self.avatar_start_time:
+            self.avatar_seconds = int(current_time - self.avatar_start_time)
+
+    def start_avatar_tracking(self, provider: str):
+        """Inicia rastreamento do tempo de avatar."""
+        self.avatar_provider = provider.lower()  # 'bey' ou 'tavus'
+        self.avatar_start_time = time.time()
+        logger.info(f"[Metrics] Avatar tracking started: {provider}")
+
+    def stop_avatar_tracking(self):
+        """Para rastreamento do avatar."""
+        if self.avatar_start_time:
+            self.avatar_seconds = int(time.time() - self.avatar_start_time)
+            logger.info(f"[Metrics] Avatar tracking stopped: {self.avatar_seconds}s total")
+        self.avatar_start_time = None
 
     def calculate_cost_cents(self) -> int:
-        """Calcula custo total em centavos BRL."""
+        """Calcula custo total em centavos BRL (Gemini + Avatar)."""
         # Conversão USD -> BRL (≈ 5.0)
         usd_to_brl = 5.0
 
-        # Gemini 2.5 Flash Native Audio (Live API) - Official Pricing Dec 2025
+        # ========================================
+        # GEMINI 2.5 Flash Native Audio (Live API) 
+        # Official Pricing Dec 2025
         # https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash-native-audio
-        # 
+        # ========================================
         # Audio Input (STT): $1.00/1M tokens
         # Audio Output (TTS - Native Audio): $20.00/1M tokens (natural voice)
         # LLM Text Input: $0.30/1M tokens
@@ -264,10 +289,25 @@ class MetricsCollector:
         vision_input_cost_usd = (self.vision_input_tokens / 1_000_000) * 0.30
         vision_output_cost_usd = (self.vision_output_tokens / 1_000_000) * 0.60
 
-        total_usd = (stt_cost_usd + llm_input_cost_usd + llm_output_cost_usd +
-                     tts_cost_usd + vision_input_cost_usd +
-                     vision_output_cost_usd)
+        gemini_total_usd = (stt_cost_usd + llm_input_cost_usd + llm_output_cost_usd +
+                           tts_cost_usd + vision_input_cost_usd +
+                           vision_output_cost_usd)
 
+        # ========================================
+        # AVATAR COST (adicional, cobrado por minuto)
+        # ========================================
+        # BeyondPresence (BEY): $0.175/minuto
+        # Tavus CVI: $0.10/minuto (estimado)
+        
+        avatar_minutes = self.avatar_seconds / 60.0
+        if self.avatar_provider == 'bey':
+            avatar_cost_usd = avatar_minutes * 0.175  # BeyondPresence
+        elif self.avatar_provider == 'tavus':
+            avatar_cost_usd = avatar_minutes * 0.10   # Tavus (estimado)
+        else:
+            avatar_cost_usd = 0.0
+
+        total_usd = gemini_total_usd + avatar_cost_usd
         total_brl_cents = int(total_usd * usd_to_brl * 100)
 
         return total_brl_cents
@@ -290,16 +330,20 @@ class MetricsCollector:
         delta_vision_input = self.vision_input_tokens - self.last_sent_vision_input
         delta_vision_output = self.vision_output_tokens - self.last_sent_vision_output
         delta_active_seconds = self.active_seconds - self.last_sent_active_seconds
+        delta_avatar_seconds = self.avatar_seconds - self.last_sent_avatar_seconds
 
         # Verificar se há mudanças para enviar
         if (delta_stt == 0 and delta_llm_input == 0 and delta_llm_output == 0
                 and delta_tts == 0 and delta_vision_input == 0
-                and delta_vision_output == 0 and delta_active_seconds == 0):
+                and delta_vision_output == 0 and delta_active_seconds == 0
+                and delta_avatar_seconds == 0):
             logger.debug(
                 "[Metrics] Nenhuma mudança desde último envio - pulando")
             return
 
-        # Calcular custo apenas dos deltas (Gemini 2.5 Flash Native Audio - Dec 2025)
+        # ========================================
+        # Calcular custo Gemini (Gemini 2.5 Flash Native Audio - Dec 2025)
+        # ========================================
         usd_to_brl = 5.0
         delta_stt_cost_usd = (delta_stt / 1_000_000) * 1.00       # Audio input: $1.00/1M
         delta_llm_input_cost_usd = (delta_llm_input / 1_000_000) * 0.30    # Text input: $0.30/1M
@@ -308,10 +352,25 @@ class MetricsCollector:
         delta_vision_input_cost_usd = (delta_vision_input / 1_000_000) * 0.30  # Image: $0.30/1M
         delta_vision_output_cost_usd = (delta_vision_output / 1_000_000) * 0.60  # Vision: $0.60/1M
 
-        delta_cost_usd = (delta_stt_cost_usd + delta_llm_input_cost_usd +
-                          delta_llm_output_cost_usd + delta_tts_cost_usd +
-                          delta_vision_input_cost_usd +
-                          delta_vision_output_cost_usd)
+        delta_gemini_cost_usd = (delta_stt_cost_usd + delta_llm_input_cost_usd +
+                                 delta_llm_output_cost_usd + delta_tts_cost_usd +
+                                 delta_vision_input_cost_usd +
+                                 delta_vision_output_cost_usd)
+
+        # ========================================
+        # Calcular custo Avatar (separado, cobrado por minuto)
+        # ========================================
+        # BeyondPresence (BEY): $0.175/minuto
+        # Tavus CVI: $0.10/minuto (estimado)
+        delta_avatar_minutes = delta_avatar_seconds / 60.0
+        if self.avatar_provider == 'bey':
+            delta_avatar_cost_usd = delta_avatar_minutes * 0.175
+        elif self.avatar_provider == 'tavus':
+            delta_avatar_cost_usd = delta_avatar_minutes * 0.10
+        else:
+            delta_avatar_cost_usd = 0.0
+
+        delta_cost_usd = delta_gemini_cost_usd + delta_avatar_cost_usd
         delta_cost_cents = int(delta_cost_usd * usd_to_brl * 100)
 
         # Payload com DELTAS (não totais acumulativos)
@@ -326,9 +385,12 @@ class MetricsCollector:
             "visionInputTokens": delta_vision_input,
             "visionOutputTokens": delta_vision_output,
             "activeSeconds": delta_active_seconds,
+            "avatarSeconds": delta_avatar_seconds,
+            "avatarProvider": self.avatar_provider,
             "costCents": delta_cost_cents,
             "metadata": {
                 "model": "gemini-2.5-flash",
+                "avatarProvider": self.avatar_provider,
                 "timestamp": time.time()
             }
         }
@@ -366,6 +428,7 @@ class MetricsCollector:
                 self.last_sent_vision_input = self.vision_input_tokens
                 self.last_sent_vision_output = self.vision_output_tokens
                 self.last_sent_active_seconds = self.active_seconds
+                self.last_sent_avatar_seconds = self.avatar_seconds
 
                 self.last_flush = time.time()
 
@@ -1592,6 +1655,9 @@ CONTEXTO DO PACIENTE:
                 logger.info("[MediAI] 🎥 Starting BEY avatar...")
                 await avatar.start(session, room=ctx.room)
 
+                # Iniciar rastreamento de custo do avatar
+                metrics_collector.start_avatar_tracking('bey')
+                
                 logger.info(
                     "[MediAI] ✅ Beyond Presence avatar started successfully!")
 
@@ -1619,6 +1685,9 @@ CONTEXTO DO PACIENTE:
                 logger.info("[MediAI] 🎥 Starting Tavus avatar...")
                 await avatar.start(session, room=ctx.room)
 
+                # Iniciar rastreamento de custo do avatar
+                metrics_collector.start_avatar_tracking('tavus')
+                
                 logger.info("[MediAI] ✅ Tavus avatar started successfully!")
 
             except Exception as e:
@@ -1650,8 +1719,9 @@ CONTEXTO DO PACIENTE:
             except asyncio.CancelledError:
                 pass
 
-        # Stop metrics collector and send final metrics
+        # Stop avatar tracking and metrics collector, send final metrics
         if 'metrics_collector' in locals() and metrics_collector:
+            metrics_collector.stop_avatar_tracking()
             await metrics_collector.stop()
 
         # Close database connection pool
