@@ -121,7 +121,7 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
   if (!textResponse) {
     console.error("[Consultation Flow] AI did not return a text response. Final textResponse was empty.");
     const errorMessage = "Desculpe, tive um problema para processar sua solicitação. Poderia tentar de novo?";
-    const audioError = await textToSpeech({ text: errorMessage });
+    const audioError = await textToSpeech({ text: errorMessage, patientId: input.patientId });
     return {
       response: errorMessage,
       audioDataUri: audioError?.audioDataUri || '', 
@@ -129,7 +129,7 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
   }
   
   // Step 3: Generate the audio from the final text response.
-  const audioResult = await textToSpeech({ text: textResponse });
+  const audioResult = await textToSpeech({ text: textResponse, patientId: input.patientId });
 
   // Make the flow resilient. If audio fails, we can still return the text.
   const audioDataUri = audioResult?.audioDataUri || "";

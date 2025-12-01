@@ -11,9 +11,11 @@
 import { GoogleGenAI } from "@google/genai";
 import { z } from "genkit";
 import wav from "wav";
+import { trackTTS } from "@/lib/usage-tracker";
 
 const TextToSpeechInputSchema = z.object({
   text: z.string().describe("The text to be converted to speech."),
+  patientId: z.string().optional().describe("The patient ID for cost tracking."),
 });
 export type TextToSpeechInput = z.infer<typeof TextToSpeechInputSchema>;
 
@@ -95,6 +97,12 @@ export async function textToSpeech(
       writer.on("error", reject);
       writer.end(audioBuffer);
     });
+
+    if (input.patientId) {
+      trackTTS(input.patientId, input.text, 'gemini-2.5-flash-preview-tts').catch((err) => {
+        console.error('[TTS Flow] Cost Tracking Error:', err);
+      });
+    }
 
     return {
       audioDataUri: "data:audio/wav;base64," + wavBase64,
