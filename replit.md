@@ -37,6 +37,12 @@ Preferred communication style: Simple, everyday language.
 - **Performance Optimization**: In-memory cache layer, generic pagination system, optimized image components.
 - **Real-Time Notifications**: Server-Sent Events (SSE) system for real-time notifications of exam results, appointments, and alerts.
 - **Data Export & LGPD**: Patient data export system supporting JSON and HTML formats for LGPD compliance.
+- **LGPD Security Audit System**: Comprehensive security audit system compliant with LGPD (Articles 46 & 48) including:
+  - **User Activity Logs** (`user_activity_logs`): Tracks login, logout, profile updates, data access, and other critical actions
+  - **Consent Records** (`consent_records`): Records user consent for privacy policy, terms of service, data processing, and marketing
+  - **Data Access Logs** (`data_access_logs`): Tracks who accessed patient data, what data was accessed, and for what purpose
+  - **Security Incidents** (`security_incidents`): Records and manages security incidents with ANPD reporting support
+  - **Admin API** (`/api/admin/security-audit`): Provides statistics, logs, and incident management for administrators
 - **Appointment Scheduling**: Intelligent scheduling system with conflict detection, availability checking, and slot management.
 - **Advanced Search**: Multi-entity search system with filters for patients, doctors, and exams, integrated with pagination.
 
