@@ -301,8 +301,11 @@ ${nutritionistAnalysis.recommendations}
         dietaryPlan: output.dietaryPlan,
         exercisePlan: output.exercisePlan,
         mentalWellnessPlan: output.mentalWellnessPlan,
+        dietaryPlanAudioUri: undefined,
+        exercisePlanAudioUri: undefined,
+        mentalWellnessPlanAudioUri: undefined,
         dailyReminders: output.dailyReminders,
-        weeklyMealPlan: output.weeklyMealPlan, // Use the new field name
+        weeklyMealPlan: output.weeklyMealPlan,
         weeklyTasks: output.weeklyTasks,
         lastUpdated: new Date().toISOString(),
       };
