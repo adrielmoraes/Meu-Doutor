@@ -34,7 +34,7 @@ export default function LandingPage() {
   const [videoStarted, setVideoStarted] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       async function checkAuth() {
         try {
           const res = await fetch("/api/session", { credentials: "include" });
@@ -48,7 +48,8 @@ export default function LandingPage() {
               router.replace(dashboardUrl);
             }
           }
-        } catch (e) {}
+        } catch (e) {
+        }
       }
       checkAuth();
     }
@@ -69,20 +70,17 @@ export default function LandingPage() {
 
           <div className="container px-4 md:px-6 relative z-10 py-20 md:py-28">
             <div className="flex flex-col items-center text-center space-y-8 max-w-5xl mx-auto">
+              
               {/* Badge */}
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-100 dark:bg-cyan-500/20 border border-cyan-200 dark:border-cyan-500/30">
                 <Sparkles className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
-                <span className="text-sm font-medium text-cyan-700 dark:text-cyan-300">
-                  Tecnologia de Ponta em Saúde
-                </span>
+                <span className="text-sm font-medium text-cyan-700 dark:text-cyan-300">Tecnologia de Ponta em Saúde</span>
               </div>
 
               {/* Main Title */}
               <div className="space-y-4">
                 <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight">
-                  <span className="text-slate-900 dark:text-white">
-                    O Futuro da{" "}
-                  </span>
+                  <span className="text-slate-900 dark:text-white">O Futuro da </span>
                   <span className="bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 bg-clip-text text-transparent">
                     Saúde
                   </span>
@@ -91,10 +89,9 @@ export default function LandingPage() {
                     Está Aqui
                   </span>
                 </h1>
-
+                
                 <p className="max-w-2xl mx-auto text-lg md:text-xl text-slate-600 dark:text-blue-100/80 leading-relaxed">
-                  Diagnósticos instantâneos com IA de última geração. Consultas
-                  em tempo real com avatar médico inteligente.
+                  Diagnósticos instantâneos com IA de última geração. Consultas em tempo real com avatar médico inteligente.
                 </p>
               </div>
 
@@ -102,21 +99,15 @@ export default function LandingPage() {
               <div className="flex flex-wrap justify-center gap-3">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 shadow-sm">
                   <CheckCircle2 className="h-4 w-4 text-cyan-500" />
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    15+ Especialistas IA
-                  </span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">15+ Especialistas IA</span>
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 shadow-sm">
                   <Video className="h-4 w-4 text-purple-500" />
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Consultas por Vídeo
-                  </span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Consultas por Vídeo</span>
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 shadow-sm">
                   <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    100% Seguro (LGPD)
-                  </span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">100% Seguro (LGPD)</span>
                 </div>
               </div>
 
@@ -125,24 +116,20 @@ export default function LandingPage() {
                 <div className="relative group">
                   {/* Glow Effect */}
                   <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
-
+                  
                   {/* Video Container */}
                   <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-2xl bg-white dark:bg-slate-900">
                     <div className="aspect-video relative">
                       <iframe
-                        src={
-                          videoStarted
-                            ? "https://drive.google.com/file/d/1BVY75ME-q2vRmQKSlboCwgFVdmNynZGvaOJRv4olDUk/preview?autoplay=1"
-                            : "about:blank"
-                        }
+                        src={videoStarted ? "https://drive.google.com/file/d/1BVY75ME-q2vRmQKSlboCwgFVdmNynZGvaOJRv4olDUk/preview?autoplay=1" : "about:blank"}
                         className="w-full h-full"
                         allow="autoplay; encrypted-media; fullscreen"
                         allowFullScreen
                       ></iframe>
-
+                      
                       {/* Play Overlay */}
                       {!videoStarted && (
-                        <div
+                        <div 
                           onClick={() => setVideoStarted(true)}
                           className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 cursor-pointer flex flex-col items-center justify-center gap-6 transition-all duration-300 hover:opacity-95"
                         >
@@ -151,14 +138,14 @@ export default function LandingPage() {
                             <div className="absolute w-32 h-32 md:w-40 md:h-40 rounded-full border border-cyan-500/30 animate-ping"></div>
                             <div className="absolute w-40 h-40 md:w-52 md:h-52 rounded-full border border-blue-500/20"></div>
                           </div>
-
+                          
                           {/* Play Button */}
                           <div className="relative z-10">
                             <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-xl shadow-cyan-500/30 transform hover:scale-105 transition-transform">
                               <Play className="h-8 w-8 md:h-10 md:w-10 text-white fill-white ml-1" />
                             </div>
                           </div>
-
+                          
                           {/* Text */}
                           <div className="relative z-10 text-center space-y-2">
                             <p className="text-xl md:text-2xl font-bold text-white">
@@ -168,7 +155,7 @@ export default function LandingPage() {
                               Descubra como a IA pode transformar sua saúde
                             </p>
                           </div>
-
+                          
                           {/* Corner Icons */}
                           <div className="absolute top-6 left-6 p-2 rounded-xl bg-white/5">
                             <Stethoscope className="h-5 w-5 text-cyan-400/60" />
@@ -217,28 +204,16 @@ export default function LandingPage() {
               {/* Stats Row */}
               <div className="grid grid-cols-3 gap-8 pt-8 w-full max-w-xl">
                 <div className="text-center space-y-1">
-                  <div className="text-3xl md:text-4xl font-bold text-cyan-600 dark:text-cyan-400">
-                    15+
-                  </div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400">
-                    Especialistas IA
-                  </div>
+                  <div className="text-3xl md:text-4xl font-bold text-cyan-600 dark:text-cyan-400">15+</div>
+                  <div className="text-sm text-slate-500 dark:text-slate-400">Especialistas IA</div>
                 </div>
                 <div className="text-center space-y-1">
-                  <div className="text-3xl md:text-4xl font-bold text-purple-600 dark:text-purple-400">
-                    24/7
-                  </div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400">
-                    Disponibilidade
-                  </div>
+                  <div className="text-3xl md:text-4xl font-bold text-purple-600 dark:text-purple-400">24/7</div>
+                  <div className="text-sm text-slate-500 dark:text-slate-400">Disponibilidade</div>
                 </div>
                 <div className="text-center space-y-1">
-                  <div className="text-3xl md:text-4xl font-bold text-emerald-600 dark:text-emerald-400">
-                    99.9%
-                  </div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400">
-                    Precisão
-                  </div>
+                  <div className="text-3xl md:text-4xl font-bold text-emerald-600 dark:text-emerald-400">99.9%</div>
+                  <div className="text-sm text-slate-500 dark:text-slate-400">Precisão</div>
                 </div>
               </div>
             </div>
@@ -246,9 +221,7 @@ export default function LandingPage() {
 
           {/* Scroll Indicator */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-            <span className="text-xs uppercase tracking-wider text-slate-400">
-              Role para explorar
-            </span>
+            <span className="text-xs uppercase tracking-wider text-slate-400">Role para explorar</span>
             <div className="w-6 h-10 rounded-full border-2 border-slate-300 dark:border-slate-600 flex items-start justify-center p-1">
               <div className="w-1.5 h-3 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce"></div>
             </div>
@@ -262,7 +235,7 @@ export default function LandingPage() {
             <div className="absolute top-0 right-0 w-96 h-96 bg-purple-200 dark:bg-purple-500/20 rounded-full blur-[120px]"></div>
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-200 dark:bg-cyan-500/20 rounded-full blur-[120px]"></div>
           </div>
-
+          
           <div className="container px-4 md:px-6 relative z-10">
             <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
               {/* Video */}
@@ -282,7 +255,7 @@ export default function LandingPage() {
                       />
                     </div>
                   </div>
-
+                  
                   {/* Floating Badges */}
                   <div className="absolute -top-4 -right-4 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl p-3 shadow-lg z-10">
                     <Mic className="h-5 w-5 text-white" />
@@ -297,39 +270,34 @@ export default function LandingPage() {
               <div className="space-y-8 order-1 lg:order-2">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100 dark:bg-purple-500/20 border border-purple-200 dark:border-purple-500/30">
                   <Video className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                  <span className="text-sm font-medium text-purple-700 dark:text-purple-300">
-                    Consultas ao Vivo com IA
-                  </span>
+                  <span className="text-sm font-medium text-purple-700 dark:text-purple-300">Consultas ao Vivo com IA</span>
                 </div>
 
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
-                  <span className="text-slate-900 dark:text-white">
-                    Conheça a sua{" "}
-                  </span>
+                  <span className="text-slate-900 dark:text-white">Conheça a sua </span>
                   <span className="bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
                     Assistente Médica
                   </span>
                 </h2>
 
                 <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-                  Converse por voz e vídeo, mostre sintomas pela câmera e receba
-                  diagnósticos instantâneos.
+                  Converse por voz e vídeo, mostre sintomas pela câmera e receba diagnósticos instantâneos.
                 </p>
 
                 <div className="space-y-4">
-                  <FeatureItem
+                  <FeatureItem 
                     icon={<Mic className="h-5 w-5" />}
                     title="Conversa Natural por Voz"
                     description="Fale naturalmente em português. A IA entende e responde em tempo real."
                     color="cyan"
                   />
-                  <FeatureItem
+                  <FeatureItem 
                     icon={<Camera className="h-5 w-5" />}
                     title="Visão por Câmera"
                     description="Mostre sintomas visuais. A IA analisa manchas, inchaços e alterações."
                     color="purple"
                   />
-                  <FeatureItem
+                  <FeatureItem 
                     icon={<Cpu className="h-5 w-5" />}
                     title="15+ Especialidades"
                     description="Cardiologia, dermatologia, neurologia e mais áreas médicas."
@@ -358,21 +326,15 @@ export default function LandingPage() {
             <div className="text-center mb-16 space-y-4">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-500/20 border border-blue-200 dark:border-blue-500/30 mx-auto">
                 <Brain className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                  Tecnologia Revolucionária
-                </span>
+                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Tecnologia Revolucionária</span>
               </div>
-
+              
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white">
-                Recursos{" "}
-                <span className="bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
-                  Revolucionários
-                </span>
+                Recursos <span className="bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">Revolucionários</span>
               </h2>
-
+              
               <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-                Inteligência artificial de última geração trabalhando para sua
-                saúde
+                Inteligência artificial de última geração trabalhando para sua saúde
               </p>
             </div>
 
@@ -423,15 +385,14 @@ export default function LandingPage() {
             <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-[120px]"></div>
             <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-[120px]"></div>
           </div>
-
+          
           <div className="container px-4 md:px-6 relative z-10 text-center">
             <div className="max-w-3xl mx-auto space-y-8">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
                 Comece sua jornada para uma saúde melhor hoje
               </h2>
               <p className="text-lg md:text-xl text-white/90">
-                Junte-se a milhares de pessoas que já transformaram sua saúde
-                com IA
+                Junte-se a milhares de pessoas que já transformaram sua saúde com IA
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                 <Button
@@ -450,10 +411,12 @@ export default function LandingPage() {
                   size="lg"
                   className="h-14 border-2 border-white/50 text-white hover:bg-white/10 font-semibold text-lg px-8 rounded-xl"
                 >
-                  <Link href="/login">Já tenho conta</Link>
+                  <Link href="/login">
+                    Já tenho conta
+                  </Link>
                 </Button>
               </div>
-
+              
               {/* Trust Badges */}
               <div className="flex flex-wrap justify-center gap-6 pt-8">
                 <div className="flex items-center gap-2 text-white/80">
@@ -484,27 +447,12 @@ export default function LandingPage() {
                 <span className="text-xl font-bold text-white">MediAI</span>
               </div>
               <div className="flex flex-wrap justify-center gap-6 text-sm text-slate-400">
-                <Link
-                  href="/privacy"
-                  className="hover:text-white transition-colors"
-                >
-                  Privacidade
-                </Link>
-                <Link
-                  href="/terms"
-                  className="hover:text-white transition-colors"
-                >
-                  Termos de Uso
-                </Link>
-                <Link
-                  href="/contact"
-                  className="hover:text-white transition-colors"
-                >
-                  Contato
-                </Link>
+                <Link href="/privacy" className="hover:text-white transition-colors">Privacidade</Link>
+                <Link href="/terms" className="hover:text-white transition-colors">Termos de Uso</Link>
+                <Link href="/contact" className="hover:text-white transition-colors">Contato</Link>
               </div>
               <p className="text-sm text-slate-500">
-                2025 MediAI. Todos os direitos reservados.
+                 2025 MediAI. Todos os direitos reservados.
               </p>
             </div>
           </div>
@@ -514,75 +462,53 @@ export default function LandingPage() {
   );
 }
 
-function FeatureItem({
-  icon,
-  title,
-  description,
-  color,
-}: {
-  icon: React.ReactNode;
-  title: string;
+function FeatureItem({ icon, title, description, color }: { 
+  icon: React.ReactNode; 
+  title: string; 
   description: string;
-  color: "cyan" | "purple" | "emerald" | "blue";
+  color: 'cyan' | 'purple' | 'emerald' | 'blue';
 }) {
   const colors = {
-    cyan: "bg-cyan-100 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400",
-    purple:
-      "bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400",
-    emerald:
-      "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400",
-    blue: "bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400",
+    cyan: 'bg-cyan-100 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400',
+    purple: 'bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400',
+    emerald: 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400',
+    blue: 'bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400',
   };
 
   return (
     <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow">
-      <div
-        className={`w-10 h-10 rounded-lg ${colors[color]} flex items-center justify-center flex-shrink-0`}
-      >
+      <div className={`w-10 h-10 rounded-lg ${colors[color]} flex items-center justify-center flex-shrink-0`}>
         {icon}
       </div>
       <div>
-        <h4 className="font-semibold text-slate-900 dark:text-white">
-          {title}
-        </h4>
-        <p className="text-sm text-slate-600 dark:text-slate-400">
-          {description}
-        </p>
+        <h4 className="font-semibold text-slate-900 dark:text-white">{title}</h4>
+        <p className="text-sm text-slate-600 dark:text-slate-400">{description}</p>
       </div>
     </div>
   );
 }
 
-function FeatureCard({
-  icon,
-  title,
-  description,
-  color,
-}: {
-  icon: React.ReactNode;
-  title: string;
+function FeatureCard({ icon, title, description, color }: { 
+  icon: React.ReactNode; 
+  title: string; 
   description: string;
-  color: "cyan" | "purple" | "emerald" | "blue" | "orange" | "rose";
+  color: 'cyan' | 'purple' | 'emerald' | 'blue' | 'orange' | 'rose';
 }) {
   const colors = {
-    cyan: "from-cyan-500 to-cyan-600 shadow-cyan-500/20",
-    purple: "from-purple-500 to-purple-600 shadow-purple-500/20",
-    emerald: "from-emerald-500 to-emerald-600 shadow-emerald-500/20",
-    blue: "from-blue-500 to-blue-600 shadow-blue-500/20",
-    orange: "from-orange-500 to-orange-600 shadow-orange-500/20",
-    rose: "from-rose-500 to-rose-600 shadow-rose-500/20",
+    cyan: 'from-cyan-500 to-cyan-600 shadow-cyan-500/20',
+    purple: 'from-purple-500 to-purple-600 shadow-purple-500/20',
+    emerald: 'from-emerald-500 to-emerald-600 shadow-emerald-500/20',
+    blue: 'from-blue-500 to-blue-600 shadow-blue-500/20',
+    orange: 'from-orange-500 to-orange-600 shadow-orange-500/20',
+    rose: 'from-rose-500 to-rose-600 shadow-rose-500/20',
   };
 
   return (
     <div className="group relative bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-      <div
-        className={`w-14 h-14 rounded-xl bg-gradient-to-br ${colors[color]} flex items-center justify-center mb-4 shadow-lg text-white`}
-      >
+      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${colors[color]} flex items-center justify-center mb-4 shadow-lg text-white`}>
         {icon}
       </div>
-      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-        {title}
-      </h3>
+      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{title}</h3>
       <p className="text-slate-600 dark:text-slate-400">{description}</p>
     </div>
   );
