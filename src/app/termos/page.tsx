@@ -650,7 +650,7 @@ export default function TermosPage() {
 
                     <h3 className="text-xl font-semibold text-purple-300 mt-6">Foro Competente</h3>
                     <p className="text-blue-100/80 leading-relaxed">
-                      Fica eleito o foro da Comarca de <strong className="text-cyan-300">São Paulo, SP</strong>, com 
+                      Fica eleito o foro da Comarca de <strong className="text-cyan-300">Belém, PA</strong>, com 
                       exclusão de qualquer outro, por mais privilegiado que seja, para dirimir quaisquer dúvidas ou 
                       controvérsias oriundas destes Termos.
                     </p>
@@ -674,7 +674,7 @@ export default function TermosPage() {
                         <div className="space-y-2 text-blue-100/80 text-sm">
                           <p><strong>Email:</strong> <a href="mailto:contato@appmediai.com" className="text-cyan-400 hover:text-cyan-300">contato@appmediai.com</a></p>
                           <p><strong>Suporte:</strong> <a href="mailto:suporte@appmediai.com" className="text-cyan-400 hover:text-cyan-300">suporte@appmediai.com</a></p>
-                          <p><strong>Telefone:</strong> (11) 4002-8922</p>
+                          <p><strong>Telefone:</strong> (91) 99390-5869</p>
                         </div>
                       </div>
 
@@ -683,9 +683,8 @@ export default function TermosPage() {
                         <div className="space-y-1 text-blue-100/80 text-sm">
                           <p><strong>Razão Social:</strong> MediAI Tecnologia em Saúde Ltda.</p>
                           <p><strong>CNPJ:</strong> XX.XXX.XXX/0001-XX</p>
-                          <p><strong>Endereço:</strong> Av. Paulista, 1578 - 14º andar</p>
-                          <p>Bela Vista, São Paulo - SP</p>
-                          <p>CEP 01310-200</p>
+                          <p><strong>Endereço:</strong> Rd. Arthur Bernardes, Pss Novo Continente - nº 34A</p>
+                          <p>Belém - PA</p>
                         </div>
                       </div>
                     </div>

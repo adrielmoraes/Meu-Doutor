@@ -688,8 +688,8 @@ export default function PrivacidadePage() {
                         <div className="space-y-1 text-blue-100/80 text-sm">
                           <p><strong>Razão Social:</strong> MediAI Tecnologia em Saúde Ltda.</p>
                           <p><strong>CNPJ:</strong> XX.XXX.XXX/0001-XX</p>
-                          <p><strong>Endereço:</strong> Av. Paulista, 1578 - 14º andar</p>
-                          <p>Bela Vista, São Paulo - SP, CEP 01310-200</p>
+                          <p><strong>Endereço:</strong> Rd. Arthur Bernardes, Pss Novo Continente - nº 34A</p>
+                          <p>Belém - PA</p>
                         </div>
                       </div>
                     </div>

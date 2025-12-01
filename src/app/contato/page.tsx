@@ -223,8 +223,8 @@ export default function ContatoPage() {
                         <p className="text-blue-100/70 mb-2">
                           Atendimento de segunda a sexta:
                         </p>
-                        <a href="tel:+551140028922" className="text-cyan-400 hover:text-cyan-300 transition-colors text-lg">
-                          (11) 4002-8922
+                        <a href="tel:+5591993905869" className="text-cyan-400 hover:text-cyan-300 transition-colors text-lg">
+                          (91) 99390-5869
                         </a>
                         <p className="text-sm text-blue-200/50 mt-2">
                           Das 8h às 18h (horário de Brasília)
@@ -244,9 +244,8 @@ export default function ContatoPage() {
                         <h3 className="text-xl font-bold text-orange-300 mb-2">Endereço</h3>
                         <p className="text-blue-100/70 leading-relaxed">
                           MediAI Tecnologia em Saúde Ltda.<br />
-                          Av. Paulista, 1578 - 14º andar<br />
-                          Bela Vista, São Paulo - SP<br />
-                          CEP 01310-200
+                          Rd. Arthur Bernardes, Pss Novo Continente - nº 34A<br />
+                          Belém - PA
                         </p>
                       </div>
                     </div>
