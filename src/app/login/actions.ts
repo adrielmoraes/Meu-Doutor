@@ -7,6 +7,7 @@ import bcrypt from 'bcrypt';
 import { login as createSession } from '@/lib/session';
 import { loginRateLimiter } from '@/lib/rate-limiter';
 import { headers } from 'next/headers';
+import { logUserActivity, reportSecurityIncident } from '@/lib/security-audit';
 
 const LoginSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
@@ -60,6 +61,16 @@ export async function loginAction(prevState: any, formData: FormData) {
             await createSession({ userId: admin.id, role: 'admin' });
             console.log('Sessão criada para admin, redirecionando...');
             redirectPath = '/admin';
+            
+            logUserActivity({
+              userId: admin.id,
+              userType: 'admin',
+              userEmail: email,
+              action: 'login',
+              ipAddress: ip,
+              userAgent: headersList.get('user-agent') || undefined,
+              details: { method: 'email_password' },
+            }).catch(console.error);
         } else {
             console.log('Senha inválida para admin');
         }
@@ -85,6 +96,16 @@ export async function loginAction(prevState: any, formData: FormData) {
                 await createSession({ userId: doctor.id, role: 'doctor' });
                 console.log('Sessão criada para médico, redirecionando...');
                 redirectPath = '/doctor';
+                
+                logUserActivity({
+                  userId: doctor.id,
+                  userType: 'doctor',
+                  userEmail: email,
+                  action: 'login',
+                  ipAddress: ip,
+                  userAgent: headersList.get('user-agent') || undefined,
+                  details: { method: 'email_password' },
+                }).catch(console.error);
             } else {
                 console.log('Senha inválida para médico');
             }
@@ -116,6 +137,16 @@ export async function loginAction(prevState: any, formData: FormData) {
                  await createSession({ userId: patient.id, role: 'patient' });
                  console.log('Sessão criada para paciente, redirecionando...');
                  redirectPath = '/patient/dashboard';
+                 
+                 logUserActivity({
+                   userId: patient.id,
+                   userType: 'patient',
+                   userEmail: email,
+                   action: 'login',
+                   ipAddress: ip,
+                   userAgent: headersList.get('user-agent') || undefined,
+                   details: { method: 'email_password' },
+                 }).catch(console.error);
             } else {
                 console.log('Senha inválida para paciente');
             }
@@ -141,6 +172,26 @@ export async function loginAction(prevState: any, formData: FormData) {
     const remainingAttempts = loginRateLimiter.getRemainingAttempts(ip);
 
     console.warn(`[RateLimiter] Tentativa falhada para IP ${ip} - ${remainingAttempts} tentativas restantes`);
+
+    logUserActivity({
+      userId: 'unknown',
+      userType: 'patient',
+      userEmail: email,
+      action: 'login_failed',
+      ipAddress: ip,
+      userAgent: headersList.get('user-agent') || undefined,
+      success: false,
+      details: { remainingAttempts, reason: 'invalid_credentials' },
+    }).catch(console.error);
+
+    if (remainingAttempts <= 1) {
+      reportSecurityIncident({
+        incidentType: 'failed_login_attempts',
+        severity: 'medium',
+        description: `Múltiplas tentativas de login falhadas para email: ${email} do IP: ${ip}`,
+        metadata: { email, ip, remainingAttempts },
+      }).catch(console.error);
+    }
 
     // Generic error message for security reasons
     let message = 'E-mail ou senha inválidos.';
