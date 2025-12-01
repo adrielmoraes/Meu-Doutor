@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
-import { Mic, MicOff, Send, Loader2, ArrowLeft } from 'lucide-react';
+import { Mic, MicOff, Send, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
@@ -307,8 +307,12 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
           ))}
           {isProcessing && (
             <div className="flex justify-start">
-              <div className="bg-card text-foreground border border-border rounded-2xl p-3 shadow-md">
-                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <div className="bg-card text-foreground border border-border rounded-2xl px-4 py-3 shadow-md">
+                <div className="flex items-center gap-1">
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-[bounce_1.4s_ease-in-out_infinite]" style={{ animationDelay: '0ms' }}></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-[bounce_1.4s_ease-in-out_infinite]" style={{ animationDelay: '200ms' }}></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-[bounce_1.4s_ease-in-out_infinite]" style={{ animationDelay: '400ms' }}></span>
+                </div>
               </div>
             </div>
           )}
