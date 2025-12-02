@@ -256,7 +256,9 @@ ${nutritionistAnalysis.recommendations}
     try {
       // Validate reminders before saving
       for (const reminder of output.dailyReminders) {
-        const validIcons = ['Droplet', 'Clock', 'Coffee', 'Bed', 'Dumbbell'];
+        const validIcons = ['Droplet', 'Clock', 'Coffee', 'Bed', 'Dumbbell', 
+                            'Apple', 'Heart', 'Sun', 'Moon', 'Activity', 
+                            'Utensils', 'Brain', 'Smile', 'Wind', 'Leaf'];
         if (!validIcons.includes(reminder.icon)) {
           console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid icon "${reminder.icon}" in reminder "${reminder.title}". Must be one of: ${validIcons.join(', ')}`);
           console.error(`[Wellness Plan Update] Full reminder data:`, JSON.stringify(reminder, null, 2));
@@ -266,24 +268,24 @@ ${nutritionistAnalysis.recommendations}
 
       // Validate weekly meal plan before saving
       for (const meal of output.weeklyMealPlan) {
-        if (meal.breakfastRecipe && meal.breakfastRecipe.prepTime.toLowerCase().includes('minute')) {
+        if (meal.breakfastRecipe && (meal.breakfastRecipe.prepTime.toLowerCase().includes('minute') || meal.breakfastRecipe.prepTime.toLowerCase().includes('minuto'))) {
           // Continue if prepTime is valid
         } else if (meal.breakfastRecipe) {
-          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid prepTime format "${meal.breakfastRecipe.prepTime}" in recipe "${meal.breakfastRecipe.title}" for day ${meal.day}. Expected format like '20 minutos'.`);
+          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid prepTime format "${meal.breakfastRecipe.prepTime}" in recipe "${meal.breakfastRecipe.title}" for day ${meal.day}. Expected format like '20 minutos' or '20 minutes'.`);
           throw new Error(`Invalid prepTime format in recipe: ${meal.breakfastRecipe.prepTime}`);
         }
 
-        if (meal.lunchRecipe && meal.lunchRecipe.prepTime.toLowerCase().includes('minute')) {
+        if (meal.lunchRecipe && (meal.lunchRecipe.prepTime.toLowerCase().includes('minute') || meal.lunchRecipe.prepTime.toLowerCase().includes('minuto'))) {
           // Continue if prepTime is valid
         } else if (meal.lunchRecipe) {
-          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid prepTime format "${meal.lunchRecipe.prepTime}" in recipe "${meal.lunchRecipe.title}" for day ${meal.day}. Expected format like '20 minutos'.`);
+          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid prepTime format "${meal.lunchRecipe.prepTime}" in recipe "${meal.lunchRecipe.title}" for day ${meal.day}. Expected format like '20 minutos' or '20 minutes'.`);
           throw new Error(`Invalid prepTime format in recipe: ${meal.lunchRecipe.prepTime}`);
         }
 
-        if (meal.dinnerRecipe && meal.dinnerRecipe.prepTime.toLowerCase().includes('minute')) {
+        if (meal.dinnerRecipe && (meal.dinnerRecipe.prepTime.toLowerCase().includes('minute') || meal.dinnerRecipe.prepTime.toLowerCase().includes('minuto'))) {
           // Continue if prepTime is valid
         } else if (meal.dinnerRecipe) {
-          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid prepTime format "${meal.dinnerRecipe.prepTime}" in recipe "${meal.dinnerRecipe.title}" for day ${meal.day}. Expected format like '20 minutos'.`);
+          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid prepTime format "${meal.dinnerRecipe.prepTime}" in recipe "${meal.dinnerRecipe.title}" for day ${meal.day}. Expected format like '20 minutos' or '20 minutes'.`);
           throw new Error(`Invalid prepTime format in recipe: ${meal.dinnerRecipe.prepTime}`);
         }
       }

@@ -82,6 +82,12 @@ export async function saveExamAnalysisAction(patientId: string, analysisData: Ex
         // Trigger wellness plan update in the background (fire-and-forget)
         regeneratePatientWellnessPlan(patientId).catch(error => {
             console.error('[saveExamAnalysisAction] Failed to update wellness plan:', error);
+            console.error('[saveExamAnalysisAction] Error details:', {
+                message: error.message,
+                stack: error.stack,
+                patientId,
+            });
+            // Note: Error is logged but not thrown to avoid blocking exam save
         });
 
         // Revalidate pages to show the new exam and potentially updated wellness plan
