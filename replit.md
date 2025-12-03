@@ -82,27 +82,46 @@ Preferred communication style: Simple, everyday language.
 ### Monitoring
 - Sentry (for error tracking and performance monitoring)
 
-## AI Pricing Configuration (December 2025)
+## AI Pricing Configuration (December 2025 - Updated)
 
-### Gemini 2.5 Flash - Standard
-Official pricing from https://ai.google.dev/gemini-api/docs/pricing
-- **Text/Image/Video Input**: $0.30 per 1M tokens
-- **Audio Input (STT)**: $1.00 per 1M tokens
-- **Text Output (no thinking)**: $0.60 per 1M tokens
-- **Text Output (with thinking)**: $3.50 per 1M tokens
+### Gemini Models - LLM (per 1M tokens)
+Official pricing from Google AI Studio
+
+| Model | Input | Output |
+|-------|-------|--------|
+| Gemini 3 Pro Preview | $2.00 (≤200K) / $4.00 (>200K) | $12.00 (≤200K) / $18.00 (>200K) |
+| Gemini 2.5 Pro | $1.25 (≤200K) / $2.50 (>200K) | $10.00 (≤200K) / $15.00 (>200K) |
+| Gemini 2.5 Flash | $0.30 | $2.50 |
+| Gemini 2.5 Flash-Lite | $0.10 | $0.40 |
+| Gemini 2.0 Flash | $0.10 | $0.40 |
+| Gemini 2.0 Flash-Lite | $0.075 | $0.30 |
 
 ### Gemini 2.5 Flash Native Audio (Live API)
 For real-time voice consultations with natural voice
-- **Audio Input**: $1.00 per 1M tokens
-- **Audio Output (Natural TTS)**: $20.00 per 1M tokens
+- **Text Input**: $0.50 per 1M tokens
+- **Text Output**: $12.00 per 1M tokens
+- **Audio/Video Input (STT)**: $3.00 per 1M tokens
+- **Audio/Video Output (TTS)**: $2.00 per 1M tokens
 
-### Avatar Providers
-- **BeyondPresence**: $0.175 per minute
-- **Tavus CVI**: $0.10 per minute (estimated)
+### TTS Models (per 1M tokens)
+| Model | Input | Output |
+|-------|-------|--------|
+| Gemini 2.5 Pro Preview TTS | $1.00 | $20.00 |
+| Gemini 2.5 Flash Preview TTS | $0.50 | $10.00 |
 
-### LiveKit (estimated)
-- **Video per participant**: $0.004 per minute
-- **Audio per participant**: $0.001 per minute
+### Image Generation Models
+| Model | Text Input | Text Output | Image Output |
+|-------|------------|-------------|--------------|
+| Gemini 3 Pro Image Preview | $2.00/1M | $12.00/1M | $0.134/image |
+| Gemini 2.5 Flash Image | $0.30/1M | $2.50/1M | $0.039/image |
+
+### Avatar Providers (per minute)
+- **BeyondPresence**: $0.175
+- **Tavus CVI**: $0.10 (estimated)
+
+### LiveKit (estimated per participant)
+- **Video**: $0.004 per minute
+- **Audio**: $0.001 per minute
 
 ### Cost Display
 - AI costs are visible only in the Admin Dashboard
