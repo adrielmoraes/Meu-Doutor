@@ -1,0 +1,717 @@
+2025-12-03 20:44:33.240 [info] [🔗 Consolidation] ✅ Analyses combined successfully
+2025-12-03 20:44:33.240 [info] [🩺 Specialist Team] Activating multi-specialist diagnostic system...
+2025-12-03 20:44:33.242 [info] ╔════════════════════════════════════════════════════════╗
+2025-12-03 20:44:33.242 [info] ║  🏥 SISTEMA DE ANÁLISE MULTI-ESPECIALISTA INICIADO   ║
+2025-12-03 20:44:33.242 [info] ╚════════════════════════════════════════════════════════╝
+2025-12-03 20:44:33.242 [info] [Triagem] 🎯 Analisando dados do exame para selecionar especialistas...
+2025-12-03 20:44:33.242 [info] [Triagem] Dados do exame: Patient Adriel da Silva Moraes, 38 years old, presents a laboratory profile indicating dyslipidemia with elevated Total Cholesterol (229.00 mg/dL), elevated LDL Cholesterol (126 mg/dL) in the intermed...
+2025-12-03 20:44:40.348 [info] [Triagem] ✅ Triagem concluída
+2025-12-03 20:44:40.348 [info] [Triagem] Raciocínio: Selected cardiologist due to significant dyslipidemia, including elevated Total Cholesterol (229.00 mg/dL), elevated LDL Cholesterol (126 mg/dL), and suboptimal HDL Cholesterol (57 mg/dL), placing the patient in an intermediate cardiovascular risk category requiring specialized evaluation and management. Selected nutritionist to provide crucial dietary and lifestyle guidance for managing the dyslipidemia, complementing the cardiologist's medical management. Excluded endocrinologist (normal glucose), neurologist (no neurological symptoms), pulmonologist (no respiratory symptoms), gastroenterologist (Iodamoeba butschilii is a non-pathogenic commensal, no GI symptoms), dermatologist (no dermatological findings), ophthalmologist (no eye issues), orthopedist (no musculoskeletal issues), urologist (normal PSA, normal urinalysis, no urological symptoms), gynecologist (patient is male), pediatrician (patient is 38 years old), otolaryngologist (no ENT issues), radiologist (no imaging to interpret), psychiatrist (no mental health concerns), rheumatologist (no rheumatological conditions), and nephrologist (while urea is slightly elevated and creatinine is high-normal, the complete urinalysis is entirely normal, indicating no overt renal pathology warranting a specialist consult at this initial triage stage; primary care can monitor).
+2025-12-03 20:44:40.348 [info] [Triagem] Especialistas selecionados: 2
+2025-12-03 20:44:40.348 [info] ========================================
+2025-12-03 20:44:40.348 [info] [Orchestrator] 🎯 INICIANDO ANÁLISE MULTI-ESPECIALISTA
+2025-12-03 20:44:40.348 [info] [Orchestrator] Total de especialistas selecionados: 2
+2025-12-03 20:44:40.348 [info] [Orchestrator] Especialistas: cardiologist, nutritionist
+2025-12-03 20:44:40.348 [info] ========================================
+2025-12-03 20:44:40.348 [info] --- [Especialista 1/2] ---
+2025-12-03 20:44:40.348 [info] [Cardiologist] 🩺 Iniciando análise...
+2025-12-03 20:44:40.348 [info] [Cardiologist] 📊 Dados do exame recebidos: Patient Adriel da Silva Moraes, 38 years old, presents a laboratory profile indicating dyslipidemia with elevated Total Cholesterol (229.00 mg/dL), el...
+2025-12-03 20:44:40.348 [info] [Cardiologist] 🧠 Processando análise especializada...
+2025-12-03 20:44:40.348 [info] --- [Especialista 2/2] ---
+2025-12-03 20:44:40.348 [info] [Nutritionist] 🩺 Iniciando análise...
+2025-12-03 20:44:40.348 [info] [Nutritionist] 📊 Dados do exame recebidos: Patient Adriel da Silva Moraes, 38 years old, presents a laboratory profile indicating dyslipidemia with elevated Total Cholesterol (229.00 mg/dL), el...
+2025-12-03 20:44:40.348 [info] [Nutritionist] 🧠 Processando análise especializada...
+2025-12-03 20:44:40.348 [info] [Cardiologist Agent] Iniciando análise cardiológica...
+2025-12-03 20:44:40.348 [info] [Cardiologist Agent] Tamanho dos dados do exame: 890
+2025-12-03 20:44:40.348 [info] [Cardiologist Agent] Tamanho do histórico do paciente: 47
+2025-12-03 20:44:45.055 [info] [Internet Search] Using mock data to search for: dieta para colesterol alto e LDL elevado
+2025-12-03 20:44:45.055 [info] [Internet Search] Using mock data to search for: alimentos para reduzir colesterol LDL
+2025-12-03 20:44:45.055 [info] [Internet Search] Using mock data to search for: recomendações nutricionais para saúde renal leve
+2025-12-03 20:44:48.241 [error] [Cardiologist] 💥 ERRO DURANTE ANÁLISE: Error [GenkitError]: INVALID_ARGUMENT: Schema validation failed. Parse Errors:
+
+- (root): must be object
+
+Provided data:
+
+null
+
+Required JSON schema:
+
+{
+  "type": "object",
+  "properties": {
+    "findings": {
+      "type": "string",
+      "description": "The specialist's detailed clinical findings based on the provided data. Must include comprehensive analysis of EVERY abnormal value found in exams with clinical significance explained."
+    },
+    "clinicalAssessment": {
+      "type": "string",
+      "description": "Professional assessment of the severity and urgency of findings (normal, mild, moderate, severe, critical, or not applicable)."
+    },
+    "recommendations": {
+      "type": "string",
+      "description": "Specific recommendations for follow-up, additional tests, or immediate actions within this specialty."
+    },
+    "suggestedMedications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "medication": {
+            "type": "string",
+            "description": "Nome do medicamento (princípio ativo e nome comercial quando aplicável)"
+          },
+          "dosage": {
+            "type": "string",
+            "description": "Dosagem específica recomendada (ex: '50mg', '10mg/kg')"
+          },
+          "frequency": {
+            "type": "string",
+            "description": "Frequência de administração (ex: '1x ao dia', '12/12h', 'conforme necessário')"
+          },
+          "duration": {
+            "type": "string",
+            "description": "Duração do tratamento (ex: '7 dias', '3 meses', 'uso contínuo')"
+          },
+          "route": {
+            "type": "string",
+            "description": "Via de administração (ex: 'oral', 'intravenosa', 'tópica')"
+          },
+          "justification": {
+            "type": "string",
+            "description": "Justificativa clínica para prescrição deste medicamento"
+          }
+        },
+        "required": [
+          "medication",
+          "dosage",
+          "frequency",
+          "duration",
+          "route",
+          "justification"
+        ],
+        "additionalProperties": true
+      },
+      "description": "Lista de medicamentos sugeridos com dosagens específicas. Deixe vazio se não houver indicação de medicação."
+    },
+    "treatmentPlan": {
+      "type": "object",
+      "properties": {
+        "primaryTreatment": {
+          "type": "string",
+          "description": "Tratamento principal recomendado (farmacológico ou não-farmacológico)"
+        },
+        "supportiveCare": {
+          "type": "string",
+          "description": "Medidas de suporte e cuidados complementares"
+        },
+        "lifestyleModifications": {
+          "type": "string",
+          "description": "Modificações de estilo de vida específicas"
+        },
+        "expectedOutcome": {
+          "type": "string",
+          "description": "Prognóstico esperado com o tratamento proposto"
+        }
+      },
+      "additionalProperties": true,
+      "description": "Plano de tratamento detalhado. Deixe vazio se não for aplicável."
+    },
+    "monitoringProtocol": {
+      "type": "object",
+      "properties": {
+        "parameters": {
+          "type": "string",
+          "description": "Parâmetros a serem monitorados (ex: pressão arterial, glicemia, função renal)"
+        },
+        "frequency": {
+          "type": "string",
+          "description": "Frequência do monitoramento (ex: 'semanal', 'mensal', 'a cada 3 meses')"
+        },
+        "warningSignals": {
+          "type": "string",
+          "description": "Sinais de alerta que requerem atenção médica imediata"
+        }
+      },
+      "additionalProperties": true,
+      "description": "Protocolo de monitoramento pós-tratamento"
+    },
+    "contraindications": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de contraindicações importantes relacionadas aos tratamentos sugeridos"
+    },
+    "relevantMetrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string",
+            "description": "Name of the clinical metric or finding (e.g., 'Blood Pressure', 'ECG QT Interval')"
+          },
+          "value": {
+            "type": "string",
+            "description": "The observed value or description"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "borderline",
+              "abnormal",
+              "critical"
+            ],
+            "description": "Clinical significance of this metric"
+          },
+          "interpretation": {
+            "type": "string",
+            "description": "Detailed clinical interpretation of what this value means"
+          }
+        },
+        "required": [
+          "metric",
+          "value",
+          "status",
+          "interpretation"
+        ],
+        "additionalProperties": true
+      },
+      "description": "Key clinical metrics and their status, if applicable to this specialty."
+    }
+  },
+  "required": [
+    "findings",
+    "clinicalAssessment",
+    "recommendations"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+    at C (.next/server/chunks/7612.js:30:586)
+    at f.assertValidSchema (.next/server/chunks/7612.js:74:2197)
+    at O (.next/server/chunks/7612.js:45:51766)
+    at async (.next/server/chunks/7612.js:45:49434)
+    at async (.next/server/chunks/7612.js:20:110395)
+    at async v (.next/server/chunks/7612.js:20:110198)
+    at async S (.next/server/chunks/7612.js:45:49242)
+    at async w (.next/server/chunks/7612.js:74:24650)
+    at async (.next/server/chunks/7612.js:20:266355) {
+  source: undefined,
+  status: 'INVALID_ARGUMENT',
+  detail: [Object],
+  code: 400,
+  originalMessage: 'Schema validation failed. Parse Errors:\n' +
+    '\n' +
+    '- (root): must be object\n' +
+    '\n' +
+    'Provided data:\n' +
+    '\n' +
+    'null\n' +
+    '\n' +
+    'Required JSON schema:\n' +
+    '\n' +
+    '{\n' +
+    '  "type": "object",\n' +
+    '  "properties": {\n' +
+    '    "findings": {\n' +
+    '      "type": "string",\n' +
+    `      "description": "The specialist's detailed clinical findings based on the provided data. Must include comprehensive analysis of EVERY abnormal value found in exams with clinical significance explained."\n` +
+    '    },\n' +
+    '    "clinicalAssessment": {\n' +
+    '      "type": "string",\n' +
+    '      "description": "Professional assessment of the severity and urgency of findings (normal, mild, moderate, severe, critical, or not applicable)."\n' +
+    '    },\n' +
+    '    "recommendations": {\n' +
+    '      "type": "string",\n' +
+    '      "description": "Specific recommendations for follow-up, additional tests, or immediate actions within this specialty."\n' +
+    '    },\n' +
+    '    "suggestedMedications": {\n' +
+    '      "type": "array",\n' +
+    '      "items": {\n' +
+    '        "type": "object",\n' +
+    '        "properties": {\n' +
+    '          "medication": {\n' +
+    '            "type": "string",\n' +
+    '            "description": "Nome do medicamento (princípio ativo e nome comercial quando aplicável)"\n' +
+    '          },\n' +
+    '          "dosage": {\n' +
+    '            "type": "string",\n' +
+    `            "description": "Dosagem específica recomendada (ex: '50mg', '10mg/kg')"\n` +
+    '          },\n' +
+    '          "frequency": {\n' +
+    '            "type": "string",\n' +
+    `            "description": "Frequência de administração (ex: '1x ao dia', '12/12h', 'conforme necessário')"\n` +
+    '          },\n' +
+    '          "duration": {\n' +
+    '            "type": "string",\n' +
+    `            "description": "Duração do tratamento (ex: '7 dias', '3 meses', 'uso contínuo')"\n` +
+    '          },\n' +
+    '          "route": {\n' +
+    '            "type": "string",\n' +
+    `            "description": "Via de administração (ex: 'oral', 'intravenosa', 'tópica')"\n` +
+    '          },\n' +
+    '          "justification": {\n' +
+    '            "type": "string",\n' +
+    '            "description": "Justificativa clínica para prescrição deste medicamento"\n' +
+    '          }\n' +
+    '        },\n' +
+    '        "required": [\n' +
+    '          "medication",\n' +
+    '          "dosage",\n' +
+    '          "frequency",\n' +
+    '          "duration",\n' +
+    '          "route",\n' +
+    '          "justification"\n' +
+    '        ],\n' +
+    '        "additionalProperties": true\n' +
+    '      },\n' +
+    '      "description": "Lista de medicamentos sugeridos com dosagens específicas. Deixe vazio se não houver indicação de medicação."\n' +
+    '    },\n' +
+    '    "treatmentPlan": {\n' +
+    '      "type": "object",\n' +
+    '      "properties": {\n' +
+    '        "primaryTreatment": {\n' +
+    '          "type": "string",\n' +
+    '          "description": "Tratamento principal recomendado (farmacológico ou não-farmacológico)"\n' +
+    '        },\n' +
+    '        "supportiveCare": {\n' +
+    '          "type": "string",\n' +
+    '          "description": "Medidas de suporte e cuidados complementares"\n' +
+    '        },\n' +
+    '        "lifestyleModifications": {\n' +
+    '          "type": "string",\n' +
+    '          "description": "Modificações de estilo de vida específicas"\n' +
+    '        },\n' +
+    '        "expectedOutcome": {\n' +
+    '          "type": "string",\n' +
+    '          "description": "Prognóstico esperado com o tratamento proposto"\n' +
+    '        }\n' +
+    '      },\n' +
+    '      "additionalProperties": true,\n' +
+    '      "description": "Plano de tratamento detalhado. Deixe vazio se não for aplicável."\n' +
+    '    },\n' +
+    '    "monitoringProtocol": {\n' +
+    '      "type": "object",\n' +
+    '      "properties": {\n' +
+    '        "parameters": {\n' +
+    '          "type": "string",\n' +
+    '          "description": "Parâmetros a serem monitorados (ex: pressão arterial, glicemia, função renal)"\n' +
+    '        },\n' +
+    '        "frequency": {\n' +
+    '          "type": "string",\n' +
+    `          "description": "Frequência do monitoramento (ex: 'semanal', 'mensal', 'a cada 3 meses')"\n` +
+    '        },\n' +
+    '        "warningSignals": {\n' +
+    '          "type": "string",\n' +
+    '          "description": "Sinais de alerta que requerem atenção médica imediata"\n' +
+    '        }\n' +
+    '      },\n' +
+    '      "additionalProperties": true,\n' +
+    '      "description": "Protocolo de monitoramento pós-tratamento"\n' +
+    '    },\n' +
+    '    "contraindications": {\n' +
+    '      "type": "array",\n' +
+    '      "items": {\n' +
+    '        "type": "string"\n' +
+    '      },\n' +
+    '      "description": "Lista de contraindicações importantes relacionadas aos tratamentos sugeridos"\n' +
+    '    },\n' +
+    '    "relevantMetrics": {\n' +
+    '      "type": "array",\n' +
+    '      "items": {\n' +
+    '        "type": "object",\n' +
+    '        "properties": {\n' +
+    '          "metric": {\n' +
+    '            "type": "string",\n' +
+    `            "description": "Name of the clinical metric or finding (e.g., 'Blood Pressure', 'ECG QT Interval')"\n` +
+    '          },\n' +
+    '          "value": {\n' +
+    '            "type": "string",\n' +
+    '            "description": "The observed value or description"\n' +
+    '          },\n' +
+    '          "status": {\n' +
+    '            "type": "string",\n' +
+    '            "enum": [\n' +
+    '              "normal",\n' +
+    '              "borderline",\n' +
+    '              "abnormal",\n' +
+    '              "critical"\n' +
+    '            ],\n' +
+    '            "description": "Clinical significance of this metric"\n' +
+    '          },\n' +
+    '          "interpretation": {\n' +
+    '            "type": "string",\n' +
+    '            "description": "Detailed clinical interpretation of what this value means"\n' +
+    '          }\n' +
+    '        },\n' +
+    '        "required": [\n' +
+    '          "metric",\n' +
+    '          "value",\n' +
+    '          "status",\n' +
+    '          "interpretation"\n' +
+    '        ],\n' +
+    '        "additionalProperties": true\n' +
+    '      },\n' +
+    '      "description": "Key clinical metrics and their status, if applicable to this specialty."\n' +
+    '    }\n' +
+    '  },\n' +
+    '  "required": [\n' +
+    '    "findings",\n' +
+    '    "clinicalAssessment",\n' +
+    '    "recommendations"\n' +
+    '  ],\n' +
+    '  "additionalProperties": true,\n' +
+    '  "$schema": "http://json-schema.org/draft-07/schema#"\n' +
+    '}',
+  ignoreFailedSpan: true,
+  traceId: '6e8d4108b2b1660aba30b2cc80232d11'
+}
+2025-12-03 20:44:48.243 [error] [Consolidate Exams] ❌ Failed: Error [GenkitError]: INVALID_ARGUMENT: Schema validation failed. Parse Errors:
+
+- (root): must be object
+
+Provided data:
+
+null
+
+Required JSON schema:
+
+{
+  "type": "object",
+  "properties": {
+    "findings": {
+      "type": "string",
+      "description": "The specialist's detailed clinical findings based on the provided data. Must include comprehensive analysis of EVERY abnormal value found in exams with clinical significance explained."
+    },
+    "clinicalAssessment": {
+      "type": "string",
+      "description": "Professional assessment of the severity and urgency of findings (normal, mild, moderate, severe, critical, or not applicable)."
+    },
+    "recommendations": {
+      "type": "string",
+      "description": "Specific recommendations for follow-up, additional tests, or immediate actions within this specialty."
+    },
+    "suggestedMedications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "medication": {
+            "type": "string",
+            "description": "Nome do medicamento (princípio ativo e nome comercial quando aplicável)"
+          },
+          "dosage": {
+            "type": "string",
+            "description": "Dosagem específica recomendada (ex: '50mg', '10mg/kg')"
+          },
+          "frequency": {
+            "type": "string",
+            "description": "Frequência de administração (ex: '1x ao dia', '12/12h', 'conforme necessário')"
+          },
+          "duration": {
+            "type": "string",
+            "description": "Duração do tratamento (ex: '7 dias', '3 meses', 'uso contínuo')"
+          },
+          "route": {
+            "type": "string",
+            "description": "Via de administração (ex: 'oral', 'intravenosa', 'tópica')"
+          },
+          "justification": {
+            "type": "string",
+            "description": "Justificativa clínica para prescrição deste medicamento"
+          }
+        },
+        "required": [
+          "medication",
+          "dosage",
+          "frequency",
+          "duration",
+          "route",
+          "justification"
+        ],
+        "additionalProperties": true
+      },
+      "description": "Lista de medicamentos sugeridos com dosagens específicas. Deixe vazio se não houver indicação de medicação."
+    },
+    "treatmentPlan": {
+      "type": "object",
+      "properties": {
+        "primaryTreatment": {
+          "type": "string",
+          "description": "Tratamento principal recomendado (farmacológico ou não-farmacológico)"
+        },
+        "supportiveCare": {
+          "type": "string",
+          "description": "Medidas de suporte e cuidados complementares"
+        },
+        "lifestyleModifications": {
+          "type": "string",
+          "description": "Modificações de estilo de vida específicas"
+        },
+        "expectedOutcome": {
+          "type": "string",
+          "description": "Prognóstico esperado com o tratamento proposto"
+        }
+      },
+      "additionalProperties": true,
+      "description": "Plano de tratamento detalhado. Deixe vazio se não for aplicável."
+    },
+    "monitoringProtocol": {
+      "type": "object",
+      "properties": {
+        "parameters": {
+          "type": "string",
+          "description": "Parâmetros a serem monitorados (ex: pressão arterial, glicemia, função renal)"
+        },
+        "frequency": {
+          "type": "string",
+          "description": "Frequência do monitoramento (ex: 'semanal', 'mensal', 'a cada 3 meses')"
+        },
+        "warningSignals": {
+          "type": "string",
+          "description": "Sinais de alerta que requerem atenção médica imediata"
+        }
+      },
+      "additionalProperties": true,
+      "description": "Protocolo de monitoramento pós-tratamento"
+    },
+    "contraindications": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de contraindicações importantes relacionadas aos tratamentos sugeridos"
+    },
+    "relevantMetrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string",
+            "description": "Name of the clinical metric or finding (e.g., 'Blood Pressure', 'ECG QT Interval')"
+          },
+          "value": {
+            "type": "string",
+            "description": "The observed value or description"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "borderline",
+              "abnormal",
+              "critical"
+            ],
+            "description": "Clinical significance of this metric"
+          },
+          "interpretation": {
+            "type": "string",
+            "description": "Detailed clinical interpretation of what this value means"
+          }
+        },
+        "required": [
+          "metric",
+          "value",
+          "status",
+          "interpretation"
+        ],
+        "additionalProperties": true
+      },
+      "description": "Key clinical metrics and their status, if applicable to this specialty."
+    }
+  },
+  "required": [
+    "findings",
+    "clinicalAssessment",
+    "recommendations"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+    at C (.next/server/chunks/7612.js:30:586)
+    at f.assertValidSchema (.next/server/chunks/7612.js:74:2197)
+    at O (.next/server/chunks/7612.js:45:51766)
+    at async (.next/server/chunks/7612.js:45:49434)
+    at async (.next/server/chunks/7612.js:20:110395)
+    at async v (.next/server/chunks/7612.js:20:110198)
+    at async S (.next/server/chunks/7612.js:45:49242)
+    at async w (.next/server/chunks/7612.js:74:24650)
+    at async (.next/server/chunks/7612.js:20:266355) {
+  source: undefined,
+  status: 'INVALID_ARGUMENT',
+  detail: [Object],
+  code: 400,
+  originalMessage: 'Schema validation failed. Parse Errors:\n' +
+    '\n' +
+    '- (root): must be object\n' +
+    '\n' +
+    'Provided data:\n' +
+    '\n' +
+    'null\n' +
+    '\n' +
+    'Required JSON schema:\n' +
+    '\n' +
+    '{\n' +
+    '  "type": "object",\n' +
+    '  "properties": {\n' +
+    '    "findings": {\n' +
+    '      "type": "string",\n' +
+    `      "description": "The specialist's detailed clinical findings based on the provided data. Must include comprehensive analysis of EVERY abnormal value found in exams with clinical significance explained."\n` +
+    '    },\n' +
+    '    "clinicalAssessment": {\n' +
+    '      "type": "string",\n' +
+    '      "description": "Professional assessment of the severity and urgency of findings (normal, mild, moderate, severe, critical, or not applicable)."\n' +
+    '    },\n' +
+    '    "recommendations": {\n' +
+    '      "type": "string",\n' +
+    '      "description": "Specific recommendations for follow-up, additional tests, or immediate actions within this specialty."\n' +
+    '    },\n' +
+    '    "suggestedMedications": {\n' +
+    '      "type": "array",\n' +
+    '      "items": {\n' +
+    '        "type": "object",\n' +
+    '        "properties": {\n' +
+    '          "medication": {\n' +
+    '            "type": "string",\n' +
+    '            "description": "Nome do medicamento (princípio ativo e nome comercial quando aplicável)"\n' +
+    '          },\n' +
+    '          "dosage": {\n' +
+    '            "type": "string",\n' +
+    `            "description": "Dosagem específica recomendada (ex: '50mg', '10mg/kg')"\n` +
+    '          },\n' +
+    '          "frequency": {\n' +
+    '            "type": "string",\n' +
+    `            "description": "Frequência de administração (ex: '1x ao dia', '12/12h', 'conforme necessário')"\n` +
+    '          },\n' +
+    '          "duration": {\n' +
+    '            "type": "string",\n' +
+    `            "description": "Duração do tratamento (ex: '7 dias', '3 meses', 'uso contínuo')"\n` +
+    '          },\n' +
+    '          "route": {\n' +
+    '            "type": "string",\n' +
+    `            "description": "Via de administração (ex: 'oral', 'intravenosa', 'tópica')"\n` +
+    '          },\n' +
+    '          "justification": {\n' +
+    '            "type": "string",\n' +
+    '            "description": "Justificativa clínica para prescrição deste medicamento"\n' +
+    '          }\n' +
+    '        },\n' +
+    '        "required": [\n' +
+    '          "medication",\n' +
+    '          "dosage",\n' +
+    '          "frequency",\n' +
+    '          "duration",\n' +
+    '          "route",\n' +
+    '          "justification"\n' +
+    '        ],\n' +
+    '        "additionalProperties": true\n' +
+    '      },\n' +
+    '      "description": "Lista de medicamentos sugeridos com dosagens específicas. Deixe vazio se não houver indicação de medicação."\n' +
+    '    },\n' +
+    '    "treatmentPlan": {\n' +
+    '      "type": "object",\n' +
+    '      "properties": {\n' +
+    '        "primaryTreatment": {\n' +
+    '          "type": "string",\n' +
+    '          "description": "Tratamento principal recomendado (farmacológico ou não-farmacológico)"\n' +
+    '        },\n' +
+    '        "supportiveCare": {\n' +
+    '          "type": "string",\n' +
+    '          "description": "Medidas de suporte e cuidados complementares"\n' +
+    '        },\n' +
+    '        "lifestyleModifications": {\n' +
+    '          "type": "string",\n' +
+    '          "description": "Modificações de estilo de vida específicas"\n' +
+    '        },\n' +
+    '        "expectedOutcome": {\n' +
+    '          "type": "string",\n' +
+    '          "description": "Prognóstico esperado com o tratamento proposto"\n' +
+    '        }\n' +
+    '      },\n' +
+    '      "additionalProperties": true,\n' +
+    '      "description": "Plano de tratamento detalhado. Deixe vazio se não for aplicável."\n' +
+    '    },\n' +
+    '    "monitoringProtocol": {\n' +
+    '      "type": "object",\n' +
+    '      "properties": {\n' +
+    '        "parameters": {\n' +
+    '          "type": "string",\n' +
+    '          "description": "Parâmetros a serem monitorados (ex: pressão arterial, glicemia, função renal)"\n' +
+    '        },\n' +
+    '        "frequency": {\n' +
+    '          "type": "string",\n' +
+    `          "description": "Frequência do monitoramento (ex: 'semanal', 'mensal', 'a cada 3 meses')"\n` +
+    '        },\n' +
+    '        "warningSignals": {\n' +
+    '          "type": "string",\n' +
+    '          "description": "Sinais de alerta que requerem atenção médica imediata"\n' +
+    '        }\n' +
+    '      },\n' +
+    '      "additionalProperties": true,\n' +
+    '      "description": "Protocolo de monitoramento pós-tratamento"\n' +
+    '    },\n' +
+    '    "contraindications": {\n' +
+    '      "type": "array",\n' +
+    '      "items": {\n' +
+    '        "type": "string"\n' +
+    '      },\n' +
+    '      "description": "Lista de contraindicações importantes relacionadas aos tratamentos sugeridos"\n' +
+    '    },\n' +
+    '    "relevantMetrics": {\n' +
+    '      "type": "array",\n' +
+    '      "items": {\n' +
+    '        "type": "object",\n' +
+    '        "properties": {\n' +
+    '          "metric": {\n' +
+    '            "type": "string",\n' +
+    `            "description": "Name of the clinical metric or finding (e.g., 'Blood Pressure', 'ECG QT Interval')"\n` +
+    '          },\n' +
+    '          "value": {\n' +
+    '            "type": "string",\n' +
+    '            "description": "The observed value or description"\n' +
+    '          },\n' +
+    '          "status": {\n' +
+    '            "type": "string",\n' +
+    '            "enum": [\n' +
+    '              "normal",\n' +
+    '              "borderline",\n' +
+    '              "abnormal",\n' +
+    '              "critical"\n' +
+    '            ],\n' +
+    '            "description": "Clinical significance of this metric"\n' +
+    '          },\n' +
+    '          "interpretation": {\n' +
+    '            "type": "string",\n' +
+    '            "description": "Detailed clinical interpretation of what this value means"\n' +
+    '          }\n' +
+    '        },\n' +
+    '        "required": [\n' +
+    '          "metric",\n' +
+    '          "value",\n' +
+    '          "status",\n' +
+    '          "interpretation"\n' +
+    '        ],\n' +
+    '        "additionalProperties": true\n' +
+    '      },\n' +
+    '      "description": "Key clinical metrics and their status, if applicable to this specialty."\n' +
+    '    }\n' +
+    '  },\n' +
+    '  "required": [\n' +
+    '    "findings",\n' +
+    '    "clinicalAssessment",\n' +
+    '    "recommendations"\n' +
+    '  ],\n' +
+    '  "additionalProperties": true,\n' +
+    '  "$schema": "http://json-schema.org/draft-07/schema#"\n' +
+    '}',
+  ignoreFailedSpan: true,
+  traceId: '6e8d4108b2b1660aba30b2cc80232d11'
+}
+2025-12-03 20:44:18.803 [info] [Consolidate Exams] Consolidating 4 exam(s)...
+2025-12-03 20:44:18.803 [info] [🔗 Consolidation] Consolidating 4 exam analyses...
+2025-12-03 20:44:18.803 [info] [🔗 Consolidation] Multiple exams - combining analyses first...
+2025-12-03 20:44:19.150 [info] [Usage Tracker] exam_analysis: single_20250920_164647.jpg, tokens: 6848, cost: R$0.0100

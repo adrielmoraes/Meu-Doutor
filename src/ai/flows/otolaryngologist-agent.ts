@@ -8,7 +8,7 @@
 import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
-import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './specialist-agent-types';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
 
 
 const specialistPrompt = ai.definePrompt({
@@ -75,7 +75,11 @@ const otolaryngologistAgentFlow = ai.defineFlow(
     },
     async (input) => {
         const {output} = await specialistPrompt(input);
-        return output!;
+        if (!output) {
+            console.error('[Otolaryngologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+            return createFallbackResponse('Otorrinolaringologista');
+        }
+        return output;
     }
 );
 

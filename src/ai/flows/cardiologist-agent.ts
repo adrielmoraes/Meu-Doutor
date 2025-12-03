@@ -8,7 +8,7 @@
 import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
-import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './specialist-agent-types';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
 
 
 const specialistPrompt = ai.definePrompt({
@@ -203,12 +203,17 @@ const cardiologistAgentFlow = ai.defineFlow(
         const {output} = await specialistPrompt(input);
         const duration = Date.now() - startTime;
         
+        if (!output) {
+            console.error('[Cardiologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+            return createFallbackResponse('Cardiologista');
+        }
+        
         console.log('[Cardiologist Agent] ✅ Análise concluída em', duration, 'ms');
         console.log('[Cardiologist Agent] Avaliação clínica:', output?.clinicalAssessment);
         console.log('[Cardiologist Agent] Número de métricas relevantes:', output?.relevantMetrics?.length || 0);
         console.log('[Cardiologist Agent] Medicamentos sugeridos:', output?.suggestedMedications?.length || 0);
         
-        return output!;
+        return output;
     }
 );
 

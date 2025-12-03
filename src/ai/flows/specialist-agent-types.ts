@@ -48,3 +48,25 @@ export const SpecialistAgentOutputSchema = z.object({
   })).optional().describe("Key clinical metrics and their status, if applicable to this specialty."),
 });
 export type SpecialistAgentOutput = z.infer<typeof SpecialistAgentOutputSchema>;
+
+export function createFallbackResponse(specialistName: string): SpecialistAgentOutput {
+  return {
+    findings: `[${specialistName}] O modelo de IA não conseguiu gerar uma análise estruturada para este exame. Por favor, consulte um profissional de saúde para avaliação completa.`,
+    clinicalAssessment: 'Não foi possível determinar - análise requer revisão manual.',
+    recommendations: 'Recomenda-se consulta presencial com especialista para análise detalhada dos resultados.',
+    suggestedMedications: [],
+    treatmentPlan: {
+      primaryTreatment: 'A ser determinado após avaliação presencial.',
+      supportiveCare: 'Manter acompanhamento regular.',
+      lifestyleModifications: 'Seguir orientações gerais de saúde.',
+      expectedOutcome: 'Prognóstico a ser determinado após avaliação completa.',
+    },
+    monitoringProtocol: {
+      parameters: 'A serem definidos pelo especialista.',
+      frequency: 'A ser definida após consulta.',
+      warningSignals: 'Procurar atendimento médico em caso de sintomas agudos.',
+    },
+    contraindications: [],
+    relevantMetrics: [],
+  };
+}

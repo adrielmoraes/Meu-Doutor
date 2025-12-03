@@ -9,7 +9,7 @@
 import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
-import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './specialist-agent-types';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
 
 
 const specialistPrompt = ai.definePrompt({
@@ -94,12 +94,17 @@ const rheumatologistAgentFlow = ai.defineFlow(
         const {output} = await specialistPrompt(input);
         const duration = Date.now() - startTime;
         
+        if (!output) {
+            console.error('[Rheumatologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+            return createFallbackResponse('Reumatologista');
+        }
+        
         console.log('[Rheumatologist Agent] ✅ Análise concluída em', duration, 'ms');
         console.log('[Rheumatologist Agent] Avaliação clínica:', output?.clinicalAssessment);
         console.log('[Rheumatologist Agent] Achados identificados:', output?.findings?.substring(0, 150));
         console.log('[Rheumatologist Agent] Recomendações geradas:', !!output?.recommendations);
         
-        return output!;
+        return output;
     }
 );
 

@@ -9,7 +9,7 @@ import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import { internetSearchTool } from '../tools/internet-search';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
-import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './specialist-agent-types';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
 
 
 const specialistPrompt = ai.definePrompt({
@@ -79,7 +79,11 @@ const nutritionistAgentFlow = ai.defineFlow(
     },
     async (input) => {
         const {output} = await specialistPrompt(input);
-        return output!;
+        if (!output) {
+            console.error('[Nutritionist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+            return createFallbackResponse('Nutricionista');
+        }
+        return output;
     }
 );
 

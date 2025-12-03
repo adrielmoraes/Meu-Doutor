@@ -9,7 +9,7 @@
 import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
-import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './specialist-agent-types';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
 
 
 const specialistPrompt = ai.definePrompt({
@@ -109,12 +109,17 @@ const nephrologistAgentFlow = ai.defineFlow(
         const {output} = await specialistPrompt(input);
         const duration = Date.now() - startTime;
         
+        if (!output) {
+            console.error('[Nephrologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+            return createFallbackResponse('Nefrologista');
+        }
+        
         console.log('[Nephrologist Agent] ✅ Análise concluída em', duration, 'ms');
         console.log('[Nephrologist Agent] Avaliação clínica:', output?.clinicalAssessment);
         console.log('[Nephrologist Agent] Número de achados:', output?.findings ? 'Sim' : 'Não');
         console.log('[Nephrologist Agent] Recomendações específicas:', output?.recommendations ? 'Geradas' : 'Nenhuma');
         
-        return output!;
+        return output;
     }
 );
 

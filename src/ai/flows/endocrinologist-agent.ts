@@ -8,7 +8,7 @@
 import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
-import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema } from './specialist-agent-types';
+import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
 
 const specialistPrompt = ai.definePrompt({
     name: 'endocrinologistAgentPrompt',
@@ -307,12 +307,17 @@ const endocrinologistAgentFlow = ai.defineFlow(
         const {output} = await specialistPrompt(input);
         const duration = Date.now() - startTime;
         
+        if (!output) {
+            console.error('[Endocrinologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+            return createFallbackResponse('Endocrinologista');
+        }
+        
         console.log('[Endocrinologist Agent] ✅ Análise concluída em', duration, 'ms');
         console.log('[Endocrinologist Agent] Avaliação:', output?.clinicalAssessment);
         console.log('[Endocrinologist Agent] Plano de tratamento definido:', !!output?.treatmentPlan);
         console.log('[Endocrinologist Agent] Protocolo de monitoramento definido:', !!output?.monitoringProtocol);
         
-        return output!;
+        return output;
     }
 );
 
