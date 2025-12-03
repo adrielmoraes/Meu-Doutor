@@ -9,6 +9,7 @@ import type { Patient } from "@/types";
 import { getSession } from "@/lib/session";
 import RegenerateWellnessPlanButton from "@/components/patient/regenerate-wellness-plan-button";
 import WeeklyTasksSection from "@/components/patient/weekly-tasks-section";
+import WellnessMarkdownContent from "@/components/patient/wellness-markdown-content";
 
 
 async function getWellnessPageData(patientId: string): Promise<{ patient: Patient | null, error?: string }> {
@@ -194,9 +195,12 @@ export default async function WellnessPlanPage() {
                                 </div>
                                 <h3 className={`font-semibold text-xl ${section.titleColor}`}>{section.title}</h3>
                             </div>
-                            <p className="whitespace-pre-wrap leading-relaxed text-black dark:text-foreground mb-4">
-                                {section.content}
-                            </p>
+                            <div className="mb-4">
+                                <WellnessMarkdownContent 
+                                    content={section.content} 
+                                    variant={section.section}
+                                />
+                            </div>
                             <WellnessAudioPlayback 
                                 textToSpeak={section.content} 
                                 section={section.section}
