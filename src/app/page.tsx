@@ -156,14 +156,17 @@ export default function LandingPage() {
                   <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-3xl blur-2xl group-hover:opacity-80 transition-opacity"></div>
                   <div className="relative rounded-2xl overflow-hidden border border-cyan-500/30 shadow-2xl shadow-cyan-500/20 bg-slate-900/50 backdrop-blur-sm">
                     <div className="aspect-video relative">
-                      {/* Video Iframe - Pré-carregado para iniciar mais rápido */}
+                      {/* Video Iframe - YouTube com autoplay */}
                       <iframe
                         ref={iframeRef}
-                        src="https://drive.google.com/file/d/1BVY75ME-q2vRmQKSlboCwgFVdmNynZGvaOJRv4olDUk/preview"
-                        className={`w-full h-full transition-opacity duration-300 ${videoStarted ? 'opacity-100' : 'opacity-0'}`}
-                        allow="autoplay; encrypted-media; fullscreen"
+                        src={videoStarted 
+                          ? "https://www.youtube.com/embed/8YTSeJI2_pc?autoplay=1&rel=0&modestbranding=1" 
+                          : "https://www.youtube.com/embed/8YTSeJI2_pc?rel=0&modestbranding=1"
+                        }
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         allowFullScreen
-                        style={{ pointerEvents: videoStarted ? 'auto' : 'none' }}
+                        title="MediAI - Inteligência Artificial a Serviço da Sua Saúde"
                       ></iframe>
                       
                       {/* Animated Play Overlay */}
