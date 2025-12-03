@@ -1,12 +1,14 @@
 
 'use server';
 
-import { addExamToPatient, updatePatient, addAppointment, deleteExam, trackUsage } from "@/lib/db-adapter";
+import { addExamToPatient, updatePatient, addAppointment, deleteExam, trackUsage, updateExam } from "@/lib/db-adapter";
 import { revalidatePath } from "next/cache";
 import type { Appointment, Exam } from "@/types";
 import { regeneratePatientWellnessPlan } from "@/ai/flows/update-wellness-plan";
 import { getSession } from "@/lib/session";
 import { estimateTokens, calculateLLMCost, usdToBRLCents } from "@/lib/ai-pricing";
+import { analyzeSingleExam, type SingleDocumentOutput } from "@/ai/flows/analyze-single-exam";
+import { consolidateExamsAnalysis, type IndividualExamResult } from "@/ai/flows/consolidate-exams-analysis";
 
 interface ExamAnalysisData {
     preliminaryDiagnosis: string;
@@ -147,12 +149,10 @@ export async function addExamAction(patientId: string, examData: Omit<Exam, 'id'
     try {
         const examId = await addExamToPatient(patientId, examData);
 
-        // Se houve um erro ao adicionar o exame, lança uma exceção para ser capturada pelo catch
         if (!examId) {
             throw new Error('Falha ao adicionar o exame ao paciente');
         }
 
-        // Registrar uso do recurso
         const { trackResourceUsage } = await import('@/lib/subscription-limits');
         await trackResourceUsage(session.userId, 'exam_analysis', {
             resourceName: examData.type,
@@ -163,5 +163,154 @@ export async function addExamAction(patientId: string, examData: Omit<Exam, 'id'
     } catch (error: any) {
         console.error('Erro ao adicionar exame:', error);
         return { success: false, error: error.message };
+    }
+}
+
+export type SingleExamAnalysisResult = {
+    success: boolean;
+    examId?: string;
+    analysis?: SingleDocumentOutput;
+    error?: string;
+};
+
+export async function analyzeSingleExamAction(
+    patientId: string,
+    document: { examDataUri: string; fileName: string }
+): Promise<SingleExamAnalysisResult> {
+    try {
+        console.log(`[Analyze Single Exam] Starting analysis for: ${document.fileName}`);
+        
+        const analysis = await analyzeSingleExam(document);
+        
+        const examId = await addExamToPatient(patientId, {
+            type: document.fileName,
+            result: analysis.examResultsSummary.substring(0, 200) + '...',
+            icon: 'FileText',
+            preliminaryDiagnosis: 'Aguardando consolidação...',
+            explanation: analysis.patientExplanation,
+            suggestions: 'A ser gerado após análise completa.',
+            results: analysis.structuredResults || [],
+            specialistFindings: [],
+        });
+
+        const outputText = [
+            analysis.examResultsSummary,
+            analysis.patientExplanation,
+        ].join(' ');
+        
+        const outputTokens = estimateTokens(outputText);
+        const inputTokens = 3000;
+        const model = 'gemini-2.5-flash';
+        const { totalCost } = calculateLLMCost(model, inputTokens, outputTokens);
+        const costCents = usdToBRLCents(totalCost);
+
+        trackUsage({
+            patientId,
+            usageType: 'exam_analysis',
+            resourceName: `single_${document.fileName}`,
+            model,
+            inputTokens,
+            outputTokens,
+            tokensUsed: inputTokens + outputTokens,
+            cost: costCents,
+            metadata: {
+                examId,
+                stage: 'individual',
+                documentType: analysis.documentType,
+            },
+        }).catch(error => {
+            console.error('[Usage Tracking] Failed to track single exam analysis:', error);
+        });
+
+        console.log(`[Analyze Single Exam] ✅ Completed: ${document.fileName}, examId: ${examId}`);
+        
+        return { success: true, examId, analysis };
+    } catch (error: any) {
+        console.error(`[Analyze Single Exam] ❌ Failed: ${document.fileName}`, error);
+        return { success: false, error: error.message };
+    }
+}
+
+export type ConsolidationResult = {
+    success: boolean;
+    message: string;
+    primaryExamId?: string;
+};
+
+export async function consolidateExamsAction(
+    patientId: string,
+    examResults: Array<{
+        fileName: string;
+        examId: string;
+        analysis: SingleDocumentOutput;
+    }>
+): Promise<ConsolidationResult> {
+    try {
+        console.log(`[Consolidate Exams] Consolidating ${examResults.length} exam(s)...`);
+        
+        const consolidatedAnalysis = await consolidateExamsAnalysis(examResults);
+        
+        const primaryExamId = consolidatedAnalysis.examIds[0];
+        
+        for (const examId of consolidatedAnalysis.examIds) {
+            await updateExam(patientId, examId, {
+                preliminaryDiagnosis: consolidatedAnalysis.preliminaryDiagnosis,
+                explanation: consolidatedAnalysis.explanation,
+                suggestions: consolidatedAnalysis.suggestions,
+                specialistFindings: consolidatedAnalysis.specialistFindings || [],
+            });
+        }
+
+        const outputText = [
+            consolidatedAnalysis.preliminaryDiagnosis,
+            consolidatedAnalysis.explanation,
+            consolidatedAnalysis.suggestions,
+            ...(consolidatedAnalysis.specialistFindings || []).map(f => 
+                `${f.specialist}: ${f.findings} ${f.clinicalAssessment} ${f.recommendations}`
+            ),
+        ].join(' ');
+        
+        const outputTokens = estimateTokens(outputText);
+        const inputTokens = 12000;
+        const specialistCount = consolidatedAnalysis.specialistFindings?.length || 1;
+        const model = 'gemini-2.5-flash';
+        const { totalCost } = calculateLLMCost(model, inputTokens, outputTokens);
+        const costCents = usdToBRLCents(totalCost);
+
+        trackUsage({
+            patientId,
+            usageType: 'exam_analysis',
+            resourceName: `consolidation_${examResults.length}_exams`,
+            model,
+            inputTokens,
+            outputTokens,
+            tokensUsed: inputTokens + outputTokens,
+            cost: costCents,
+            metadata: {
+                examIds: consolidatedAnalysis.examIds,
+                specialistCount,
+                stage: 'consolidation',
+            },
+        }).catch(error => {
+            console.error('[Usage Tracking] Failed to track consolidation:', error);
+        });
+
+        console.log(`[Consolidate Exams] ✅ Consolidation complete`);
+
+        regeneratePatientWellnessPlan(patientId).catch(error => {
+            console.error('[Consolidate Exams] Failed to update wellness plan:', error);
+        });
+
+        revalidatePath('/patient/history');
+        revalidatePath('/patient/wellness');
+
+        return { 
+            success: true, 
+            message: 'Análise consolidada com sucesso!', 
+            primaryExamId 
+        };
+    } catch (error: any) {
+        console.error('[Consolidate Exams] ❌ Failed:', error);
+        return { success: false, message: error.message };
     }
 }

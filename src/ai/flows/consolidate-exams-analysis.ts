@@ -1,0 +1,148 @@
+'use server';
+
+/**
+ * @fileOverview AI function for consolidating multiple exam analyses and generating
+ * the final diagnosis after all documents have been individually analyzed.
+ */
+
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
+import { generatePreliminaryDiagnosis } from './generate-preliminary-diagnosis';
+import type { SingleDocumentOutput } from './analyze-single-exam';
+
+export type IndividualExamResult = {
+  fileName: string;
+  examId: string;
+  analysis: SingleDocumentOutput;
+};
+
+const ConsolidateInputSchema = z.object({
+  examResults: z.array(z.object({
+    fileName: z.string(),
+    examId: z.string(),
+    examResultsSummary: z.string(),
+    patientExplanation: z.string(),
+    documentType: z.string().optional(),
+  })),
+});
+
+const ConsolidatedSummarySchema = z.object({
+  unifiedSummary: z.string().describe("A unified comprehensive summary of ALL exam results in medical terminology"),
+  unifiedPatientExplanation: z.string().describe("A unified simple, empathetic explanation for the patient in Brazilian Portuguese"),
+  correlations: z.string().optional().describe("Any correlations or patterns identified across different exams"),
+});
+
+const combineAnalysesPrompt = ai.definePrompt({
+  name: 'combineExamAnalysesPrompt',
+  input: { schema: ConsolidateInputSchema },
+  output: { schema: ConsolidatedSummarySchema },
+  prompt: `Você é um assistente médico de IA. Você recebeu análises de múltiplos documentos de exame que foram processados individualmente.
+Sua tarefa é criar uma análise UNIFICADA e abrangente que combina todas as descobertas de forma coerente.
+
+**INSTRUÇÕES CRÍTICAS:**
+- Combine todas as descobertas médicas em UM resumo coeso
+- Identifique quaisquer correlações ou padrões entre diferentes exames
+- Crie uma única explicação amigável ao paciente que cobre todos os exames
+- Todo o texto voltado ao paciente deve estar em português brasileiro
+- NÃO apenas concatene - sintetize e integre as informações
+- Destaque conexões importantes entre diferentes resultados de exames
+
+**Análises Individuais dos Documentos:**
+{{#each examResults}}
+---
+📋 Documento: {{this.fileName}}
+📝 Tipo: {{this.documentType}}
+🔬 Resumo Médico: {{this.examResultsSummary}}
+💬 Explicação ao Paciente: {{this.patientExplanation}}
+---
+{{/each}}
+
+Retorne APENAS um objeto JSON simples com os campos exatos especificados. SEM marcas de markdown, SEM acentos graves.`,
+});
+
+export type ConsolidatedAnalysisOutput = {
+  preliminaryDiagnosis: string;
+  explanation: string;
+  suggestions: string;
+  structuredResults?: Array<{
+    name: string;
+    value: string;
+    reference: string;
+  }>;
+  specialistFindings?: Array<{
+    specialist: string;
+    findings: string;
+    clinicalAssessment: string;
+    recommendations: string;
+  }>;
+  examIds: string[];
+};
+
+export async function consolidateExamsAnalysis(
+  examResults: IndividualExamResult[]
+): Promise<ConsolidatedAnalysisOutput> {
+  console.log(`[🔗 Consolidation] Consolidating ${examResults.length} exam analyses...`);
+  
+  if (examResults.length === 0) {
+    throw new Error('No exam results to consolidate');
+  }
+  
+  const examIds = examResults.map(r => r.examId);
+  
+  if (examResults.length === 1) {
+    console.log('[🔗 Consolidation] Single exam - proceeding directly to specialist analysis...');
+    
+    const singleResult = examResults[0];
+    const specialistAnalysis = await generatePreliminaryDiagnosis({
+      examResults: singleResult.analysis.examResultsSummary,
+      patientHistory: "Histórico não disponível nesta análise inicial.",
+    });
+    
+    return {
+      preliminaryDiagnosis: specialistAnalysis.synthesis,
+      explanation: singleResult.analysis.patientExplanation,
+      suggestions: specialistAnalysis.suggestions,
+      structuredResults: singleResult.analysis.structuredResults,
+      specialistFindings: specialistAnalysis.structuredFindings,
+      examIds,
+    };
+  }
+  
+  console.log('[🔗 Consolidation] Multiple exams - combining analyses first...');
+  
+  const { output: consolidatedSummary } = await combineAnalysesPrompt({
+    examResults: examResults.map(r => ({
+      fileName: r.fileName,
+      examId: r.examId,
+      examResultsSummary: r.analysis.examResultsSummary,
+      patientExplanation: r.analysis.patientExplanation,
+      documentType: r.analysis.documentType || 'Exame médico',
+    })),
+  });
+  
+  if (!consolidatedSummary) {
+    throw new Error('Failed to consolidate exam analyses');
+  }
+  
+  console.log('[🔗 Consolidation] ✅ Analyses combined successfully');
+  console.log('[🩺 Specialist Team] Activating multi-specialist diagnostic system...');
+  
+  const specialistAnalysis = await generatePreliminaryDiagnosis({
+    examResults: consolidatedSummary.unifiedSummary,
+    patientHistory: "Histórico não disponível nesta análise inicial.",
+  });
+  
+  console.log(`[🩺 Specialist Team] ✅ Consulted ${specialistAnalysis.structuredFindings.length} specialist(s)`);
+  
+  const allStructuredResults = examResults
+    .flatMap(r => r.analysis.structuredResults || []);
+  
+  return {
+    preliminaryDiagnosis: specialistAnalysis.synthesis,
+    explanation: consolidatedSummary.unifiedPatientExplanation,
+    suggestions: specialistAnalysis.suggestions,
+    structuredResults: allStructuredResults.length > 0 ? allStructuredResults : undefined,
+    specialistFindings: specialistAnalysis.structuredFindings,
+    examIds,
+  };
+}
