@@ -8,6 +8,8 @@ import { getAllExamsForWellnessPlan, updatePatientWellnessPlan, getPatientById }
 import { nutritionistAgent } from './nutritionist-agent';
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { trackWellnessPlan } from '@/lib/usage-tracker';
+import { estimateTokens } from '@/lib/ai-pricing';
 
 const RecipeSchema = z.object({
     title: z.string().describe("Nome da receita"),
@@ -222,6 +224,18 @@ Histórico de Conversas: ${patient.conversationHistory || 'Nenhuma conversa regi
       patientHistory: patientHistory,
     });
 
+    // Track nutritionist agent LLM usage
+    const nutritionistInputText = [examSummary, patientHistory].filter(Boolean).join('\n\n');
+    const nutritionistOutputText = [
+      nutritionistAnalysis.findings || '',
+      (nutritionistAnalysis as any).clinicalAssessment || '',
+      nutritionistAnalysis.recommendations || ''
+    ].filter(Boolean).join('\n\n');
+    const nutritionistInputTokens = estimateTokens(nutritionistInputText);
+    const nutritionistOutputTokens = estimateTokens(nutritionistOutputText);
+    trackWellnessPlan(patientId, nutritionistInputTokens, nutritionistOutputTokens, 'gemini-2.0-flash')
+      .catch(err => console.error('[Wellness Plan Update] Nutritionist tracking error:', err));
+
     // 5. Generate comprehensive wellness plan
     console.log(`[Wellness Plan Update] Generating wellness plan...`);
     const nutritionistReport = `
@@ -239,6 +253,13 @@ ${nutritionistAnalysis.recommendations}
       nutritionistReport,
       patientHistory,
     });
+    
+    // Track wellness plan synthesis LLM usage
+    const synthesisInputText = [nutritionistReport, patientHistory].filter(Boolean).join('\n\n');
+    const synthesisInputTokens = estimateTokens(synthesisInputText);
+    const synthesisOutputTokens = estimateTokens(JSON.stringify(output || {}));
+    trackWellnessPlan(patientId, synthesisInputTokens, synthesisOutputTokens, 'gemini-2.0-flash')
+      .catch(err => console.error('[Wellness Plan Update] Synthesis tracking error:', err));
 
     if (!output) {
       console.error(`[Wellness Plan Update] Failed to generate wellness plan`);

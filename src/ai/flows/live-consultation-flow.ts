@@ -12,6 +12,8 @@ import { patientDataAccessTool } from '../tools/patient-data-access';
 import { consultationHistoryAccessTool } from '../tools/consultation-history-access';
 import { doctorsListAccessTool } from '../tools/doctors-list-access';
 import { gemini15Pro } from '@genkit-ai/googleai';
+import { trackLiveConsultation, trackSTT } from '@/lib/usage-tracker';
+import { estimateTokens } from '@/lib/ai-pricing';
 
 // Schemas for the live consultation flow
 const LiveConsultationInputSchema = z.object({
@@ -79,12 +81,14 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
   }
 
   // Construct the data URI for the video content, if provided.
-  // NOTE: The client-side implementation will need to determine the correct contentType
-  // and encoding for video frames/chunks. For simplicity, we assume webm here.
   if (input.videoData) {
-    const videoURI = `data:video/webm;base64,${input.videoData}`; // Or image/jpeg for image frames
-    mediaParts.push({ media: { url: videoURI, contentType: 'video/webm' } }); // Adjust contentType as needed
+    const videoURI = `data:video/webm;base64,${input.videoData}`;
+    mediaParts.push({ media: { url: videoURI, contentType: 'video/webm' } });
   }
+
+  // Track tool interactions for accurate token estimation
+  let toolRequestText = '';
+  let toolOutputText = '';
 
   // The user's message is the audio/video chunk.
   const userMessage = { role: 'user', content: mediaParts };
@@ -97,7 +101,7 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
 
   // Step 1: Call the multimodal model (Gemini 1.5 Pro) with the audio and video.
   const initialResponse = await ai.generate({
-    model: gemini15Pro, // Using the specified multimodal model
+    model: gemini15Pro,
     messages: messages,
     tools: [patientDataAccessTool, consultationHistoryAccessTool, doctorsListAccessTool],
     toolRequest: 'auto'
@@ -121,11 +125,15 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
       toolResult = await patientDataAccessTool(toolRequest.input);
     }
 
+    // Capture tool request and output for tracking
+    toolRequestText = `Tool: ${toolRequest.name}, Input: ${JSON.stringify(toolRequest.input || {})}`;
+    toolOutputText = JSON.stringify(toolResult || {});
+
     const toolFollowUpResponse = await ai.generate({
       model: gemini15Pro,
       messages: [
         ...messages,
-        initialMessage, // Include the model's prior message with the tool request
+        initialMessage,
         { role: 'tool', content: [{ toolResponse: { name: toolRequest.name, output: toolResult } }] }
       ],
       tools: [patientDataAccessTool, consultationHistoryAccessTool, doctorsListAccessTool],
@@ -139,18 +147,40 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
   if (!textResponse) {
     console.error("[Live Consultation] AI did not return a text response.");
     const errorMessage = "Desculpe, tive um problema para processar sua solicitação. Poderia tentar de novo?";
-    const audioError = await textToSpeech({ text: errorMessage });
+    const audioError = await textToSpeech({ text: errorMessage, patientId: input.patientId });
     return {
       transcript: errorMessage,
-      audioOutput: audioError?.audioDataUri?.split('base64,')[1] || '', // Return raw base64
+      audioOutput: audioError?.audioDataUri?.split('base64,')[1] || '',
     };
   }
 
   // Step 4: Convert the final text response to audio.
-  const audioResult = await textToSpeech({ text: textResponse });
+  const audioResult = await textToSpeech({ text: textResponse, patientId: input.patientId });
   const audioBase64 = audioResult?.audioDataUri?.split('base64,')[1] || '';
 
-  // Step 5: Return the final transcript and audio.
+  // Step 5: Track usage - STT (audio input) + LLM + TTS
+  const audioSizeBytes = input.audioData ? input.audioData.length : 0;
+  const audioDurationSeconds = Math.max(5, Math.ceil(audioSizeBytes / 8000));
+  
+  const historyTexts = input.history?.map(m => m.content.map(c => c.text).join(' ')) || [];
+  const inputTextParts = [SYSTEM_PROMPT, ...historyTexts, toolRequestText, toolOutputText].filter(Boolean);
+  const inputText = inputTextParts.join('\n\n');
+  const inputTokens = estimateTokens(inputText) + 500;
+  const outputTokens = estimateTokens(textResponse);
+  
+  trackSTT(input.patientId, audioDurationSeconds, `audio_duration_${audioDurationSeconds}s`)
+    .catch(err => console.error('[Live Consultation] STT tracking error:', err));
+  
+  trackLiveConsultation(
+    input.patientId,
+    audioDurationSeconds,
+    inputTokens,
+    outputTokens,
+    'beyondpresence',
+    'gemini-1.5-pro'
+  ).catch(err => console.error('[Live Consultation] Usage tracking error:', err));
+
+  // Step 6: Return the final transcript and audio.
   return {
     transcript: textResponse,
     audioOutput: audioBase64,

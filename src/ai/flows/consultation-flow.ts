@@ -15,6 +15,7 @@ import { patientDataAccessTool } from '../tools/patient-data-access';
 import { consultationHistoryAccessTool } from '../tools/consultation-history-access';
 import { doctorsListAccessTool } from '../tools/doctors-list-access';
 import { textToSpeech } from './text-to-speech';
+import { trackConsultationFlow } from '@/lib/usage-tracker';
 
 
 const RoleSchema = z.enum(['user', 'model']);
@@ -68,6 +69,10 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
 
     console.log('[Consultation Flow] Messages sent to AI:', JSON.stringify(messages, null, 2));
 
+    // Track tool interactions for accurate token estimation
+    let toolRequestText = '';
+    let toolOutputText = '';
+
     // Step 1: Make the initial call to the model to see if it wants to use a tool or respond directly.
     const initialResponse = await ai.generate({
         messages,
@@ -97,6 +102,10 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
         }
         
         console.log(`[Consultation Flow] Tool ${toolRequest.name} result:`, JSON.stringify(toolResult, null, 2));
+        
+        // Capture tool request and output for tracking
+        toolRequestText = `Tool: ${toolRequest.name}, Input: ${JSON.stringify(toolRequest.input || {})}`;
+        toolOutputText = JSON.stringify(toolResult || {});
 
         // Send the tool's result back to the model.
         const toolFollowUpResponse = await ai.generate({
@@ -133,6 +142,23 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
 
   // Make the flow resilient. If audio fails, we can still return the text.
   const audioDataUri = audioResult?.audioDataUri || "";
+
+  // Step 4: Track LLM usage (TTS is tracked separately in textToSpeech)
+  const historyTexts = input.history.map(m => m.content.map(c => c.text).join(' '));
+  const inputTextParts = [
+    SYSTEM_PROMPT,
+    ...historyTexts,
+    toolRequestText,
+    toolOutputText
+  ].filter(Boolean);
+  const inputText = inputTextParts.join('\n\n');
+  trackConsultationFlow(
+    input.patientId,
+    inputText,
+    textResponse,
+    !!audioDataUri,
+    'gemini-2.0-flash'
+  ).catch(err => console.error('[Consultation Flow] Usage tracking error:', err));
 
   return {
     response: textResponse,

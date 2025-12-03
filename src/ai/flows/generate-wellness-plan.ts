@@ -11,8 +11,11 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { nutritionistAgent } from './nutritionist-agent';
+import { trackWellnessPlan } from '@/lib/usage-tracker';
+import { estimateTokens } from '@/lib/ai-pricing';
 
 const GenerateWellnessPlanInputSchema = z.object({
+    patientId: z.string().optional().describe("The patient ID for usage tracking."),
     patientHistory: z.string().describe("A summary of the patient's medical history and current conditions."),
     examResults: z.string().describe('A summary of the latest exam results.'),
 });
@@ -229,6 +232,20 @@ const generateWellnessPlanFlow = ai.defineFlow(
             examResults: input.examResults,
         });
 
+        // Track nutritionist agent LLM usage if patientId is provided
+        if (input.patientId) {
+            const nutritionistInputText = [input.patientHistory, input.examResults].filter(Boolean).join('\n\n');
+            const nutritionistOutputText = [
+                nutritionistReport.findings || '',
+                (nutritionistReport as any).clinicalAssessment || '',
+                nutritionistReport.recommendations || ''
+            ].filter(Boolean).join('\n\n');
+            const nutritionistInputTokens = estimateTokens(nutritionistInputText);
+            const nutritionistOutputTokens = estimateTokens(nutritionistOutputText);
+            trackWellnessPlan(input.patientId, nutritionistInputTokens, nutritionistOutputTokens, 'gemini-2.0-flash')
+                .catch(err => console.error('[Generate Wellness Plan] Nutritionist tracking error:', err));
+        }
+
         let attempt = 0;
         const maxAttempts = 3;
         let lastError: any;
@@ -241,6 +258,21 @@ const generateWellnessPlanFlow = ai.defineFlow(
                     nutritionistReport: nutritionistReport.findings,
                     nutritionistRecommendations: nutritionistReport.recommendations,
                 });
+
+                // Track wellness plan synthesis LLM usage if patientId is provided
+                if (input.patientId && output) {
+                    const synthesisInputText = [
+                        input.patientHistory,
+                        input.examResults,
+                        nutritionistReport.findings || '',
+                        nutritionistReport.recommendations || ''
+                    ].filter(Boolean).join('\n\n');
+                    const synthesisInputTokens = estimateTokens(synthesisInputText);
+                    const synthesisOutputTokens = estimateTokens(JSON.stringify(output || {}));
+                    trackWellnessPlan(input.patientId, synthesisInputTokens, synthesisOutputTokens, 'gemini-2.0-flash')
+                        .catch(err => console.error('[Generate Wellness Plan] Synthesis tracking error:', err));
+                }
+
                 return output!;
             } catch (err: any) {
                 lastError = err;

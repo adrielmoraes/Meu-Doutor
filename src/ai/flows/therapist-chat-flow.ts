@@ -16,6 +16,7 @@
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
 import { getPatientById, getExamsByPatientId, getDoctors } from "@/lib/db-adapter";
+import { trackChatMessage } from "@/lib/usage-tracker";
 
 const TherapistChatInputSchema = z.object({
   patientId: z.string().describe("The unique identifier for the patient"),
@@ -227,6 +228,15 @@ const therapistChatFlow = ai.defineFlow(
       conversationHistory: input.conversationHistory,
     });
 
-    return output!;
+    const response = output!;
+    
+    trackChatMessage(
+      input.patientId,
+      input.message,
+      response.response,
+      'gemini-2.0-flash-lite'
+    ).catch(err => console.error('[Therapist Chat Flow] Usage tracking error:', err));
+
+    return response;
   },
 );
