@@ -118,6 +118,8 @@ export async function createPatientAction(prevState: any, formData: FormData) {
     }
 
     // Ativar automaticamente o plano Trial de 7 dias grátis
+    let trialActivated = false;
+    
     try {
       const stripe = (await import('@/lib/stripe')).stripe;
       const { upsertSubscription } = await import('@/lib/subscription-adapter');
@@ -125,7 +127,7 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       // Criar customer no Stripe
       const customer = await stripe.customers.create({
         email,
-        name: fullName, // Corrigido para usar fullName
+        name: fullName,
         metadata: { patientId },
       });
 
@@ -153,14 +155,28 @@ export async function createPatientAction(prevState: any, formData: FormData) {
         stripeSubscriptionId: subscription.id,
         stripeCustomerId: customer.id,
         status: 'trialing',
-        currentPeriodStart: new Date((subscription.current_period_start as number) * 1000),
-        currentPeriodEnd: new Date((subscription.current_period_end as number) * 1000),
+        currentPeriodStart: new Date(((subscription as any).current_period_start as number) * 1000),
+        currentPeriodEnd: new Date(((subscription as any).current_period_end as number) * 1000),
       });
 
-      console.log(`[Cadastro] Plano Trial ativado para ${email}`);
+      trialActivated = true;
+      console.log(`[Cadastro] ✅ Plano Trial via Stripe ativado para ${email}`);
     } catch (stripeError: any) {
-      console.error('[Cadastro] Erro ao ativar Trial automático:', stripeError);
-      // Não bloquear o cadastro se falhar a ativação do trial
+      console.error('[Cadastro] ⚠️ Erro ao ativar Trial via Stripe:', stripeError.message);
+      
+      // FALLBACK: Criar assinatura trial local se Stripe falhar
+      try {
+        const { createLocalTrialSubscription } = await import('@/lib/subscription-adapter');
+        await createLocalTrialSubscription(patientId);
+        trialActivated = true;
+        console.log(`[Cadastro] ✅ Plano Trial local ativado para ${email} (fallback)`);
+      } catch (localError: any) {
+        console.error('[Cadastro] ❌ Erro ao criar Trial local:', localError.message);
+      }
+    }
+    
+    if (!trialActivated) {
+      console.warn(`[Cadastro] ⚠️ Paciente ${email} cadastrado SEM plano trial ativo`);
     }
 
     revalidatePath('/doctor/patients');

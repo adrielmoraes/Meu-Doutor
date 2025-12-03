@@ -90,6 +90,33 @@ export async function createSubscription(data: {
   return id;
 }
 
+export async function createLocalTrialSubscription(patientId: string): Promise<string> {
+  const existingSubscription = await getSubscriptionByPatientId(patientId);
+  if (existingSubscription) {
+    console.log(`[Subscription] Paciente ${patientId} já possui assinatura`);
+    return existingSubscription.id;
+  }
+
+  const id = randomUUID();
+  const now = new Date();
+  const trialEnd = new Date();
+  trialEnd.setDate(trialEnd.getDate() + 7);
+
+  await db.insert(subscriptions).values({
+    id,
+    patientId,
+    planId: 'trial',
+    stripeSubscriptionId: `local_trial_${patientId}`,
+    stripeCustomerId: `local_customer_${patientId}`,
+    status: 'trialing',
+    currentPeriodStart: now,
+    currentPeriodEnd: trialEnd,
+  });
+
+  console.log(`[Subscription] ✅ Plano Trial local criado para paciente ${patientId}`);
+  return id;
+}
+
 export async function updateSubscription(subscriptionId: string, data: Partial<{
   status: 'active' | 'canceled' | 'past_due' | 'trialing' | 'incomplete';
   currentPeriodStart: Date;
