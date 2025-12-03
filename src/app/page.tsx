@@ -32,13 +32,27 @@ import {
   Scan,
   Waves,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LandingPage() {
   const router = useRouter();
   const [scrollY, setScrollY] = useState(0);
   const [videoStarted, setVideoStarted] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const handlePlayClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsTransitioning(true);
+    
+    setTimeout(() => {
+      setVideoStarted(true);
+      if (iframeRef.current) {
+        iframeRef.current.focus();
+      }
+    }, 100);
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -142,19 +156,21 @@ export default function LandingPage() {
                   <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-3xl blur-2xl group-hover:opacity-80 transition-opacity"></div>
                   <div className="relative rounded-2xl overflow-hidden border border-cyan-500/30 shadow-2xl shadow-cyan-500/20 bg-slate-900/50 backdrop-blur-sm">
                     <div className="aspect-video relative">
-                      {/* Video Iframe */}
+                      {/* Video Iframe - Pré-carregado para iniciar mais rápido */}
                       <iframe
-                        src={videoStarted ? "https://drive.google.com/file/d/1BVY75ME-q2vRmQKSlboCwgFVdmNynZGvaOJRv4olDUk/preview?autoplay=1" : "about:blank"}
-                        className="w-full h-full"
+                        ref={iframeRef}
+                        src="https://drive.google.com/file/d/1BVY75ME-q2vRmQKSlboCwgFVdmNynZGvaOJRv4olDUk/preview"
+                        className={`w-full h-full transition-opacity duration-300 ${videoStarted ? 'opacity-100' : 'opacity-0'}`}
                         allow="autoplay; encrypted-media; fullscreen"
                         allowFullScreen
+                        style={{ pointerEvents: videoStarted ? 'auto' : 'none' }}
                       ></iframe>
                       
                       {/* Animated Play Overlay */}
                       {!videoStarted && (
                         <div 
-                          onClick={() => setVideoStarted(true)}
-                          className="absolute inset-0 bg-gradient-to-br from-slate-900/95 via-blue-950/90 to-slate-900/95 cursor-pointer flex flex-col items-center justify-center gap-6 transition-all duration-500 hover:from-slate-900/90 hover:via-blue-950/85 hover:to-slate-900/90 group/overlay"
+                          onClick={handlePlayClick}
+                          className={`absolute inset-0 bg-gradient-to-br from-slate-900/95 via-blue-950/90 to-slate-900/95 cursor-pointer flex flex-col items-center justify-center gap-6 transition-all duration-300 hover:from-slate-900/90 hover:via-blue-950/85 hover:to-slate-900/90 group/overlay ${isTransitioning ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                         >
                           {/* Animated Background Rings */}
                           <div className="absolute inset-0 flex items-center justify-center">
