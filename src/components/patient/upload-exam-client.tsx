@@ -19,6 +19,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import type { SessionPayload } from "@/lib/session";
 import { getSessionOnClient } from "@/lib/session";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -48,6 +54,7 @@ export default function UploadExamClient() {
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [limitInfo, setLimitInfo] = useState<any>(null);
   const [analysisPhase, setAnalysisPhase] = useState<'idle' | 'individual' | 'consolidating' | 'wellness'>('idle');
+  const [previewImage, setPreviewImage] = useState<{dataUri: string; name: string} | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -461,10 +468,24 @@ export default function UploadExamClient() {
                   </div>
                   
                   {sf.dataUri.startsWith('data:image') ? (
-                    <Image src={sf.dataUri} alt={sf.name} width={200} height={200} className="w-full h-32 object-cover" />
+                    <div 
+                      className="cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => setPreviewImage({ dataUri: sf.dataUri, name: sf.name })}
+                    >
+                      <Image 
+                        src={sf.dataUri} 
+                        alt={sf.name} 
+                        width={400} 
+                        height={300} 
+                        className="w-full h-48 md:h-56 object-cover" 
+                      />
+                      <div className="absolute bottom-12 left-0 right-0 text-center text-xs text-white bg-black/50 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        Clique para ampliar
+                      </div>
+                    </div>
                   ) : (
-                    <div className="w-full h-32 bg-muted flex items-center justify-center p-2">
-                      <FileText className="h-12 w-12 text-muted-foreground" />
+                    <div className="w-full h-48 md:h-56 bg-muted flex items-center justify-center p-2">
+                      <FileText className="h-16 w-16 text-muted-foreground" />
                     </div>
                   )}
                   
@@ -547,6 +568,27 @@ export default function UploadExamClient() {
         </Button>
 
       </CardContent>
+
+      {/* Modal de Visualização Ampliada */}
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-2">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-sm truncate">{previewImage?.name}</DialogTitle>
+          </DialogHeader>
+          {previewImage && (
+            <div className="flex items-center justify-center overflow-auto">
+              <Image
+                src={previewImage.dataUri}
+                alt={previewImage.name}
+                width={1200}
+                height={900}
+                className="max-w-full max-h-[75vh] object-contain rounded-lg"
+                style={{ width: 'auto', height: 'auto' }}
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
