@@ -351,12 +351,24 @@ export default function UploadExamClient() {
     <Card>
       <CardContent className="p-4 md:p-6 space-y-6">
         {showCamera && (
-          <div className="fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center p-4">
-            <video ref={videoRef} autoPlay playsInline className="w-full max-w-3xl aspect-video rounded-lg" />
+          <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center p-2 md:p-4">
+            <div className="relative w-full h-full max-h-[85vh] flex items-center justify-center">
+              <video 
+                ref={videoRef} 
+                autoPlay 
+                playsInline 
+                className="w-full h-full max-h-[80vh] object-contain rounded-lg" 
+              />
+            </div>
             <canvas ref={canvasRef} className="hidden" />
-            <div className="flex gap-4 mt-4">
-              <Button onClick={takePicture} size="lg">Capturar Foto</Button>
-              <Button onClick={() => setShowCamera(false)} variant="destructive" size="lg">Cancelar</Button>
+            <div className="flex gap-4 mt-4 pb-4">
+              <Button onClick={takePicture} size="lg" className="px-8 py-6 text-lg">
+                <Camera className="mr-2 h-6 w-6" />
+                Capturar Foto
+              </Button>
+              <Button onClick={() => setShowCamera(false)} variant="destructive" size="lg" className="px-8 py-6 text-lg">
+                Cancelar
+              </Button>
             </div>
           </div>
         )}
