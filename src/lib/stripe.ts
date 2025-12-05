@@ -72,6 +72,34 @@ export async function getSubscription(subscriptionId: string) {
   return subscription;
 }
 
+export async function migrateSubscription(
+  subscriptionId: string,
+  newPriceId: string
+) {
+  // Obter a subscription atual para pegar o item ID
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  
+  if (!subscription.items.data || subscription.items.data.length === 0) {
+    throw new Error('Subscription sem items');
+  }
+
+  // Atualizar o subscription com o novo price, mantendo o resto igual
+  const updatedSubscription = await stripe.subscriptions.update(
+    subscriptionId,
+    {
+      items: [
+        {
+          id: subscription.items.data[0].id,
+          price: newPriceId,
+        },
+      ],
+      proration_behavior: 'create_prorations', // Criar créditos/cobranças por diferença
+    }
+  );
+
+  return updatedSubscription;
+}
+
 export async function createProduct(params: {
   name: string;
   description: string;

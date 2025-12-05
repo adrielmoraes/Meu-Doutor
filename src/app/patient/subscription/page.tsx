@@ -128,6 +128,11 @@ export default function SubscriptionPage() {
       if (data.redirectUrl) {
         window.location.href = data.redirectUrl;
       }
+      // Para migração de plano, também retorna redirectUrl com upgraded=true
+      else if (data.success && data.redirectUrl) {
+        alert(data.message || 'Plano atualizado com sucesso!');
+        window.location.href = data.redirectUrl;
+      }
       // Para planos pagos, url do checkout é retornado
       else if (data.url) {
         window.location.href = data.url;

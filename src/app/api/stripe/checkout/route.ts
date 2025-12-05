@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe, createCheckoutSession, createCustomer } from '@/lib/stripe';
-import { getSubscriptionByPatientId, createOrUpdateSubscriptionPlan } from '@/lib/subscription-adapter';
+import { stripe, createCheckoutSession, createCustomer, migrateSubscription } from '@/lib/stripe';
+import { getSubscriptionByPatientId, createOrUpdateSubscriptionPlan, upsertSubscription } from '@/lib/subscription-adapter';
 import { getPatientById } from '@/lib/db-adapter';
 import { getSession } from '@/lib/session';
 import { getPlanIdFromStripePrice, isValidStripePriceId } from '@/lib/plan-mapping';
@@ -59,11 +59,36 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    if (existingSubscription && existingSubscription.status === 'active') {
-      return NextResponse.json(
-        { error: 'Você já possui uma assinatura ativa' },
-        { status: 400 }
-      );
+    // Se já tem assinatura ativa e não é trial, permitir migração
+    if (existingSubscription && existingSubscription.status === 'active' && planId !== 'trial') {
+      try {
+        // Fazer migração de plano
+        const stripeSubscriptionId = existingSubscription.stripeSubscriptionId;
+        const migratedSubscription = await migrateSubscription(stripeSubscriptionId, stripePriceId);
+        
+        // Atualizar subscription no banco de dados
+        await upsertSubscription({
+          patientId: session.userId,
+          planId: planId,
+          stripeSubscriptionId: stripeSubscriptionId,
+          stripeCustomerId: existingSubscription.stripeCustomerId,
+          status: 'active',
+          currentPeriodStart: new Date((migratedSubscription as any).current_period_start * 1000),
+          currentPeriodEnd: new Date((migratedSubscription as any).current_period_end * 1000),
+        });
+        
+        return NextResponse.json({ 
+          success: true, 
+          message: 'Plano atualizado com sucesso!',
+          redirectUrl: `${process.env.NEXT_PUBLIC_BASE_URL || ''}/patient/subscription?upgraded=true`
+        });
+      } catch (error: any) {
+        console.error('Erro ao fazer migração de plano:', error);
+        return NextResponse.json(
+          { error: 'Erro ao migrar para novo plano: ' + error.message },
+          { status: 400 }
+        );
+      }
     }
 
     let customerId = existingSubscription?.stripeCustomerId;
