@@ -1174,39 +1174,84 @@ class MediAIAgent(Agent):
         ALL heavy operations (YUV->RGBA conversion, numpy, PIL, resize, JPEG encoding) happen here.
         
         MEMORY OPTIMIZATION: Explicitly delete large objects and force garbage collection.
+        
+        NOTE: Some Docker containers may crash with SIGILL if numpy/Pillow use AVX instructions
+        not available on the host CPU. This function has error handling but SIGILL cannot be caught.
+        If you see exit code -4 (SIGILL), rebuild the Docker image with CPU-generic wheels.
         """
+        rgba_frame = None
+        rgba_array = None
+        rgb_array = None
+        img = None
+        img_buffer = None
+        
         try:
+            logger.debug("[Vision] Starting frame conversion to RGBA...")
             rgba_frame = frame.convert(VideoBufferType.RGBA)
 
             height = rgba_frame.height
             width = rgba_frame.width
+            logger.debug(f"[Vision] RGBA frame: {width}x{height}")
 
+            # Use numpy with explicit memory management
+            logger.debug("[Vision] Creating numpy array from buffer...")
             rgba_array = np.frombuffer(rgba_frame.data, dtype=np.uint8)
             rgba_array = rgba_array.reshape((height, width, 4))
 
+            logger.debug("[Vision] Extracting RGB channels...")
             rgb_array = rgba_array[:, :, :3].copy()
+            del rgba_array
             rgba_array = None
 
+            logger.debug("[Vision] Creating PIL Image...")
             img = Image.fromarray(rgb_array, 'RGB')
+            del rgb_array
             rgb_array = None
 
+            logger.debug("[Vision] Resizing image to 480x480...")
             img = img.resize((480, 480), Image.Resampling.BILINEAR)
 
+            logger.debug("[Vision] Encoding to JPEG...")
             img_buffer = io.BytesIO()
             img.save(img_buffer, format='JPEG', quality=60)
             frame_bytes = img_buffer.getvalue()
 
             img_buffer.close()
+            del img
             img = None
+            del rgba_frame
             rgba_frame = None
 
+            logger.debug(f"[Vision] Frame processed successfully: {len(frame_bytes)} bytes")
             gc.collect()
             return frame_bytes
 
-        except Exception as e:
-            logger.debug(f"[Vision] Error in sync frame processing: {e}")
+        except MemoryError as e:
+            logger.error(f"[Vision] Memory error in frame processing: {e}")
             gc.collect()
             return None
+        except Exception as e:
+            logger.error(f"[Vision] Error in sync frame processing: {e}")
+            import traceback
+            logger.error(f"[Vision] Traceback: {traceback.format_exc()}")
+            gc.collect()
+            return None
+        finally:
+            # Ensure cleanup even on partial failure
+            if rgba_array is not None:
+                del rgba_array
+            if rgb_array is not None:
+                del rgb_array
+            if img is not None:
+                del img
+            if img_buffer is not None:
+                try:
+                    img_buffer.close()
+                except:
+                    pass
+            if rgba_frame is not None:
+                del rgba_frame
+            gc.collect()
 
     async def cleanup_video_stream(self):
         """Properly cleanup video stream resources."""
@@ -1405,10 +1450,10 @@ Descreva PRECISAMENTE o que você vê nesta imagem:"""
             gc.collect()
 
     async def on_enter(self):
-        """Called when agent enters the session - generates initial greeting"""
+        """Called when agent enters the session - generates initial greeting using session.say()"""
 
         # Wait for avatar to fully load and sync audio/video
-        # Increased to 8 seconds for better synchronization with Gemini Live API
+        # This ensures the avatar is visible before greeting starts
         logger.info(
             "[MediAI] ⏳ Waiting for avatar to be visible and audio/video to sync..."
         )
@@ -1420,32 +1465,39 @@ Descreva PRECISAMENTE o que você vê nesta imagem:"""
                 self.metrics_collector.start_periodic_flush())
 
         logger.info("[MediAI] 🎤 Generating initial greeting in PT-BR...")
-        initial_greeting = "Cumprimente o paciente calorosamente pelo nome em PORTUGUÊS BRASILEIRO claro e pergunte como pode ajudá-lo hoje com sua saúde. Seja natural, breve e acolhedora. IMPORTANTE: Fale EXCLUSIVAMENTE em português brasileiro."
+        
+        # Use session.say() instead of generate_reply() to avoid collision with 
+        # LiveKit's internal _realtime_reply_task flow. session.say() is the 
+        # recommended approach for agent-initiated speech.
+        initial_greeting = "Olá! Seja muito bem-vindo à MediAI. Eu sou sua assistente médica virtual e estou aqui para ajudá-lo hoje. Como você está se sentindo? Pode me contar o que te traz aqui?"
 
         # Rastrear como LLM output
         if self.metrics_collector:
             self.metrics_collector.track_llm(input_text=initial_greeting)
 
-        # Generate initial greeting with retry logic for Gemini Live API stability
+        # Use session.say() for agent-initiated greeting - this is the safe approach
+        # that doesn't conflict with LiveKit's internal generation management
         max_retries = 3
         for attempt in range(max_retries):
             try:
                 if self._agent_session:
-                    await self._agent_session.generate_reply(instructions=initial_greeting)
-                    logger.info("[MediAI] ✅ Initial greeting generated successfully")
+                    # session.say() sends text directly to TTS without waiting for LLM
+                    # This avoids the generate_reply timeout issue
+                    await self._agent_session.say(initial_greeting)
+                    logger.info("[MediAI] ✅ Initial greeting sent successfully via session.say()")
                     break
                 else:
                     logger.error("[MediAI] ❌ Agent session not available")
                     break
             except Exception as e:
-                logger.warning(f"[MediAI] ⚠️ generate_reply attempt {attempt + 1}/{max_retries} failed: {e}")
+                logger.warning(f"[MediAI] ⚠️ session.say() attempt {attempt + 1}/{max_retries} failed: {e}")
                 if attempt < max_retries - 1:
                     # Wait before retry with exponential backoff
                     wait_time = 2 ** attempt
                     logger.info(f"[MediAI] 🔄 Retrying in {wait_time}s...")
                     await asyncio.sleep(wait_time)
                 else:
-                    logger.error(f"[MediAI] ❌ Failed to generate greeting after {max_retries} attempts")
+                    logger.error(f"[MediAI] ❌ Failed to send greeting after {max_retries} attempts")
                     # Session will still be active for user-initiated conversations
 
     async def _handle_user_transcription(self, event):
