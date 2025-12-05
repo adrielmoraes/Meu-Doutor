@@ -93,10 +93,29 @@ export default function SubscriptionPage() {
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'pix' | 'all'>('all');
   const [showPaymentOptions, setShowPaymentOptions] = useState(false);
   const [selectedPlanForPayment, setSelectedPlanForPayment] = useState<{id: string, stripePriceId: string} | null>(null);
+  const [pixEnabled, setPixEnabled] = useState(false);
 
   useEffect(() => {
     fetchSubscriptionStatus();
+    fetchPaymentSettings();
   }, []);
+
+  const fetchPaymentSettings = async () => {
+    try {
+      const res = await fetch('/api/admin/payment-settings');
+      const data = await res.json();
+      setPixEnabled(data.pixEnabled || false);
+      
+      // Se PIX está desativado, forçar método card
+      if (!data.pixEnabled) {
+        setPaymentMethod('card');
+      }
+    } catch (error) {
+      console.error('Erro ao carregar configurações de pagamento:', error);
+      setPixEnabled(false);
+      setPaymentMethod('card');
+    }
+  };
 
   const fetchSubscriptionStatus = async () => {
     try {
@@ -111,36 +130,29 @@ export default function SubscriptionPage() {
   };
 
   const handleSubscribe = async (planId: string, stripePriceId: string) => {
-    // Verificar se PIX está ativado
-    try {
-      const response = await fetch('/api/admin/payment-settings');
-      const settings = await response.json();
-      
-      // Se PIX não está ativado, forçar método de pagamento "card"
-      let finalPaymentMethod = paymentMethod;
-      if (!settings.pixEnabled && paymentMethod !== 'card') {
-        finalPaymentMethod = 'card';
-      }
-      
-      if (subscriptionStatus?.hasActiveSubscription && !['trial'].includes(planId)) {
-        // Para migração, permitir escolha de método de pagamento
-        setSelectedPlanForPayment({ id: planId, stripePriceId });
-        setShowPaymentOptions(true);
-        return;
-      }
-      
-      // Para novos planos, processar direto
-      await processCheckout(planId, stripePriceId, finalPaymentMethod);
-    } catch (error) {
-      console.error('Erro ao verificar configurações de pagamento:', error);
-      // Se falhar, continuar com o método selecionado
-      if (subscriptionStatus?.hasActiveSubscription && !['trial'].includes(planId)) {
-        setSelectedPlanForPayment({ id: planId, stripePriceId });
-        setShowPaymentOptions(true);
-      } else {
-        await processCheckout(planId, stripePriceId, paymentMethod);
-      }
+    // Se PIX está desativado, ir direto para checkout com cartão (sem modal)
+    if (!pixEnabled) {
+      await processCheckout(planId, stripePriceId, 'card');
+      return;
     }
+    
+    // Se PIX está ativado, mostrar modal de escolha para planos pagos
+    if (subscriptionStatus?.hasActiveSubscription && !['trial'].includes(planId)) {
+      // Para migração, permitir escolha de método de pagamento
+      setSelectedPlanForPayment({ id: planId, stripePriceId });
+      setShowPaymentOptions(true);
+      return;
+    }
+    
+    // Para novos planos com PIX ativado, mostrar modal também
+    if (planId !== 'trial') {
+      setSelectedPlanForPayment({ id: planId, stripePriceId });
+      setShowPaymentOptions(true);
+      return;
+    }
+    
+    // Para trial, processar direto (trial não precisa de pagamento)
+    await processCheckout(planId, stripePriceId, 'card');
   };
 
   const processCheckout = async (planId: string, stripePriceId: string, method: string) => {
