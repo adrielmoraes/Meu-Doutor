@@ -6,6 +6,26 @@ MediAI is an AI-powered healthcare platform that connects patients with medical 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (December 5, 2025)
+
+### Camera Capture & Exam Upload
+- **Enhanced camera capture screen**: Full-screen camera preview (80% viewport height) on mobile for better visibility of exam documents
+- **Improved image previews**: Exam photos now display at 192-224px height (increased from 128px) with click-to-enlarge modal for detailed viewing
+
+### Subscription & Payment System
+- **Plan migration enabled**: Users can now migrate between Básico and Premium plans mid-cycle
+  - Uses Stripe `proration_behavior: 'create_prorations'` for automatic credit/charge calculations
+  - Migration handled via `/api/stripe/checkout` with automatic plan updates
+- **PIX payment support**: Added PIX as payment method alongside credit cards (via Stripe + EBANX partnership)
+  - Users can choose between: Cartão (card only), PIX (instant transfer), or Ambos (both available)
+  - Payment method selection modal for migration and new subscriptions
+  - Implementation: `paymentMethod` parameter in checkout session with support for `['card', 'pix']` or `['pix']`
+
+### AI Vision Configuration
+- **Gemini Vision enabled**: Created `livekit-agent/.env` with `ENABLE_VISION=true`
+  - Allows AI Avatar to see patient via camera during consultations
+  - Can describe patient appearance when asked
+
 ## System Architecture
 
 ### Frontend
@@ -38,7 +58,11 @@ Preferred communication style: Simple, everyday language.
 - **Data Visualization**: Exam history visualization with interactive time-series graphs using Recharts.
 - **Admin System**: Comprehensive admin panel for platform oversight, including user management, exam review, consultation monitoring, resource usage tracking, and platform settings configuration. Features include secure login, audit logging, email notifications, avatar provider selection for AI consultations, and custom patient quota management allowing admins to override default plan limits on a per-patient basis.
 - **Email Verification**: System for patient and doctor email verification with unique CPF/CRM validation and secure token-based verification.
-- **Subscription Management**: Integrated Stripe for handling subscription plans (Trial, Basic, Premium, Family) with usage-based tiers, secure payment processing, and webhook integration. Includes a 7-day free trial.
+- **Subscription Management**: Integrated Stripe for handling subscription plans (Trial, Basic, Premium) with usage-based tiers, secure payment processing, and webhook integration. Includes:
+  - 7-day free trial
+  - Plan migration support (Básico ↔ Premium with automatic proration)
+  - Dual payment methods: Cartão de Crédito (via Stripe) and PIX (via EBANX partnership)
+  - User-selectable payment method during checkout
 - **Security & Monitoring**: Implemented comprehensive security headers, Sentry for error tracking, structured logging, and usage tracking for resource consumption per patient.
 - **Performance Optimization**: In-memory cache layer, generic pagination system, optimized image components.
 - **Real-Time Notifications**: Server-Sent Events (SSE) system for real-time notifications of exam results, appointments, and alerts.
@@ -80,6 +104,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Payment & Subscription
 - Stripe (payment processing and subscription management)
+- EBANX (PIX payment processing in Brazil for Stripe)
 
 ### Email & Notifications
 - Resend (transactional email service for admin notifications and email verification)

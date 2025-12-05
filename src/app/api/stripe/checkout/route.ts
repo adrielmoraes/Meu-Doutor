@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { stripePriceId } = await req.json();
+    const { stripePriceId, paymentMethod = 'all' } = await req.json();
 
     if (!stripePriceId) {
       return NextResponse.json(
@@ -151,6 +151,7 @@ export async function POST(req: NextRequest) {
     const checkoutSession = await createCheckoutSession({
       priceId: stripePriceId,
       customerId,
+      paymentMethod: paymentMethod,
       metadata: {
         patientId: session.userId,
         planId: planId,

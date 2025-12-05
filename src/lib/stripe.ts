@@ -16,10 +16,18 @@ export async function createCheckoutSession(params: {
   metadata?: Record<string, string>;
   successUrl: string;
   cancelUrl: string;
+  paymentMethod?: 'card' | 'pix' | 'all';
 }) {
+  // Determinar quais métodos de pagamento usar
+  const paymentMethodTypes = params.paymentMethod === 'all' 
+    ? ['card', 'pix']
+    : params.paymentMethod === 'pix'
+    ? ['pix']
+    : ['card'];
+
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
-    payment_method_types: ['card'],
+    payment_method_types: paymentMethodTypes,
     line_items: [
       {
         price: params.priceId,

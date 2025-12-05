@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Loader2, CreditCard, Calendar, X } from "lucide-react";
+import { Check, Loader2, CreditCard, Calendar, X, Smartphone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 const plans = [
   {
@@ -88,6 +90,9 @@ export default function SubscriptionPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'pix' | 'all'>('all');
+  const [showPaymentOptions, setShowPaymentOptions] = useState(false);
+  const [selectedPlanForPayment, setSelectedPlanForPayment] = useState<{id: string, stripePriceId: string} | null>(null);
 
   useEffect(() => {
     fetchSubscriptionStatus();
@@ -106,6 +111,18 @@ export default function SubscriptionPage() {
   };
 
   const handleSubscribe = async (planId: string, stripePriceId: string) => {
+    if (subscriptionStatus?.hasActiveSubscription && !['trial'].includes(planId)) {
+      // Para migração, permitir escolha de método de pagamento
+      setSelectedPlanForPayment({ id: planId, stripePriceId });
+      setShowPaymentOptions(true);
+      return;
+    }
+    
+    // Para novos planos, processar direto
+    await processCheckout(planId, stripePriceId, paymentMethod);
+  };
+
+  const processCheckout = async (planId: string, stripePriceId: string, method: string) => {
     setLoading(planId);
     
     try {
@@ -113,7 +130,8 @@ export default function SubscriptionPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          stripePriceId: stripePriceId 
+          stripePriceId: stripePriceId,
+          paymentMethod: method
         }),
       });
 
@@ -143,6 +161,17 @@ export default function SubscriptionPage() {
     } finally {
       setLoading(null);
     }
+  };
+
+  const handleConfirmPaymentMethod = async () => {
+    if (!selectedPlanForPayment) return;
+    
+    setShowPaymentOptions(false);
+    await processCheckout(
+      selectedPlanForPayment.id,
+      selectedPlanForPayment.stripePriceId,
+      paymentMethod
+    );
   };
 
   const handleCancelSubscription = async () => {
@@ -380,6 +409,81 @@ export default function SubscriptionPage() {
             </p>
           </CardContent>
         </Card>
+        {/* Payment Method Selection Modal */}
+        {showPaymentOptions && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <Card className="w-full max-w-md bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600">
+              <CardHeader>
+                <CardTitle className="text-gray-900 dark:text-white">
+                  Escolha o Método de Pagamento
+                </CardTitle>
+                <CardDescription>
+                  Selecione como deseja pagar sua assinatura
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <RadioGroup value={paymentMethod} onValueChange={(value: any) => setPaymentMethod(value)}>
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg border-gray-300 dark:border-slate-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700">
+                    <RadioGroupItem value="all" id="method-all" />
+                    <Label htmlFor="method-all" className="flex-1 cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="h-5 w-5 text-pink-600 dark:text-cyan-400" />
+                        <span className="font-medium text-gray-900 dark:text-white">Ambos Disponíveis</span>
+                      </div>
+                      <span className="text-sm text-gray-600 dark:text-slate-400">Cartão de crédito e PIX</span>
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg border-gray-300 dark:border-slate-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700">
+                    <RadioGroupItem value="card" id="method-card" />
+                    <Label htmlFor="method-card" className="flex-1 cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        <span className="font-medium text-gray-900 dark:text-white">Cartão de Crédito</span>
+                      </div>
+                      <span className="text-sm text-gray-600 dark:text-slate-400">Débito ou crédito</span>
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg border-gray-300 dark:border-slate-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700">
+                    <RadioGroupItem value="pix" id="method-pix" />
+                    <Label htmlFor="method-pix" className="flex-1 cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        <Smartphone className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                        <span className="font-medium text-gray-900 dark:text-white">PIX</span>
+                      </div>
+                      <span className="text-sm text-gray-600 dark:text-slate-400">Transferência instantânea 24/7</span>
+                    </Label>
+                  </div>
+                </RadioGroup>
+
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => setShowPaymentOptions(false)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleConfirmPaymentMethod}
+                    disabled={loading === selectedPlanForPayment?.id}
+                    className="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                  >
+                    {loading === selectedPlanForPayment?.id ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      'Continuar'
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
