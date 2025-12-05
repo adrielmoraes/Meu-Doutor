@@ -62,26 +62,36 @@ export async function POST(req: NextRequest) {
     // Se já tem assinatura ativa e não é trial, permitir migração
     if (existingSubscription && existingSubscription.status === 'active' && planId !== 'trial') {
       try {
-        // Fazer migração de plano
-        const stripeSubscriptionId = existingSubscription.stripeSubscriptionId;
-        const migratedSubscription = await migrateSubscription(stripeSubscriptionId, stripePriceId);
+        // Verificar se é uma subscription local (trial) ou do Stripe
+        const stripeSubscriptionId = existingSubscription.stripeSubscriptionId || '';
+        const isLocalTrial = stripeSubscriptionId.startsWith('local_trial_');
         
-        // Atualizar subscription no banco de dados
-        await upsertSubscription({
-          patientId: session.userId,
-          planId: planId,
-          stripeSubscriptionId: stripeSubscriptionId,
-          stripeCustomerId: existingSubscription.stripeCustomerId,
-          status: 'active',
-          currentPeriodStart: new Date((migratedSubscription as any).current_period_start * 1000),
-          currentPeriodEnd: new Date((migratedSubscription as any).current_period_end * 1000),
-        });
-        
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Plano atualizado com sucesso!',
-          redirectUrl: `${process.env.NEXT_PUBLIC_BASE_URL || ''}/patient/subscription?upgraded=true`
-        });
+        if (isLocalTrial || !stripeSubscriptionId) {
+          // Se é trial local ou não tem subscription ID, não tentar migrar no Stripe
+          // Ao invés disso, criar um novo checkout para plano pago
+          console.log('Trial local detectado, criando novo checkout ao invés de migrar');
+          // Continuar com o fluxo normal de checkout
+        } else {
+          // Se é subscription válida do Stripe, fazer migração
+          const migratedSubscription = await migrateSubscription(stripeSubscriptionId, stripePriceId);
+          
+          // Atualizar subscription no banco de dados
+          await upsertSubscription({
+            patientId: session.userId,
+            planId: planId,
+            stripeSubscriptionId: stripeSubscriptionId,
+            stripeCustomerId: existingSubscription.stripeCustomerId,
+            status: 'active',
+            currentPeriodStart: new Date((migratedSubscription as any).current_period_start * 1000),
+            currentPeriodEnd: new Date((migratedSubscription as any).current_period_end * 1000),
+          });
+          
+          return NextResponse.json({ 
+            success: true, 
+            message: 'Plano atualizado com sucesso!',
+            redirectUrl: `${process.env.NEXT_PUBLIC_BASE_URL || ''}/patient/subscription?upgraded=true`
+          });
+        }
       } catch (error: any) {
         console.error('Erro ao fazer migração de plano:', error);
         return NextResponse.json(
