@@ -101,9 +101,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    let customerId = existingSubscription?.stripeCustomerId;
+    let customerId = existingSubscription?.stripeCustomerId || '';
+    const isLocalCustomer = customerId.startsWith('local_customer_');
     
-    if (!customerId) {
+    // Se não tem customer ou é local, criar novo no Stripe
+    if (!customerId || isLocalCustomer) {
+      console.log(`Criando novo Stripe customer (anterior: ${customerId || 'nenhum'})`);
       const customer = await createCustomer({
         email: patient.email,
         name: patient.name,
@@ -112,6 +115,9 @@ export async function POST(req: NextRequest) {
         },
       });
       customerId = customer.id;
+      
+      // Se tinha subscription local, precisamos atualizar a referência do customer
+      // (mas apenas para futuras operações, a subscription local fica como está)
     }
 
     // Construir base URL de forma segura - priorizar domínio customizado
