@@ -374,6 +374,14 @@ class MetricsCollector:
         delta_cost_cents = int(delta_cost_usd * usd_to_brl * 100)
 
         # Payload com DELTAS (não totais acumulativos)
+        # Map avatar provider names to expected enum values
+        avatar_provider_map = {
+            'bey': 'beyondpresence',
+            'tavus': 'tavus',
+            'beyondpresence': 'beyondpresence'
+        }
+        api_avatar_provider = avatar_provider_map.get(self.avatar_provider, 'beyondpresence')
+        
         payload = {
             "patientId": self.patient_id,
             "sessionId": self.session_id,
@@ -384,13 +392,13 @@ class MetricsCollector:
             "visionTokens": delta_vision_input + delta_vision_output,
             "visionInputTokens": delta_vision_input,
             "visionOutputTokens": delta_vision_output,
-            "activeSeconds": delta_active_seconds,
-            "avatarSeconds": delta_avatar_seconds,
-            "avatarProvider": self.avatar_provider,
+            "activeSeconds": delta_active_seconds + delta_avatar_seconds,
+            "avatarProvider": api_avatar_provider,
             "costCents": delta_cost_cents,
             "metadata": {
                 "model": "gemini-2.5-flash",
                 "avatarProvider": self.avatar_provider,
+                "avatarSeconds": delta_avatar_seconds,
                 "timestamp": time.time()
             }
         }
@@ -1399,11 +1407,12 @@ Descreva PRECISAMENTE o que você vê nesta imagem:"""
     async def on_enter(self):
         """Called when agent enters the session - generates initial greeting"""
 
-        # Wait 5 seconds for Tavus avatar to fully load and sync audio/video
+        # Wait for avatar to fully load and sync audio/video
+        # Increased to 8 seconds for better synchronization with Gemini Live API
         logger.info(
             "[MediAI] ⏳ Waiting for avatar to be visible and audio/video to sync..."
         )
-        await asyncio.sleep(5)
+        await asyncio.sleep(8)
 
         # Start metrics periodic flush
         if self.metrics_collector:
@@ -1417,7 +1426,27 @@ Descreva PRECISAMENTE o que você vê nesta imagem:"""
         if self.metrics_collector:
             self.metrics_collector.track_llm(input_text=initial_greeting)
 
-        await self._agent_session.generate_reply(instructions=initial_greeting)
+        # Generate initial greeting with retry logic for Gemini Live API stability
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                if self._agent_session:
+                    await self._agent_session.generate_reply(instructions=initial_greeting)
+                    logger.info("[MediAI] ✅ Initial greeting generated successfully")
+                    break
+                else:
+                    logger.error("[MediAI] ❌ Agent session not available")
+                    break
+            except Exception as e:
+                logger.warning(f"[MediAI] ⚠️ generate_reply attempt {attempt + 1}/{max_retries} failed: {e}")
+                if attempt < max_retries - 1:
+                    # Wait before retry with exponential backoff
+                    wait_time = 2 ** attempt
+                    logger.info(f"[MediAI] 🔄 Retrying in {wait_time}s...")
+                    await asyncio.sleep(wait_time)
+                else:
+                    logger.error(f"[MediAI] ❌ Failed to generate greeting after {max_retries} attempts")
+                    # Session will still be active for user-initiated conversations
 
     async def _handle_user_transcription(self, event):
         """Handle user transcription event - logs speech and tracks metrics."""
