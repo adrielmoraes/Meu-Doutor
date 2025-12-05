@@ -5,9 +5,17 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
+    libffi-dev \
+    gcc \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
+
+RUN pip install --no-cache-dir --upgrade pip
+
+RUN pip install --no-cache-dir numpy --no-binary :all:
+RUN pip install --no-cache-dir Pillow --no-binary :all:
 
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -18,4 +26,4 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 EXPOSE 8080
 
-CMD ["python", "run-agent.py"]
+CMD ["python", "agent.py", "start"]

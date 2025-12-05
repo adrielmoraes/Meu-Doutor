@@ -80,12 +80,26 @@ open /Applications/Docker.app
 docker --version
 ```
 
-**Windows:**
-1. Baixe o [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-2. Execute o instalador
-3. Reinicie o computador
-4. Abra o Docker Desktop
-5. Verifique no PowerShell: `docker --version`
+**Windows (Passo a Passo Detalhado):**
+
+1. **Instalar Docker Desktop**
+   - Baixe em: https://www.docker.com/products/docker-desktop/
+   - Execute o instalador
+   - **IMPORTANTE**: Marque a opção "Use WSL 2 instead of Hyper-V"
+   - Reinicie o computador
+
+2. **Configurar Docker Desktop**
+   - Abra o Docker Desktop
+   - Vá em **Settings** → **General**
+   - Marque **"Use the WSL 2 based engine"**
+   - Vá em **Settings** → **Resources** → **WSL Integration**
+   - Ative a integração com sua distro WSL (se usar)
+
+3. **Verificar instalação (PowerShell)**
+   ```powershell
+   docker --version
+   docker-compose --version
+   ```
 
 ### Passo 2: Clonar/Baixar o Projeto
 
@@ -415,6 +429,29 @@ docker-compose up -d --build
 # Reinstalar dependências
 pip install -r requirements.txt --force-reinstall
 ```
+
+#### Exit code -4 (SIGILL - Illegal Instruction)
+Este erro acontece quando numpy/Pillow usam instruções AVX que a CPU não suporta.
+
+**Solução:** O Dockerfile já foi atualizado para compilar numpy/Pillow sem AVX:
+```dockerfile
+RUN pip install --no-cache-dir numpy --no-binary :all:
+RUN pip install --no-cache-dir Pillow --no-binary :all:
+```
+
+Se ainda ocorrer, reconstrua a imagem:
+```bash
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+#### Timeout no greeting inicial / "generate_reply timed out"
+Este erro foi corrigido no código. O agent agora usa `session.say()` em vez de `generate_reply()`.
+
+Se ainda ocorrer:
+1. Atualize o código do agent para a versão mais recente
+2. Reconstrua o container: `docker-compose up -d --build`
 
 #### "LiveKit connection failed"
 1. Verifique se as credenciais LiveKit estão corretas
