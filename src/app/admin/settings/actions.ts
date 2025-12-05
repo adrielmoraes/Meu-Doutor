@@ -1,12 +1,13 @@
 'use server';
 
 import { db } from '../../../../server/storage';
-import { adminAuth, admins } from '../../../../shared/schema';
+import { adminAuth, admins, platformSettings } from '../../../../shared/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 import { getAdminSettings, updateAdminSettings, createAuditLog } from '@/lib/db-adapter';
 import type { AdminSettings } from '@/types';
 import { headers } from 'next/headers';
+import { randomUUID } from 'crypto';
 
 export async function changeAdminPassword({
   adminId,
@@ -313,6 +314,84 @@ export async function updateAvatarSettings({
     return { success: true };
   } catch (error) {
     console.error('Erro ao atualizar configurações de avatar:', error);
+    return { success: false, error: 'Erro ao processar solicitação' };
+  }
+}
+
+export async function getPaymentSettings(): Promise<{ pixEnabled: boolean }> {
+  try {
+    const result = await db.select().from(platformSettings).where(eq(platformSettings.key, 'pix_enabled')).limit(1);
+    
+    if (result[0]) {
+      return {
+        pixEnabled: result[0].value === 'true'
+      };
+    }
+    
+    return { pixEnabled: false };
+  } catch (error) {
+    console.error('Erro ao obter configurações de pagamento:', error);
+    return { pixEnabled: false };
+  }
+}
+
+export async function updatePaymentSettings({
+  adminId,
+  pixEnabled,
+}: {
+  adminId: string;
+  pixEnabled: boolean;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const adminRecord = await db.select().from(admins).where(eq(admins.id, adminId)).limit(1);
+    
+    if (!adminRecord[0]) {
+      return { success: false, error: 'Administrador não encontrado' };
+    }
+
+    const existing = await db.select().from(platformSettings).where(eq(platformSettings.key, 'pix_enabled')).limit(1);
+    
+    if (existing[0]) {
+      await db.update(platformSettings)
+        .set({
+          value: pixEnabled ? 'true' : 'false',
+          updatedAt: new Date(),
+        })
+        .where(eq(platformSettings.key, 'pix_enabled'));
+    } else {
+      await db.insert(platformSettings).values({
+        id: randomUUID(),
+        key: 'pix_enabled',
+        value: pixEnabled ? 'true' : 'false',
+        description: 'Habilita/desabilita PIX como método de pagamento',
+      });
+    }
+
+    const headersList = await headers();
+    const ipAddress = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'unknown';
+    const userAgent = headersList.get('user-agent') || 'unknown';
+
+    await createAuditLog({
+      adminId: adminRecord[0].id,
+      adminName: adminRecord[0].name,
+      adminEmail: adminRecord[0].email,
+      action: 'update_payment_settings',
+      entityType: 'payment_settings',
+      entityId: 'pix',
+      changes: [
+        {
+          field: 'pix_enabled',
+          oldValue: existing[0]?.value || 'false',
+          newValue: pixEnabled ? 'true' : 'false',
+        },
+      ],
+      ipAddress,
+      userAgent,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Erro ao atualizar configurações de pagamento:', error);
     return { success: false, error: 'Erro ao processar solicitação' };
   }
 }

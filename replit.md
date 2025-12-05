@@ -16,15 +16,28 @@ Preferred communication style: Simple, everyday language.
 - **Plan migration enabled**: Users can now migrate between Básico and Premium plans mid-cycle
   - Uses Stripe `proration_behavior: 'create_prorations'` for automatic credit/charge calculations
   - Migration handled via `/api/stripe/checkout` with automatic plan updates
+  - Special handling for local trial subscriptions → auto-create new Stripe customer
 - **PIX payment support**: Added PIX as payment method alongside credit cards (via Stripe + EBANX partnership)
   - Users can choose between: Cartão (card only), PIX (instant transfer), or Ambos (both available)
   - Payment method selection modal for migration and new subscriptions
   - Implementation: `paymentMethod` parameter in checkout session with support for `['card', 'pix']` or `['pix']`
+- **Admin control for PIX**: New admin dashboard toggle to enable/disable PIX payment method
+  - Location: Admin Settings → Configurações de Pagamento
+  - Database: `platform_settings` table stores PIX enable/disable state
+  - API: `/api/admin/payment-settings` endpoint
+  - When disabled, PIX option never shows to users (even if selected, forces 'card' method)
+  - Users automatically fall back to card payments when PIX is disabled
 
 ### AI Vision Configuration
 - **Gemini Vision enabled**: Created `livekit-agent/.env` with `ENABLE_VISION=true`
   - Allows AI Avatar to see patient via camera during consultations
   - Can describe patient appearance when asked
+
+### Trial Subscription Fix
+- **Automatic Stripe customer creation**: When patient registers, automatic customer creation in Stripe (not local)
+  - Ensures all customers have valid Stripe IDs from registration
+  - Trial subscriptions created directly in Stripe with 7-day auto-cancel
+  - Fallback to local trial if Stripe fails (prevents broken registration)
 
 ## System Architecture
 

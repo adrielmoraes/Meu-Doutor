@@ -520,3 +520,13 @@ export const securityIncidents = pgTable('security_incidents', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+// Platform Settings - Configurações da plataforma
+export const platformSettings = pgTable('platform_settings', {
+  id: text('id').primaryKey(),
+  key: text('key').notNull().unique(), // 'pix_enabled', etc
+  value: text('value').notNull(), // JSON serializado ou valor simples
+  description: text('description'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});

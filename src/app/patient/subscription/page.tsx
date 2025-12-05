@@ -111,15 +111,36 @@ export default function SubscriptionPage() {
   };
 
   const handleSubscribe = async (planId: string, stripePriceId: string) => {
-    if (subscriptionStatus?.hasActiveSubscription && !['trial'].includes(planId)) {
-      // Para migração, permitir escolha de método de pagamento
-      setSelectedPlanForPayment({ id: planId, stripePriceId });
-      setShowPaymentOptions(true);
-      return;
+    // Verificar se PIX está ativado
+    try {
+      const response = await fetch('/api/admin/payment-settings');
+      const settings = await response.json();
+      
+      // Se PIX não está ativado, forçar método de pagamento "card"
+      let finalPaymentMethod = paymentMethod;
+      if (!settings.pixEnabled && paymentMethod !== 'card') {
+        finalPaymentMethod = 'card';
+      }
+      
+      if (subscriptionStatus?.hasActiveSubscription && !['trial'].includes(planId)) {
+        // Para migração, permitir escolha de método de pagamento
+        setSelectedPlanForPayment({ id: planId, stripePriceId });
+        setShowPaymentOptions(true);
+        return;
+      }
+      
+      // Para novos planos, processar direto
+      await processCheckout(planId, stripePriceId, finalPaymentMethod);
+    } catch (error) {
+      console.error('Erro ao verificar configurações de pagamento:', error);
+      // Se falhar, continuar com o método selecionado
+      if (subscriptionStatus?.hasActiveSubscription && !['trial'].includes(planId)) {
+        setSelectedPlanForPayment({ id: planId, stripePriceId });
+        setShowPaymentOptions(true);
+      } else {
+        await processCheckout(planId, stripePriceId, paymentMethod);
+      }
     }
-    
-    // Para novos planos, processar direto
-    await processCheckout(planId, stripePriceId, paymentMethod);
   };
 
   const processCheckout = async (planId: string, stripePriceId: string, method: string) => {
