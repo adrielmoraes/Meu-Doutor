@@ -22,10 +22,15 @@ Preferred communication style: Simple, everyday language.
   - Supports RGBA, RGB24, BGRA, I420, NV12 formats
 - **Event listeners**: `participant_connected` and `track_subscribed` auto-trigger streaming
 - **System prompt updated**: Reflects always-on vision capability
-- **ENABLE_VISION_STREAMING toggle**: New environment variable to control video streaming separately
-  - Default: `false` to prevent SIGILL crashes on CPUs without AVX support
-  - Set to `true` only on infrastructure with AVX-capable CPUs
-  - When disabled, agent works normally but without visual patient observation
+- **Dual Vision Modes**:
+  - **ON-DEMAND (default)**: `ENABLE_VISION=true` + `ENABLE_VISION_STREAMING=false`
+    - Uses `look_at_patient` function tool to capture frames when needed
+    - Creates VideoStream, grabs one frame, closes immediately (minimal resource usage)
+    - Agent can see patient on request (e.g., when discussing visible symptoms)
+  - **CONTINUOUS STREAMING (experimental)**: `ENABLE_VISION_STREAMING=true`
+    - Keeps VideoStream open and sends 1 frame every 4 seconds continuously
+    - Higher resource usage, may be less stable
+    - Only enable if on-demand mode works successfully first
 
 ## Previous Changes (December 5, 2025)
 

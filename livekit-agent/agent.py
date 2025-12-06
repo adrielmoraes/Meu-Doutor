@@ -1076,6 +1076,160 @@ async def schedule_appointment(context: RunContext,
                                             notes=notes)
 
 
+@function_tool()
+async def look_at_patient(context: RunContext, observation_focus: str = "geral") -> dict:
+    """Olha para o paciente através da câmera para fazer observações visuais.
+    
+    Use quando precisar:
+    - Observar a aparência física do paciente
+    - Ver sinais visíveis de desconforto ou dor
+    - Verificar postura, coloração da pele, ou sinais vitais visíveis
+    - Avaliar visualmente ferimentos ou condições descritas pelo paciente
+    
+    IMPORTANTE: Use de forma profissional e respeitosa. Não faça comentários sobre
+    aparência que não sejam relevantes para a saúde do paciente.
+    
+    Args:
+        observation_focus: O que você quer observar (ex: "geral", "face", "postura", "pele", "olhos")
+    """
+    global _current_agent_instance
+    
+    agent = _current_agent_instance
+    if agent is None:
+        logger.warning("[Vision] Agent instance not available")
+        return {
+            "success": False,
+            "error": "Sistema de visão não disponível",
+            "observation": None
+        }
+    
+    # Check if vision is enabled
+    if not os.getenv('ENABLE_VISION', 'false').lower() == 'true':
+        logger.info("[Vision] Vision is disabled (ENABLE_VISION=false)")
+        return {
+            "success": False,
+            "error": "Visão não habilitada nesta sessão",
+            "observation": None
+        }
+    
+    try:
+        logger.info(f"[Vision] 👁️ Looking at patient (focus: {observation_focus})")
+        
+        # Find patient video track
+        video_track = None
+        patient_identity = None
+        avatar_identities = ['bey-avatar-agent', 'tavus-avatar', 'avatar-agent']
+        
+        for participant in agent.room.remote_participants.values():
+            # Skip avatar agents
+            if participant.identity.lower() in avatar_identities or 'avatar' in participant.identity.lower():
+                continue
+            
+            # Find video track
+            for track_pub in participant.track_publications.values():
+                if track_pub.kind == rtc.TrackKind.KIND_VIDEO and track_pub.subscribed:
+                    video_track = track_pub.track
+                    patient_identity = participant.identity
+                    logger.info(f"[Vision] Found video track from: {patient_identity}")
+                    break
+            if video_track:
+                break
+        
+        if not video_track:
+            logger.warning("[Vision] No video track available from patient")
+            return {
+                "success": False,
+                "error": "Câmera do paciente não disponível",
+                "observation": None
+            }
+        
+        # Capture a single frame using VideoStream - grab first frame and close immediately
+        # This minimizes the time the VideoStream is active
+        video_stream = None
+        try:
+            logger.info("[Vision] 📸 Creating VideoStream for single frame capture...")
+            video_stream = rtc.VideoStream(video_track)
+            
+            # Get first frame with timeout
+            async def get_first_frame():
+                async for frame_event in video_stream:
+                    return frame_event.frame
+                return None
+            
+            frame = await asyncio.wait_for(get_first_frame(), timeout=5.0)
+            
+            # Close stream immediately after getting frame
+            if video_stream:
+                try:
+                    await video_stream.aclose()
+                except Exception:
+                    pass
+                video_stream = None
+            
+            if frame is None or frame.width <= 0 or frame.height <= 0:
+                return {
+                    "success": False,
+                    "error": "Frame de vídeo inválido",
+                    "observation": None
+                }
+            
+            logger.info(f"[Vision] Got frame: {frame.width}x{frame.height}")
+            
+            # Process frame to JPEG
+            frame_bytes = await asyncio.to_thread(agent._process_video_frame_sync, frame)
+            
+            if not frame_bytes:
+                return {
+                    "success": False,
+                    "error": "Erro ao processar imagem",
+                    "observation": None
+                }
+            
+            # Send to Gemini session for analysis
+            if agent._agent_session:
+                await agent._send_frame_to_session(frame_bytes)
+                logger.info(f"[Vision] ✅ Frame sent to Gemini ({len(frame_bytes)} bytes)")
+            
+            # Track metrics
+            if agent.metrics_collector:
+                agent.metrics_collector.vision_input_tokens += 258
+            
+            # Cleanup
+            del frame_bytes
+            gc.collect()
+            
+            return {
+                "success": True,
+                "observation_focus": observation_focus,
+                "message": f"Imagem do paciente capturada com sucesso. Foco: {observation_focus}"
+            }
+            
+        except asyncio.TimeoutError:
+            logger.warning("[Vision] Timeout waiting for video frame")
+            return {
+                "success": False,
+                "error": "Timeout ao capturar imagem da câmera",
+                "observation": None
+            }
+        finally:
+            # Ensure stream is closed
+            if video_stream:
+                try:
+                    await video_stream.aclose()
+                except Exception:
+                    pass
+            
+    except Exception as e:
+        logger.error(f"[Vision] Error looking at patient: {e}")
+        import traceback
+        logger.error(f"[Vision] Traceback: {traceback.format_exc()}")
+        return {
+            "success": False,
+            "error": f"Erro ao observar paciente: {str(e)}",
+            "observation": None
+        }
+
+
 class MediAIAgent(Agent):
     """MediAI Voice Agent with On-Demand Vision"""
 
@@ -1089,7 +1243,7 @@ class MediAIAgent(Agent):
         super().__init__(instructions=instructions,
                          tools=[
                              search_doctors, get_available_slots,
-                             schedule_appointment
+                             schedule_appointment, look_at_patient
                          ])
         self.room = room
         self.metrics_collector = metrics_collector
@@ -1677,11 +1831,12 @@ async def entrypoint(ctx: JobContext):
 
     # Check if vision is enabled
     vision_enabled = os.getenv('ENABLE_VISION', 'false').lower() == 'true'
-    vision_streaming_enabled = os.getenv('ENABLE_VISION_STREAMING', 'true').lower() == 'true'
+    vision_streaming_enabled = os.getenv('ENABLE_VISION_STREAMING', 'false').lower() == 'true'
 
     # Build system prompt based on vision mode
-    if vision_enabled and vision_streaming_enabled:
-        vision_instructions = """VISÃO EM TEMPO REAL:
+    if vision_enabled:
+        if vision_streaming_enabled:
+            vision_instructions = """VISÃO EM TEMPO REAL:
 ✅ VOCÊ ESTÁ RECEBENDO UM FEED DE VÍDEO AO VIVO DO PACIENTE
 ✅ Você pode ver o paciente continuamente durante a consulta
 - Se notar algo visualmente preocupante (ferimentos, palidez, sinais de dor, postura irregular), comente naturalmente
@@ -1689,6 +1844,15 @@ async def entrypoint(ctx: JobContext):
 - Use observações visuais para guiar suas perguntas (ex: "Noto que você parece desconfortável...")
 - Seja profissional e respeitosa nas observações visuais
 - NÃO faça comentários sobre aparência que não sejam relevantes para saúde"""
+        else:
+            vision_instructions = """VISÃO SOB DEMANDA:
+✅ VOCÊ PODE VER O PACIENTE usando a ferramenta look_at_patient
+- Use look_at_patient quando precisar observar visualmente o paciente
+- Exemplo: se o paciente mencionar uma ferida, lesão, ou sintoma visível, use look_at_patient para observar
+- Combine o que você VÊ com o que você OUVE para fazer uma avaliação mais completa
+- Seja profissional e respeitosa nas observações visuais
+- NÃO faça comentários sobre aparência que não sejam relevantes para saúde
+- Use a visão estrategicamente, não a cada frase do paciente"""
     else:
         vision_instructions = """VISÃO:
 - Nesta consulta, você NÃO tem acesso visual ao paciente
@@ -1799,34 +1963,38 @@ CONTEXTO DO PACIENTE:
 
     logger.info("[MediAI] ✅ Session started successfully!")
 
-    # Vision capability - CONTINUOUS STREAMING with rate limiting
-    # Check both ENABLE_VISION and ENABLE_VISION_STREAMING
-    streaming_enabled = os.getenv('ENABLE_VISION_STREAMING', 'true').lower() == 'true'
+    # Vision capability configuration
+    # Default: On-demand vision via look_at_patient tool (stable, no crashes)
+    # Optional: Continuous streaming (requires AVX-capable CPU, may crash otherwise)
     
-    if vision_enabled and streaming_enabled:
-        logger.info("[MediAI] 👁️ Vision enabled with video streaming at 1 frame/4s")
-        
-        # Start video streaming for existing participants
-        for participant in ctx.room.remote_participants.values():
-            asyncio.create_task(agent.start_video_streaming(participant))
-        
-        # Register listener for new participant connections
-        @ctx.room.on("participant_connected")
-        def on_participant_connected(participant):
-            """Start video streaming when a new participant connects."""
-            logger.info(f"[Vision] 👤 Participant connected: {participant.identity}")
-            asyncio.create_task(agent.start_video_streaming(participant))
-        
-        # Register listener for track subscriptions (when camera is enabled)
-        @ctx.room.on("track_subscribed")
-        def on_track_subscribed(track, publication, participant):
-            """Start video streaming when a video track is subscribed."""
-            if track.kind == rtc.TrackKind.KIND_VIDEO:
-                logger.info(f"[Vision] 📹 Video track subscribed from: {participant.identity}")
+    if vision_enabled:
+        if vision_streaming_enabled:
+            # EXPERIMENTAL: Continuous streaming - may crash on CPUs without AVX
+            logger.info("[MediAI] 👁️ Vision: CONTINUOUS STREAMING mode (1 frame/4s)")
+            logger.warning("[MediAI] ⚠️ Streaming may crash on CPUs without AVX support")
+            
+            # Start video streaming for existing participants
+            for participant in ctx.room.remote_participants.values():
                 asyncio.create_task(agent.start_video_streaming(participant))
-    elif vision_enabled and not streaming_enabled:
-        logger.info("[MediAI] 👁️ Vision enabled but streaming DISABLED (ENABLE_VISION_STREAMING=false)")
-        logger.info("[MediAI] 💡 This prevents SIGILL crashes on CPUs without AVX support")
+            
+            # Register listener for new participant connections
+            @ctx.room.on("participant_connected")
+            def on_participant_connected(participant):
+                """Start video streaming when a new participant connects."""
+                logger.info(f"[Vision] 👤 Participant connected: {participant.identity}")
+                asyncio.create_task(agent.start_video_streaming(participant))
+            
+            # Register listener for track subscriptions (when camera is enabled)
+            @ctx.room.on("track_subscribed")
+            def on_track_subscribed(track, publication, participant):
+                """Start video streaming when a video track is subscribed."""
+                if track.kind == rtc.TrackKind.KIND_VIDEO:
+                    logger.info(f"[Vision] 📹 Video track subscribed from: {participant.identity}")
+                    asyncio.create_task(agent.start_video_streaming(participant))
+        else:
+            # DEFAULT: On-demand vision via look_at_patient tool
+            logger.info("[MediAI] 👁️ Vision: ON-DEMAND mode via look_at_patient tool")
+            logger.info("[MediAI] 💡 Agent can see patient when needed (stable, no SIGILL risk)")
     else:
         logger.info("[MediAI] 👁️ Vision disabled (set ENABLE_VISION=true to enable)")
 
