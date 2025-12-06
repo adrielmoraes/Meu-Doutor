@@ -1108,69 +1108,234 @@ class MediAIAgent(Agent):
         _current_agent_instance = self
         logger.info("[MediAI] Agent instance registered for vision tools")
 
+    def _convert_i420_to_rgb_pure(self, yuv_data: bytes, width: int, height: int) -> Optional['Image.Image']:
+        """Convert I420/YUV420p to RGB using pure Python (no SIMD).
+        
+        I420 format: Y plane (width*height) + U plane (width/2*height/2) + V plane (width/2*height/2)
+        """
+        try:
+            y_size = width * height
+            uv_size = (width // 2) * (height // 2)
+            
+            if len(yuv_data) < y_size + 2 * uv_size:
+                logger.warning(f"[Vision] I420 data too small: {len(yuv_data)} < {y_size + 2 * uv_size}")
+                return None
+            
+            y_plane = yuv_data[:y_size]
+            u_plane = yuv_data[y_size:y_size + uv_size]
+            v_plane = yuv_data[y_size + uv_size:y_size + 2 * uv_size]
+            
+            # Downsample to reduce processing (use 1/4 resolution)
+            target_w = width // 4
+            target_h = height // 4
+            
+            rgb_data = bytearray(target_w * target_h * 3)
+            
+            for y in range(target_h):
+                for x in range(target_w):
+                    # Sample from original coordinates (x4)
+                    src_x = x * 4
+                    src_y = y * 4
+                    
+                    y_idx = src_y * width + src_x
+                    uv_idx = (src_y // 2) * (width // 2) + (src_x // 2)
+                    
+                    Y = y_plane[y_idx] if y_idx < len(y_plane) else 128
+                    U = u_plane[uv_idx] if uv_idx < len(u_plane) else 128
+                    V = v_plane[uv_idx] if uv_idx < len(v_plane) else 128
+                    
+                    # YUV to RGB conversion
+                    C = Y - 16
+                    D = U - 128
+                    E = V - 128
+                    
+                    R = max(0, min(255, (298 * C + 409 * E + 128) >> 8))
+                    G = max(0, min(255, (298 * C - 100 * D - 208 * E + 128) >> 8))
+                    B = max(0, min(255, (298 * C + 516 * D + 128) >> 8))
+                    
+                    idx = (y * target_w + x) * 3
+                    rgb_data[idx] = R
+                    rgb_data[idx + 1] = G
+                    rgb_data[idx + 2] = B
+            
+            return Image.frombytes('RGB', (target_w, target_h), bytes(rgb_data))
+            
+        except Exception as e:
+            logger.error(f"[Vision] I420 conversion error: {e}")
+            return None
+
+    def _convert_nv12_to_rgb_pure(self, nv12_data: bytes, width: int, height: int) -> Optional['Image.Image']:
+        """Convert NV12 to RGB using pure Python (no SIMD).
+        
+        NV12 format: Y plane (width*height) + interleaved UV plane (width*height/2)
+        """
+        try:
+            y_size = width * height
+            uv_size = width * (height // 2)
+            
+            if len(nv12_data) < y_size + uv_size:
+                logger.warning(f"[Vision] NV12 data too small: {len(nv12_data)} < {y_size + uv_size}")
+                return None
+            
+            y_plane = nv12_data[:y_size]
+            uv_plane = nv12_data[y_size:y_size + uv_size]
+            
+            # Downsample to reduce processing (use 1/4 resolution)
+            target_w = width // 4
+            target_h = height // 4
+            
+            rgb_data = bytearray(target_w * target_h * 3)
+            
+            for y in range(target_h):
+                for x in range(target_w):
+                    src_x = x * 4
+                    src_y = y * 4
+                    
+                    y_idx = src_y * width + src_x
+                    uv_idx = (src_y // 2) * width + (src_x // 2) * 2
+                    
+                    Y = y_plane[y_idx] if y_idx < len(y_plane) else 128
+                    U = uv_plane[uv_idx] if uv_idx < len(uv_plane) else 128
+                    V = uv_plane[uv_idx + 1] if uv_idx + 1 < len(uv_plane) else 128
+                    
+                    C = Y - 16
+                    D = U - 128
+                    E = V - 128
+                    
+                    R = max(0, min(255, (298 * C + 409 * E + 128) >> 8))
+                    G = max(0, min(255, (298 * C - 100 * D - 208 * E + 128) >> 8))
+                    B = max(0, min(255, (298 * C + 516 * D + 128) >> 8))
+                    
+                    idx = (y * target_w + x) * 3
+                    rgb_data[idx] = R
+                    rgb_data[idx + 1] = G
+                    rgb_data[idx + 2] = B
+            
+            return Image.frombytes('RGB', (target_w, target_h), bytes(rgb_data))
+            
+        except Exception as e:
+            logger.error(f"[Vision] NV12 conversion error: {e}")
+            return None
+
     def _process_video_frame_sync(self,
                                   frame: rtc.VideoFrame) -> Optional[bytes]:
-        """Process video frame synchronously - returns base64 encoded image data.
+        """Process video frame synchronously - returns JPEG bytes.
         
-        SIMPLIFIED VERSION: Avoids numpy to prevent SIGILL crashes on CPUs without AVX.
-        Uses only LiveKit's native frame conversion and basic Python operations.
+        ULTRA-SIMPLIFIED VERSION: Avoids operations that may cause SIGILL.
+        Uses multiple fallback strategies to handle different frame formats.
         
-        Returns base64 encoded RGB bytes that Gemini can process directly.
+        Returns JPEG bytes that Gemini can process directly.
         """
         rgba_frame = None
         img = None
         img_buffer = None
         
         try:
-            logger.debug("[Vision] Starting frame conversion to RGBA...")
-            rgba_frame = frame.convert(VideoBufferType.RGBA)
-
-            height = rgba_frame.height
-            width = rgba_frame.width
-            logger.debug(f"[Vision] RGBA frame: {width}x{height}")
-
-            # Get raw RGBA bytes from the frame buffer
-            rgba_bytes = bytes(rgba_frame.data)
+            logger.info("[Vision] Processing frame...")
             
-            if PIL_AVAILABLE:
-                # Use PIL to create image from raw bytes (no numpy needed)
-                logger.debug("[Vision] Creating PIL Image from raw bytes...")
-                img = Image.frombytes('RGBA', (width, height), rgba_bytes)
-                
-                # Convert RGBA to RGB
-                img = img.convert('RGB')
-                
-                # Resize to reduce data size
-                logger.debug("[Vision] Resizing image to 480x480...")
-                img = img.resize((480, 480), Image.Resampling.BILINEAR)
-
-                logger.debug("[Vision] Encoding to JPEG...")
-                img_buffer = io.BytesIO()
-                img.save(img_buffer, format='JPEG', quality=60)
-                frame_bytes = img_buffer.getvalue()
-                
-                img_buffer.close()
-                del img
-                img = None
+            if not PIL_AVAILABLE:
+                logger.warning("[Vision] PIL not available, skipping frame")
+                return None
+            
+            height = frame.height
+            width = frame.width
+            
+            # Try to get raw data directly without conversion first
+            # This avoids potential SIGILL from native conversion libs
+            raw_data = None
+            try:
+                raw_data = bytes(frame.data)
+                logger.info(f"[Vision] Got raw frame data: {len(raw_data)} bytes, format: {frame.type}")
+            except Exception as e:
+                logger.warning(f"[Vision] Could not get raw data: {e}")
+            
+            # Determine frame format and create PIL Image
+            # CRITICAL: Avoid frame.convert() as it may use AVX instructions that crash
+            if raw_data:
+                try:
+                    frame_type = frame.type
+                    logger.info(f"[Vision] Frame type: {frame_type}")
+                    
+                    # Try to interpret based on frame type
+                    if frame_type == VideoBufferType.RGBA:
+                        img = Image.frombytes('RGBA', (width, height), raw_data)
+                        img = img.convert('RGB')
+                    elif frame_type == VideoBufferType.RGB24:
+                        img = Image.frombytes('RGB', (width, height), raw_data)
+                    elif frame_type == VideoBufferType.BGRA:
+                        img = Image.frombytes('RGBA', (width, height), raw_data)
+                        # Swap R and B channels for BGRA
+                        r, g, b, a = img.split()
+                        img = Image.merge('RGB', (b, g, r))
+                    elif hasattr(VideoBufferType, 'I420') and frame_type == VideoBufferType.I420:
+                        # YUV420 (I420) is common in WebRTC
+                        # Convert using pure Python (no SIMD)
+                        logger.info("[Vision] Converting I420/YUV420 to RGB...")
+                        img = self._convert_i420_to_rgb_pure(raw_data, width, height)
+                        if img is None:
+                            return None
+                    elif hasattr(VideoBufferType, 'NV12') and frame_type == VideoBufferType.NV12:
+                        # NV12 is another common format - similar to I420
+                        logger.info("[Vision] Converting NV12 to RGB...")
+                        img = self._convert_nv12_to_rgb_pure(raw_data, width, height)
+                        if img is None:
+                            return None
+                    else:
+                        # Unknown format - DO NOT attempt conversion as it may crash
+                        logger.warning(f"[Vision] Unknown format {frame_type}, skipping frame to avoid SIGILL")
+                        return None
+                except ValueError as e:
+                    # ValueError often means wrong data size for format
+                    logger.warning(f"[Vision] Data size mismatch: {e}")
+                    return None
+                except Exception as e:
+                    logger.warning(f"[Vision] Direct interpretation failed: {e}")
+                    return None
             else:
-                # Fallback: Return raw RGBA bytes encoded as base64
-                # Gemini can process raw image data with proper mime type
-                logger.debug("[Vision] PIL not available, using raw bytes...")
-                frame_bytes = rgba_bytes
+                # No raw data available
+                logger.warning("[Vision] No raw data available, skipping frame")
+                return None
+            
+            logger.info(f"[Vision] Image created: {img.size}")
+            
+            # Resize using NEAREST (fastest, no SIMD) instead of BILINEAR
+            # Target 320x240 to minimize processing
+            target_width = 320
+            target_height = 240
+            try:
+                # Try NEAREST first (pure Python, no SIMD)
+                img = img.resize((target_width, target_height), Image.NEAREST)
+            except Exception as resize_err:
+                logger.warning(f"[Vision] Resize failed: {resize_err}, using original size")
+                # If resize fails, crop to center instead
+                left = (width - target_width) // 2
+                top = (height - target_height) // 2
+                right = left + target_width
+                bottom = top + target_height
+                img = img.crop((max(0, left), max(0, top), min(width, right), min(height, bottom)))
+
+            # Encode to JPEG with low quality for speed
+            img_buffer = io.BytesIO()
+            img.save(img_buffer, format='JPEG', quality=40)
+            frame_bytes = img_buffer.getvalue()
+            
+            img_buffer.close()
+            del img
+            img = None
             
             del rgba_frame
             rgba_frame = None
 
-            logger.debug(f"[Vision] Frame processed successfully: {len(frame_bytes)} bytes")
+            logger.info(f"[Vision] Frame processed: {len(frame_bytes)} bytes")
             gc.collect()
             return frame_bytes
 
         except MemoryError as e:
-            logger.error(f"[Vision] Memory error in frame processing: {e}")
+            logger.error(f"[Vision] Memory error: {e}")
             gc.collect()
             return None
         except Exception as e:
-            logger.error(f"[Vision] Error in sync frame processing: {e}")
+            logger.error(f"[Vision] Error processing frame: {e}")
             import traceback
             logger.error(f"[Vision] Traceback: {traceback.format_exc()}")
             gc.collect()

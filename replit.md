@@ -6,7 +6,24 @@ MediAI is an AI-powered healthcare platform that connects patients with medical 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
-## Recent Changes (December 5, 2025)
+## Recent Changes (December 6, 2025)
+
+### AI Vision - Continuous Streaming Architecture
+- **Refactored from on-demand to continuous streaming**: Removed `look_at_patient` function tool
+- **New streaming methods**:
+  - `start_video_streaming(participant)`: Auto-starts when patient connects with camera
+  - `_video_loop(video_track)`: Processes frames with 4-second rate limiting (15 frames/min max)
+  - `_send_frame_to_session(frame_bytes)`: Sends frames to active Gemini session
+- **Pure Python YUV conversion**: Added `_convert_i420_to_rgb_pure()` and `_convert_nv12_to_rgb_pure()` to avoid SIGILL crashes
+  - Uses pure Python math (no SIMD/AVX instructions)
+  - Downsamples to 1/4 resolution for performance
+- **SIGILL prevention**: Avoids `frame.convert()` which uses native libs with AVX instructions
+  - Directly interprets frame data based on `frame.type`
+  - Supports RGBA, RGB24, BGRA, I420, NV12 formats
+- **Event listeners**: `participant_connected` and `track_subscribed` auto-trigger streaming
+- **System prompt updated**: Reflects always-on vision capability
+
+## Previous Changes (December 5, 2025)
 
 ### Camera Capture & Exam Upload
 - **Enhanced camera capture screen**: Full-screen camera preview (80% viewport height) on mobile for better visibility of exam documents
