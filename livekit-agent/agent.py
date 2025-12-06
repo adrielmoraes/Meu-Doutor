@@ -25,8 +25,14 @@ from livekit.rtc import VideoBufferType
 import google.generativeai as genai
 from google.genai import types
 import httpx
-import numpy as np
-from PIL import Image
+
+# Note: PIL is optional - vision can work without it using base64 raw frames
+try:
+    from PIL import Image
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
+    Image = None
 
 from tenacity import (retry, stop_after_attempt, wait_exponential,
                       retry_if_exception_type, before_sleep_log)
@@ -1168,20 +1174,14 @@ class MediAIAgent(Agent):
 
     def _process_video_frame_sync(self,
                                   frame: rtc.VideoFrame) -> Optional[bytes]:
-        """Process video frame synchronously in separate thread (ALL CPU-bound operations).
+        """Process video frame synchronously - returns base64 encoded image data.
         
-        CRITICAL: This runs in a separate thread to avoid blocking the event loop.
-        ALL heavy operations (YUV->RGBA conversion, numpy, PIL, resize, JPEG encoding) happen here.
+        SIMPLIFIED VERSION: Avoids numpy to prevent SIGILL crashes on CPUs without AVX.
+        Uses only LiveKit's native frame conversion and basic Python operations.
         
-        MEMORY OPTIMIZATION: Explicitly delete large objects and force garbage collection.
-        
-        NOTE: Some Docker containers may crash with SIGILL if numpy/Pillow use AVX instructions
-        not available on the host CPU. This function has error handling but SIGILL cannot be caught.
-        If you see exit code -4 (SIGILL), rebuild the Docker image with CPU-generic wheels.
+        Returns base64 encoded RGB bytes that Gemini can process directly.
         """
         rgba_frame = None
-        rgba_array = None
-        rgb_array = None
         img = None
         img_buffer = None
         
@@ -1193,32 +1193,35 @@ class MediAIAgent(Agent):
             width = rgba_frame.width
             logger.debug(f"[Vision] RGBA frame: {width}x{height}")
 
-            # Use numpy with explicit memory management
-            logger.debug("[Vision] Creating numpy array from buffer...")
-            rgba_array = np.frombuffer(rgba_frame.data, dtype=np.uint8)
-            rgba_array = rgba_array.reshape((height, width, 4))
+            # Get raw RGBA bytes from the frame buffer
+            rgba_bytes = bytes(rgba_frame.data)
+            
+            if PIL_AVAILABLE:
+                # Use PIL to create image from raw bytes (no numpy needed)
+                logger.debug("[Vision] Creating PIL Image from raw bytes...")
+                img = Image.frombytes('RGBA', (width, height), rgba_bytes)
+                
+                # Convert RGBA to RGB
+                img = img.convert('RGB')
+                
+                # Resize to reduce data size
+                logger.debug("[Vision] Resizing image to 480x480...")
+                img = img.resize((480, 480), Image.Resampling.BILINEAR)
 
-            logger.debug("[Vision] Extracting RGB channels...")
-            rgb_array = rgba_array[:, :, :3].copy()
-            del rgba_array
-            rgba_array = None
-
-            logger.debug("[Vision] Creating PIL Image...")
-            img = Image.fromarray(rgb_array, 'RGB')
-            del rgb_array
-            rgb_array = None
-
-            logger.debug("[Vision] Resizing image to 480x480...")
-            img = img.resize((480, 480), Image.Resampling.BILINEAR)
-
-            logger.debug("[Vision] Encoding to JPEG...")
-            img_buffer = io.BytesIO()
-            img.save(img_buffer, format='JPEG', quality=60)
-            frame_bytes = img_buffer.getvalue()
-
-            img_buffer.close()
-            del img
-            img = None
+                logger.debug("[Vision] Encoding to JPEG...")
+                img_buffer = io.BytesIO()
+                img.save(img_buffer, format='JPEG', quality=60)
+                frame_bytes = img_buffer.getvalue()
+                
+                img_buffer.close()
+                del img
+                img = None
+            else:
+                # Fallback: Return raw RGBA bytes encoded as base64
+                # Gemini can process raw image data with proper mime type
+                logger.debug("[Vision] PIL not available, using raw bytes...")
+                frame_bytes = rgba_bytes
+            
             del rgba_frame
             rgba_frame = None
 
@@ -1237,11 +1240,6 @@ class MediAIAgent(Agent):
             gc.collect()
             return None
         finally:
-            # Ensure cleanup even on partial failure
-            if rgba_array is not None:
-                del rgba_array
-            if rgb_array is not None:
-                del rgb_array
             if img is not None:
                 del img
             if img_buffer is not None:
@@ -1394,8 +1392,16 @@ class MediAIAgent(Agent):
 
                 vision_model = genai.GenerativeModel('gemini-2.0-flash')
 
-                img = Image.open(io.BytesIO(frame_bytes))
-                logger.info(f"[Vision] Image size: {img.size}, mode: {img.mode}")
+                # Send image bytes directly to Gemini without PIL processing
+                # Gemini accepts JPEG bytes directly via inline_data
+                image_part = {
+                    "inline_data": {
+                        "mime_type": "image/jpeg",
+                        "data": base64.b64encode(frame_bytes).decode('utf-8')
+                    }
+                }
+                
+                logger.info(f"[Vision] Sending {len(frame_bytes)} bytes to Gemini...")
                 
                 frame_bytes = None
 
@@ -1414,7 +1420,7 @@ REGRAS IMPORTANTES:
 Descreva PRECISAMENTE o que você vê nesta imagem:"""
 
                 response = await asyncio.to_thread(
-                    lambda: vision_model.generate_content([prompt, img]))
+                    lambda: vision_model.generate_content([prompt, image_part]))
 
                 description = response.text if response.text else "Não foi possível analisar a imagem."
                 
@@ -1425,7 +1431,6 @@ Descreva PRECISAMENTE o que você vê nesta imagem:"""
                     self.metrics_collector.vision_output_tokens += len(
                         description) // 4
 
-                img = None
                 response = None
 
                 logger.info(f"[Vision] ✅ Analysis complete")
