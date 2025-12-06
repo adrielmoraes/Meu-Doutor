@@ -1,0 +1,304 @@
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🎯 Starting agent for patient: b773024a-19c3-4ea9-a4fa-dd390af64be8", "pid": 132, "job
+_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:4
+0.363832+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 💾 Database connection pool created", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_i
+d": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:40.898693+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Metrics
+] 📊 Iniciado coletor de métricas para sessão mediai-consultation-b773024a-19c3-4ea9-a4
+fa-dd390af64be8", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK"
+, "timestamp": "2025-12-06T02:52:40.899029+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 📋 Loading patient context...", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "R
+M_2grannaHR7kK", "timestamp": "2025-12-06T02:52:40.899123+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🔍 Acquiring database connection for patient b773024a-19c3-4ea9-a4fa-dd390af64be8...",
+ "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2
+025-12-06T02:52:40.899199+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ ✅ Database connection acquired", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "
+RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:40.899440+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 📋 Patient query result: True", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "R
+M_2grannaHR7kK", "timestamp": "2025-12-06T02:52:40.989005+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ ✅ Patient context built: 202 chars", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id
+": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:41.455509+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ ✅ Patient context loaded (202 chars)", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_
+id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:41.504131+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🤖 Creating Gemini Live API model...", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_
+id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:41.504618+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🎙️ Using Gemini model: gemini-2.5-flash-native-audio-preview-09-2025", "pid": 132, "j 
+ob_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52
+:41.504860+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🎙️ Creating agent session with Gemini Live API...", "pid": 132, "job_id": "AJ_jr23Pvs 
+AxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:41.505044+00:00"} 
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ Agent instance registered for vision tools", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", 
+"room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:41.506859+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🏥 Starting medical consultation session...", "pid": 132, "job_id": "AJ_jr23PvsAxGzD",
+ "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:41.509136+00:00"}        
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🛠️ Function tools serão executados automaticamente pelo LiveKit", "pid": 132, "job_id 
+": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:41.5
+09327+00:00"}
+mediai-livekit-agent  | {"level": "WARNING", "name": "google_genai._api_client", "messa
+ge": "Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.", "pid": 13
+2, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T
+02:52:41.940197+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ ⏳ Waiting for avatar to be visible and audio/video to sync...", "pid": 132, "job_id": 
+"AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:42.3751
+55+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ ✅ Session started successfully!", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": 
+"RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:42.378464+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 👁️ Vision enabled (on-demand) - AI can see patient when requested", "pid": 132, "job_ 
+id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:42
+.378690+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 💡 Patient can ask 'você consegue me ver?' to trigger vision analysis", "pid": 132, "j
+ob_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52
+:42.378815+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ Avatar provider configured: bey", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": 
+"RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:42.621258+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🎭 Avatar provider selected: bey", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id":
+ "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:42.669514+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🎭 Initializing Beyond Presence (BEY) avatar...", "pid": 132, "job_id": "AJ_jr23PvsAxG
+zD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:42.669810+00:00"}    
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🎥 Starting BEY avatar...", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2g
+rannaHR7kK", "timestamp": "2025-12-06T02:52:42.670024+00:00"}
+mediai-livekit-agent  | {"level": "WARNING", "name": "livekit.agents", "message": "resu
+me_false_interruption is enabled, but the audio output does not support pause, ignored"
+, "audio_output": "DataStreamIO", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "
+RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:46.352469+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Metrics
+] Avatar tracking started: bey", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "R
+M_2grannaHR7kK", "timestamp": "2025-12-06T02:52:46.352674+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ ✅ Beyond Presence avatar started successfully!", "pid": 132, "job_id": "AJ_jr23PvsAxGz
+D", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:46.352803+00:00"}     
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🎤 Generating initial greeting in PT-BR...", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", 
+"room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:50.376055+00:00"}
+mediai-livekit-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Medi
+AI] ⚠️ session.say() attempt 1/3 failed: trying to generate speech from text without a 
+TTS model", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "tim
+estamp": "2025-12-06T02:52:50.376544+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🔄 Retrying in 1s...", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2granna
+HR7kK", "timestamp": "2025-12-06T02:52:50.376635+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Metrics
+] 🔄 Iniciando envio periódico de métricas a cada 60s...", "pid": 132, "job_id": "AJ_jr
+23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:50.376824+00:
+00"}
+mediai-livekit-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Medi
+AI] ⚠️ session.say() attempt 2/3 failed: trying to generate speech from text without a 
+TTS model", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "tim
+estamp": "2025-12-06T02:52:51.377447+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🔄 Retrying in 2s...", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2granna
+HR7kK", "timestamp": "2025-12-06T02:52:51.377640+00:00"}
+mediai-livekit-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Medi
+AI] ⚠️ session.say() attempt 3/3 failed: trying to generate speech from text without a 
+TTS model", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "tim
+estamp": "2025-12-06T02:52:53.378753+00:00"}
+mediai-livekit-agent  | {"level": "ERROR", "name": "mediai-avatar", "message": "[MediAI
+] ❌ Failed to send greeting after 3 attempts", "pid": 132, "job_id": "AJ_jr23PvsAxGzD",
+ "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:52:53.379015+00:00"}        
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient
+] 🎙️ ....", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "ti 
+mestamp": "2025-12-06T02:53:03.163838+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient
+] 🎙️ ....", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "ti 
+mestamp": "2025-12-06T02:53:10.383221+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playbac
+k finished event received", "caller_identity": "bey-avatar-agent", "pid": 132, "job_id"
+: "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:11.87
+4250+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient
+] 🎙️ Você...", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK",  
+"timestamp": "2025-12-06T02:53:17.258599+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient
+] 🎙️ Você con...", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7k 
+K", "timestamp": "2025-12-06T02:53:17.586660+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient
+] 🎙️ Você consegue...", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grann 
+aHR7kK", "timestamp": "2025-12-06T02:53:17.777706+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient
+] 🎙️ Você consegue vi...", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2gr 
+annaHR7kK", "timestamp": "2025-12-06T02:53:17.924359+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient
+] 🎙️ Você consegue visuali...", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": "R 
+M_2grannaHR7kK", "timestamp": "2025-12-06T02:53:18.136425+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient
+] 🎙️ Você consegue visualizar...", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id": 
+ "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:18.228433+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient
+] 🎙️ Você consegue visualizar a minha calvista....", "pid": 132, "job_id": "AJ_jr23Pvs 
+AxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:18.504718+00:00"} 
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient
+] 🎙️ Você consegue visualizar a minha calvista....", "pid": 132, "job_id": "AJ_jr23Pvs 
+AxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:18.805387+00:00"} 
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision]
+ 👁️ Patient requested visual analysis - capturing frame...", "pid": 132, "job_id": "AJ 
+_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:18.816760+
+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision]
+ Patient participant: Adriel Moraes", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id
+": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:18.817008+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision]
+ Found video track: TR_VCFoTsQn4vNHLY", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_
+id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:18.817311+00:00"}
+mediai-livekit-agent  | {"level": "ERROR", "name": "livekit.agents", "message": "proces
+s exited with non-zero exit code -4", "pid": 132, "job_id": "AJ_jr23PvsAxGzD", "room_id
+": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:33.824019+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "livekit.agents", "message": "receive
+d job request", "job_id": "AJ_jr23PvsAxGzD", "dispatch_id": "AD_SiqUAa9E2hhw", "room": 
+"mediai-consultation-b773024a-19c3-4ea9-a4fa-dd390af64be8", "room_id": "RM_2grannaHR7kK
+", "agent_name": "", "resuming": false, "enable_recording": false, "timestamp": "2025-1
+2-06T02:53:39.392167+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "livekit.agents", "message": "initial
+izing process", "pid": 186, "timestamp": "2025-12-06T02:53:39.456667+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "livekit.agents", "message": "process
+ initialized", "pid": 186, "elapsed_time": 0.46, "timestamp": "2025-12-06T02:53:39.9152
+02+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🎯 Starting agent for patient: b773024a-19c3-4ea9-a4fa-dd390af64be8", "pid": 186, "job
+_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:4
+0.698695+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 💾 Database connection pool created", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_i
+d": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:41.339474+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Metrics
+] 📊 Iniciado coletor de métricas para sessão mediai-consultation-b773024a-19c3-4ea9-a4
+fa-dd390af64be8", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK"
+, "timestamp": "2025-12-06T02:53:41.339773+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 📋 Loading patient context...", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id": "R
+M_2grannaHR7kK", "timestamp": "2025-12-06T02:53:41.339869+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🔍 Acquiring database connection for patient b773024a-19c3-4ea9-a4fa-dd390af64be8...",
+ "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2
+025-12-06T02:53:41.339966+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ ✅ Database connection acquired", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id": "
+RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:41.340162+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 📋 Patient query result: True", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id": "R
+M_2grannaHR7kK", "timestamp": "2025-12-06T02:53:41.493203+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ ✅ Patient context built: 202 chars", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id
+": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:42.022400+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ ✅ Patient context loaded (202 chars)", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_
+id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:42.072692+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🤖 Creating Gemini Live API model...", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_
+id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:42.073006+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🎙️ Using Gemini model: gemini-2.5-flash-native-audio-preview-09-2025", "pid": 186, "j 
+ob_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53
+:42.073167+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🎙️ Creating agent session with Gemini Live API...", "pid": 186, "job_id": "AJ_jr23Pvs 
+AxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:42.073388+00:00"} 
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ Agent instance registered for vision tools", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", 
+"room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:42.075826+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🏥 Starting medical consultation session...", "pid": 186, "job_id": "AJ_jr23PvsAxGzD",
+ "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:42.079520+00:00"}        
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🛠️ Function tools serão executados automaticamente pelo LiveKit", "pid": 186, "job_id 
+": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:42.0
+88500+00:00"}
+mediai-livekit-agent  | {"level": "WARNING", "name": "google_genai._api_client", "messa
+ge": "Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.", "pid": 18
+6, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T
+02:53:42.376004+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ ⏳ Waiting for avatar to be visible and audio/video to sync...", "pid": 186, "job_id": 
+"AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:42.8535
+28+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ ✅ Session started successfully!", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id": 
+"RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:42.858327+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 👁️ Vision enabled (on-demand) - AI can see patient when requested", "pid": 186, "job_ 
+id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:42
+.858612+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 💡 Patient can ask 'você consegue me ver?' to trigger vision analysis", "pid": 186, "j
+ob_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53
+:42.858824+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ Avatar provider configured: bey", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id": 
+"RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:43.150405+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🎭 Avatar provider selected: bey", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id":
+ "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:43.201473+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🎭 Initializing Beyond Presence (BEY) avatar...", "pid": 186, "job_id": "AJ_jr23PvsAxG
+zD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:43.201809+00:00"}    
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🎥 Starting BEY avatar...", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2g
+rannaHR7kK", "timestamp": "2025-12-06T02:53:43.202155+00:00"}
+mediai-livekit-agent  | {"level": "WARNING", "name": "livekit.agents", "message": "resu
+me_false_interruption is enabled, but the audio output does not support pause, ignored"
+, "audio_output": "DataStreamIO", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id": "
+RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:46.150364+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Metrics
+] Avatar tracking started: bey", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id": "R
+M_2grannaHR7kK", "timestamp": "2025-12-06T02:53:46.150698+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ ✅ Beyond Presence avatar started successfully!", "pid": 186, "job_id": "AJ_jr23PvsAxGz
+D", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:46.150948+00:00"}     
+mediai-livekit-agent  | {"level": "INFO", "name": "livekit.agents", "message": "closing
+ agent session due to participant disconnect (disable via `RoomInputOptions.close_on_di
+sconnect=False`)", "room": "mediai-consultation-b773024a-19c3-4ea9-a4fa-dd390af64be8", 
+"participant": "Adriel Moraes", "reason": "CLIENT_INITIATED", "pid": 186, "job_id": "AJ
+_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:46.809669+
+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🎤 Generating initial greeting in PT-BR...", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", 
+"room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:50.855520+00:00"}
+mediai-livekit-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Medi
+AI] ⚠️ session.say() attempt 1/3 failed: AgentSession is closing, cannot use say()", "p
+id": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025
+-12-06T02:53:50.856000+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🔄 Retrying in 1s...", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2granna
+HR7kK", "timestamp": "2025-12-06T02:53:50.856140+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Metrics
+] 🔄 Iniciando envio periódico de métricas a cada 60s...", "pid": 186, "job_id": "AJ_jr
+23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:50.856470+00:
+00"}
+mediai-livekit-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Medi
+AI] ⚠️ session.say() attempt 2/3 failed: AgentSession is closing, cannot use say()", "p
+id": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025
+-12-06T02:53:51.857996+00:00"}
+mediai-livekit-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI]
+ 🔄 Retrying in 2s...", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2granna
+HR7kK", "timestamp": "2025-12-06T02:53:51.858212+00:00"}
+mediai-livekit-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Medi
+AI] ⚠️ session.say() attempt 3/3 failed: AgentSession is closing, cannot use say()", "p
+id": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grannaHR7kK", "timestamp": "2025
+-12-06T02:53:53.825144+00:00"}
+mediai-livekit-agent  | {"level": "ERROR", "name": "mediai-avatar", "message": "[MediAI
+] ❌ Failed to send greeting after 3 attempts", "pid": 186, "job_id": "AJ_jr23PvsAxGzD",
+ "room_id": "RM_2grannaHR7kK", "timestamp": "2025-12-06T02:53:53.825351+00:00"}        
+mediai-livekit-agent  | {"level": "INFO", "name": "livekit.agents", "message": "process
+ exiting", "reason": "", "pid": 186, "job_id": "AJ_jr23PvsAxGzD", "room_id": "RM_2grann
+aHR7kK", "timestamp": "2025-12-06T02:54:09.419605+00:00"}
