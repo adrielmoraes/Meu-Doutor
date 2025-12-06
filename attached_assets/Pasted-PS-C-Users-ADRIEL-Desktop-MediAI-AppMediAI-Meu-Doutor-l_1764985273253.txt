@@ -1,0 +1,76 @@
+PS C:\Users\ADRIEL\Desktop\MediAI\AppMediAI\Meu-Doutor\livekit-agent> docker-compose bu
+ild --no-cache
+>> 
+[+] Building 291.6s (15/15) FINISHED
+ => [internal] load local bake definitions                                        0.1s 
+ => => reading from stdin 658B                                                    0.1s 
+ => [internal] load build definition from Dockerfile                              0.4s 
+ => => transferring dockerfile: 704B                                              0.1s 
+ => [internal] load metadata for docker.io/library/python:3.11-slim               2.4s 
+ => [auth] library/python:pull token for registry-1.docker.io                     0.0s 
+ => [internal] load .dockerignore                                                 0.2s 
+ => => transferring context: 714B                                                 0.0s 
+ => [1/7] FROM docker.io/library/python:3.11-slim@sha256:193fdd0bbcb3d2ae612bd6c  0.0s 
+ => [internal] load build context                                                 0.7s
+ => => transferring context: 105.16kB                                             0.3s 
+ => CACHED [2/7] WORKDIR /app                                                     0.0s 
+ => [3/7] RUN apt-get update && apt-get install -y --no-install-recommends       71.6s 
+ => [4/7] COPY requirements.txt .                                                 0.1s 
+ => [7/7] COPY . .                                                                0.1s 
+ => exporting to image                                                           24.0s 
+ => => exporting layers                                                          23.9s 
+ => => writing image sha256:e574fd8f8029e46dacc7e39d1528395aa06c4efb9a8013a9f5d3  0.0s 
+ => resolving provenance for metadata file                                        0.1s 
+[+] Building 1/1
+ ✔ livekit-agent-mediai-agent  Built                                              0.0s 
+PS C:\Users\ADRIEL\Desktop\MediAI\AppMediAI\Meu-Doutor\livekit-agent> docker-compose up
+ -d
+[+] Running 2/2
+ ✔ Network livekit-agent_default   Created                                        0.3s 
+ ✔ Container mediai-livekit-agent  Started                                        2.6s 
+PS C:\Users\ADRIEL\Desktop\MediAI\AppMediAI\Meu-Doutor\livekit-agent> docker-compose lo
+gs -f
+mediai-livekit-agent  | Traceback (most recent call last):
+mediai-livekit-agent  |   File "/app/agent.py", line 29, in <module>
+mediai-livekit-agent  |     from PIL import Image
+mediai-livekit-agent  | ModuleNotFoundError: No module named 'PIL'
+mediai-livekit-agent  | Traceback (most recent call last):
+mediai-livekit-agent  |   File "/app/agent.py", line 29, in <module>
+mediai-livekit-agent  |     from PIL import Image
+mediai-livekit-agent  | ModuleNotFoundError: No module named 'PIL'
+mediai-livekit-agent exited with code 1 (restarting)
+mediai-livekit-agent  | Traceback (most recent call last):
+mediai-livekit-agent  |   File "/app/agent.py", line 29, in <module>
+mediai-livekit-agent  |     from PIL import Image
+mediai-livekit-agent  | ModuleNotFoundError: No module named 'PIL'
+mediai-livekit-agent exited with code 1 (restarting)
+mediai-livekit-agent  | Traceback (most recent call last):
+mediai-livekit-agent  |   File "/app/agent.py", line 29, in <module>
+mediai-livekit-agent  |     from PIL import Image
+mediai-livekit-agent  | ModuleNotFoundError: No module named 'PIL'
+mediai-livekit-agent exited with code 1 (restarting)
+mediai-livekit-agent  | Traceback (most recent call last):
+mediai-livekit-agent  |   File "/app/agent.py", line 29, in <module>
+mediai-livekit-agent  |     from PIL import Image
+mediai-livekit-agent  | ModuleNotFoundError: No module named 'PIL'
+mediai-livekit-agent exited with code 1 (restarting)
+mediai-livekit-agent  | Traceback (most recent call last):
+mediai-livekit-agent  |   File "/app/agent.py", line 29, in <module>
+mediai-livekit-agent  |     from PIL import Image
+mediai-livekit-agent  | ModuleNotFoundError: No module named 'PIL'
+mediai-livekit-agent exited with code 1 (restarting)
+mediai-livekit-agent  | Traceback (most recent call last):
+mediai-livekit-agent  |   File "/app/agent.py", line 29, in <module>
+mediai-livekit-agent  |     from PIL import Image
+mediai-livekit-agent  | ModuleNotFoundError: No module named 'PIL'
+mediai-livekit-agent exited with code 1 (restarting)
+mediai-livekit-agent  | Traceback (most recent call last):
+mediai-livekit-agent  |   File "/app/agent.py", line 29, in <module>
+mediai-livekit-agent  |     from PIL import Image
+mediai-livekit-agent  | ModuleNotFoundError: No module named 'PIL'
+mediai-livekit-agent exited with code 1 (restarting)
+mediai-livekit-agent  | Traceback (most recent call last):
+mediai-livekit-agent  |   File "/app/agent.py", line 29, in <module>
+mediai-livekit-agent  |     from PIL import Image
+mediai-livekit-agent  | ModuleNotFoundError: No module named 'PIL'
+mediai-livekit-agent exited with code 1 (restarting)
