@@ -1,218 +1,476 @@
 # MediAI LiveKit Agent
 
-Servidor Python que executa o agente de voz MediAI com integração de Avatar (BEY/Tavus) e Gemini API.
+Agente de IA médica em tempo real usando LiveKit + Google Gemini para consultas por voz/vídeo com avatar virtual.
 
-## 🏗️ Arquitetura
+## Arquitetura
 
 ```
-Frontend (Next.js) 
-    ↓ WebRTC
-LiveKit Room
-    ↓
-Python Agent (este servidor)
-    ├── Gemini API (STT, LLM, TTS)
-    ├── Avatar Provider (BEY ou Tavus)
-    ├── Gemini Vision (análise visual do paciente)
-    ├── Medical Tools (acesso ao banco de dados)
-    └── Functions (ferramentas para o LLM)
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Paciente      │────▶│  LiveKit Cloud  │◀────│  MediAI Agent   │
+│   (Browser)     │     │  (WebRTC SFU)   │     │  (Este Projeto) │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                               │                        │
+                               ▼                        ▼
+                        ┌─────────────────┐     ┌─────────────────┐
+                        │  Avatar (BEY/   │     │  Gemini 2.5     │
+                        │  Tavus)         │     │  Flash API      │
+                        └─────────────────┘     └─────────────────┘
 ```
 
-## 📋 Índice
+## Funcionalidades
 
-- [Pré-requisitos](#-pré-requisitos)
-- [Instalação com Docker](#-instalação-com-docker-recomendado)
-- [Instalação Manual](#-instalação-manual)
-- [Configuração de Variáveis de Ambiente](#-configuração-de-variáveis-de-ambiente)
-- [Como Executar](#-como-executar)
-- [Estrutura do Código](#-estrutura-do-código)
-- [Troubleshooting](#-troubleshooting)
+- **Consulta médica por voz** com IA em português brasileiro
+- **Avatar virtual hiper-realista** (Beyond Presence ou Tavus)
+- **Visão por câmera** - IA pode observar o paciente quando solicitado
+- **Busca de médicos** em tempo real no banco de dados
+- **Agendamento de consultas** via voz
+- **Métricas de uso** para billing (tokens, minutos de vídeo/áudio)
 
 ---
 
-## 📋 Pré-requisitos
+## Indice
 
-### Credenciais Necessárias
-
-Antes de começar, você precisa das seguintes credenciais:
-
-| Serviço | Obrigatório | Como obter |
-|---------|-------------|------------|
-| LiveKit | ✅ Sim | [cloud.livekit.io](https://cloud.livekit.io) |
-| Gemini API | ✅ Sim | [ai.google.dev](https://ai.google.dev) |
-| PostgreSQL | ✅ Sim | [neon.tech](https://neon.tech) (recomendado) |
-| BEY Avatar | ❌ Opcional | [beyondpresence.ai](https://beyondpresence.ai) |
-| Tavus Avatar | ❌ Opcional | [platform.tavus.io](https://platform.tavus.io) |
+- [Modos de Visao](#modos-de-visao)
+- [Desenvolvimento Local Windows](#desenvolvimento-local-windows--docker)
+- [Producao em VPS Linux](#producao-em-vps-linux)
+- [Variaveis de Ambiente](#variaveis-de-ambiente)
+- [Troubleshooting](#troubleshooting)
+- [Instalacao Manual sem Docker](#instalacao-manual-sem-docker)
 
 ---
 
-## 🐳 Instalação com Docker (Recomendado)
+## Modos de Visao
 
-### Passo 1: Instalar Docker
+| Modo | Variaveis | Comportamento |
+|------|-----------|---------------|
+| **On-Demand** (Padrao) | `ENABLE_VISION=true` + `ENABLE_VISION_STREAMING=false` | IA usa tool `look_at_patient` quando precisa ver o paciente |
+| **Streaming** (Experimental) | `ENABLE_VISION_STREAMING=true` | Frame continuo a cada 4s (requer CPU com AVX) |
+| **Desabilitado** | `ENABLE_VISION=false` | Apenas audio, sem visao |
 
-**Ubuntu/Debian:**
-```bash
-# Atualizar pacotes
-sudo apt update
+**Importante**: Se voce ver erro `exit code -4` (SIGILL), desabilite o streaming: `ENABLE_VISION_STREAMING=false`
 
-# Instalar Docker
-sudo apt install -y docker.io docker-compose
+---
 
-# Adicionar usuário ao grupo docker (evita usar sudo)
-sudo usermod -aG docker $USER
+## Desenvolvimento Local Windows + Docker
 
-# Reiniciar sessão ou executar:
-newgrp docker
+### Pre-requisitos
 
-# Verificar instalação
-docker --version
-docker-compose --version
-```
+1. **Docker Desktop** - https://www.docker.com/products/docker-desktop/
+   - Durante instalacao, marque **"Use WSL 2 instead of Hyper-V"**
+   - Apos instalar, reinicie o computador
+   
+2. **Git** - https://git-scm.com/download/win
 
-**macOS:**
-```bash
-# Instalar Docker Desktop via Homebrew
-brew install --cask docker
+3. **Credenciais** (obtenha antes de comecar):
+   - LiveKit Cloud: https://cloud.livekit.io
+   - Google Gemini API: https://aistudio.google.com/app/apikey
+   - Beyond Presence: https://beyondpresence.ai (ou Tavus)
 
-# Abrir Docker Desktop (necessário estar rodando)
-open /Applications/Docker.app
+### Passo 1: Clonar e Configurar
 
-# Verificar instalação
-docker --version
-```
+Abra o **PowerShell** ou **Terminal** e execute:
 
-**Windows (Passo a Passo Detalhado):**
-
-1. **Instalar Docker Desktop**
-   - Baixe em: https://www.docker.com/products/docker-desktop/
-   - Execute o instalador
-   - **IMPORTANTE**: Marque a opção "Use WSL 2 instead of Hyper-V"
-   - Reinicie o computador
-
-2. **Configurar Docker Desktop**
-   - Abra o Docker Desktop
-   - Vá em **Settings** → **General**
-   - Marque **"Use the WSL 2 based engine"**
-   - Vá em **Settings** → **Resources** → **WSL Integration**
-   - Ative a integração com sua distro WSL (se usar)
-
-3. **Verificar instalação (PowerShell)**
-   ```powershell
-   docker --version
-   docker-compose --version
-   ```
-
-### Passo 2: Clonar/Baixar o Projeto
-
-```bash
-# Se ainda não tem o projeto
+```powershell
+# Clonar repositorio
 git clone <seu-repositorio>
 cd livekit-agent
-```
 
-### Passo 3: Configurar Variáveis de Ambiente
-
-```bash
 # Copiar arquivo de exemplo
-cp .env.example .env
+copy .env.example .env
 
-# Editar com suas credenciais
-nano .env  # ou use seu editor preferido
+# Abrir .env para editar (use seu editor preferido)
+notepad .env
 ```
 
-Preencha as variáveis obrigatórias (veja seção [Configuração](#-configuração-de-variáveis-de-ambiente) abaixo).
+### Passo 2: Preencher Variaveis de Ambiente
 
-### Passo 4: Construir a Imagem Docker
+Edite o arquivo `.env` com suas credenciais:
 
-```bash
-# Construir imagem
-docker-compose build
+```env
+# LiveKit Cloud (obtenha em https://cloud.livekit.io > Settings > Keys)
+LIVEKIT_URL=wss://seu-projeto.livekit.cloud
+LIVEKIT_API_KEY=APIxxxxxxxx
+LIVEKIT_API_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# Ou com Docker puro:
+# Google Gemini API (obtenha em https://aistudio.google.com/app/apikey)
+GOOGLE_API_KEY=AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Avatar Provider - Beyond Presence (obtenha em beyondpresence.ai)
+BEY_API_KEY=sua_chave_bey
+BEY_AVATAR_ID=seu_avatar_id
+
+# OU Tavus (alternativa)
+# TAVUS_API_KEY=sua_chave_tavus
+# TAVUS_REPLICA_ID=seu_replica_id
+
+# Database PostgreSQL (seu banco Neon ou outro)
+DATABASE_URL=postgresql://user:password@host:5432/mediai?sslmode=require
+
+# Backend MediAI (URL onde o Next.js roda)
+NEXT_PUBLIC_URL=http://localhost:5000
+AGENT_SECRET=seu_secret_para_metricas
+
+# Visao - Recomendado: on-demand (estavel)
+ENABLE_VISION=true
+ENABLE_VISION_STREAMING=false
+
+# Modelo Gemini (opcional - padrao: gemini-2.5-flash)
+# GEMINI_LLM_MODEL=gemini-2.5-flash-native-audio-preview-09-2025
+```
+
+### Passo 3: Build da Imagem Docker
+
+```powershell
+# Build da imagem (primeira vez demora alguns minutos)
 docker build -t mediai-agent .
+
+# Verificar se foi criada
+docker images | findstr mediai-agent
 ```
 
-### Passo 5: Executar o Container
+### Passo 4: Executar o Container
 
-```bash
-# Iniciar em modo background (daemon)
-docker-compose up -d
+```powershell
+# Modo interativo (ver logs em tempo real) - RECOMENDADO para debug
+docker run --rm -it --env-file .env mediai-agent
 
-# Ver logs em tempo real
-docker-compose logs -f
+# OU modo background (daemon)
+docker run -d --name mediai-agent --env-file .env mediai-agent
 
+# Ver logs do container em background
+docker logs -f mediai-agent
+```
+
+### Passo 5: Verificar Conexao
+
+Quando o agente iniciar corretamente, voce vera:
+
+```
+============================================================
+  MediAI LiveKit Agent - 100% Gemini Powered
+============================================================
+  Configuracao LiveKit Agent:
+  * LiveKit URL: wss://seu-projeto.livekit.cloud
+  * Gemini API: Configurado
+  * Avatar Ativo: bey
+  * Visao: ON-DEMAND (look_at_patient tool)
+============================================================
+  Iniciando MediAI Agent...
+  Aguardando pacientes na sala LiveKit...
+```
+
+### Comandos Uteis Windows
+
+```powershell
 # Parar o container
-docker-compose down
-```
+docker stop mediai-agent
 
-**Comandos úteis Docker:**
+# Remover o container
+docker rm mediai-agent
 
-```bash
-# Ver status do container
-docker-compose ps
+# Rebuild apos alteracoes no codigo
+docker build -t mediai-agent . --no-cache
 
-# Reiniciar o container
-docker-compose restart
+# Entrar no container para debug
+docker exec -it mediai-agent bash
 
-# Ver logs das últimas 100 linhas
-docker-compose logs --tail=100
+# Ver uso de recursos (CPU, memoria)
+docker stats mediai-agent
 
-# Entrar no container (debug)
-docker-compose exec mediai-agent bash
-
-# Reconstruir após mudanças no código
-docker-compose up -d --build
-
-# Limpar containers e imagens não usados
+# Limpar imagens/containers nao usados
 docker system prune -f
 ```
 
-### Passo 6: Verificar se está funcionando
+---
+
+## Producao em VPS Linux
+
+### Requisitos do Servidor
+
+| Recurso | Minimo | Recomendado |
+|---------|--------|-------------|
+| **OS** | Ubuntu 20.04 | Ubuntu 22.04 LTS |
+| **CPU** | 2 cores | 4 cores |
+| **RAM** | 4 GB | 8 GB |
+| **Disco** | 10 GB SSD | 20 GB SSD |
+| **Rede** | Porta 443 outbound | - |
+
+**Provedores recomendados**: DigitalOcean, Vultr, Hetzner, AWS Lightsail, Oracle Cloud
+
+### Passo 1: Preparar o Servidor
+
+Conecte via SSH e execute:
 
 ```bash
-# Ver logs do agent
-docker-compose logs -f mediai-agent
+# Atualizar sistema
+sudo apt update && sudo apt upgrade -y
+
+# Instalar Docker (script oficial)
+curl -fsSL https://get.docker.com | sudo sh
+
+# Adicionar usuario ao grupo docker (evita usar sudo)
+sudo usermod -aG docker $USER
+
+# Aplicar grupo (ou reconecte via SSH)
+newgrp docker
+
+# Verificar instalacao
+docker --version
+docker compose version
 ```
 
-Você deve ver algo como:
+### Passo 2: Clonar o Projeto
+
+```bash
+# Criar diretorio
+sudo mkdir -p /opt/mediai-agent
+sudo chown $USER:$USER /opt/mediai-agent
+cd /opt/mediai-agent
+
+# Clonar repositorio
+git clone <seu-repositorio> .
+
+# Criar arquivo de ambiente
+nano .env
 ```
-🚀 MediAI LiveKit Agent - 100% Gemini Powered
-============================================================
-✅ Configuração LiveKit Agent:
-  • LiveKit URL: wss://seu-projeto.livekit.cloud
-  • Gemini API: ✅ Configurado
-  • Avatar Ativo: bey
-============================================================
-🎭 Iniciando MediAI Agent...
-   📡 Aguardando pacientes na sala LiveKit...
+
+Cole as mesmas variaveis da secao anterior (adaptando URLs para producao).
+
+### Passo 3: Criar docker-compose.yml
+
+```bash
+nano docker-compose.yml
+```
+
+Cole o seguinte conteudo:
+
+```yaml
+version: '3.8'
+
+services:
+  mediai-agent:
+    build: .
+    container_name: mediai-agent
+    restart: unless-stopped
+    env_file:
+      - .env
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '3'
+          memory: 6G
+        reservations:
+          cpus: '1'
+          memory: 2G
+    healthcheck:
+      test: ["CMD", "python", "-c", "print('ok')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+```
+
+### Passo 4: Deploy
+
+```bash
+# Build e iniciar
+docker compose up -d --build
+
+# Ver logs em tempo real
+docker compose logs -f
+
+# Verificar status
+docker compose ps
+```
+
+### Passo 5: Configurar Reinicio Automatico
+
+O `restart: unless-stopped` ja garante que o container reinicia automaticamente.
+Para garantir que Docker inicia no boot:
+
+```bash
+sudo systemctl enable docker
+```
+
+### Script de Deploy Automatizado
+
+Crie o arquivo `/opt/mediai-agent/deploy.sh`:
+
+```bash
+#!/bin/bash
+set -e
+
+echo "=== Deploying MediAI Agent ==="
+
+cd /opt/mediai-agent
+
+# Baixar ultimas alteracoes
+echo "Pulling latest changes..."
+git pull origin main
+
+# Parar container atual
+echo "Stopping current container..."
+docker compose down
+
+# Rebuild e iniciar
+echo "Building and starting new container..."
+docker compose up -d --build
+
+# Aguardar container iniciar
+echo "Waiting for container to start..."
+sleep 15
+
+# Verificar status
+if docker compose ps | grep -q "running"; then
+    echo "=== Deploy successful! ==="
+    echo ""
+    echo "Recent logs:"
+    docker compose logs --tail 30
+else
+    echo "=== Deploy FAILED! ==="
+    echo ""
+    echo "Error logs:"
+    docker compose logs --tail 50
+    exit 1
+fi
+```
+
+Tornar executavel e rodar:
+
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+### Monitoramento
+
+```bash
+# Ver logs em tempo real
+docker compose logs -f --tail 100
+
+# Ver uso de recursos
+docker stats mediai-agent
+
+# Ver status do container
+docker compose ps
+
+# Reiniciar manualmente
+docker compose restart
+
+# Parar tudo
+docker compose down
+```
+
+### Configurar Logs Persistentes (Opcional)
+
+Para salvar logs em disco:
+
+```bash
+# Criar diretorio de logs
+sudo mkdir -p /var/log/mediai-agent
+sudo chown $USER:$USER /var/log/mediai-agent
+```
+
+Adicione ao `docker-compose.yml`:
+
+```yaml
+    volumes:
+      - /var/log/mediai-agent:/app/logs
 ```
 
 ---
 
-## 🔧 Instalação Manual
+## Variaveis de Ambiente
 
-### Passo 1: Verificar Python
+### Obrigatorias
+
+| Variavel | Descricao | Como obter |
+|----------|-----------|------------|
+| `LIVEKIT_URL` | URL WebSocket do LiveKit | cloud.livekit.io > Settings > Keys |
+| `LIVEKIT_API_KEY` | API Key do LiveKit | cloud.livekit.io > Settings > Keys |
+| `LIVEKIT_API_SECRET` | API Secret do LiveKit | cloud.livekit.io > Settings > Keys |
+| `GOOGLE_API_KEY` | Chave API do Gemini | aistudio.google.com/app/apikey |
+| `DATABASE_URL` | Connection string PostgreSQL | neon.tech ou seu provedor |
+| `NEXT_PUBLIC_URL` | URL do backend MediAI | Seu dominio |
+| `AGENT_SECRET` | Secret para API de metricas | Gere com `openssl rand -hex 32` |
+
+### Avatar (pelo menos um)
+
+| Variavel | Descricao |
+|----------|-----------|
+| `BEY_API_KEY` | Chave Beyond Presence |
+| `BEY_AVATAR_ID` | ID do avatar BEY |
+| `TAVUS_API_KEY` | Chave Tavus (alternativa) |
+| `TAVUS_REPLICA_ID` | ID da replica Tavus |
+
+### Opcionais
+
+| Variavel | Padrao | Descricao |
+|----------|--------|-----------|
+| `ENABLE_VISION` | `true` | Habilitar visao da camera |
+| `ENABLE_VISION_STREAMING` | `false` | Streaming continuo (experimental) |
+| `GEMINI_LLM_MODEL` | `gemini-2.5-flash` | Modelo Gemini a usar |
+
+---
+
+## Troubleshooting
+
+### Erros Comuns
+
+| Erro | Causa | Solucao |
+|------|-------|---------|
+| `exit code -4` (SIGILL) | CPU sem suporte AVX | `ENABLE_VISION_STREAMING=false` |
+| `Connection refused` | Credenciais incorretas | Verificar LIVEKIT_URL e API keys |
+| `Database connection error` | PostgreSQL inacessivel | Verificar DATABASE_URL e SSL |
+| `Avatar not loading` | API key invalida | Verificar BEY_API_KEY ou TAVUS |
+| `generate_reply timed out` | Versao antiga do codigo | Atualizar e rebuildar |
+
+### Debug Detalhado
 
 ```bash
-python --version  # Precisa ser 3.10+
+# Ver logs completos
+docker compose logs --tail 200
+
+# Entrar no container
+docker compose exec mediai-agent bash
+
+# Testar conexao com banco
+docker compose exec mediai-agent python -c "import psycopg2; print('DB OK')"
+
+# Verificar variaveis de ambiente
+docker compose exec mediai-agent env | grep -E "(LIVEKIT|GEMINI|DATABASE)"
 ```
 
-Se não tiver Python 3.10+:
+### Rebuild Completo
 
-**Ubuntu/Debian:**
+Quando precisar reconstruir do zero:
+
 ```bash
-sudo apt update
-sudo apt install python3.11 python3.11-venv python3-pip
+# Parar e remover tudo
+docker compose down --rmi all --volumes
+
+# Rebuild do zero
+docker compose up -d --build --force-recreate
 ```
 
-**macOS:**
-```bash
-brew install python@3.11
-```
+---
 
-### Passo 2: Criar Ambiente Virtual
+## Instalacao Manual sem Docker
+
+### Pre-requisitos
+
+- Python 3.11+
+- pip
+
+### Passos
 
 ```bash
-# Criar venv
+# Criar ambiente virtual
 python -m venv venv
 
 # Ativar (Linux/Mac)
@@ -220,326 +478,65 @@ source venv/bin/activate
 
 # Ativar (Windows)
 venv\Scripts\activate
-```
 
-### Passo 3: Instalar Dependências
-
-```bash
+# Instalar dependencias
 pip install -r requirements.txt
-```
 
-### Passo 4: Configurar Variáveis de Ambiente
-
-```bash
+# Configurar ambiente
 cp .env.example .env
-nano .env  # Editar com suas credenciais
-```
+nano .env  # editar com suas credenciais
 
-### Passo 5: Executar
-
-```bash
-# Modo produção (conecta ao LiveKit Cloud)
-python run-agent.py
-
-# Ou modo desenvolvimento (console local)
-python agent.py dev
+# Executar
+python agent.py start
 ```
 
 ---
 
-## ⚙️ Configuração de Variáveis de Ambiente
-
-### Variáveis Obrigatórias
-
-```env
-# LiveKit - Obtenha em https://cloud.livekit.io
-LIVEKIT_URL=wss://seu-projeto.livekit.cloud
-LIVEKIT_API_KEY=APIxxxxxxxx
-LIVEKIT_API_SECRET=seu_secret_aqui
-
-# Gemini API - Obtenha em https://ai.google.dev
-GEMINI_API_KEY=AIzaSy...
-
-# Database PostgreSQL - Obtenha em https://neon.tech
-DATABASE_URL=postgresql://user:pass@host:5432/db?sslmode=require
-```
-
-### Variáveis Opcionais (Avatar)
-
-```env
-# Beyond Presence (BEY) - Avatar hiper-realista
-BEY_API_KEY=sua_chave_bey
-BEY_AVATAR_ID=id_do_avatar
-
-# OU Tavus - Alternativa de avatar
-TAVUS_API_KEY=sua_chave_tavus
-TAVUS_REPLICA_ID=id_da_replica
-TAVUS_PERSONA_ID=id_da_persona
-```
-
-### Variáveis Opcionais (Integração)
-
-```env
-# URL do backend Next.js (para ferramentas do agent)
-NEXT_PUBLIC_BASE_URL=https://seu-dominio.com
-
-# Secret para autenticação de API entre agent e backend
-AGENT_SECRET=seu_secret_seguro
-```
-
-### Como obter cada credencial:
-
-#### 1. LiveKit
-1. Acesse [cloud.livekit.io](https://cloud.livekit.io)
-2. Crie um projeto
-3. Vá em **Settings** > **Keys**
-4. Copie a URL, API Key e API Secret
-
-#### 2. Gemini API
-1. Acesse [ai.google.dev](https://ai.google.dev)
-2. Clique em "Get API Key"
-3. Crie um projeto no Google Cloud
-4. Copie a API Key gerada
-
-#### 3. Neon PostgreSQL
-1. Acesse [neon.tech](https://neon.tech)
-2. Crie um projeto
-3. Copie a connection string (com `?sslmode=require`)
-
-#### 4. Beyond Presence (BEY)
-1. Acesse [beyondpresence.ai](https://beyondpresence.ai)
-2. Crie uma conta
-3. Crie ou selecione um avatar
-4. Copie API Key e Avatar ID
-
----
-
-## 🎯 Como Executar
-
-### Com Docker
-
-```bash
-# Iniciar
-docker-compose up -d
-
-# Ver logs
-docker-compose logs -f
-
-# Parar
-docker-compose down
-```
-
-### Sem Docker
-
-```bash
-# Modo Production (LiveKit Room)
-python run-agent.py
-
-# Modo Development (Console/Terminal)
-python agent.py dev
-```
-
----
-
-## 🧰 Estrutura do Código
+## Arquitetura do Codigo
 
 ```
 livekit-agent/
-├── agent.py                 # Agent principal com lógica médica
-├── run-agent.py            # Entry point para produção
-├── gemini_provider.py       # Providers Gemini (STT, LLM, TTS)
-├── medical_tools/           # Ferramentas médicas
-│   ├── __init__.py
-│   ├── patient_data.py     # Acesso a dados do paciente
-│   └── wellness.py         # Planos de bem-estar
-├── Dockerfile              # Configuração Docker
-├── docker-compose.yml      # Orquestração de containers
-├── .dockerignore          # Arquivos ignorados no build
-├── requirements.txt        # Dependências Python
-├── .env.example           # Template de variáveis
-└── README.md              # Esta documentação
+├── agent.py           # Agente principal (MediAIAgent class)
+├── requirements.txt   # Dependencias Python
+├── Dockerfile         # Build container
+├── docker-compose.yml # Orquestracao producao
+├── .env.example       # Template de variaveis
+├── .env               # Suas credenciais (NAO commitar!)
+└── README.md          # Esta documentacao
 ```
+
+### Componentes Principais
+
+- **MediAIAgent**: Classe principal com gerenciamento de sessao
+- **FunctionTools**: Ferramentas que a IA pode chamar (buscar medicos, agendar, etc)
+- **VisionSystem**: Captura e processamento de frames da camera
+- **MetricsCollector**: Coleta metricas de uso para billing
 
 ---
 
-## 🛠️ Funcionalidades do Agent
+## Seguranca
 
-### Gemini Live API (100% Integrado)
-- **STT (Speech-to-Text)**: Transcrição em tempo real em português
-- **LLM**: Conversação contextual com histórico médico
-- **TTS (Text-to-Speech)**: Voz natural e fluente
-- **Vision**: Análise visual do paciente pela câmera
-
-### Medical Tools (Funções do LLM)
-
-| Função | Descrição |
-|--------|-----------|
-| `get_latest_exams()` | Busca últimos exames do paciente |
-| `get_patient_symptoms()` | Retorna sintomas do cadastro |
-| `check_wellness_plan()` | Verifica plano de bem-estar |
-| `capture_and_analyze_patient()` | Análise visual pela câmera |
-
-### Provedores de Avatar
-
-| Provider | Descrição |
-|----------|-----------|
-| **BEY** | Avatar hiper-realista, baixa latência |
-| **Tavus** | Avatar realista, lip-sync avançado |
+- **Nunca commite o arquivo `.env`** - ja esta no .gitignore
+- **Use secrets diferentes** para dev e producao
+- **Rotacione API keys** periodicamente
+- **Monitore logs** para detectar anomalias
+- **Limite recursos** do container para evitar DoS
+- **Use HTTPS** para o backend em producao
 
 ---
 
-## 🔧 Troubleshooting
+## Recursos Adicionais
 
-### Erros Comuns
-
-#### "GEMINI_API_KEY not found"
-```bash
-# Verificar se .env existe
-cat .env | grep GEMINI
-
-# Se não existir, criar:
-cp .env.example .env
-nano .env
-```
-
-#### "DATABASE_URL not found"
-```bash
-# Verificar conexão com banco
-echo $DATABASE_URL
-
-# Testar conexão
-psql $DATABASE_URL -c "SELECT 1"
-```
-
-#### "Connection refused" no Docker
-```bash
-# Verificar se container está rodando
-docker-compose ps
-
-# Ver logs de erro
-docker-compose logs mediai-agent
-
-# Reconstruir se necessário
-docker-compose down
-docker-compose up -d --build
-```
-
-#### Import errors
-```bash
-# Reinstalar dependências
-pip install -r requirements.txt --force-reinstall
-```
-
-#### Exit code -4 (SIGILL - Illegal Instruction)
-Este erro acontece quando numpy/Pillow usam instruções AVX que a CPU não suporta.
-
-**Solução:** O Dockerfile já foi atualizado para compilar numpy/Pillow sem AVX:
-```dockerfile
-RUN pip install --no-cache-dir numpy --no-binary :all:
-RUN pip install --no-cache-dir Pillow --no-binary :all:
-```
-
-Se ainda ocorrer, reconstrua a imagem:
-```bash
-docker-compose down
-docker-compose build --no-cache
-docker-compose up -d
-```
-
-#### Timeout no greeting inicial / "generate_reply timed out"
-Este erro foi corrigido no código. O agent agora usa `session.say()` em vez de `generate_reply()`.
-
-Se ainda ocorrer:
-1. Atualize o código do agent para a versão mais recente
-2. Reconstrua o container: `docker-compose up -d --build`
-
-#### "LiveKit connection failed"
-1. Verifique se as credenciais LiveKit estão corretas
-2. Confirme que o projeto LiveKit está ativo
-3. Verifique firewalls/proxies que podem bloquear WebSocket
-
-### Logs de Debug
-
-```bash
-# Docker - ver logs detalhados
-docker-compose logs -f --tail=200
-
-# Manual - aumentar verbosidade
-LOG_LEVEL=DEBUG python run-agent.py
-```
+- **LiveKit Docs**: https://docs.livekit.io/agents/
+- **Gemini API**: https://ai.google.dev/docs
+- **Beyond Presence**: https://docs.bey.ai/
+- **Tavus**: https://docs.tavus.io/
+- **Docker Docs**: https://docs.docker.com/
 
 ---
 
-## 📊 Monitoramento em Produção
+## Changelog
 
-### Health Check
-
-O container Docker inclui health check automático. Verifique:
-
-```bash
-docker inspect mediai-livekit-agent | grep -A 5 "Health"
-```
-
-### Limites de Recursos
-
-O `docker-compose.yml` define limites de recursos:
-- **CPU**: máximo 2 cores
-- **Memória**: máximo 2GB
-
-Ajuste conforme necessário para seu servidor.
-
-### Logs Persistentes
-
-Os logs são salvos com rotação automática:
-- Máximo 3 arquivos
-- 10MB por arquivo
-
----
-
-## 📚 Recursos Adicionais
-
-- **LiveKit Docs**: https://docs.livekit.io/agents
-- **Gemini API**: https://ai.google.dev/gemini-api/docs
-- **Beyond Presence**: https://docs.beyondpresence.ai
-- **Tavus Integration**: https://docs.livekit.io/agents/integrations/avatar/tavus/
-- **Docker Docs**: https://docs.docker.com
-
----
-
-## 🆘 Suporte
-
-Se encontrar problemas:
-
-1. Verifique todas as variáveis de ambiente
-2. Confira os logs para erros específicos
-3. Teste primeiro sem Docker para isolar problemas
-4. Verifique a documentação do LiveKit para atualizações
-
----
-
-## ✨ Deploy em Produção
-
-### Opção 1: VPS/Cloud (Docker)
-
-```bash
-# No servidor
-git pull origin main
-docker-compose up -d --build
-```
-
-### Opção 2: LiveKit Cloud Deploy
-
-```bash
-lk deploy
-```
-
-### Opção 3: Kubernetes
-
-Use o Dockerfile para criar imagem e faça deploy no seu cluster K8s.
-
----
-
-## 📝 Changelog
-
-- **v2.0** - Suporte a Docker, BEY Avatar, Gemini Vision
-- **v1.0** - Versão inicial com Tavus e Gemini
+- **v2.1** - Dual vision modes (on-demand/streaming), dynamic tools
+- **v2.0** - Docker support, BEY Avatar, Gemini Vision
+- **v1.0** - Versao inicial com Tavus e Gemini
