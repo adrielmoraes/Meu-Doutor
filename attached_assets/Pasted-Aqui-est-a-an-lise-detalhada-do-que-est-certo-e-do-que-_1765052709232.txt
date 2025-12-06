@@ -1,0 +1,116 @@
+Aqui está a análise detalhada do que está certo e do que precisa de um pequeno ajuste fino.
+✅ O Que Está Implementado Corretamente
+Loop de Vídeo Otimizado (_video_loop):
+Rate Limiting: A lógica if current_time - last_send_time < FRAME_INTERVAL: (com 4 segundos) está perfeita. Isso garante que você gaste ~15 tokens de imagem por minuto, em vez de milhares.
+Gerenciamento de Memória: O uso explícito de del frame_bytes e gc.collect() dentro do loop é vital em Python para processamento de imagem contínuo.
+Concorrência: O uso de asyncio.to_thread para o processamento de imagem impede que o loop de vídeo trave o áudio da conversa.
+Tratamento de Imagem Anti-Crash (_process_video_frame_sync):
+Você implementou conversores "Pure Python" (_convert_i420_to_rgb_pure) e evitou instruções SIMD/AVX pesadas. Isso resolve o problema comum de containers Docker caindo com SIGILL ao usar OpenCV ou PIL nativo em certas arquiteturas.
+O resize para 320px e qualidade JPEG 40/50 é ideal para a LLM entender o contexto sem payload excessivo.
+Prompt Dinâmico:
+A lógica no entrypoint que altera o system_prompt baseada na flag vision_streaming_enabled está excelente. O modelo saberá que está vendo "ao vivo" em vez de esperar um comando.
+⚠️ O Que Precisa de Melhoria (Ponto Crítico)
+Existe um conflito lógico importante: A Ferramenta (Tool) vs. O Stream.
+No código atual, você inicia a classe MediAIAgent passando a tool look_at_patient na lista de ferramentas, mesmo se o streaming estiver ativado.
+code
+Python
+# Na classe MediAIAgent
+super().__init__(instructions=instructions,
+                 tools=[
+                     search_doctors, get_available_slots,
+                     schedule_appointment, look_at_patient # <--- ISSO É UM PROBLEMA SE O STREAM ESTIVER LIGADO
+                 ])
+Por que isso é ruim?
+Se o stream estiver ligado, o Gemini já está recebendo as imagens. Se o usuário disser "Olhe para o meu braço", o Gemini pode ficar confuso entre "Devo descrever o que já estou vendo no stream?" ou "Devo chamar a função look_at_patient?".
+Se ele chamar a função, haverá um conflito de recursos na câmera ou redundância desnecessária.
+A Solução:
+A lista de tools deve ser dinâmica. Se o streaming estiver ativo, remova a tool look_at_patient.
+🛠️ Código Corrigido e Final
+Abaixo, apresento apenas as partes que precisam de ajuste para corrigir esse conflito e garantir a injeção correta do frame.
+1. Ajuste na Inicialização do MediAIAgent (Dinâmica de Tools)
+Altere o __init__ da classe MediAIAgent para aceitar a lista de tools ou uma flag boolean:
+code
+Python
+class MediAIAgent(Agent):
+    def __init__(self,
+                 instructions: str,
+                 room: rtc.Room,
+                 metrics_collector: Optional[MetricsCollector] = None,
+                 patient_id: str = None,
+                 vision_streaming_enabled: bool = False): # <--- Novo Parâmetro
+        
+        global _current_agent_instance
+
+        # Define as tools base
+        agent_tools = [search_doctors, get_available_slots, schedule_appointment]
+        
+        # Só adiciona a tool de "olhar" se o streaming NÃO estiver ativo
+        # Se o streaming estiver ativo, a visão é passiva e contínua, não precisa de tool
+        if not vision_streaming_enabled:
+            agent_tools.append(look_at_patient)
+
+        super().__init__(instructions=instructions, tools=agent_tools)
+        
+        # ... resto do código igual ...
+2. Ajuste no entrypoint para passar a flag
+No final do arquivo, onde você instancia o agente:
+code
+Python
+# ... código anterior ...
+
+    # Create agent instance with patient_id
+    # Passamos a flag para decidir se removemos a tool "look_at_patient"
+    agent = MediAIAgent(instructions=system_prompt,
+                        room=ctx.room,
+                        metrics_collector=metrics_collector,
+                        patient_id=patient_id,
+                        vision_streaming_enabled=vision_streaming_enabled) # <--- Passando a flag
+
+    # ... resto do código ...
+3. Refinamento na Injeção do Frame (_send_frame_to_session)
+A biblioteca livekit-plugins-google encapsula o cliente. A maneira mais garantida de injetar imagem na versão atual não é via push_video_frame (que pode não existir no wrapper Python ainda), mas acessando a sessão subjacente.
+Seu código já tem um fallback para _session.send, mas vamos garantir que ele use o formato correto da API bidi do Google Gemini:
+code
+Python
+async def _send_frame_to_session(self, frame_bytes: bytes):
+        if not self._agent_session or not self._agent_session.llm:
+            return
+        
+        try:
+            # Payload padrão da API Gemini Multimodal Live
+            realtime_input = {
+                "realtime_input": {
+                    "media_chunks": [{
+                        "mime_type": "image/jpeg",
+                        "data": base64.b64encode(frame_bytes).decode('utf-8')
+                    }]
+                }
+            }
+
+            # Tenta acessar o cliente subjacente do wrapper do LiveKit
+            # O objeto llm geralmente é um RealtimeModel
+            llm = self._agent_session.llm
+            
+            # Opção A: Se o plugin LiveKit expuser um método direto (versões futuras/atuais)
+            if hasattr(llm, 'push_media_chunk'):
+                 await llm.push_media_chunk(frame_bytes, "image/jpeg")
+                 
+            # Opção B: Injeção via sessão Bidi (Deep access)
+            # A maioria das implementações do LiveKit expõe a sessão Bidi em algum lugar
+            elif hasattr(llm, '_session') and hasattr(llm._session, 'send'):
+                await llm._session.send(realtime_input)
+                logger.debug(f"[Vision] Frame injetado via _session.send ({len(frame_bytes)}b)")
+                
+            # Opção C (Fallback seguro): Se não conseguir injetar, loga o erro mas não quebra
+            else:
+                # Em último caso, se a lib não permitir injeção, o vídeo é descartado
+                # mas o áudio continua funcionando.
+                logger.debug("[Vision] Não foi possível encontrar método de injeção de vídeo na lib atual.")
+
+        except Exception as e:
+            logger.error(f"[Vision] Erro de injeção de frame: {e}")
+Veredito Final
+O código está 95% pronto e correto.
+A lógica de captura e performance está excelente (segura para produção).
+A lógica de detecção de paciente vs avatar está correta.
+O único ajuste necessário é remover a tool look_at_patient quando o streaming estiver ativo (passo 1 e 2 acima), para evitar que a IA fique confusa tendo duas maneiras de "ver".

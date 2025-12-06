@@ -1231,20 +1231,31 @@ async def look_at_patient(context: RunContext, observation_focus: str = "geral")
 
 
 class MediAIAgent(Agent):
-    """MediAI Voice Agent with On-Demand Vision"""
+    """MediAI Voice Agent with On-Demand or Streaming Vision"""
 
     def __init__(self,
                  instructions: str,
                  room: rtc.Room,
                  metrics_collector: Optional[MetricsCollector] = None,
-                 patient_id: str = None):
+                 patient_id: str = None,
+                 vision_streaming_enabled: bool = False):
         global _current_agent_instance
 
-        super().__init__(instructions=instructions,
-                         tools=[
-                             search_doctors, get_available_slots,
-                             schedule_appointment, look_at_patient
-                         ])
+        # Build dynamic tools list based on vision mode
+        # If streaming is enabled, AI receives frames automatically - no need for look_at_patient tool
+        # If streaming is disabled (on-demand mode), AI uses look_at_patient tool to see patient
+        agent_tools = [search_doctors, get_available_slots, schedule_appointment]
+        
+        if not vision_streaming_enabled:
+            # On-demand mode: add look_at_patient tool
+            agent_tools.append(look_at_patient)
+            logger.info("[MediAI] 👁️ Vision mode: ON-DEMAND (look_at_patient tool available)")
+        else:
+            # Streaming mode: AI receives frames automatically, no tool needed
+            logger.info("[MediAI] 👁️ Vision mode: STREAMING (automatic frame injection)")
+
+        super().__init__(instructions=instructions, tools=agent_tools)
+        
         self.room = room
         self.metrics_collector = metrics_collector
         self._metrics_task = None
@@ -1258,9 +1269,10 @@ class MediAIAgent(Agent):
         self._video_stream = None
         self._current_video_track = None
         self._video_streaming_active = False
+        self._vision_streaming_enabled = vision_streaming_enabled
 
         _current_agent_instance = self
-        logger.info("[MediAI] Agent instance registered for vision tools")
+        logger.info("[MediAI] Agent instance registered")
 
     def _convert_i420_to_rgb_pure(self, yuv_data: bytes, width: int, height: int) -> Optional['Image.Image']:
         """Convert I420/YUV420p to RGB using pure Python (no SIMD).
@@ -1659,54 +1671,73 @@ class MediAIAgent(Agent):
     async def _send_frame_to_session(self, frame_bytes: bytes):
         """Send a processed frame to the active Gemini session.
         
-        Uses the RealtimeModel's realtime_input to inject video frames
-        into the ongoing conversation context.
+        Uses multiple fallback strategies to inject video frames
+        into the ongoing Gemini Live conversation context.
+        
+        Injection methods (in order of preference):
+        1. push_media_chunk - Direct media injection (newest API)
+        2. push_video_frame - Video frame injection
+        3. send_realtime_input - Generic realtime input
+        4. _session.send - Internal Bidi session access
         """
-        if not self._agent_session:
-            logger.warning("[Vision] No agent session available for frame injection")
+        if not self._agent_session or not self._agent_session.llm:
+            logger.warning("[Vision] No agent session or LLM available for frame injection")
             return
         
         try:
-            # Create image part for Gemini
-            image_part = {
-                "inline_data": {
-                    "mime_type": "image/jpeg",
-                    "data": base64.b64encode(frame_bytes).decode('utf-8')
+            llm = self._agent_session.llm
+            frame_injected = False
+            
+            # Option A: push_media_chunk (newest, preferred for LiveKit plugins)
+            if hasattr(llm, 'push_media_chunk'):
+                await llm.push_media_chunk(frame_bytes, "image/jpeg")
+                logger.debug("[Vision] Frame injected via push_media_chunk()")
+                frame_injected = True
+                
+            # Option B: push_video_frame
+            elif hasattr(llm, 'push_video_frame'):
+                image_part = {
+                    "inline_data": {
+                        "mime_type": "image/jpeg",
+                        "data": base64.b64encode(frame_bytes).decode('utf-8')
+                    }
                 }
-            }
-            
-            # Try to push the frame to the session's LLM
-            # The livekit-plugins-google RealtimeModel may expose methods for this
-            llm = getattr(self._agent_session, 'llm', None)
-            
-            if llm and hasattr(llm, 'push_video_frame'):
-                # Preferred: Direct video frame injection
                 await llm.push_video_frame(image_part)
-                logger.debug("[Vision] Frame pushed via push_video_frame()")
-            elif llm and hasattr(llm, 'send_realtime_input'):
-                # Alternative: Send as realtime input
+                logger.debug("[Vision] Frame injected via push_video_frame()")
+                frame_injected = True
+                
+            # Option C: send_realtime_input
+            elif hasattr(llm, 'send_realtime_input'):
+                image_part = {
+                    "inline_data": {
+                        "mime_type": "image/jpeg",
+                        "data": base64.b64encode(frame_bytes).decode('utf-8')
+                    }
+                }
                 await llm.send_realtime_input(image_part)
-                logger.debug("[Vision] Frame sent via send_realtime_input()")
-            elif llm and hasattr(llm, '_session'):
-                # Fallback: Access internal session
-                session = llm._session
-                if hasattr(session, 'send'):
-                    await session.send({
-                        "realtime_input": {
-                            "media_chunks": [{
-                                "mime_type": "image/jpeg",
-                                "data": base64.b64encode(frame_bytes).decode('utf-8')
-                            }]
-                        }
-                    })
-                    logger.debug("[Vision] Frame sent via internal session")
-            else:
-                # Last resort: Log that injection method not found
-                # The model will still receive audio and can process context
-                logger.debug("[Vision] No direct frame injection method available - frame processed locally only")
+                logger.debug("[Vision] Frame injected via send_realtime_input()")
+                frame_injected = True
+                
+            # Option D: Deep access to internal Bidi session
+            elif hasattr(llm, '_session') and hasattr(llm._session, 'send'):
+                realtime_input = {
+                    "realtime_input": {
+                        "media_chunks": [{
+                            "mime_type": "image/jpeg",
+                            "data": base64.b64encode(frame_bytes).decode('utf-8')
+                        }]
+                    }
+                }
+                await llm._session.send(realtime_input)
+                logger.debug(f"[Vision] Frame injected via _session.send ({len(frame_bytes)}b)")
+                frame_injected = True
+            
+            if not frame_injected:
+                # No injection method found - audio still works, video skipped
+                logger.debug("[Vision] No injection method available in current LiveKit plugin version")
                 
         except Exception as e:
-            logger.error(f"[Vision] Error sending frame to session: {e}")
+            logger.error(f"[Vision] Error injecting frame: {e}")
 
     async def on_enter(self):
         """Called when agent enters the session - generates initial greeting using session.say()"""
@@ -1919,10 +1950,12 @@ CONTEXTO DO PACIENTE:
 
     # Create agent instance with patient_id (thread-safe: stored on instance)
     # Function tools acessam patient_id via context.agent.patient_id
+    # Pass vision_streaming_enabled to control dynamic tools list
     agent = MediAIAgent(instructions=system_prompt,
                         room=ctx.room,
                         metrics_collector=metrics_collector,
-                        patient_id=patient_id)
+                        patient_id=patient_id,
+                        vision_streaming_enabled=vision_streaming_enabled)
 
     # Create AgentSession with integrated Gemini Live model (STT + LLM + TTS)
     # Language is controlled via voice selection and system instructions
