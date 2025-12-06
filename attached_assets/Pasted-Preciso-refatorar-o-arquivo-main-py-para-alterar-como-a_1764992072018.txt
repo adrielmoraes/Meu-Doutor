@@ -1,0 +1,31 @@
+Preciso refatorar o arquivo `main.py` para alterar como a visão computacional funciona.
+
+Atualmente, a visão funciona via function calling (`look_at_patient`). Quero mudar isso para um fluxo multimodal contínuo (enviando vídeo e áudio juntos para a mesma sessão LLM), mas extremamente otimizado para não consumir muita memória nem tokens.
+
+Por favor, faça as seguintes alterações no código:
+
+1. **Remova a Tool antiga:**
+   - Apague a função `look_at_patient`.
+   - Remova ela da lista de `tools` na inicialização da classe `MediAIAgent`.
+   - Remova o método `capture_and_analyze_patient` da classe `MediAIAgent`.
+
+2. **Implemente o Loop de Vídeo Otimizado (`_video_loop`):**
+   - Na classe `MediAIAgent`, crie um método assíncrono chamado `start_video_streaming(self, participant)`.
+   - Crie o loop interno `_video_loop` que captura frames do `rtc.VideoStream`.
+   - **REGRA CRÍTICA DE PERFORMANCE:** Implemente um rate limit estrito. O sistema deve processar e enviar APENAS 1 frame a cada 4 segundos. Ignore todos os frames entre esses intervalos.
+   - **OTIMIZAÇÃO DE MEMÓRIA:**
+     - Ao capturar o frame, converta para PIL.
+     - Redimensione a imagem (Resize) para no máximo 480px de largura (manter aspect ratio).
+     - Converta para JPEG com qualidade 50 (baixa compressão).
+     - Envie os bytes do frame diretamente para a sessão Gemini ativa. Se a biblioteca `livekit-plugins-google` expor o método, use algo como `self._agent_session.llm.push_video_frame(frame_bytes)`. Caso contrário, injete como `realtime_input`.
+     - Use `del` nas variáveis de imagem e frame logo após o envio para liberar memória imediatamente.
+
+3. **Atualize o Entrypoint:**
+   - No `entrypoint`, adicione listeners para `participant_connected` e `track_subscribed`.
+   - Quando um participante (que não seja um avatar) conectar ou ligar a câmera, inicie a task `agent.start_video_streaming(participant)`.
+
+4. **Atualize o System Prompt:**
+   - Modifique a variável `system_prompt` para remover as instruções sobre "pedir para olhar".
+   - Adicione: "Você está recebendo um feed de vídeo ao vivo do paciente. Se você notar algo visualmente preocupante (ferimentos, palidez, etc), comente naturalmente. Combine o que vê com o que ouve."
+
+Mantenha todo o resto da lógica médica, conexão com banco de dados e agendamento intactos. O foco é apenas migrar a visão para streaming contínuo de baixo consumo.

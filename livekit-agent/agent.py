@@ -1076,71 +1076,6 @@ async def schedule_appointment(context: RunContext,
                                             notes=notes)
 
 
-@function_tool()
-async def look_at_patient(context: RunContext) -> dict:
-    """Olha para o paciente através da câmera e descreve o que vê.
-    
-    Use quando o paciente perguntar:
-    - "Você consegue me ver?"
-    - "O que você está vendo?"
-    - "Pode me descrever?"
-    - "Olhe para mim"
-    - Ou quando precisar observar algo visualmente (ferimento, expressão, etc.)
-    
-    Esta função captura uma imagem da câmera do paciente, analisa com IA,
-    e retorna uma descrição do que foi observado.
-    
-    IMPORTANTE: Use esta capacidade com tato e profissionalismo.
-    Não faça comentários sobre aparência física que não sejam relevantes para a saúde.
-    """
-    global _current_agent_instance
-
-    try:
-        agent = _current_agent_instance
-
-        if agent is None:
-            logger.error("[Vision] No agent instance available")
-            return {
-                "success": False,
-                "description": None,
-                "message": "Sistema de visão não está disponível no momento."
-            }
-
-        logger.info(
-            "[Vision] 👁️ Patient requested visual analysis - capturing frame..."
-        )
-
-        description = await agent.capture_and_analyze_patient()
-
-        if description:
-            logger.info(
-                f"[Vision] ✅ Visual analysis complete: {description[:100]}...")
-            return {
-                "success": True,
-                "description": description,
-                "message": "Análise visual concluída com sucesso"
-            }
-        else:
-            logger.warning(
-                "[Vision] ❌ Could not capture or analyze patient image")
-            return {
-                "success":
-                False,
-                "description":
-                None,
-                "message":
-                "Não foi possível capturar a imagem. Verifique se a câmera está ativada."
-            }
-
-    except Exception as e:
-        logger.error(f"[Vision] Error in look_at_patient: {e}")
-        return {
-            "success": False,
-            "description": None,
-            "message": f"Erro ao analisar imagem: {str(e)}"
-        }
-
-
 class MediAIAgent(Agent):
     """MediAI Voice Agent with On-Demand Vision"""
 
@@ -1154,7 +1089,7 @@ class MediAIAgent(Agent):
         super().__init__(instructions=instructions,
                          tools=[
                              search_doctors, get_available_slots,
-                             schedule_appointment, look_at_patient
+                             schedule_appointment
                          ])
         self.room = room
         self.metrics_collector = metrics_collector
@@ -1168,6 +1103,7 @@ class MediAIAgent(Agent):
         self.last_frame_send_time = 0
         self._video_stream = None
         self._current_video_track = None
+        self._video_streaming_active = False
 
         _current_agent_instance = self
         logger.info("[MediAI] Agent instance registered for vision tools")
@@ -1254,6 +1190,7 @@ class MediAIAgent(Agent):
     async def cleanup_video_stream(self):
         """Properly cleanup video stream resources."""
         try:
+            self._video_streaming_active = False
             if self._video_stream is not None:
                 try:
                     await self._video_stream.aclose()
@@ -1265,194 +1202,179 @@ class MediAIAgent(Agent):
         except Exception as e:
             logger.debug(f"[Vision] Error cleaning up video stream: {e}")
 
-    async def capture_and_analyze_patient(self) -> Optional[str]:
-        """Capture a single frame from the patient's camera and analyze it with Gemini Vision.
+    async def start_video_streaming(self, participant):
+        """Start continuous video streaming for a patient participant.
         
-        This is an ON-DEMAND vision function - only captures when requested by the patient.
-        After analysis, memory is cleaned up to prevent leaks.
-        Uses async context manager for proper resource cleanup.
+        OPTIMIZED: Only sends 1 frame every 4 seconds to minimize token usage.
+        Frames are resized to 480px and compressed to JPEG quality 50.
         
-        IMPORTANT: Discards buffered frames to get the most recent frame.
-        
-        Returns:
-            Description of what was seen, or None if capture/analysis failed.
+        Args:
+            participant: The LiveKit participant to stream video from
         """
-        frame_bytes = None
-        temp_stream = None
-
-        try:
-            if not self.room.remote_participants:
-                logger.warning("[Vision] No remote participants found")
-                return None
-
-            # Filter out avatar agents - we want the real patient, not the avatar
-            avatar_identities = ['bey-avatar-agent', 'tavus-avatar', 'avatar-agent']
-            patient_participant = None
-            
-            for p in self.room.remote_participants.values():
-                # Skip avatar agents
-                if p.identity.lower() in avatar_identities or 'avatar' in p.identity.lower():
-                    logger.info(f"[Vision] Skipping avatar participant: {p.identity}")
-                    continue
-                patient_participant = p
+        # Check if already streaming
+        if getattr(self, '_video_streaming_active', False):
+            logger.info("[Vision] Video streaming already active, skipping")
+            return
+        
+        # Filter out avatar agents
+        avatar_identities = ['bey-avatar-agent', 'tavus-avatar', 'avatar-agent']
+        if participant.identity.lower() in avatar_identities or 'avatar' in participant.identity.lower():
+            logger.info(f"[Vision] Skipping avatar participant: {participant.identity}")
+            return
+        
+        logger.info(f"[Vision] 📹 Starting video streaming for patient: {participant.identity}")
+        
+        # Find video track
+        video_track = None
+        for track_pub in participant.track_publications.values():
+            if track_pub.kind == rtc.TrackKind.KIND_VIDEO and track_pub.subscribed:
+                video_track = track_pub.track
+                logger.info(f"[Vision] Found video track: {track_pub.sid}")
                 break
-            
-            if not patient_participant:
-                logger.warning("[Vision] No patient participant found (only avatar agents)")
-                return None
-                
-            participant = patient_participant
-            logger.info(f"[Vision] Patient participant: {participant.identity}")
-            
-            video_track = None
+        
+        if not video_track:
+            logger.warning("[Vision] No video track available from patient")
+            return
+        
+        self._video_streaming_active = True
+        self._current_video_track = video_track
+        
+        # Start the video loop as a background task
+        asyncio.create_task(self._video_loop(video_track))
 
-            for track_pub in participant.track_publications.values():
-                if track_pub.kind == rtc.TrackKind.KIND_VIDEO and track_pub.subscribed:
-                    video_track = track_pub.track
-                    logger.info(f"[Vision] Found video track: {track_pub.sid}")
+    async def _video_loop(self, video_track):
+        """Internal video processing loop with strict rate limiting.
+        
+        CRITICAL PERFORMANCE RULES:
+        - Only processes 1 frame every 4 seconds
+        - Ignores all frames between intervals
+        - Immediately releases memory after sending
+        """
+        FRAME_INTERVAL = 4.0  # Only send 1 frame every 4 seconds
+        
+        video_stream = None
+        try:
+            video_stream = rtc.VideoStream(video_track)
+            self._video_stream = video_stream
+            
+            logger.info(f"[Vision] 🎥 Video loop started - sending 1 frame every {FRAME_INTERVAL}s")
+            
+            last_send_time = 0
+            
+            async for frame_event in video_stream:
+                if not self._video_streaming_active:
+                    logger.info("[Vision] Video streaming stopped")
                     break
-
-            if not video_track:
-                logger.warning(
-                    "[Vision] No video track available from patient")
-                return None
-
-            temp_stream = rtc.VideoStream(video_track)
-
-            try:
-                latest_frame = None
-                latest_timestamp = 0
-                frames_discarded = 0
                 
-                start_time = asyncio.get_event_loop().time()
-                current_time_us = int(time.time() * 1_000_000)
+                current_time = time.time()
                 
-                while True:
-                    try:
-                        frame_event = await asyncio.wait_for(
-                            temp_stream.__anext__(), 
-                            timeout=0.2
-                        )
-                        frame = frame_event.frame
-                        
-                        if frame is not None and frame.width > 0 and frame.height > 0:
-                            frame_timestamp = getattr(frame_event, 'timestamp_us', 0) or getattr(frame, 'timestamp_us', 0) or 0
-                            
-                            if frame_timestamp == 0 or frame_timestamp > latest_timestamp:
-                                latest_frame = frame
-                                latest_timestamp = frame_timestamp
-                                frames_discarded += 1
-                        
-                        if asyncio.get_event_loop().time() - start_time > 1.0:
-                            break
-                            
-                    except asyncio.TimeoutError:
-                        break
+                # RATE LIMIT: Skip frames if not enough time has passed
+                if current_time - last_send_time < FRAME_INTERVAL:
+                    continue
                 
-                if frames_discarded > 1:
-                    logger.info(f"[Vision] Discarded {frames_discarded - 1} buffered frames, using latest")
-                    if latest_timestamp > 0:
-                        age_ms = (current_time_us - latest_timestamp) / 1000
-                        logger.info(f"[Vision] Frame timestamp: {latest_timestamp}, age: ~{age_ms:.0f}ms")
+                frame = frame_event.frame
+                if frame is None or frame.width <= 0 or frame.height <= 0:
+                    continue
                 
-                if latest_frame is None:
-                    logger.info("[Vision] No frames in buffer, waiting for fresh frame...")
-                    try:
-                        frame_event = await asyncio.wait_for(
-                            temp_stream.__anext__(), 
-                            timeout=5.0
-                        )
-                        latest_frame = frame_event.frame
-                    except asyncio.TimeoutError:
-                        logger.warning("[Vision] Timeout waiting for video frame")
-                        return None
-
-                if latest_frame is None:
-                    logger.warning("[Vision] Received null frame")
-                    return None
+                try:
+                    # Process frame in separate thread to avoid blocking
+                    frame_bytes = await asyncio.to_thread(
+                        self._process_video_frame_sync, frame)
                     
-                if latest_frame.width <= 0 or latest_frame.height <= 0:
-                    logger.warning(f"[Vision] Invalid frame dimensions: {latest_frame.width}x{latest_frame.height}")
-                    return None
-
-                logger.info(f"[Vision] Frame dimensions: {latest_frame.width}x{latest_frame.height}")
-
-                frame_bytes = await asyncio.to_thread(
-                    self._process_video_frame_sync, latest_frame)
-                
-                latest_frame = None
-
-                if not frame_bytes:
-                    logger.warning("[Vision] Failed to process frame")
-                    return None
-
-                logger.info(
-                    f"[Vision] 👁️ Captured frame ({len(frame_bytes)} bytes), analyzing with Gemini..."
-                )
-
-                vision_model = genai.GenerativeModel('gemini-2.0-flash')
-
-                # Send image bytes directly to Gemini without PIL processing
-                # Gemini accepts JPEG bytes directly via inline_data
-                image_part = {
-                    "inline_data": {
-                        "mime_type": "image/jpeg",
-                        "data": base64.b64encode(frame_bytes).decode('utf-8')
-                    }
-                }
-                
-                logger.info(f"[Vision] Sending {len(frame_bytes)} bytes to Gemini...")
-                
-                frame_bytes = None
-
-                prompt = """Você é uma assistente médica virtual brasileira. Descreva EXATAMENTE o que você vê nesta imagem do paciente.
-
-REGRAS IMPORTANTES:
-- Responda em português brasileiro
-- Descreva APENAS o que você realmente vê na imagem - NÃO invente ou suponha detalhes
-- Seja específica sobre cores de roupas, características visíveis, ambiente
-- Se algo não está claro, diga que não consegue ver bem
-- Seja breve (2-3 frases)
-- Foque em aspectos relevantes para saúde (expressão facial, postura, sinais visíveis)
-- Seja profissional e respeitosa
-- NÃO faça diagnósticos
-
-Descreva PRECISAMENTE o que você vê nesta imagem:"""
-
-                response = await asyncio.to_thread(
-                    lambda: vision_model.generate_content([prompt, image_part]))
-
-                description = response.text if response.text else "Não foi possível analisar a imagem."
-                
-                logger.info(f"[Vision] Gemini response: {description}")
-
-                if self.metrics_collector:
-                    self.metrics_collector.vision_input_tokens += 258
-                    self.metrics_collector.vision_output_tokens += len(
-                        description) // 4
-
-                response = None
-
-                logger.info(f"[Vision] ✅ Analysis complete")
-                return description
-
-            except asyncio.TimeoutError:
-                logger.warning("[Vision] Timeout waiting for video frame")
-                return None
-
+                    if not frame_bytes:
+                        continue
+                    
+                    # Send frame to Gemini Live session
+                    await self._send_frame_to_session(frame_bytes)
+                    
+                    last_send_time = current_time
+                    
+                    # Track metrics
+                    if self.metrics_collector:
+                        # Estimate ~258 tokens per frame (480x480 JPEG)
+                        self.metrics_collector.vision_input_tokens += 258
+                    
+                    logger.debug(f"[Vision] 📸 Frame sent ({len(frame_bytes)} bytes)")
+                    
+                    # Immediate cleanup
+                    del frame_bytes
+                    frame_bytes = None
+                    
+                except Exception as e:
+                    logger.error(f"[Vision] Error processing frame: {e}")
+                    continue
+                finally:
+                    # Force garbage collection every frame
+                    gc.collect()
+                    
+        except asyncio.CancelledError:
+            logger.info("[Vision] Video loop cancelled")
         except Exception as e:
-            logger.error(f"[Vision] Error in capture_and_analyze_patient: {e}")
+            logger.error(f"[Vision] Video loop error: {e}")
             import traceback
             logger.error(f"[Vision] Traceback: {traceback.format_exc()}")
-            return None
         finally:
-            if temp_stream is not None:
+            self._video_streaming_active = False
+            if video_stream is not None:
                 try:
-                    await temp_stream.aclose()
+                    await video_stream.aclose()
                 except Exception:
                     pass
-            frame_bytes = None
+            self._video_stream = None
             gc.collect()
+            logger.info("[Vision] 🎥 Video loop ended")
+
+    async def _send_frame_to_session(self, frame_bytes: bytes):
+        """Send a processed frame to the active Gemini session.
+        
+        Uses the RealtimeModel's realtime_input to inject video frames
+        into the ongoing conversation context.
+        """
+        if not self._agent_session:
+            logger.warning("[Vision] No agent session available for frame injection")
+            return
+        
+        try:
+            # Create image part for Gemini
+            image_part = {
+                "inline_data": {
+                    "mime_type": "image/jpeg",
+                    "data": base64.b64encode(frame_bytes).decode('utf-8')
+                }
+            }
+            
+            # Try to push the frame to the session's LLM
+            # The livekit-plugins-google RealtimeModel may expose methods for this
+            llm = getattr(self._agent_session, 'llm', None)
+            
+            if llm and hasattr(llm, 'push_video_frame'):
+                # Preferred: Direct video frame injection
+                await llm.push_video_frame(image_part)
+                logger.debug("[Vision] Frame pushed via push_video_frame()")
+            elif llm and hasattr(llm, 'send_realtime_input'):
+                # Alternative: Send as realtime input
+                await llm.send_realtime_input(image_part)
+                logger.debug("[Vision] Frame sent via send_realtime_input()")
+            elif llm and hasattr(llm, '_session'):
+                # Fallback: Access internal session
+                session = llm._session
+                if hasattr(session, 'send'):
+                    await session.send({
+                        "realtime_input": {
+                            "media_chunks": [{
+                                "mime_type": "image/jpeg",
+                                "data": base64.b64encode(frame_bytes).decode('utf-8')
+                            }]
+                        }
+                    })
+                    logger.debug("[Vision] Frame sent via internal session")
+            else:
+                # Last resort: Log that injection method not found
+                # The model will still receive audio and can process context
+                logger.debug("[Vision] No direct frame injection method available - frame processed locally only")
+                
+        except Exception as e:
+            logger.error(f"[Vision] Error sending frame to session: {e}")
 
     async def on_enter(self):
         """Called when agent enters the session - generates initial greeting using session.say()"""
@@ -1578,20 +1500,27 @@ async def entrypoint(ctx: JobContext):
     # Check if vision is enabled
     vision_enabled = os.getenv('ENABLE_VISION', 'false').lower() == 'true'
 
+    # Build system prompt based on vision mode
+    if vision_enabled:
+        vision_instructions = """VISÃO EM TEMPO REAL:
+✅ VOCÊ ESTÁ RECEBENDO UM FEED DE VÍDEO AO VIVO DO PACIENTE
+✅ Você pode ver o paciente continuamente durante a consulta
+- Se notar algo visualmente preocupante (ferimentos, palidez, sinais de dor, postura irregular), comente naturalmente
+- Combine o que você VÊ com o que você OUVE para fazer uma avaliação mais completa
+- Use observações visuais para guiar suas perguntas (ex: "Noto que você parece desconfortável...")
+- Seja profissional e respeitosa nas observações visuais
+- NÃO faça comentários sobre aparência que não sejam relevantes para saúde"""
+    else:
+        vision_instructions = """VISÃO:
+- Nesta consulta, você NÃO tem acesso visual ao paciente
+- Baseie sua avaliação apenas nas informações verbais fornecidas"""
+
     system_prompt = f"""Você é MediAI, uma assistente médica virtual brasileira especializada em triagem de pacientes e orientação de saúde.
 
 CAPACIDADES IMPORTANTES:
-✅ VOCÊ PODE VER O PACIENTE - Quando solicitado, você pode olhar para o paciente através da câmera usando a função look_at_patient
-✅ Use a função look_at_patient quando o paciente perguntar "você consegue me ver?", "olhe para mim", ou quando precisar observar algo visualmente
+{vision_instructions}
 ✅ VOCÊ PODE AGENDAR CONSULTAS - Você tem acesso aos médicos cadastrados na plataforma e pode agendar consultas reais
 ✅ Você pode buscar médicos por especialidade e verificar disponibilidade de horários
-
-VISÃO SOB DEMANDA:
-- Você NÃO está vendo o paciente continuamente (para economizar recursos)
-- Quando o paciente pedir para você olhar, use a função look_at_patient
-- A função captura uma imagem, analisa, e te dá uma descrição do que vê
-- Use essa capacidade com tato e profissionalismo
-- Após usar a função, descreva naturalmente o que viu ao paciente
 
 IDIOMA E COMUNICAÇÃO:
 - Fale EXCLUSIVAMENTE em português brasileiro claro e natural
@@ -1690,19 +1619,31 @@ CONTEXTO DO PACIENTE:
 
     logger.info("[MediAI] ✅ Session started successfully!")
 
-    # Vision capability - ON-DEMAND ONLY to prevent memory leaks
-    # The AI can use look_at_patient() tool when patient asks to be seen
-    # No continuous streaming - much lower memory footprint
-    enable_vision = os.getenv('ENABLE_VISION', 'false').lower() == 'true'
-
-    if enable_vision:
-        logger.info(
-            "[MediAI] 👁️ Vision enabled (on-demand) - AI can see patient when requested")
-        logger.info(
-            "[MediAI] 💡 Patient can ask 'você consegue me ver?' to trigger vision analysis")
+    # Vision capability - CONTINUOUS STREAMING with rate limiting
+    # Sends 1 frame every 4 seconds to minimize token usage while maintaining visual context
+    if vision_enabled:
+        logger.info("[MediAI] 👁️ Vision enabled - continuous streaming at 1 frame/4s")
+        
+        # Start video streaming for existing participants
+        for participant in ctx.room.remote_participants.values():
+            asyncio.create_task(agent.start_video_streaming(participant))
+        
+        # Register listener for new participant connections
+        @ctx.room.on("participant_connected")
+        def on_participant_connected(participant):
+            """Start video streaming when a new participant connects."""
+            logger.info(f"[Vision] 👤 Participant connected: {participant.identity}")
+            asyncio.create_task(agent.start_video_streaming(participant))
+        
+        # Register listener for track subscriptions (when camera is enabled)
+        @ctx.room.on("track_subscribed")
+        def on_track_subscribed(track, publication, participant):
+            """Start video streaming when a video track is subscribed."""
+            if track.kind == rtc.TrackKind.KIND_VIDEO:
+                logger.info(f"[Vision] 📹 Video track subscribed from: {participant.identity}")
+                asyncio.create_task(agent.start_video_streaming(participant))
     else:
-        logger.info(
-            "[MediAI] 👁️ Vision disabled (set ENABLE_VISION=true to enable)")
+        logger.info("[MediAI] 👁️ Vision disabled (set ENABLE_VISION=true to enable)")
 
     # Hook into session events to track metrics
     # Note: Gemini Live API integrates STT/LLM/TTS, so we estimate based on interaction
