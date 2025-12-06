@@ -1,0 +1,362 @@
+19:12:39.158 Running build in Washington, D.C., USA (East) – iad1
+19:12:39.159 Build machine configuration: 2 cores, 8 GB
+19:12:39.290 Cloning github.com/adrielmoraes/Meu-Doutor (Branch: main, Commit: 06ab87a)
+19:12:42.923 Cloning completed: 3.633s
+19:12:43.090 Found .vercelignore
+19:12:43.103 Removed 73 ignored files defined in .vercelignore
+19:12:43.103   /.replit
+19:12:43.103   /.vscode/settings.json
+19:12:43.103   /AGENDAMENTO_IA.md
+19:12:43.103   /apply_fixes.py
+19:12:43.103   /attached_assets/content-1760651114897.md
+19:12:43.103   /attached_assets/content-1760651211382.md
+19:12:43.103   /attached_assets/content-1760651260830.md
+19:12:43.103   /attached_assets/content-1760651411236.md
+19:12:43.103   /attached_assets/content-1760651452120.md
+19:12:43.104   /attached_assets/content-1760838000660.md
+19:12:43.168 Restored build cache from previous deployment (9qBgh4A7DcBvYFVsT6XFPkeQNBYy)
+19:12:43.314 Running "git diff --quiet HEAD^ HEAD ./"
+19:12:44.350 Running "vercel build"
+19:12:45.158 Vercel CLI 49.0.0
+19:12:45.600 Running "install" command: `npm install`...
+19:12:50.935 
+19:12:50.937 up to date, audited 1353 packages in 5s
+19:12:50.937 
+19:12:50.937 232 packages are looking for funding
+19:12:50.939   run `npm fund` for details
+19:12:51.035 
+19:12:51.036 18 vulnerabilities (2 low, 10 moderate, 5 high, 1 critical)
+19:12:51.036 
+19:12:51.036 To address issues that do not require attention, run:
+19:12:51.037   npm audit fix
+19:12:51.037 
+19:12:51.037 To address all issues (including breaking changes), run:
+19:12:51.037   npm audit fix --force
+19:12:51.037 
+19:12:51.038 Run `npm audit` for details.
+19:12:51.082 Detected Next.js version: 15.3.3
+19:12:51.083 Running "npm run build"
+19:12:51.225 
+19:12:51.226 > nextn@0.1.0 build
+19:12:51.226 > next build
+19:12:51.226 
+19:12:52.144    ▲ Next.js 15.3.3
+19:12:52.145 
+19:12:52.170    Creating an optimized production build ...
+19:13:05.489  ⚠ Compiled with warnings in 12.0s
+19:13:05.489 
+19:13:05.490 ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+19:13:05.490 Critical dependency: the request of a dependency is an expression
+19:13:05.490 
+19:13:05.490 Import trace for requested module:
+19:13:05.490 ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+19:13:05.490 ./node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+19:13:05.490 ./node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+19:13:05.490 ./node_modules/@opentelemetry/instrumentation/build/esm/index.js
+19:13:05.490 ./node_modules/@opentelemetry/sdk-node/build/src/sdk.js
+19:13:05.490 ./node_modules/@opentelemetry/sdk-node/build/src/index.js
+19:13:05.490 ./node_modules/@genkit-ai/core/lib/tracing/node-telemetry-provider.js
+19:13:05.490 ./node_modules/@genkit-ai/core/lib/node.js
+19:13:05.490 ./node_modules/genkit/lib/common.js
+19:13:05.490 ./node_modules/genkit/lib/index.mjs
+19:13:05.491 ./src/ai/flows/therapist-chat-flow.ts
+19:13:05.491 ./src/app/api/therapist-chat/route.ts
+19:13:05.491 
+19:13:05.491 ./node_modules/handlebars/lib/index.js
+19:13:05.491 require.extensions is not supported by webpack. Use a loader instead.
+19:13:05.491 
+19:13:05.491 Import trace for requested module:
+19:13:05.491 ./node_modules/handlebars/lib/index.js
+19:13:05.491 ./node_modules/dotprompt/dist/index.js
+19:13:05.491 ./node_modules/@genkit-ai/core/lib/registry.js
+19:13:05.491 ./node_modules/genkit/lib/registry.js
+19:13:05.491 ./node_modules/genkit/lib/genkit.js
+19:13:05.491 ./node_modules/genkit/lib/index.mjs
+19:13:05.491 ./src/ai/flows/text-to-speech.ts
+19:13:05.492 
+19:13:05.492 ./node_modules/handlebars/lib/index.js
+19:13:05.492 require.extensions is not supported by webpack. Use a loader instead.
+19:13:05.492 
+19:13:05.492 Import trace for requested module:
+19:13:05.492 ./node_modules/handlebars/lib/index.js
+19:13:05.492 ./node_modules/dotprompt/dist/index.js
+19:13:05.492 ./node_modules/@genkit-ai/core/lib/registry.js
+19:13:05.492 ./node_modules/genkit/lib/registry.js
+19:13:05.492 ./node_modules/genkit/lib/genkit.js
+19:13:05.492 ./node_modules/genkit/lib/index.mjs
+19:13:05.492 ./src/ai/flows/text-to-speech.ts
+19:13:05.492 
+19:13:05.492 ./node_modules/handlebars/lib/index.js
+19:13:05.492 require.extensions is not supported by webpack. Use a loader instead.
+19:13:05.492 
+19:13:05.492 Import trace for requested module:
+19:13:05.493 ./node_modules/handlebars/lib/index.js
+19:13:05.493 ./node_modules/dotprompt/dist/index.js
+19:13:05.493 ./node_modules/@genkit-ai/core/lib/registry.js
+19:13:05.493 ./node_modules/genkit/lib/registry.js
+19:13:05.493 ./node_modules/genkit/lib/genkit.js
+19:13:05.493 ./node_modules/genkit/lib/index.mjs
+19:13:05.493 ./src/ai/flows/text-to-speech.ts
+19:13:05.493 
+19:13:05.493 ./node_modules/handlebars/lib/index.js
+19:13:05.493 require.extensions is not supported by webpack. Use a loader instead.
+19:13:05.493 
+19:13:05.493 Import trace for requested module:
+19:13:05.493 ./node_modules/handlebars/lib/index.js
+19:13:05.493 ./node_modules/dotprompt/dist/index.js
+19:13:05.493 ./node_modules/@genkit-ai/core/lib/registry.js
+19:13:05.493 ./node_modules/genkit/lib/registry.js
+19:13:05.494 ./node_modules/genkit/lib/genkit.js
+19:13:05.494 ./node_modules/genkit/lib/index.mjs
+19:13:05.494 ./src/ai/flows/therapist-chat-flow.ts
+19:13:05.494 ./src/app/api/therapist-chat/route.ts
+19:13:05.494 
+19:13:05.494 ./node_modules/handlebars/lib/index.js
+19:13:05.494 require.extensions is not supported by webpack. Use a loader instead.
+19:13:05.494 
+19:13:05.494 Import trace for requested module:
+19:13:05.494 ./node_modules/handlebars/lib/index.js
+19:13:05.494 ./node_modules/dotprompt/dist/index.js
+19:13:05.494 ./node_modules/@genkit-ai/core/lib/registry.js
+19:13:05.494 ./node_modules/genkit/lib/registry.js
+19:13:05.494 ./node_modules/genkit/lib/genkit.js
+19:13:05.494 ./node_modules/genkit/lib/index.mjs
+19:13:05.494 ./src/ai/flows/therapist-chat-flow.ts
+19:13:05.494 ./src/app/api/therapist-chat/route.ts
+19:13:05.494 
+19:13:05.494 ./node_modules/handlebars/lib/index.js
+19:13:05.494 require.extensions is not supported by webpack. Use a loader instead.
+19:13:05.495 
+19:13:05.495 Import trace for requested module:
+19:13:05.495 ./node_modules/handlebars/lib/index.js
+19:13:05.495 ./node_modules/dotprompt/dist/index.js
+19:13:05.495 ./node_modules/@genkit-ai/core/lib/registry.js
+19:13:05.495 ./node_modules/genkit/lib/registry.js
+19:13:05.495 ./node_modules/genkit/lib/genkit.js
+19:13:05.495 ./node_modules/genkit/lib/index.mjs
+19:13:05.495 ./src/ai/flows/therapist-chat-flow.ts
+19:13:05.495 ./src/app/api/therapist-chat/route.ts
+19:13:05.495 
+19:13:12.579  ✓ Compiled successfully in 16.0s
+19:13:12.582    Skipping validation of types
+19:13:12.582    Skipping linting
+19:13:12.839    Collecting page data ...
+19:13:13.460 [Session] JWT_SECRET carregado com sucesso
+19:13:13.833 [Genkit] Google AI Plugin enabled.
+19:13:21.087    Generating static pages (0/92) ...
+19:13:22.234  ⚠ Unsupported metadata viewport is configured in metadata export in /_not-found. Please move it to viewport export instead.
+19:13:22.235 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:22.469 [Session] JWT_SECRET carregado com sucesso
+19:13:22.579    Generating static pages (23/92) 
+19:13:23.170 [Genkit] Google AI Plugin enabled.
+19:13:23.190    Generating static pages (46/92) 
+19:13:23.350  ⚠ Unsupported metadata viewport is configured in metadata export in /contato. Please move it to viewport export instead.
+19:13:23.350 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:23.350  ⚠ Unsupported metadata viewport is configured in metadata export in /forgot-password. Please move it to viewport export instead.
+19:13:23.351 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:23.351  ⚠ Unsupported metadata viewport is configured in metadata export in /login. Please move it to viewport export instead.
+19:13:23.351 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:23.351  ⚠ Unsupported metadata viewport is configured in metadata export in /. Please move it to viewport export instead.
+19:13:23.351 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:23.564  ⚠ Unsupported metadata viewport is configured in metadata export in /pricing. Please move it to viewport export instead.
+19:13:23.564 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:23.564  ⚠ Unsupported metadata viewport is configured in metadata export in /privacidade. Please move it to viewport export instead.
+19:13:23.564 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:23.564  ⚠ Unsupported metadata viewport is configured in metadata export in /register/doctor. Please move it to viewport export instead.
+19:13:23.564 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:23.568  ⚠ Unsupported metadata viewport is configured in metadata export in /register. Please move it to viewport export instead.
+19:13:23.568 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:23.568  ⚠ Unsupported metadata viewport is configured in metadata export in /register/patient. Please move it to viewport export instead.
+19:13:23.568 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:23.627  ⚠ Unsupported metadata viewport is configured in metadata export in /reset-password. Please move it to viewport export instead.
+19:13:23.627 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:23.628  ⚠ Unsupported metadata viewport is configured in metadata export in /role-selection. Please move it to viewport export instead.
+19:13:23.628 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:23.694  ⚠ Unsupported metadata viewport is configured in metadata export in /sobre. Please move it to viewport export instead.
+19:13:23.694 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:23.694  ⚠ Unsupported metadata viewport is configured in metadata export in /termos. Please move it to viewport export instead.
+19:13:23.694 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:23.831  ⚠ Unsupported metadata viewport is configured in metadata export in /verify-email. Please move it to viewport export instead.
+19:13:23.831 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:23.832  ⚠ Unsupported metadata viewport is configured in metadata export in /admin/consultations. Please move it to viewport export instead.
+19:13:23.832 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:23.832  ⚠ Unsupported metadata viewport is configured in metadata export in /admin/doctors. Please move it to viewport export instead.
+19:13:23.834 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:25.509  ⚠ Unsupported metadata viewport is configured in metadata export in /admin/exams. Please move it to viewport export instead.
+19:13:25.509 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:25.509  ⚠ Unsupported metadata viewport is configured in metadata export in /admin. Please move it to viewport export instead.
+19:13:25.509 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:25.509  ⚠ Unsupported metadata viewport is configured in metadata export in /admin/patients. Please move it to viewport export instead.
+19:13:25.509 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:25.509  ⚠ Unsupported metadata viewport is configured in metadata export in /admin/search. Please move it to viewport export instead.
+19:13:25.509 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:25.509  ⚠ Unsupported metadata viewport is configured in metadata export in /admin/settings. Please move it to viewport export instead.
+19:13:25.509 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:25.509  ⚠ Unsupported metadata viewport is configured in metadata export in /admin/subscriptions. Please move it to viewport export instead.
+19:13:25.509 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:25.509  ⚠ Unsupported metadata viewport is configured in metadata export in /admin/usage. Please move it to viewport export instead.
+19:13:25.509 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:25.509  ⚠ Unsupported metadata viewport is configured in metadata export in /doctor/calls. Please move it to viewport export instead.
+19:13:25.510 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:25.903    Generating static pages (69/92) 
+19:13:27.499  ⚠ Unsupported metadata viewport is configured in metadata export in /doctor/history. Please move it to viewport export instead.
+19:13:27.499 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:27.499  ⚠ Unsupported metadata viewport is configured in metadata export in /doctor. Please move it to viewport export instead.
+19:13:27.500 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:27.500  ⚠ Unsupported metadata viewport is configured in metadata export in /doctor/patients. Please move it to viewport export instead.
+19:13:27.500 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:27.500  ⚠ Unsupported metadata viewport is configured in metadata export in /doctor/profile. Please move it to viewport export instead.
+19:13:27.500 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:27.501  ⚠ Unsupported metadata viewport is configured in metadata export in /doctor/schedule. Please move it to viewport export instead.
+19:13:27.501 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:27.501  ⚠ Unsupported metadata viewport is configured in metadata export in /doctor/settings. Please move it to viewport export instead.
+19:13:27.501 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:27.501  ⚠ Unsupported metadata viewport is configured in metadata export in /doctor/video-call. Please move it to viewport export instead.
+19:13:27.501 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:27.501  ⚠ Unsupported metadata viewport is configured in metadata export in /patient/doctor-video-call. Please move it to viewport export instead.
+19:13:27.501 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:27.785  ⚠ Unsupported metadata viewport is configured in metadata export in /patient/doctors. Please move it to viewport export instead.
+19:13:27.786 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:27.786  ⚠ Unsupported metadata viewport is configured in metadata export in /patient/history. Please move it to viewport export instead.
+19:13:27.786 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:27.890  ⚠ Unsupported metadata viewport is configured in metadata export in /patient/monitoring. Please move it to viewport export instead.
+19:13:27.890 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:27.890  ⚠ Unsupported metadata viewport is configured in metadata export in /patient/profile. Please move it to viewport export instead.
+19:13:27.890 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:27.890  ⚠ Unsupported metadata viewport is configured in metadata export in /patient/subscription/canceled. Please move it to viewport export instead.
+19:13:27.890 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:27.962  ⚠ Unsupported metadata viewport is configured in metadata export in /patient/subscription. Please move it to viewport export instead.
+19:13:27.962 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:27.962  ⚠ Unsupported metadata viewport is configured in metadata export in /patient/tavus-history. Please move it to viewport export instead.
+19:13:27.963 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:27.963  ⚠ Unsupported metadata viewport is configured in metadata export in /patient/therapist-chat. Please move it to viewport export instead.
+19:13:27.963 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:27.963  ⚠ Unsupported metadata viewport is configured in metadata export in /patient/upload-exam. Please move it to viewport export instead.
+19:13:27.963 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:28.054  ✓ Generating static pages (92/92)
+19:13:28.190  ⚠ Unsupported metadata viewport is configured in metadata export in /patient/wellness. Please move it to viewport export instead.
+19:13:28.190 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:28.190  ⚠ Unsupported metadata viewport is configured in metadata export in /patient/subscription/success. Please move it to viewport export instead.
+19:13:28.190 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:28.190  ⚠ Unsupported metadata viewport is configured in metadata export in /patient/dashboard. Please move it to viewport export instead.
+19:13:28.190 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+19:13:28.385 Shutting down all Genkit servers...
+19:13:29.388    Finalizing page optimization ...
+19:13:29.388    Collecting build traces ...
+19:13:44.365 
+19:13:44.372 Route (app)                                       Size  First Load JS
+19:13:44.373 ┌ ○ /                                          9.35 kB         167 kB
+19:13:44.373 ├ ○ /_not-found                                  990 B         102 kB
+19:13:44.373 ├ ƒ /admin                                       187 B         105 kB
+19:13:44.373 ├ ƒ /admin/consultations                         288 B         101 kB
+19:13:44.373 ├ ƒ /admin/doctors                               288 B         101 kB
+19:13:44.373 ├ ƒ /admin/doctors/[id]                          187 B         105 kB
+19:13:44.373 ├ ƒ /admin/exams                                 288 B         101 kB
+19:13:44.373 ├ ƒ /admin/patients                              187 B         105 kB
+19:13:44.373 ├ ƒ /admin/patients/[id]                       6.14 kB         118 kB
+19:13:44.373 ├ ƒ /admin/search                                288 B         101 kB
+19:13:44.373 ├ ƒ /admin/settings                            11.1 kB         123 kB
+19:13:44.373 ├ ƒ /admin/subscriptions                         288 B         101 kB
+19:13:44.373 ├ ƒ /admin/usage                                 288 B         101 kB
+19:13:44.373 ├ ƒ /api/admin/payment-settings                  288 B         101 kB
+19:13:44.373 ├ ƒ /api/admin/security-audit                    288 B         101 kB
+19:13:44.373 ├ ƒ /api/admin/usage-stats                       288 B         101 kB
+19:13:44.373 ├ ƒ /api/agent-usage                             288 B         101 kB
+19:13:44.374 ├ ƒ /api/ai-agent/doctors                        288 B         101 kB
+19:13:44.374 ├ ƒ /api/ai-agent/schedule                       288 B         101 kB
+19:13:44.374 ├ ƒ /api/ai-agent/test                           288 B         101 kB
+19:13:44.374 ├ ƒ /api/check-limit                             288 B         101 kB
+19:13:44.374 ├ ƒ /api/contact                                 288 B         101 kB
+19:13:44.374 ├ ƒ /api/deprecated/tavus/create-conversation    288 B         101 kB
+19:13:44.374 ├ ƒ /api/deprecated/tavus/end-conversation       288 B         101 kB
+19:13:44.374 ├ ƒ /api/deprecated/tavus/get-transcript         288 B         101 kB
+19:13:44.374 ├ ƒ /api/deprecated/tavus/webhook                288 B         101 kB
+19:13:44.374 ├ ƒ /api/doctor-stats                            288 B         101 kB
+19:13:44.374 ├ ƒ /api/doctors/[doctorId]                      288 B         101 kB
+19:13:44.374 ├ ƒ /api/exams                                   288 B         101 kB
+19:13:44.374 ├ ƒ /api/export-data                             288 B         101 kB
+19:13:44.374 ├ ƒ /api/forgot-password                         288 B         101 kB
+19:13:44.374 ├ ƒ /api/gemini-tts                              288 B         101 kB
+19:13:44.374 ├ ƒ /api/health                                  288 B         101 kB
+19:13:44.374 ├ ƒ /api/livekit/token                           288 B         101 kB
+19:13:44.374 ├ ƒ /api/logout                                  288 B         101 kB
+19:13:44.374 ├ ƒ /api/notifications/sse                       288 B         101 kB
+19:13:44.374 ├ ƒ /api/patient-stats                           288 B         101 kB
+19:13:44.374 ├ ƒ /api/patient/active-calls                    288 B         101 kB
+19:13:44.374 ├ ƒ /api/patient/decline-call                    288 B         101 kB
+19:13:44.374 ├ ƒ /api/patient/join-call                       288 B         101 kB
+19:13:44.375 ├ ƒ /api/patient/leave-call                      288 B         101 kB
+19:13:44.375 ├ ƒ /api/patients                                288 B         101 kB
+19:13:44.375 ├ ƒ /api/reset-password                          288 B         101 kB
+19:13:44.375 ├ ƒ /api/session                                 288 B         101 kB
+19:13:44.375 ├ ƒ /api/speech-to-text                          288 B         101 kB
+19:13:44.375 ├ ƒ /api/stripe/cancel-subscription              288 B         101 kB
+19:13:44.375 ├ ƒ /api/stripe/checkout                         288 B         101 kB
+19:13:44.375 ├ ƒ /api/stripe/resume-subscription              288 B         101 kB
+19:13:44.375 ├ ƒ /api/stripe/webhook                          288 B         101 kB
+19:13:44.375 ├ ƒ /api/subscription/status                     288 B         101 kB
+19:13:44.375 ├ ƒ /api/therapist-chat                          288 B         101 kB
+19:13:44.375 ├ ƒ /api/track-consultation                      288 B         101 kB
+19:13:44.375 ├ ƒ /api/user-profile                            288 B         101 kB
+19:13:44.375 ├ ƒ /api/verify-email                            288 B         101 kB
+19:13:44.375 ├ ƒ /api/webrtc/create-call                      288 B         101 kB
+19:13:44.375 ├ ƒ /api/webrtc/doctor-calls/[doctorId]          288 B         101 kB
+19:13:44.375 ├ ƒ /api/webrtc/listen/[roomId]/[userId]         288 B         101 kB
+19:13:44.375 ├ ƒ /api/webrtc/process-recording                288 B         101 kB
+19:13:44.375 ├ ƒ /api/webrtc/signal                           288 B         101 kB
+19:13:44.375 ├ ƒ /api/webrtc/update-call-status               288 B         101 kB
+19:13:44.375 ├ ƒ /api/wellness-audio                          288 B         101 kB
+19:13:44.375 ├ ○ /contato                                   4.79 kB         156 kB
+19:13:44.376 ├ ƒ /doctor                                    9.69 kB         159 kB
+19:13:44.376 ├ ○ /doctor/calls                              3.89 kB         149 kB
+19:13:44.376 ├ ○ /doctor/history                            3.04 kB         115 kB
+19:13:44.376 ├ ○ /doctor/patients                           3.04 kB         115 kB
+19:13:44.377 ├ ƒ /doctor/patients/[id]                      10.4 kB         168 kB
+19:13:44.377 ├ ƒ /doctor/profile                            4.25 kB         117 kB
+19:13:44.377 ├ ƒ /doctor/schedule                           7.19 kB         164 kB
+19:13:44.377 ├ ○ /doctor/settings                           15.8 kB         150 kB
+19:13:44.377 ├ ƒ /doctor/video-call                         6.23 kB         239 kB
+19:13:44.377 ├ ○ /forgot-password                           5.12 kB         117 kB
+19:13:44.377 ├ ○ /icon.svg                                      0 B            0 B
+19:13:44.377 ├ ○ /login                                     3.93 kB         113 kB
+19:13:44.377 ├ ƒ /patient/call/[doctorId]                   5.03 kB         150 kB
+19:13:44.378 ├ ƒ /patient/dashboard                         13.7 kB         160 kB
+19:13:44.378 ├ ○ /patient/doctor-video-call                 5.57 kB         238 kB
+19:13:44.378 ├ ƒ /patient/doctors                           4.45 kB         157 kB
+19:13:44.378 ├ ƒ /patient/history                             10 kB         246 kB
+19:13:44.378 ├ ƒ /patient/history/[examId]                  8.03 kB         123 kB
+19:13:44.379 ├ ƒ /patient/live-consultation                 9.26 kB         245 kB
+19:13:44.379 ├ ○ /patient/monitoring                        9.96 kB         222 kB
+19:13:44.379 ├ ƒ /patient/profile                           3.95 kB         117 kB
+19:13:44.379 ├ ○ /patient/subscription                      9.68 kB         123 kB
+19:13:44.379 ├ ○ /patient/subscription/canceled             3.73 kB         113 kB
+19:13:44.379 ├ ○ /patient/subscription/success              3.77 kB         113 kB
+19:13:44.379 ├ ƒ /patient/tavus-history                     3.01 kB         116 kB
+19:13:44.379 ├ ƒ /patient/therapist-chat                    9.46 kB         126 kB
+19:13:44.379 ├ ○ /patient/upload-exam                       9.48 kB         138 kB
+19:13:44.379 ├ ƒ /patient/wellness                          15.5 kB         183 kB
+19:13:44.379 ├ ○ /pricing                                     224 B         152 kB
+19:13:44.379 ├ ○ /privacidade                               8.55 kB         160 kB
+19:13:44.379 ├ ○ /register                                    187 B         105 kB
+19:13:44.379 ├ ○ /register/doctor                             15 kB         148 kB
+19:13:44.379 ├ ○ /register/patient                          7.42 kB         123 kB
+19:13:44.379 ├ ○ /reset-password                             5.3 kB         114 kB
+19:13:44.379 ├ ƒ /role-selection                              288 B         101 kB
+19:13:44.379 ├ ○ /sobre                                       224 B         152 kB
+19:13:44.379 ├ ○ /termos                                    9.06 kB         161 kB
+19:13:44.379 └ ○ /verify-email                               4.2 kB         113 kB
+19:13:44.379 + First Load JS shared by all                   101 kB
+19:13:44.379   ├ chunks/1684-75b165528403b1fe.js            45.8 kB
+19:13:44.379   ├ chunks/4bd1b696-9f46e7b14cc434be.js        53.2 kB
+19:13:44.379   └ other shared chunks (total)                1.99 kB
+19:13:44.379 
+19:13:44.379 
+19:13:44.380 ○  (Static)   prerendered as static content
+19:13:44.380 ƒ  (Dynamic)  server-rendered on demand
+19:13:44.380 
+19:13:44.716 Traced Next.js server files in: 115.122ms
+19:13:45.478 Created all serverless functions in: 761.078ms
+19:13:45.506 Collected static files (public/, static/, .next/static): 21.868ms
+19:13:45.780 Build Completed in /vercel/output [1m]
+19:13:46.041 Deploying outputs...
+19:13:49.356 Warning: Provided `memory` setting in `vercel.json` is ignored on Active CPU billing. You can safely remove this setting from your configuration. Learn more: https://vercel.com/docs/fluid-compute/pricing
