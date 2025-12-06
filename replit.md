@@ -22,6 +22,10 @@ Preferred communication style: Simple, everyday language.
   - Supports RGBA, RGB24, BGRA, I420, NV12 formats
 - **Event listeners**: `participant_connected` and `track_subscribed` auto-trigger streaming
 - **System prompt updated**: Reflects always-on vision capability
+- **ENABLE_VISION_STREAMING toggle**: New environment variable to control video streaming separately
+  - Default: `false` to prevent SIGILL crashes on CPUs without AVX support
+  - Set to `true` only on infrastructure with AVX-capable CPUs
+  - When disabled, agent works normally but without visual patient observation
 
 ## Previous Changes (December 5, 2025)
 

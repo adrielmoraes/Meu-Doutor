@@ -1414,11 +1414,24 @@ class MediAIAgent(Agent):
         - Only processes 1 frame every 4 seconds
         - Ignores all frames between intervals
         - Immediately releases memory after sending
+        
+        NOTE: This function may cause SIGILL on CPUs without AVX support.
+        Set ENABLE_VISION_STREAMING=false to disable.
         """
+        # Check if video streaming is explicitly disabled
+        streaming_enabled = os.getenv('ENABLE_VISION_STREAMING', 'true').lower() == 'true'
+        if not streaming_enabled:
+            logger.info("[Vision] 🚫 Video streaming disabled via ENABLE_VISION_STREAMING=false")
+            self._video_streaming_active = False
+            return
+        
         FRAME_INTERVAL = 4.0  # Only send 1 frame every 4 seconds
         
         video_stream = None
         try:
+            # WARNING: This may crash with SIGILL on CPUs without AVX
+            # If you see "exit code -4", set ENABLE_VISION_STREAMING=false
+            logger.info("[Vision] 🎥 Creating VideoStream (may crash on CPUs without AVX)...")
             video_stream = rtc.VideoStream(video_track)
             self._video_stream = video_stream
             
@@ -1664,9 +1677,10 @@ async def entrypoint(ctx: JobContext):
 
     # Check if vision is enabled
     vision_enabled = os.getenv('ENABLE_VISION', 'false').lower() == 'true'
+    vision_streaming_enabled = os.getenv('ENABLE_VISION_STREAMING', 'true').lower() == 'true'
 
     # Build system prompt based on vision mode
-    if vision_enabled:
+    if vision_enabled and vision_streaming_enabled:
         vision_instructions = """VISÃO EM TEMPO REAL:
 ✅ VOCÊ ESTÁ RECEBENDO UM FEED DE VÍDEO AO VIVO DO PACIENTE
 ✅ Você pode ver o paciente continuamente durante a consulta
@@ -1678,7 +1692,8 @@ async def entrypoint(ctx: JobContext):
     else:
         vision_instructions = """VISÃO:
 - Nesta consulta, você NÃO tem acesso visual ao paciente
-- Baseie sua avaliação apenas nas informações verbais fornecidas"""
+- Baseie sua avaliação apenas nas informações verbais fornecidas
+- Faça perguntas detalhadas para entender melhor os sintomas do paciente"""
 
     system_prompt = f"""Você é MediAI, uma assistente médica virtual brasileira especializada em triagem de pacientes e orientação de saúde.
 
@@ -1785,9 +1800,11 @@ CONTEXTO DO PACIENTE:
     logger.info("[MediAI] ✅ Session started successfully!")
 
     # Vision capability - CONTINUOUS STREAMING with rate limiting
-    # Sends 1 frame every 4 seconds to minimize token usage while maintaining visual context
-    if vision_enabled:
-        logger.info("[MediAI] 👁️ Vision enabled - continuous streaming at 1 frame/4s")
+    # Check both ENABLE_VISION and ENABLE_VISION_STREAMING
+    streaming_enabled = os.getenv('ENABLE_VISION_STREAMING', 'true').lower() == 'true'
+    
+    if vision_enabled and streaming_enabled:
+        logger.info("[MediAI] 👁️ Vision enabled with video streaming at 1 frame/4s")
         
         # Start video streaming for existing participants
         for participant in ctx.room.remote_participants.values():
@@ -1807,6 +1824,9 @@ CONTEXTO DO PACIENTE:
             if track.kind == rtc.TrackKind.KIND_VIDEO:
                 logger.info(f"[Vision] 📹 Video track subscribed from: {participant.identity}")
                 asyncio.create_task(agent.start_video_streaming(participant))
+    elif vision_enabled and not streaming_enabled:
+        logger.info("[MediAI] 👁️ Vision enabled but streaming DISABLED (ENABLE_VISION_STREAMING=false)")
+        logger.info("[MediAI] 💡 This prevents SIGILL crashes on CPUs without AVX support")
     else:
         logger.info("[MediAI] 👁️ Vision disabled (set ENABLE_VISION=true to enable)")
 
