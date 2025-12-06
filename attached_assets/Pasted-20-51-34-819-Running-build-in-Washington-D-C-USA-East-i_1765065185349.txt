@@ -1,0 +1,52 @@
+20:51:34.819 Running build in Washington, D.C., USA (East) – iad1
+20:51:34.820 Build machine configuration: 2 cores, 8 GB
+20:51:34.947 Cloning github.com/adrielmoraes/Meu-Doutor (Branch: main, Commit: 972665c)
+20:51:38.510 Cloning completed: 3.562s
+20:51:38.626 Found .vercelignore
+20:51:38.639 Removed 73 ignored files defined in .vercelignore
+20:51:38.639   /.replit
+20:51:38.639   /.vscode/settings.json
+20:51:38.639   /AGENDAMENTO_IA.md
+20:51:38.640   /apply_fixes.py
+20:51:38.640   /attached_assets/content-1760651114897.md
+20:51:38.640   /attached_assets/content-1760651211382.md
+20:51:38.640   /attached_assets/content-1760651260830.md
+20:51:38.640   /attached_assets/content-1760651411236.md
+20:51:38.640   /attached_assets/content-1760651452120.md
+20:51:38.640   /attached_assets/content-1760838000660.md
+20:51:38.703 Restored build cache from previous deployment (9qBgh4A7DcBvYFVsT6XFPkeQNBYy)
+20:51:38.842 Running "git diff --quiet HEAD^ HEAD ./"
+20:51:39.897 Running "vercel build"
+20:51:40.300 Vercel CLI 49.0.0
+20:51:40.719 Running "install" command: `npm install`...
+20:51:43.860 npm error code ERESOLVE
+20:51:43.861 npm error ERESOLVE could not resolve
+20:51:43.861 npm error
+20:51:43.865 npm error While resolving: @genkit-ai/next@1.18.0
+20:51:43.866 npm error Found: next@16.0.7
+20:51:43.866 npm error node_modules/next
+20:51:43.866 npm error   next@"^16.0.7" from the root project
+20:51:43.866 npm error   peer next@"^13.2.0 || ^14.0 || ^15.0.0-rc.0 || ^16.0.0-0" from @sentry/nextjs@10.22.0
+20:51:43.866 npm error   node_modules/@sentry/nextjs
+20:51:43.866 npm error     @sentry/nextjs@"^10.22.0" from the root project
+20:51:43.866 npm error
+20:51:43.866 npm error Could not resolve dependency:
+20:51:43.866 npm error peer next@"^15.0.0" from @genkit-ai/next@1.18.0
+20:51:43.866 npm error node_modules/@genkit-ai/next
+20:51:43.866 npm error   @genkit-ai/next@"^1.14.1" from the root project
+20:51:43.866 npm error
+20:51:43.866 npm error Conflicting peer dependency: next@15.5.7
+20:51:43.866 npm error node_modules/next
+20:51:43.866 npm error   peer next@"^15.0.0" from @genkit-ai/next@1.18.0
+20:51:43.867 npm error   node_modules/@genkit-ai/next
+20:51:43.867 npm error     @genkit-ai/next@"^1.14.1" from the root project
+20:51:43.867 npm error
+20:51:43.867 npm error Fix the upstream dependency conflict, or retry
+20:51:43.867 npm error this command with --force or --legacy-peer-deps
+20:51:43.867 npm error to accept an incorrect (and potentially broken) dependency resolution.
+20:51:43.868 npm error
+20:51:43.868 npm error
+20:51:43.869 npm error For a full report see:
+20:51:43.869 npm error /vercel/.npm/_logs/2025-12-06T23_51_40_977Z-eresolve-report.txt
+20:51:43.873 npm error A complete log of this run can be found in: /vercel/.npm/_logs/2025-12-06T23_51_40_977Z-debug-0.log
+20:51:43.921 Error: Command "npm install" exited with 1
