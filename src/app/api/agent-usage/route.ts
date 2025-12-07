@@ -20,6 +20,7 @@ const agentUsageSchema = z.object({
   visionInputTokens: z.number().int().min(0).default(0),
   visionOutputTokens: z.number().int().min(0).default(0),
   activeSeconds: z.number().int().min(0).default(0),
+  avatarSeconds: z.number().int().min(0).default(0),
   costCents: z.number().int().min(0).default(0),
   avatarProvider: z.enum(['beyondpresence', 'tavus']).default('beyondpresence'),
   metadata: z.record(z.any()).optional(),
@@ -99,9 +100,12 @@ export async function POST(request: NextRequest) {
       validatedData.visionInputTokens || validatedData.visionTokens || 0,
       validatedData.visionOutputTokens || 0
     );
+    // Use avatarSeconds if provided, otherwise fall back to avatarSeconds from metadata
+    const avatarSecondsValue = validatedData.avatarSeconds || 
+      (validatedData.metadata?.avatarSeconds as number) || 0;
     const avatarCostUSD = calculateAvatarCost(
       validatedData.avatarProvider,
-      validatedData.activeSeconds / 60
+      avatarSecondsValue / 60
     );
     
     // Total cost calculated from components
@@ -186,7 +190,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Salvar métricas do Avatar (durationSeconds=0, cost tracked separately)
-    if (validatedData.activeSeconds > 0) {
+    // Only save if there's actual avatar time
+    if (avatarSecondsValue > 0) {
       await trackUsage({
         patientId: validatedData.patientId,
         usageType: 'avatar',
@@ -197,7 +202,8 @@ export async function POST(request: NextRequest) {
         metadata: {
           sessionId: validatedData.sessionId,
           avatarProvider: validatedData.avatarProvider,
-          durationMinutes: validatedData.activeSeconds / 60,
+          avatarSeconds: avatarSecondsValue,
+          durationMinutes: avatarSecondsValue / 60,
           costUSD: avatarCostUSD,
           ...validatedData.metadata,
         },
@@ -206,7 +212,9 @@ export async function POST(request: NextRequest) {
 
     // Salvar métricas consolidadas da chamada IA (único registro com duration, cost=0 para evitar duplicação)
     // Os custos individuais são registrados nas linhas acima
-    if (validatedData.activeSeconds > 0) {
+    // Use activeSeconds + avatarSeconds for total duration
+    const totalActiveSeconds = validatedData.activeSeconds + avatarSecondsValue;
+    if (totalActiveSeconds > 0) {
       const totalTokensUsed = validatedData.sttTokens + validatedData.llmInputTokens + 
                               validatedData.llmOutputTokens + validatedData.ttsTokens + totalVisionTokens;
       
@@ -215,11 +223,13 @@ export async function POST(request: NextRequest) {
         usageType: 'ai_call',
         resourceName: 'Consulta IA ao Vivo',
         tokensUsed: totalTokensUsed,
-        durationSeconds: validatedData.activeSeconds, // Duration only recorded here
+        durationSeconds: totalActiveSeconds, // Total duration (active + avatar)
         cost: 0, // Costs already recorded in component rows above
         metadata: {
           sessionId: validatedData.sessionId,
           avatarProvider: validatedData.avatarProvider,
+          activeSeconds: validatedData.activeSeconds,
+          avatarSeconds: avatarSecondsValue,
           totalTokens: totalTokensUsed,
           totalCostUSD: totalCostUSD,
           totalCostBRL: usdToBRLCents(totalCostUSD) / 100,
@@ -233,6 +243,7 @@ export async function POST(request: NextRequest) {
             ttsCostUSD: ttsCostUSD,
             visionTokens: totalVisionTokens || validatedData.visionTokens,
             visionCostUSD: visionCost.totalCost,
+            avatarSeconds: avatarSecondsValue,
             avatarCostUSD: avatarCostUSD,
           },
           ...validatedData.metadata,

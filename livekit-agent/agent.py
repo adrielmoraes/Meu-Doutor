@@ -249,14 +249,17 @@ class MetricsCollector:
             )
 
     def update_active_time(self):
-        """Atualiza tempo ativo de conversa."""
+        """Atualiza tempo ativo de conversa (exclui tempo de avatar)."""
         current_time = time.time()
-        elapsed = current_time - self.session_start
-        self.active_seconds = int(elapsed)
+        total_elapsed = current_time - self.session_start
         
         # Atualiza tempo do avatar se estiver ativo
         if self.avatar_start_time:
             self.avatar_seconds = int(current_time - self.avatar_start_time)
+        
+        # active_seconds = tempo total - tempo do avatar (são mutuamente exclusivos)
+        # Isso evita dupla contagem no custo
+        self.active_seconds = max(0, int(total_elapsed) - self.avatar_seconds)
 
     def start_avatar_tracking(self, provider: str):
         """Inicia rastreamento do tempo de avatar."""
@@ -398,13 +401,13 @@ class MetricsCollector:
             "visionTokens": delta_vision_input + delta_vision_output,
             "visionInputTokens": delta_vision_input,
             "visionOutputTokens": delta_vision_output,
-            "activeSeconds": delta_active_seconds + delta_avatar_seconds,
+            "activeSeconds": delta_active_seconds,
+            "avatarSeconds": delta_avatar_seconds,
             "avatarProvider": api_avatar_provider,
             "costCents": delta_cost_cents,
             "metadata": {
                 "model": "gemini-2.5-flash",
                 "avatarProvider": self.avatar_provider,
-                "avatarSeconds": delta_avatar_seconds,
                 "timestamp": time.time()
             }
         }

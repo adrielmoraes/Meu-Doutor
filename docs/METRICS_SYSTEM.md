@@ -36,7 +36,8 @@ Sistema completo de rastreamento de tokens e tempo de conversa do Gemini API par
 
 ### Tempo
 
-- **Active Seconds:** Tempo ativo de conversa (não tempo total de conexão)
+- **Active Seconds:** Tempo ativo de processamento de áudio/texto (não inclui tempo de avatar)
+- **Avatar Seconds:** Tempo de streaming de avatar (usado para calcular custo de avatar separadamente)
 
 ### Custos
 
@@ -226,6 +227,7 @@ curl -X POST http://localhost:5000/api/agent-usage \
     "visionInputTokens": 25,
     "visionOutputTokens": 25,
     "activeSeconds": 60,
+    "avatarSeconds": 45,
     "costCents": 10,
     "metadata": {
       "test": true
