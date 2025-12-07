@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
         speechConfig: {
           voiceConfig: {
             prebuiltVoiceConfig: {
-              voiceName: 'Erinome'
+              voiceName: 'Despina'
             }
           }
         }
