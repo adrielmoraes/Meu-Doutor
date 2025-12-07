@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { trackUsage } from '@/lib/db-adapter';
 import { getPatientById } from '@/lib/db-adapter';
 import { 
-  calculateLLMCost, 
   calculateAvatarCost, 
   usdToBRLCents,
   AI_PRICING 
@@ -82,24 +81,35 @@ export async function POST(request: NextRequest) {
     console.log(`[Agent Usage] Tokens - STT: ${validatedData.sttTokens}, LLM In: ${validatedData.llmInputTokens}, LLM Out: ${validatedData.llmOutputTokens}, TTS: ${validatedData.ttsTokens}, Vision: ${validatedData.visionTokens}`);
     console.log(`[Agent Usage] Tempo ativo: ${validatedData.activeSeconds}s, Custo: R$ ${(validatedData.costCents / 100).toFixed(2)}`);
 
-    // Use real Gemini Native Audio pricing: Input $1.00/1M, Output $20.00/1M
-    const NATIVE_AUDIO_INPUT_PRICE = 1.00; // per 1M tokens
-    const NATIVE_AUDIO_OUTPUT_PRICE = 20.00; // per 1M tokens
+    // Use official Gemini 2.5 Flash Native Audio pricing from AI_PRICING
+    // For LIVE API consultations, text pricing is different from standard Gemini 2.5 Flash:
+    // - Text Input: $0.50/1M (not $0.30)
+    // - Text Output: $12.00/1M (not $2.50)
+    // - Audio/Video Input (STT): $3.00/1M tokens
+    // - Audio/Video Output (TTS): $2.00/1M tokens
+    const liveAudioPricing = AI_PRICING.liveApiAudio;
     
-    // Calculate all costs upfront
-    const sttCostUSD = (validatedData.sttTokens / 1_000_000) * NATIVE_AUDIO_INPUT_PRICE;
-    const ttsCostUSD = (validatedData.ttsTokens / 1_000_000) * NATIVE_AUDIO_OUTPUT_PRICE;
-    const llmCost = calculateLLMCost(
-      'gemini-2.5-flash',
-      validatedData.llmInputTokens,
-      validatedData.llmOutputTokens
-    );
+    // Calculate all costs upfront using Live API Native Audio pricing
+    const sttCostUSD = (validatedData.sttTokens / 1_000_000) * liveAudioPricing.audioVideoInput;
+    const ttsCostUSD = (validatedData.ttsTokens / 1_000_000) * liveAudioPricing.audioVideoOutput;
+    
+    // LLM uses Native Audio text pricing (different from standard gemini-2.5-flash)
+    const llmInputCostUSD = (validatedData.llmInputTokens / 1_000_000) * liveAudioPricing.textInput;
+    const llmOutputCostUSD = (validatedData.llmOutputTokens / 1_000_000) * liveAudioPricing.textOutput;
+    const llmCost = {
+      inputCost: llmInputCostUSD,
+      outputCost: llmOutputCostUSD,
+      totalCost: llmInputCostUSD + llmOutputCostUSD,
+    };
     const totalVisionTokens = validatedData.visionInputTokens + validatedData.visionOutputTokens;
-    const visionCost = calculateLLMCost(
-      'gemini-2.5-flash',
-      validatedData.visionInputTokens || validatedData.visionTokens || 0,
-      validatedData.visionOutputTokens || 0
-    );
+    // Vision uses same Native Audio text pricing
+    const visionInputCostUSD = ((validatedData.visionInputTokens || validatedData.visionTokens || 0) / 1_000_000) * liveAudioPricing.textInput;
+    const visionOutputCostUSD = ((validatedData.visionOutputTokens || 0) / 1_000_000) * liveAudioPricing.textOutput;
+    const visionCost = {
+      inputCost: visionInputCostUSD,
+      outputCost: visionOutputCostUSD,
+      totalCost: visionInputCostUSD + visionOutputCostUSD,
+    };
     // Use avatarSeconds if provided, otherwise fall back to avatarSeconds from metadata
     const avatarSecondsValue = validatedData.avatarSeconds || 
       (validatedData.metadata?.avatarSeconds as number) || 0;
