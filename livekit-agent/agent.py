@@ -1754,41 +1754,16 @@ class MediAIAgent(Agent):
             self._metrics_task = asyncio.create_task(
                 self.metrics_collector.start_periodic_flush())
 
-        logger.info("[MediAI] 🎤 Generating initial greeting in PT-BR...")
+        logger.info("[MediAI] 🎤 Starting consultation - awaiting user input...")
         
-        # Use session.say() instead of generate_reply() to avoid collision with 
-        # LiveKit's internal _realtime_reply_task flow. session.say() is the 
-        # recommended approach for agent-initiated speech.
-        initial_greeting = "Olá! Seja muito bem-vindo à MediAI. Eu sou sua assistente médica virtual e estou aqui para ajudá-lo hoje. Como você está se sentindo? Pode me contar o que te traz aqui?"
-
-        # Rastrear como LLM output
-        if self.metrics_collector:
-            self.metrics_collector.track_llm(input_text=initial_greeting)
-
-        # Use session.say() for agent-initiated greeting - this is the safe approach
-        # that doesn't conflict with LiveKit's internal generation management
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                if self._agent_session:
-                    # session.say() sends text directly to TTS without waiting for LLM
-                    # This avoids the generate_reply timeout issue
-                    await self._agent_session.say(initial_greeting)
-                    logger.info("[MediAI] ✅ Initial greeting sent successfully via session.say()")
-                    break
-                else:
-                    logger.error("[MediAI] ❌ Agent session not available")
-                    break
-            except Exception as e:
-                logger.warning(f"[MediAI] ⚠️ session.say() attempt {attempt + 1}/{max_retries} failed: {e}")
-                if attempt < max_retries - 1:
-                    # Wait before retry with exponential backoff
-                    wait_time = 2 ** attempt
-                    logger.info(f"[MediAI] 🔄 Retrying in {wait_time}s...")
-                    await asyncio.sleep(wait_time)
-                else:
-                    logger.error(f"[MediAI] ❌ Failed to send greeting after {max_retries} attempts")
-                    # Session will still be active for user-initiated conversations
+        # NOTE: Initial greeting via session.say() requires TTS provider to be fully initialized
+        # in the RealtimeModel. This is handled automatically by the Gemini Live API.
+        # The agent will start speaking when the patient initiates conversation via voice.
+        # 
+        # If explicit greeting is needed in future, ensure:
+        # 1. TTS provider is configured (voice parameter in RealtimeModel)
+        # 2. Session is fully initialized before calling say()
+        # 3. Consider using LLM generate_reply() instead for better reliability
 
     async def _handle_user_transcription(self, event):
         """Handle user transcription event - logs speech and tracks metrics."""

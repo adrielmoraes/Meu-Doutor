@@ -253,8 +253,13 @@ export async function POST(request: NextRequest) {
     }
 
     console.error('[Agent Usage] Erro ao processar métricas:', error);
+    console.error('[Agent Usage] Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
     return NextResponse.json(
-      { success: false, error: 'Erro interno do servidor' },
+      { 
+        success: false, 
+        error: 'Erro interno do servidor',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
