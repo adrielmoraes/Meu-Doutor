@@ -1,0 +1,100 @@
+~/workspace$ cd livekit-agent
+~/workspace/livekit-agent$ python agent.py start
+{"level": "INFO", "name": "livekit.agents", "message": "starting worker", "version": "1.3.6", "rtc-version": "1.0.20", "timestamp": "2025-12-07T00:46:54.040192+00:00"}
+{"level": "INFO", "name": "livekit.agents", "message": "preloading plugins", "packages": ["livekit.plugins.tavus", "livekit.plugins.bey", "livekit.plugins.google", "av"], "timestamp": "2025-12-07T00:46:54.040361+00:00"}
+{"level": "ERROR", "name": "livekit.agents", "message": "worker failed", "exc_info": "Traceback (most recent call last):\n  File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/agents/cli/cli.py\", line 1342, in _worker_run\n    await server.run(devmode=args.devmode, unregistered=jupyter)\n  File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/agents/worker.py\", line 666, in run\n    await self._http_server.start()\n  File \"/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/agents/utils/http_server.py\", line 31, in start\n    self._server = await self._loop.create_server(handler, self._host, self._port)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/asyncio/base_events.py\", line 1536, in create_server\n    raise OSError(err.errno, msg) from None\nOSError: [Errno 98] error while attempting to bind on address ('0.0.0.0', 8081): address already in use", "timestamp": "2025-12-07T00:46:54.044590+00:00"}
+{"level": "INFO", "name": "livekit.agents", "message": "draining worker", "id": "unregistered", "timeout": 1800, "timestamp": "2025-12-07T00:46:54.047093+00:00"}
+{"level": "INFO", "name": "livekit.agents", "message": "shutting down worker", "id": "unregistered", "timestamp": "2025-12-07T00:46:54.047365+00:00"}
+╭──────────────────────────── Traceback (most recent call last) ─────────────────────────────╮
+│ /home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/agents/cli/cli.py: │
+│ 1491 in start                                                                              │
+│                                                                                            │
+│   1488 │   │   if drain_timeout is not None:                                               │
+│   1489 │   │   │   server.update_options(drain_timeout=drain_timeout)                      │
+│   1490 │   │                                                                               │
+│ ❱ 1491 │   │   _run_worker(                                                                │
+│   1492 │   │   │   server=server,                                                          │
+│   1493 │   │   │   args=proto.CliArgs(                                                     │
+│   1494 │   │   │   │   log_level=log_level.value, url=url, api_key=api_key, api_secret=api │
+│                                                                                            │
+│ ╭─────────────────────────────────── locals ───────────────────────────────────╮           │
+│ │       api_key = 'APIrYvWHxLoEYvf'                                            │           │
+│ │    api_secret = '1y6C5eDFuijKsJ4NLj40lWRqmQFLHBth6PueMVNHfZ2B'               │           │
+│ │ drain_timeout = None                                                         │           │
+│ │     log_level = <LogLevel.info: 'INFO'>                                      │           │
+│ │        server = <livekit.agents.worker.AgentServer object at 0x7f171162af90> │           │
+│ │           url = 'wss://mediai-livikit-gmavbnbs.livekit.cloud'                │           │
+│ ╰──────────────────────────────────────────────────────────────────────────────╯           │
+│                                                                                            │
+│ /home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/agents/cli/cli.py: │
+│ 1365 in _run_worker                                                                        │
+│                                                                                            │
+│   1362 │   │   │   if not args.devmode:                                                    │
+│   1363 │   │   │   │   loop.run_until_complete(server.drain())                             │
+│   1364 │   │   │                                                                           │
+│ ❱ 1365 │   │   │   loop.run_until_complete(server.aclose())                                │
+│   1366 │   │   │                                                                           │
+│   1367 │   │   │   if watch_client:                                                        │
+│   1368 │   │   │   │   loop.run_until_complete(watch_client.aclose())                      │
+│                                                                                            │
+│ ╭──────────────────────────────────────── locals ────────────────────────────────────────╮ │
+│ │           args = CliArgs(                                                              │ │
+│ │                  │   log_level='INFO',                                                 │ │
+│ │                  │   url='wss://mediai-livikit-gmavbnbs.livekit.cloud',                │ │
+│ │                  │   api_key='APIrYvWHxLoEYvf',                                        │ │
+│ │                  │   api_secret='1y6C5eDFuijKsJ4NLj40lWRqmQFLHBth6PueMVNHfZ2B',        │ │
+│ │                  │   devmode=False,                                                    │ │
+│ │                  │   reload=False,                                                     │ │
+│ │                  │   reload_count=0,                                                   │ │
+│ │                  │   mp_cch=None                                                       │ │
+│ │                  )                                                                     │ │
+│ │              c = None                                                                  │ │
+│ │ exit_triggered = False                                                                 │ │
+│ │        jupyter = False                                                                 │ │
+│ │           loop = <_UnixSelectorEventLoop running=False closed=True debug=False>        │ │
+│ │      main_task = <Task finished name='worker_main_task_cli'                            │ │
+│ │                  coro=<_run_worker.<locals>._worker_run() done, defined at             │ │
+│ │                  /home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/live… │ │
+│ │                  result=None>                                                          │ │
+│ │         server = <livekit.agents.worker.AgentServer object at 0x7f171162af90>          │ │
+│ │            sig = <Signals.SIGTERM: 15>                                                 │ │
+│ │          tasks = set()                                                                 │ │
+│ │   watch_client = None                                                                  │ │
+│ ╰────────────────────────────────────────────────────────────────────────────────────────╯ │
+│                                                                                            │
+│ /nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/asyncio/base_ev │
+│ ents.py:654 in run_until_complete                                                          │
+│                                                                                            │
+│    651 │   │   if not future.done():                                                       │
+│    652 │   │   │   raise RuntimeError('Event loop stopped before Future completed.')       │
+│    653 │   │                                                                               │
+│ ❱  654 │   │   return future.result()                                                      │
+│    655 │                                                                                   │
+│    656 │   def stop(self):                                                                 │
+│    657 │   │   """Stop running the event loop.                                             │
+│                                                                                            │
+│ ╭──────────────────────────────────────── locals ────────────────────────────────────────╮ │
+│ │   future = <Task finished name='Task-4' coro=<AgentServer.aclose() done, defined at    │ │
+│ │            /home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/ag… │ │
+│ │            exception=AssertionError()>                                                 │ │
+│ │ new_task = True                                                                        │ │
+│ │     self = <_UnixSelectorEventLoop running=False closed=True debug=False>              │ │
+│ ╰────────────────────────────────────────────────────────────────────────────────────────╯ │
+│                                                                                            │
+│ /home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/livekit/agents/worker.py:8 │
+│ 99 in aclose                                                                               │
+│                                                                                            │
+│    896 │   │   │                                                                           │
+│    897 │   │   │   logger.info("shutting down worker", extra={"id": self.id})              │
+│    898 │   │   │                                                                           │
+│ ❱  899 │   │   │   assert self._close_future is not None                                   │
+│    900 │   │   │   assert self._http_session is not None                                   │
+│    901 │   │   │   assert self._api is not None                                            │
+│    902 │   │   │   assert self._http_server is not None                                    │
+│                                                                                            │
+│ ╭────────────────────────────── locals ───────────────────────────────╮                    │
+│ │ self = <livekit.agents.worker.AgentServer object at 0x7f171162af90> │                    │
+│ ╰─────────────────────────────────────────────────────────────────────╯                    │
+╰────────────────────────────────────────────────────────────────────────────────────────────╯
+AssertionError
+~/workspace/livekit-agent$ 
