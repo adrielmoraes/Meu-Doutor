@@ -4,16 +4,34 @@
 MediAI is an AI-powered healthcare platform that connects patients with medical professionals for AI-assisted diagnosis and real-time communication. It features patient and doctor portals, utilizing Google's Gemini AI models for intelligent medical analysis, preliminary diagnoses, and personalized wellness recommendations, all presented in Brazilian Portuguese. The platform aims to provide hospital-grade preliminary diagnoses with specific medication recommendations, exact dosages, treatment protocols, monitoring guidelines, and contraindications.
 
 ## User Preferences
-Preferred communication style: Simple, everyday language.
+- Preferred communication style: Simple, everyday language.
+
+## Deployment & Configuration
+
+### Agent Environment Variables (livekit-agent/.env)
+Critical variables for production:
+- `NEXT_PUBLIC_BASE_URL` or `NEXT_PUBLIC_URL`: Frontend URL (must be reachable from agent VPS)
+  - Production: `https://www.appmediai.com`
+  - Development: `https://8cd39e24-bd87-4e26-b184-567b21cb8e68-00-476srx910z4b.picard.replit.dev`
+- `LIVEKIT_URL`: LiveKit Cloud URL (e.g., `wss://mediai-livikit-gmavbnbs.livekit.cloud`)
+- `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET`: LiveKit credentials
+- `GEMINI_API_KEY`: Google Gemini API key
+- `AGENT_SECRET`: Shared secret for metrics API authentication (must match backend)
+- Exchange Rate: R$5.42 per $1 USD (default in `usdToBRLCents()` function)
 
 ## System Architecture
 
-### Frontend
+### Frontend (Replit)
 - **Framework**: Next.js 15 with App Router, TypeScript, and React Server Components.
+- **URL**: https://www.appmediai.com (production) or https://8cd39e24-bd87-4e26-b184-567b21cb8e68-00-476srx910z4b.picard.replit.dev (dev)
 - **UI Components**: shadcn/ui with Radix UI, Tailwind CSS, featuring a futuristic dark theme with gradients, neon accents, glow effects, semi-transparent cards, animated backgrounds, and gradient text.
 - **Routing**: Public, protected patient, and protected doctor routes with middleware-based authentication and role-based access control.
 
-### Backend
+### Backend: Agent (Docker/VPS)
+- **Port**: 8081 (HTTP server for metrics)
+- **Connection**: Must use `NEXT_PUBLIC_BASE_URL` or `NEXT_PUBLIC_URL` env var pointing to frontend URL for API calls
+
+### Backend: AI/ML Layer  
 - **AI/ML Layer**: Google Genkit orchestrates specialized AI agents using Gemini models (Gemini 2.5 Flash) for domain-specific analysis, text-to-speech, and real-time consultation flows. It includes 15+ specialist agents, an Orchestrator AI (General Practitioner - Dr. Márcio Silva), and a "Central Brain" for intelligent coordination, employing a 3-stage analysis pipeline (Triage → Parallel Specialist Analysis → Synthesis).
 - **API Layer**: Next.js API routes with server actions, RESTful endpoints for WebRTC signaling, and Server-Sent Events for real-time communication.
 - **Authentication**: JWT-based sessions with `jose` library, bcrypt password hashing, and role-based middleware.
