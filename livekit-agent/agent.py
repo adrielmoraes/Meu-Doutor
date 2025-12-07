@@ -1278,6 +1278,9 @@ class MediAIAgent(Agent):
         """Convert I420/YUV420p to RGB using pure Python (no SIMD).
         
         I420 format: Y plane (width*height) + U plane (width/2*height/2) + V plane (width/2*height/2)
+        
+        NOTE: Converts at 1/2 resolution to balance quality and performance.
+        Final resize to target resolution is handled later in _process_video_frame_sync.
         """
         try:
             y_size = width * height
@@ -1291,17 +1294,21 @@ class MediAIAgent(Agent):
             u_plane = yuv_data[y_size:y_size + uv_size]
             v_plane = yuv_data[y_size + uv_size:y_size + 2 * uv_size]
             
-            # Downsample to reduce processing (use 1/4 resolution)
-            target_w = width // 4
-            target_h = height // 4
+            # Use 1/2 resolution for better quality (was 1/4 which is too low)
+            # Final resolution is controlled by _process_video_frame_sync
+            downsample_factor = 2
+            target_w = width // downsample_factor
+            target_h = height // downsample_factor
+            
+            logger.info(f"[Vision] I420 converting {width}x{height} -> {target_w}x{target_h}")
             
             rgb_data = bytearray(target_w * target_h * 3)
             
             for y in range(target_h):
                 for x in range(target_w):
-                    # Sample from original coordinates (x4)
-                    src_x = x * 4
-                    src_y = y * 4
+                    # Sample from original coordinates
+                    src_x = x * downsample_factor
+                    src_y = y * downsample_factor
                     
                     y_idx = src_y * width + src_x
                     uv_idx = (src_y // 2) * (width // 2) + (src_x // 2)
@@ -1310,7 +1317,7 @@ class MediAIAgent(Agent):
                     U = u_plane[uv_idx] if uv_idx < len(u_plane) else 128
                     V = v_plane[uv_idx] if uv_idx < len(v_plane) else 128
                     
-                    # YUV to RGB conversion
+                    # YUV to RGB conversion (BT.601 standard)
                     C = Y - 16
                     D = U - 128
                     E = V - 128
@@ -1334,6 +1341,8 @@ class MediAIAgent(Agent):
         """Convert NV12 to RGB using pure Python (no SIMD).
         
         NV12 format: Y plane (width*height) + interleaved UV plane (width*height/2)
+        
+        NOTE: Converts at 1/2 resolution to balance quality and performance.
         """
         try:
             y_size = width * height
@@ -1346,16 +1355,19 @@ class MediAIAgent(Agent):
             y_plane = nv12_data[:y_size]
             uv_plane = nv12_data[y_size:y_size + uv_size]
             
-            # Downsample to reduce processing (use 1/4 resolution)
-            target_w = width // 4
-            target_h = height // 4
+            # Use 1/2 resolution for better quality (was 1/4 which is too low)
+            downsample_factor = 2
+            target_w = width // downsample_factor
+            target_h = height // downsample_factor
+            
+            logger.info(f"[Vision] NV12 converting {width}x{height} -> {target_w}x{target_h}")
             
             rgb_data = bytearray(target_w * target_h * 3)
             
             for y in range(target_h):
                 for x in range(target_w):
-                    src_x = x * 4
-                    src_y = y * 4
+                    src_x = x * downsample_factor
+                    src_y = y * downsample_factor
                     
                     y_idx = src_y * width + src_x
                     uv_idx = (src_y // 2) * width + (src_x // 2) * 2
@@ -1364,6 +1376,7 @@ class MediAIAgent(Agent):
                     U = uv_plane[uv_idx] if uv_idx < len(uv_plane) else 128
                     V = uv_plane[uv_idx + 1] if uv_idx + 1 < len(uv_plane) else 128
                     
+                    # YUV to RGB conversion (BT.601 standard)
                     C = Y - 16
                     D = U - 128
                     E = V - 128
@@ -1464,25 +1477,34 @@ class MediAIAgent(Agent):
             
             logger.info(f"[Vision] Image created: {img.size}")
             
-            # Resize using NEAREST (fastest, no SIMD) instead of BILINEAR
-            # Target 320x240 to minimize processing
-            target_width = 320
-            target_height = 240
-            try:
-                # Try NEAREST first (pure Python, no SIMD)
-                img = img.resize((target_width, target_height), Image.NEAREST)
-            except Exception as resize_err:
-                logger.warning(f"[Vision] Resize failed: {resize_err}, using original size")
-                # If resize fails, crop to center instead
-                left = (width - target_width) // 2
-                top = (height - target_height) // 2
-                right = left + target_width
-                bottom = top + target_height
-                img = img.crop((max(0, left), max(0, top), min(width, right), min(height, bottom)))
+            # Resize to target resolution for better vision analysis
+            # Target 640x480 for good quality analysis while keeping token costs reasonable
+            target_width = 640
+            target_height = 480
+            
+            # Only resize if image is significantly different from target
+            current_w, current_h = img.size
+            if current_w < target_width or current_h < target_height:
+                # Upscale small images to minimum size for analysis
+                scale = max(target_width / current_w, target_height / current_h)
+                new_w = int(current_w * scale)
+                new_h = int(current_h * scale)
+                try:
+                    img = img.resize((new_w, new_h), Image.BILINEAR)
+                    logger.info(f"[Vision] Upscaled from {current_w}x{current_h} to {new_w}x{new_h}")
+                except Exception as resize_err:
+                    logger.warning(f"[Vision] Upscale failed: {resize_err}")
+            elif current_w > target_width * 2 or current_h > target_height * 2:
+                # Downscale very large images to save tokens
+                try:
+                    img = img.resize((target_width, target_height), Image.NEAREST)
+                    logger.info(f"[Vision] Downscaled from {current_w}x{current_h} to {target_width}x{target_height}")
+                except Exception as resize_err:
+                    logger.warning(f"[Vision] Downscale failed: {resize_err}, keeping original")
 
-            # Encode to JPEG with low quality for speed
+            # Encode to JPEG with better quality for accurate vision analysis
             img_buffer = io.BytesIO()
-            img.save(img_buffer, format='JPEG', quality=40)
+            img.save(img_buffer, format='JPEG', quality=75)
             frame_bytes = img_buffer.getvalue()
             
             img_buffer.close()
@@ -1688,10 +1710,15 @@ class MediAIAgent(Agent):
             llm = self._agent_session.llm
             frame_injected = False
             
+            # Log available methods for debugging
+            available_methods = [m for m in ['push_media_chunk', 'push_video_frame', 'send_realtime_input', '_session'] 
+                                if hasattr(llm, m)]
+            logger.info(f"[Vision] LLM injection methods available: {available_methods}")
+            
             # Option A: push_media_chunk (newest, preferred for LiveKit plugins)
             if hasattr(llm, 'push_media_chunk'):
                 await llm.push_media_chunk(frame_bytes, "image/jpeg")
-                logger.debug("[Vision] Frame injected via push_media_chunk()")
+                logger.info(f"[Vision] ✅ Frame injected via push_media_chunk ({len(frame_bytes)} bytes)")
                 frame_injected = True
                 
             # Option B: push_video_frame
@@ -1703,7 +1730,7 @@ class MediAIAgent(Agent):
                     }
                 }
                 await llm.push_video_frame(image_part)
-                logger.debug("[Vision] Frame injected via push_video_frame()")
+                logger.info(f"[Vision] ✅ Frame injected via push_video_frame ({len(frame_bytes)} bytes)")
                 frame_injected = True
                 
             # Option C: send_realtime_input
@@ -1715,7 +1742,7 @@ class MediAIAgent(Agent):
                     }
                 }
                 await llm.send_realtime_input(image_part)
-                logger.debug("[Vision] Frame injected via send_realtime_input()")
+                logger.info(f"[Vision] ✅ Frame injected via send_realtime_input ({len(frame_bytes)} bytes)")
                 frame_injected = True
                 
             # Option D: Deep access to internal Bidi session
@@ -1729,12 +1756,12 @@ class MediAIAgent(Agent):
                     }
                 }
                 await llm._session.send(realtime_input)
-                logger.debug(f"[Vision] Frame injected via _session.send ({len(frame_bytes)}b)")
+                logger.info(f"[Vision] ✅ Frame injected via _session.send ({len(frame_bytes)} bytes)")
                 frame_injected = True
             
             if not frame_injected:
                 # No injection method found - audio still works, video skipped
-                logger.debug("[Vision] No injection method available in current LiveKit plugin version")
+                logger.warning("[Vision] ❌ No injection method available - LLM cannot see video frames!")
                 
         except Exception as e:
             logger.error(f"[Vision] Error injecting frame: {e}")
