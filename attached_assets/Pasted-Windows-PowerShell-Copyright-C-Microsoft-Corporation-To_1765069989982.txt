@@ -1,0 +1,240 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. Todos os direitos reservados.
+
+Experimente a nova plataforma cruzada PowerShell https://aka.ms/pscore6
+
+PS C:\Users\ADRIEL> cd Desktop\MediAI\AppMediAI 
+PS C:\Users\ADRIEL\Desktop\MediAI\AppMediAI> git clone https://github.com/adrielmoraes/
+Meu-Doutor
+Cloning into 'Meu-Doutor'...
+remote: Enumerating objects: 7623, done.
+remote: Counting objects: 100% (142/142), done.
+remote: Compressing objects:  47% (43/91)Receiving objects:  13% (991/7623), 3.44 MiB |
+remote: Compressing objects:  74% (68/91)Receiving objects:  14% (1068/7623), 5.42 MiB 
+remote: Compressing objects:  90% (82/91)Receiving objects:  20% (1525/7623), 7.46 MiB 
+remote: Compressing objects: 100% (91/91), done.
+remote: Total 7623 (delta 102), reused 84 (delta 50), pack-reused 7481 (from 2)Receivin
+Receiving objects: 100% (7623/7623), 79.40 MiB | 3.61 MiB/s, done.
+Resolving deltas:   2% (103/5122)
+Resolving deltas: 100% (5122/5122), done.
+Updating files: 100% (646/646), done.
+PS C:\Users\ADRIEL\Desktop\MediAI\AppMediAI> cd livekit-agent
+No linha:1 caractere:1
++ ~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\ADRIEL...I\livekit-agent:Stri  
+   ng) [Set-Location], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.SetLocationC  
+   ommand
+ 
+PS C:\Users\ADRIEL\Desktop\MediAI\AppMediAI> cd Meu-Doutor
+PS C:\Users\ADRIEL\Desktop\MediAI\AppMediAI\Meu-Doutor> cd livekit-agent
+PS C:\Users\ADRIEL\Desktop\MediAI\AppMediAI\Meu-Doutor\livekit-agent> docker build -t m
+ediai-agent .
+[+] Building 3.7s (13/13) FINISHED                                docker:desktop-linux
+ => [internal] load build definition from Dockerfile                              0.2s
+ => => transferring dockerfile: 571B                                              0.0s 
+ => [internal] load metadata for docker.io/library/python:3.11-slim               2.4s
+ => [auth] library/python:pull token for registry-1.docker.io                     0.0s
+ => [internal] load .dockerignore                                                 0.1s
+ => => transferring context: 714B                                                 0.0s 
+ => [internal] load build context                                                 0.2s 
+ => => transferring context: 121.94kB                                             0.2s
+ => [1/7] FROM docker.io/library/python:3.11-slim@sha256:193fdd0bbcb3d2ae612bd6c  0.0s
+ => CACHED [2/7] WORKDIR /app                                                     0.0s
+ => CACHED [3/7] RUN apt-get update && apt-get install -y --no-install-recommend  0.0s 
+ => CACHED [4/7] COPY requirements.txt .                                          0.0s 
+ => CACHED [5/7] RUN pip install --no-cache-dir --upgrade pip                     0.0s 
+ => CACHED [6/7] RUN pip install --no-cache-dir -r requirements.txt               0.0s 
+ => [7/7] COPY . .                                                                0.1s 
+ => exporting to image                                                            0.2s 
+ => => exporting layers                                                           0.1s
+ => => naming to docker.io/library/mediai-agent                                   0.0s 
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/p69y1i
+k7pqzufe377j6ib4za4
+
+    View a summary of image vulnerabilities and recommendations → docker scout quickvie
+w
+PS C:\Users\ADRIEL\Desktop\MediAI\AppMediAI\Meu-Doutor\livekit-agent> docker images | f
+indstr mediai-agent
+WARNING: This output is designed for human readability. For machine-readable output, pl
+ease use --format.
+livekit-agent-mediai-agent:latest   60dd7a10659e        1.1GB             0B
+mediai-agent:latest                 3c97d291bd62        1.1GB             0B
+PS C:\Users\ADRIEL\Desktop\MediAI\AppMediAI\Meu-Doutor\livekit-agent> docker run --rm -
+it --env-file .env mediai-agent
+
+{"level": "INFO", "name": "livekit.agents", "message": "starting worker", "version": "1
+.3.6", "rtc-version": "1.0.20", "timestamp": "2025-12-07T01:05:36.304456+00:00"}       
+{"level": "INFO", "name": "livekit.agents", "message": "preloading plugins", "packages"
+: ["livekit.plugins.tavus", "livekit.plugins.bey", "livekit.plugins.google", "av"], "ti
+mestamp": "2025-12-07T01:05:36.309632+00:00"}
+{"level": "INFO", "name": "livekit.agents", "message": "HTTP server listening on :8081"
+, "timestamp": "2025-12-07T01:05:36.416240+00:00"}
+{"level": "WARNING", "name": "livekit.agents", "message": "failed to connect to livekit
+, retrying in 0s", "exc_info": "Traceback (most recent call last):\n  File \"/usr/local
+/lib/python3.11/site-packages/livekit/agents/worker.py\", line 973, in _connection_task
+\n    ws = await self._http_session.ws_connect(\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 107
+6, in _ws_connect\n    resp = await self.request(\n           ^^^^^^^^^^^^^^^^^^^\n  Fi
+le \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 639, in _request
+\n    raise err_exc_cls(url)\naiohttp.client_exceptions.InvalidUrlClientError: :/%22wss
+:/mediai-livikit-gmavbnbs.livekit.cloud%22/agent", "timestamp": "2025-12-07T01:05:36.43
+2846+00:00"}
+{"level": "WARNING", "name": "livekit.agents", "message": "failed to connect to livekit
+, retrying in 2s", "exc_info": "Traceback (most recent call last):\n  File \"/usr/local
+/lib/python3.11/site-packages/livekit/agents/worker.py\", line 973, in _connection_task
+\n    ws = await self._http_session.ws_connect(\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 107
+6, in _ws_connect\n    resp = await self.request(\n           ^^^^^^^^^^^^^^^^^^^\n  Fi
+le \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 639, in _request
+\n    raise err_exc_cls(url)\naiohttp.client_exceptions.InvalidUrlClientError: :/%22wss
+:/mediai-livikit-gmavbnbs.livekit.cloud%22/agent", "timestamp": "2025-12-07T01:05:36.45
+1854+00:00"}
+{"level": "WARNING", "name": "livekit.agents", "message": "failed to connect to livekit
+, retrying in 4s", "exc_info": "Traceback (most recent call last):\n  File \"/usr/local
+/lib/python3.11/site-packages/livekit/agents/worker.py\", line 973, in _connection_task
+\n    ws = await self._http_session.ws_connect(\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 107
+6, in _ws_connect\n    resp = await self.request(\n           ^^^^^^^^^^^^^^^^^^^\n  Fi
+le \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 639, in _request
+\n    raise err_exc_cls(url)\naiohttp.client_exceptions.InvalidUrlClientError: :/%22wss
+:/mediai-livikit-gmavbnbs.livekit.cloud%22/agent", "timestamp": "2025-12-07T01:05:38.45
+4791+00:00"}
+{"level": "WARNING", "name": "livekit.agents", "message": "failed to connect to livekit
+, retrying in 6s", "exc_info": "Traceback (most recent call last):\n  File \"/usr/local
+/lib/python3.11/site-packages/livekit/agents/worker.py\", line 973, in _connection_task
+\n    ws = await self._http_session.ws_connect(\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 107
+6, in _ws_connect\n    resp = await self.request(\n           ^^^^^^^^^^^^^^^^^^^\n  Fi
+le \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 639, in _request
+\n    raise err_exc_cls(url)\naiohttp.client_exceptions.InvalidUrlClientError: :/%22wss
+:/mediai-livikit-gmavbnbs.livekit.cloud%22/agent", "timestamp": "2025-12-07T01:05:42.45
+7519+00:00"}
+{"level": "WARNING", "name": "livekit.agents", "message": "failed to connect to livekit
+, retrying in 8s", "exc_info": "Traceback (most recent call last):\n  File \"/usr/local
+/lib/python3.11/site-packages/livekit/agents/worker.py\", line 973, in _connection_task
+\n    ws = await self._http_session.ws_connect(\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 107
+6, in _ws_connect\n    resp = await self.request(\n           ^^^^^^^^^^^^^^^^^^^\n  Fi
+le \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 639, in _request
+\n    raise err_exc_cls(url)\naiohttp.client_exceptions.InvalidUrlClientError: :/%22wss
+:/mediai-livikit-gmavbnbs.livekit.cloud%22/agent", "timestamp": "2025-12-07T01:05:48.46
+0862+00:00"}
+{"level": "WARNING", "name": "livekit.agents", "message": "failed to connect to livekit
+, retrying in 10s", "exc_info": "Traceback (most recent call last):\n  File \"/usr/loca
+l/lib/python3.11/site-packages/livekit/agents/worker.py\", line 973, in _connection_tas
+k\n    ws = await self._http_session.ws_connect(\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 10
+76, in _ws_connect\n    resp = await self.request(\n           ^^^^^^^^^^^^^^^^^^^\n  F
+ile \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 639, in _reques
+t\n    raise err_exc_cls(url)\naiohttp.client_exceptions.InvalidUrlClientError: :/%22ws
+s:/mediai-livikit-gmavbnbs.livekit.cloud%22/agent", "timestamp": "2025-12-07T01:05:56.4
+59994+00:00"}
+{"level": "WARNING", "name": "livekit.agents", "message": "failed to connect to livekit
+, retrying in 10s", "exc_info": "Traceback (most recent call last):\n  File \"/usr/loca
+l/lib/python3.11/site-packages/livekit/agents/worker.py\", line 973, in _connection_tas
+k\n    ws = await self._http_session.ws_connect(\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 10
+76, in _ws_connect\n    resp = await self.request(\n           ^^^^^^^^^^^^^^^^^^^\n  F
+ile \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 639, in _reques
+t\n    raise err_exc_cls(url)\naiohttp.client_exceptions.InvalidUrlClientError: :/%22ws
+s:/mediai-livikit-gmavbnbs.livekit.cloud%22/agent", "timestamp": "2025-12-07T01:06:06.4
+63591+00:00"}
+{"level": "WARNING", "name": "livekit.agents", "message": "failed to connect to livekit
+, retrying in 10s", "exc_info": "Traceback (most recent call last):\n  File \"/usr/loca
+l/lib/python3.11/site-packages/livekit/agents/worker.py\", line 973, in _connection_tas
+k\n    ws = await self._http_session.ws_connect(\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 10
+76, in _ws_connect\n    resp = await self.request(\n           ^^^^^^^^^^^^^^^^^^^\n  F
+ile \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 639, in _reques
+t\n    raise err_exc_cls(url)\naiohttp.client_exceptions.InvalidUrlClientError: :/%22ws
+s:/mediai-livikit-gmavbnbs.livekit.cloud%22/agent", "timestamp": "2025-12-07T01:06:16.4
+66325+00:00"}
+{"level": "WARNING", "name": "livekit.agents", "message": "failed to connect to livekit
+, retrying in 10s", "exc_info": "Traceback (most recent call last):\n  File \"/usr/loca
+l/lib/python3.11/site-packages/livekit/agents/worker.py\", line 973, in _connection_tas
+k\n    ws = await self._http_session.ws_connect(\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 10
+76, in _ws_connect\n    resp = await self.request(\n           ^^^^^^^^^^^^^^^^^^^\n  F
+ile \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 639, in _reques
+t\n    raise err_exc_cls(url)\naiohttp.client_exceptions.InvalidUrlClientError: :/%22ws
+s:/mediai-livikit-gmavbnbs.livekit.cloud%22/agent", "timestamp": "2025-12-07T01:06:26.4
+64253+00:00"}
+{"level": "WARNING", "name": "livekit.agents", "message": "failed to connect to livekit
+, retrying in 10s", "exc_info": "Traceback (most recent call last):\n  File \"/usr/loca
+l/lib/python3.11/site-packages/livekit/agents/worker.py\", line 973, in _connection_tas
+k\n    ws = await self._http_session.ws_connect(\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 10
+76, in _ws_connect\n    resp = await self.request(\n           ^^^^^^^^^^^^^^^^^^^\n  F
+ile \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 639, in _reques
+t\n    raise err_exc_cls(url)\naiohttp.client_exceptions.InvalidUrlClientError: :/%22ws
+s:/mediai-livikit-gmavbnbs.livekit.cloud%22/agent", "timestamp": "2025-12-07T01:06:36.4
+67232+00:00"}
+{"level": "WARNING", "name": "livekit.agents", "message": "failed to connect to livekit
+, retrying in 10s", "exc_info": "Traceback (most recent call last):\n  File \"/usr/loca
+l/lib/python3.11/site-packages/livekit/agents/worker.py\", line 973, in _connection_tas
+k\n    ws = await self._http_session.ws_connect(\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 10
+76, in _ws_connect\n    resp = await self.request(\n           ^^^^^^^^^^^^^^^^^^^\n  F
+ile \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 639, in _reques
+t\n    raise err_exc_cls(url)\naiohttp.client_exceptions.InvalidUrlClientError: :/%22ws
+s:/mediai-livikit-gmavbnbs.livekit.cloud%22/agent", "timestamp": "2025-12-07T01:06:46.4
+70500+00:00"}
+{"level": "WARNING", "name": "livekit.agents", "message": "failed to connect to livekit
+, retrying in 10s", "exc_info": "Traceback (most recent call last):\n  File \"/usr/loca
+l/lib/python3.11/site-packages/livekit/agents/worker.py\", line 973, in _connection_tas
+k\n    ws = await self._http_session.ws_connect(\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 10
+76, in _ws_connect\n    resp = await self.request(\n           ^^^^^^^^^^^^^^^^^^^\n  F
+ile \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 639, in _reques
+t\n    raise err_exc_cls(url)\naiohttp.client_exceptions.InvalidUrlClientError: :/%22ws
+s:/mediai-livikit-gmavbnbs.livekit.cloud%22/agent", "timestamp": "2025-12-07T01:06:56.4
+69908+00:00"}
+{"level": "WARNING", "name": "livekit.agents", "message": "failed to connect to livekit
+, retrying in 10s", "exc_info": "Traceback (most recent call last):\n  File \"/usr/loca
+l/lib/python3.11/site-packages/livekit/agents/worker.py\", line 973, in _connection_tas
+k\n    ws = await self._http_session.ws_connect(\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 10
+76, in _ws_connect\n    resp = await self.request(\n           ^^^^^^^^^^^^^^^^^^^\n  F
+ile \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 639, in _reques
+t\n    raise err_exc_cls(url)\naiohttp.client_exceptions.InvalidUrlClientError: :/%22ws
+s:/mediai-livikit-gmavbnbs.livekit.cloud%22/agent", "timestamp": "2025-12-07T01:07:06.4
+72904+00:00"}
+{"level": "WARNING", "name": "livekit.agents", "message": "failed to connect to livekit
+, retrying in 10s", "exc_info": "Traceback (most recent call last):\n  File \"/usr/loca
+l/lib/python3.11/site-packages/livekit/agents/worker.py\", line 973, in _connection_tas
+k\n    ws = await self._http_session.ws_connect(\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 10
+76, in _ws_connect\n    resp = await self.request(\n           ^^^^^^^^^^^^^^^^^^^\n  F
+ile \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 639, in _reques
+t\n    raise err_exc_cls(url)\naiohttp.client_exceptions.InvalidUrlClientError: :/%22ws
+s:/mediai-livikit-gmavbnbs.livekit.cloud%22/agent", "timestamp": "2025-12-07T01:07:16.4
+75644+00:00"}
+{"level": "WARNING", "name": "livekit.agents", "message": "failed to connect to livekit
+, retrying in 10s", "exc_info": "Traceback (most recent call last):\n  File \"/usr/loca
+l/lib/python3.11/site-packages/livekit/agents/worker.py\", line 973, in _connection_tas
+k\n    ws = await self._http_session.ws_connect(\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 10
+76, in _ws_connect\n    resp = await self.request(\n           ^^^^^^^^^^^^^^^^^^^\n  F
+ile \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 639, in _reques
+t\n    raise err_exc_cls(url)\naiohttp.client_exceptions.InvalidUrlClientError: :/%22ws
+s:/mediai-livikit-gmavbnbs.livekit.cloud%22/agent", "timestamp": "2025-12-07T01:07:26.4
+73538+00:00"}
+{"level": "WARNING", "name": "livekit.agents", "message": "failed to connect to livekit
+, retrying in 10s", "exc_info": "Traceback (most recent call last):\n  File \"/usr/loca
+l/lib/python3.11/site-packages/livekit/agents/worker.py\", line 973, in _connection_tas
+k\n    ws = await self._http_session.ws_connect(\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 10
+76, in _ws_connect\n    resp = await self.request(\n           ^^^^^^^^^^^^^^^^^^^\n  F
+ile \"/usr/local/lib/python3.11/site-packages/aiohttp/client.py\", line 639, in _reques
+t\n    raise err_exc_cls(url)\naiohttp.client_exceptions.InvalidUrlClientError: :/%22ws
+s:/mediai-livikit-gmavbnbs.livekit.cloud%22/agent", "timestamp": "2025-12-07T01:07:36.4
+76619+00:00"}
+{"level": "ERROR", "name": "livekit.agents", "message": "Error in _connection_task", "e
+xc_info": "Traceback (most recent call last):\n  File \"/usr/local/lib/python3.11/site-
+packages/livekit/agents/utils/log.py\", line 16, in async_fn_logs\n    return await fn(
+*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3
+.11/site-packages/livekit/agents/worker.py\", line 1019, in _connection_task\n    raise
+ RuntimeError(\nRuntimeError: failed to connect to livekit after 16 attempts", "timesta
+mp": "2025-12-07T01:07:46.479724+00:00"}
