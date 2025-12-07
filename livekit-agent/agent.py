@@ -1077,6 +1077,56 @@ async def schedule_appointment(context: RunContext,
 
 
 @function_tool()
+async def get_visual_observation(context: RunContext) -> dict:
+    """Obtém a observação visual mais recente do paciente (modo streaming).
+    
+    Use quando o modo de visão contínua está habilitado para acessar as observações
+    visuais mais recentes do paciente coletadas pelo streaming de vídeo.
+    
+    IMPORTANTE: Esta ferramenta é para quando frames são analisados automaticamente.
+    Use look_at_patient para capturar uma nova imagem sob demanda.
+    """
+    global _current_agent_instance
+    
+    agent = _current_agent_instance
+    if agent is None:
+        logger.warning("[Vision] Agent instance not available")
+        return {
+            "success": False,
+            "error": "Sistema de visão não disponível",
+            "observation": None
+        }
+    
+    try:
+        observation = getattr(agent, '_latest_vision_observation', None)
+        obs_time = getattr(agent, '_vision_observation_time', 0)
+        
+        if not observation:
+            return {
+                "success": False,
+                "error": "Nenhuma observação visual disponível ainda",
+                "observation": None
+            }
+        
+        age_seconds = time.time() - obs_time if obs_time > 0 else 0
+        
+        return {
+            "success": True,
+            "observation": observation,
+            "age_seconds": round(age_seconds, 1),
+            "message": f"Observação de {round(age_seconds)}s atrás: {observation}"
+        }
+        
+    except Exception as e:
+        logger.error(f"[Vision] Error getting observation: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "observation": None
+        }
+
+
+@function_tool()
 async def look_at_patient(context: RunContext, observation_focus: str = "geral") -> dict:
     """Olha para o paciente através da câmera para fazer observações visuais.
     
@@ -1242,17 +1292,18 @@ class MediAIAgent(Agent):
         global _current_agent_instance
 
         # Build dynamic tools list based on vision mode
-        # If streaming is enabled, AI receives frames automatically - no need for look_at_patient tool
+        # If streaming is enabled, AI receives frames automatically + get_visual_observation tool
         # If streaming is disabled (on-demand mode), AI uses look_at_patient tool to see patient
         agent_tools = [search_doctors, get_available_slots, schedule_appointment]
         
         if not vision_streaming_enabled:
-            # On-demand mode: add look_at_patient tool
+            # On-demand mode: add look_at_patient tool to capture frames on demand
             agent_tools.append(look_at_patient)
             logger.info("[MediAI] 👁️ Vision mode: ON-DEMAND (look_at_patient tool available)")
         else:
-            # Streaming mode: AI receives frames automatically, no tool needed
-            logger.info("[MediAI] 👁️ Vision mode: STREAMING (automatic frame injection)")
+            # Streaming mode: add get_visual_observation to access analyzed frames
+            agent_tools.append(get_visual_observation)
+            logger.info("[MediAI] 👁️ Vision mode: STREAMING (get_visual_observation tool available)")
 
         super().__init__(instructions=instructions, tools=agent_tools)
         
@@ -1270,6 +1321,10 @@ class MediAIAgent(Agent):
         self._current_video_track = None
         self._video_streaming_active = False
         self._vision_streaming_enabled = vision_streaming_enabled
+        
+        # Vision observation storage (for streaming mode)
+        self._latest_vision_observation: Optional[str] = None
+        self._vision_observation_time: float = 0
 
         _current_agent_instance = self
         logger.info("[MediAI] Agent instance registered")
@@ -1691,80 +1746,79 @@ class MediAIAgent(Agent):
             logger.info("[Vision] 🎥 Video loop ended")
 
     async def _send_frame_to_session(self, frame_bytes: bytes):
-        """Send a processed frame to the active Gemini session.
+        """Analyze a video frame using Gemini Vision API.
         
-        Uses multiple fallback strategies to inject video frames
-        into the ongoing Gemini Live conversation context.
+        NOTE: The LiveKit RealtimeModel (Gemini Live API) is audio-only and does not
+        support direct video frame injection. Instead, we use the Gemini Vision API
+        separately to analyze frames and store observations for the agent to reference.
         
-        Injection methods (in order of preference):
-        1. push_media_chunk - Direct media injection (newest API)
-        2. push_video_frame - Video frame injection
-        3. send_realtime_input - Generic realtime input
-        4. _session.send - Internal Bidi session access
+        This is the correct architecture:
+        1. Capture frame from patient's camera
+        2. Analyze with Gemini Vision API (gemini-2.0-flash) 
+        3. Store observation in self._latest_vision_observation
+        4. Agent accesses observation via get_visual_observation tool
+        
+        THROTTLING: To reduce costs and API load, we only analyze frames every 30 seconds
+        even though we receive frames every 4 seconds. The latest frame is stored
+        and analyzed periodically.
         """
-        if not self._agent_session or not self._agent_session.llm:
-            logger.warning("[Vision] No agent session or LLM available for frame injection")
-            return
+        # Additional throttling: Only analyze 1 frame every 30 seconds (on top of 4s capture rate)
+        ANALYSIS_INTERVAL = 30.0
+        current_time = time.time()
+        
+        if hasattr(self, '_last_vision_analysis_time'):
+            time_since_last = current_time - self._last_vision_analysis_time
+            if time_since_last < ANALYSIS_INTERVAL:
+                logger.debug(f"[Vision] Skipping analysis - {ANALYSIS_INTERVAL - time_since_last:.1f}s until next")
+                return
         
         try:
-            llm = self._agent_session.llm
-            frame_injected = False
+            self._last_vision_analysis_time = current_time
             
-            # Log available methods for debugging
-            available_methods = [m for m in ['push_media_chunk', 'push_video_frame', 'send_realtime_input', '_session'] 
-                                if hasattr(llm, m)]
-            logger.info(f"[Vision] LLM injection methods available: {available_methods}")
+            # Use Gemini Vision API (not LiveKit RealtimeModel)
+            vision_model = genai.GenerativeModel('gemini-2.0-flash')
             
-            # Option A: push_media_chunk (newest, preferred for LiveKit plugins)
-            if hasattr(llm, 'push_media_chunk'):
-                await llm.push_media_chunk(frame_bytes, "image/jpeg")
-                logger.info(f"[Vision] ✅ Frame injected via push_media_chunk ({len(frame_bytes)} bytes)")
-                frame_injected = True
-                
-            # Option B: push_video_frame
-            elif hasattr(llm, 'push_video_frame'):
-                image_part = {
-                    "inline_data": {
-                        "mime_type": "image/jpeg",
-                        "data": base64.b64encode(frame_bytes).decode('utf-8')
-                    }
+            # Prepare image for Gemini
+            image_part = {
+                "inline_data": {
+                    "mime_type": "image/jpeg",
+                    "data": base64.b64encode(frame_bytes).decode('utf-8')
                 }
-                await llm.push_video_frame(image_part)
-                logger.info(f"[Vision] ✅ Frame injected via push_video_frame ({len(frame_bytes)} bytes)")
-                frame_injected = True
-                
-            # Option C: send_realtime_input
-            elif hasattr(llm, 'send_realtime_input'):
-                image_part = {
-                    "inline_data": {
-                        "mime_type": "image/jpeg",
-                        "data": base64.b64encode(frame_bytes).decode('utf-8')
-                    }
-                }
-                await llm.send_realtime_input(image_part)
-                logger.info(f"[Vision] ✅ Frame injected via send_realtime_input ({len(frame_bytes)} bytes)")
-                frame_injected = True
-                
-            # Option D: Deep access to internal Bidi session
-            elif hasattr(llm, '_session') and hasattr(llm._session, 'send'):
-                realtime_input = {
-                    "realtime_input": {
-                        "media_chunks": [{
-                            "mime_type": "image/jpeg",
-                            "data": base64.b64encode(frame_bytes).decode('utf-8')
-                        }]
-                    }
-                }
-                await llm._session.send(realtime_input)
-                logger.info(f"[Vision] ✅ Frame injected via _session.send ({len(frame_bytes)} bytes)")
-                frame_injected = True
+            }
             
-            if not frame_injected:
-                # No injection method found - audio still works, video skipped
-                logger.warning("[Vision] ❌ No injection method available - LLM cannot see video frames!")
+            # Analyze frame with medical focus
+            prompt = """Você é uma assistente médica observando o paciente por vídeo durante uma consulta.
+Descreva objetivamente o que você vê em 2-3 frases curtas, focando em:
+- Aparência geral (expressão facial, postura, sinais de desconforto)
+- Qualquer característica visível relevante para saúde
+- Ambiente do paciente se relevante
+
+Seja profissional e não faça diagnósticos, apenas observações visuais."""
+
+            # Call Gemini Vision API in a thread to avoid blocking
+            def analyze_sync():
+                response = vision_model.generate_content([prompt, image_part])
+                return response.text if response and response.text else None
+            
+            observation = await asyncio.to_thread(analyze_sync)
+            
+            if observation:
+                # Store the latest observation for the agent to reference
+                self._latest_vision_observation = observation
+                self._vision_observation_time = time.time()
+                logger.info(f"[Vision] ✅ Frame analyzed: {observation[:100]}...")
+                
+                # Track vision tokens
+                if self.metrics_collector:
+                    self.metrics_collector.vision_input_tokens += 258
+                    self.metrics_collector.vision_output_tokens += len(observation) // 4
+            else:
+                logger.warning("[Vision] No observation returned from Gemini Vision")
                 
         except Exception as e:
-            logger.error(f"[Vision] Error injecting frame: {e}")
+            logger.error(f"[Vision] Error analyzing frame: {e}")
+            import traceback
+            logger.error(f"[Vision] Traceback: {traceback.format_exc()}")
 
     async def on_enter(self):
         """Called when agent enters the session - generates initial greeting using session.say()"""
@@ -1869,14 +1923,16 @@ async def entrypoint(ctx: JobContext):
     # Build system prompt based on vision mode
     if vision_enabled:
         if vision_streaming_enabled:
-            vision_instructions = """VISÃO EM TEMPO REAL:
-✅ VOCÊ ESTÁ RECEBENDO UM FEED DE VÍDEO AO VIVO DO PACIENTE
-✅ Você pode ver o paciente continuamente durante a consulta
-- Se notar algo visualmente preocupante (ferimentos, palidez, sinais de dor, postura irregular), comente naturalmente
-- Combine o que você VÊ com o que você OUVE para fazer uma avaliação mais completa
-- Use observações visuais para guiar suas perguntas (ex: "Noto que você parece desconfortável...")
+            vision_instructions = """VISÃO EM TEMPO REAL (STREAMING):
+✅ O sistema está analisando o vídeo do paciente automaticamente a cada 30 segundos
+✅ Use a ferramenta get_visual_observation para acessar a observação visual mais recente
+- Chame get_visual_observation quando quiser saber como o paciente está visualmente
+- As observações são atualizadas automaticamente, então você sempre terá informações recentes
+- Combine o que você VÊ (via get_visual_observation) com o que você OUVE para avaliação completa
+- Se notar algo preocupante na observação visual, comente naturalmente
 - Seja profissional e respeitosa nas observações visuais
-- NÃO faça comentários sobre aparência que não sejam relevantes para saúde"""
+- NÃO faça comentários sobre aparência que não sejam relevantes para saúde
+- Use get_visual_observation periodicamente para acompanhar o estado do paciente"""
         else:
             vision_instructions = """VISÃO SOB DEMANDA:
 ✅ VOCÊ PODE VER O PACIENTE usando a ferramenta look_at_patient

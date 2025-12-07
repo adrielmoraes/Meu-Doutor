@@ -45,7 +45,14 @@ Critical variables for production:
 - **AI Enhancements**: Enhanced AI system with Gemini 2.5 Flash for medical analysis and consultations, including call recording and transcription. Server-side AI processing ensures medical data security. Implementation of an AI Nutritionist for personalized wellness plans.
 - **Real-time Communication**: LiveKit for WebRTC, with automatic device detection and noise cancellation.
 - **AI Consultations**: LiveKit + Avatar Providers (Tavus/BEY) + Gemini Architecture for production-grade real-time consultations with vision capabilities. This involves a Python agent orchestrating Google Gemini API for STT, LLM, and TTS, configurable avatar integration, and Gemini Vision API for visual patient analysis. A unified voice system ("Aoede" voice, female, pt-BR) is used across all audio generations. The AI can see the patient through their camera and describe their appearance when asked.
-  - **AI Vision Modes**: Supports both on-demand and continuous streaming vision capabilities.
+  - **AI Vision Modes**: Supports both on-demand and continuous streaming vision capabilities. Vision is throttled to 30-second intervals to reduce costs. Agent uses `get_visual_observation` tool to access stored visual observations.
+- **Consultation Time Limits**: Robust timer system for subscription-based time limits with:
+  - Automatic disconnection when time expires (with 60-second warning)
+  - Support for `availableMinutes` with `totalMinutes` fallback
+  - Synchronous timer cleanup on plan changes (no extra ticks)
+  - Cancellation of pending disconnect when quota is restored
+  - No redirect if never connected (allows upgrade CTAs)
+  - Refs for stale closure prevention in interval callbacks
 - **AI Therapist Chat**: Bidirectional voice chat with WhatsApp-style audio features and voice support.
 - **Wellness Audio Persistence**: TTS audio for wellness plan sections is generated once and stored, regenerating only upon plan updates to reduce costs.
 - **Medical Analysis**: A multi-specialist medical analysis system with sequential file processing:

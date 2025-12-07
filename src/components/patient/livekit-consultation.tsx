@@ -283,6 +283,46 @@ export default function LiveKitConsultation({
   const [audioOnlyMode, setAudioOnlyMode] = useState(false);
   const consultationStartTime = useRef<number | null>(null);
   const hasAttemptedTokenFetch = useRef(false);
+  
+  // Time limit state - convert available minutes to seconds
+  // Compute initial remaining time based on props (uses totalMinutes as fallback)
+  const computeRemainingSeconds = (avail?: number, used?: number, total?: number): number | null => {
+    // Use availableMinutes if defined, otherwise fall back to totalMinutes
+    const effectiveMinutes = avail !== undefined ? avail : total;
+    
+    // Unlimited plans have no timer
+    if (effectiveMinutes === undefined || effectiveMinutes === Infinity) return null;
+    
+    // If we have used minutes info, compute remaining from server state
+    if (used !== undefined) {
+      const remaining = Math.max(0, effectiveMinutes - used);
+      return Math.floor(remaining * 60);
+    }
+    // Otherwise use effective minutes directly
+    return Math.floor(effectiveMinutes * 60);
+  };
+  
+  const initialRemainingSeconds = computeRemainingSeconds(availableMinutes, usedMinutes, totalMinutes);
+  const initiallyExpired = initialRemainingSeconds !== null && initialRemainingSeconds <= 0;
+  
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(initialRemainingSeconds);
+  const [showTimeWarning, setShowTimeWarning] = useState(initiallyExpired);
+  const [timeExpired, setTimeExpired] = useState(initiallyExpired);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timerStartedRef = useRef(false);
+  const disconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Refs to track state inside interval callback (avoid stale closures)
+  const showTimeWarningRef = useRef(showTimeWarning);
+  const timeExpiredRef = useRef(timeExpired);
+  const availableMinutesRef = useRef(availableMinutes);
+  const totalMinutesRef = useRef(totalMinutes);
+  
+  // Keep refs in sync with state
+  useEffect(() => { showTimeWarningRef.current = showTimeWarning; }, [showTimeWarning]);
+  useEffect(() => { timeExpiredRef.current = timeExpired; }, [timeExpired]);
+  useEffect(() => { availableMinutesRef.current = availableMinutes; }, [availableMinutes]);
+  useEffect(() => { totalMinutesRef.current = totalMinutes; }, [totalMinutes]);
 
   // Heartbeat (only when room is connected)
   const { isHealthy, latency, start: startHeartbeat, stop: stopHeartbeat } = useLiveKitHeartbeat(room);
@@ -434,6 +474,163 @@ export default function LiveKitConsultation({
     }
   }, [isHealthy, latency, room, logEvent]);
 
+  // Track previous prop values to detect changes
+  const prevAvailableMinutesRef = useRef(availableMinutes);
+  const prevUsedMinutesRef = useRef(usedMinutes);
+  const prevTotalMinutesRef = useRef(totalMinutes);
+  
+  // Reset timer state when quota props change (admin updated, plan changed, or backend syncs)
+  useEffect(() => {
+    const availableChanged = availableMinutes !== prevAvailableMinutesRef.current;
+    const usedChanged = usedMinutes !== prevUsedMinutesRef.current;
+    const totalChanged = totalMinutes !== prevTotalMinutesRef.current;
+    
+    if (availableChanged || usedChanged || totalChanged) {
+      // FIRST: Clear existing interval SYNCHRONOUSLY before any state updates
+      // This ensures no extra ticks fire during plan upgrade to unlimited
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+      timerStartedRef.current = false;
+      
+      // Also cancel any pending disconnect timeout (e.g., if quota was restored)
+      if (disconnectTimeoutRef.current) {
+        clearTimeout(disconnectTimeoutRef.current);
+        disconnectTimeoutRef.current = null;
+      }
+      
+      // Update refs
+      prevAvailableMinutesRef.current = availableMinutes;
+      prevUsedMinutesRef.current = usedMinutes;
+      prevTotalMinutesRef.current = totalMinutes;
+      
+      const newRemainingSeconds = computeRemainingSeconds(availableMinutes, usedMinutes, totalMinutes);
+      
+      // Check if already expired (0 seconds remaining)
+      const alreadyExpired = newRemainingSeconds !== null && newRemainingSeconds <= 0;
+      
+      // Reset all timer state
+      setRemainingSeconds(newRemainingSeconds);
+      setShowTimeWarning(alreadyExpired); // Show warning if already expired
+      setTimeExpired(alreadyExpired); // Mark expired immediately if 0
+      
+      logEvent('Time limit reset due to prop change', { 
+        availableMinutes, 
+        usedMinutes,
+        totalMinutes,
+        newRemainingSeconds,
+        isUnlimited: newRemainingSeconds === null,
+        alreadyExpired
+      });
+    }
+  }, [availableMinutes, usedMinutes, totalMinutes, logEvent]);
+
+  // Time limit countdown timer - only starts/stops based on connection state
+  // Does NOT depend on remainingSeconds to avoid recreating interval every tick
+  useEffect(() => {
+    const clearTimer = () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    };
+
+    // Check if we should have a timer running
+    const isConnected = room && connectionSupervisor.state === 'connected';
+    // Use availableMinutes if defined, otherwise fall back to totalMinutes
+    const effectiveMinutes = availableMinutes !== undefined ? availableMinutes : totalMinutes;
+    const hasTimeLimit = effectiveMinutes !== undefined && effectiveMinutes !== Infinity;
+
+    // If not connected, no time limit, or already expired, clear timer
+    if (!isConnected || !hasTimeLimit || timeExpired) {
+      clearTimer();
+      timerStartedRef.current = false;
+      return;
+    }
+
+    // If timer is already running, don't recreate
+    if (timerStartedRef.current && timerIntervalRef.current) {
+      return;
+    }
+
+    // Start the timer
+    timerStartedRef.current = true;
+    logEvent('Starting time limit countdown');
+
+    timerIntervalRef.current = setInterval(() => {
+      // Check if plan changed to unlimited during interval (instant halt)
+      const currentAvail = availableMinutesRef.current;
+      const currentTotal = totalMinutesRef.current;
+      const effectiveMinutes = currentAvail !== undefined ? currentAvail : currentTotal;
+      
+      if (effectiveMinutes === undefined || effectiveMinutes === Infinity) {
+        if (timerIntervalRef.current) {
+          clearInterval(timerIntervalRef.current);
+          timerIntervalRef.current = null;
+          timerStartedRef.current = false;
+        }
+        return;
+      }
+      
+      setRemainingSeconds(prev => {
+        // Guard against null
+        if (prev === null) {
+          return null;
+        }
+        
+        // Already at or below 0 - ensure expiration is triggered and return 0
+        if (prev <= 0) {
+          if (!timeExpiredRef.current) {
+            setTimeExpired(true);
+          }
+          return 0;
+        }
+        
+        const newValue = Math.max(0, prev - 1);
+        
+        // Show warning when 60 seconds remaining (use ref to avoid stale closure)
+        if (newValue === 60 && !showTimeWarningRef.current) {
+          setShowTimeWarning(true);
+        }
+        
+        // Time expired - only trigger once (use ref to avoid stale closure)
+        if (newValue === 0 && !timeExpiredRef.current) {
+          setTimeExpired(true);
+        }
+        
+        return newValue;
+      });
+    }, 1000);
+
+    return clearTimer;
+  }, [room, connectionSupervisor.state, availableMinutes, totalMinutes, timeExpired, logEvent]);
+
+  // Handle time expired - end consultation (only if room was connected)
+  useEffect(() => {
+    if (timeExpired && room && connectionSupervisor.state === 'connected') {
+      // Only auto-disconnect if we're actually connected
+      // This allows showing upgrade CTAs without forced redirect
+      disconnectTimeoutRef.current = setTimeout(() => {
+        endConsultation();
+      }, 5000); // 5 seconds to show "time expired" message
+
+      return () => {
+        if (disconnectTimeoutRef.current) {
+          clearTimeout(disconnectTimeoutRef.current);
+          disconnectTimeoutRef.current = null;
+        }
+      };
+    }
+  }, [timeExpired, room, connectionSupervisor.state]);
+
+  // Helper to format remaining time
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const endConsultation = async () => {
     logEvent('Ending consultation');
     
@@ -542,6 +739,32 @@ export default function LiveKitConsultation({
               Voltar ao Dashboard
             </Button>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Time expired state - shown when consultation time runs out
+  if (timeExpired) {
+    return (
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 flex flex-col items-center justify-center z-50 p-8">
+        <div className="bg-amber-500/20 border border-amber-500/50 rounded-lg p-8 max-w-md text-center">
+          <div className="flex justify-center mb-6">
+            <div className="bg-amber-500/30 p-4 rounded-full">
+              <Clock className="w-16 h-16 text-amber-400" />
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-amber-300 mb-4">Tempo Esgotado</h2>
+          <p className="text-amber-200 mb-6">
+            Seu tempo de consulta com IA terminou. A consulta está sendo encerrada automaticamente.
+          </p>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Loader2 className="w-5 h-5 text-amber-400 animate-spin" />
+            <span className="text-amber-300 text-sm">Encerrando consulta...</span>
+          </div>
+          <p className="text-slate-400 text-sm">
+            Você pode adquirir mais minutos fazendo upgrade do seu plano.
+          </p>
         </div>
       </div>
     );
@@ -690,37 +913,61 @@ export default function LiveKitConsultation({
                   </div>
                 )}
 
-                {/* Minutes available indicator */}
-                {availableMinutes !== undefined && totalMinutes !== undefined && (
+                {/* Time remaining countdown indicator */}
+                {remainingSeconds !== null ? (
                   <div className={`flex items-center gap-2 rounded-full px-4 py-2 ${
-                    availableMinutes > 10 
+                    remainingSeconds > 120 
                       ? 'bg-blue-500/20 border border-blue-500/50'
-                      : availableMinutes > 2
+                      : remainingSeconds > 60
                       ? 'bg-yellow-500/20 border border-yellow-500/50'
-                      : 'bg-red-500/20 border border-red-500/50'
+                      : 'bg-red-500/20 border border-red-500/50 animate-pulse'
                   }`}>
-                    <Clock className={`w-3 h-3 ${
-                      availableMinutes > 10
+                    <Clock className={`w-4 h-4 ${
+                      remainingSeconds > 120
                         ? 'text-blue-400'
-                        : availableMinutes > 2
+                        : remainingSeconds > 60
                         ? 'text-yellow-400'
                         : 'text-red-400'
                     }`} />
-                    <span className={`text-sm font-medium ${
-                      availableMinutes > 10
+                    <span className={`text-sm font-bold tabular-nums ${
+                      remainingSeconds > 120
                         ? 'text-blue-200'
-                        : availableMinutes > 2
+                        : remainingSeconds > 60
                         ? 'text-yellow-200'
                         : 'text-red-200'
                     }`}>
-                      {totalMinutes === Infinity 
-                        ? 'Tempo ilimitado' 
-                        : `${Math.floor(availableMinutes)} min disponíveis`}
+                      {formatTime(remainingSeconds)}
                     </span>
                   </div>
-                )}
+                ) : totalMinutes === Infinity ? (
+                  <div className="flex items-center gap-2 rounded-full px-4 py-2 bg-green-500/20 border border-green-500/50">
+                    <Clock className="w-4 h-4 text-green-400" />
+                    <span className="text-sm font-medium text-green-200">
+                      Tempo ilimitado
+                    </span>
+                  </div>
+                ) : null}
               </div>
             </div>
+
+            {/* Time warning banner - shown when 60 seconds remaining */}
+            {showTimeWarning && remainingSeconds !== null && remainingSeconds <= 60 && remainingSeconds > 0 && (
+              <div className="mt-4 bg-red-500/30 border border-red-500/50 rounded-lg p-4 animate-pulse">
+                <div className="flex items-center gap-3">
+                  <div className="bg-red-500/30 p-2 rounded-full">
+                    <Clock className="w-6 h-6 text-red-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-red-200 font-bold text-lg">
+                      Tempo acabando: {formatTime(remainingSeconds)}
+                    </p>
+                    <p className="text-red-300 text-sm">
+                      Sua consulta será encerrada automaticamente quando o tempo expirar.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Network quality warning */}
             {networkQuality === 'poor' && (
@@ -729,7 +976,7 @@ export default function LiveKitConsultation({
                   <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-yellow-300 text-sm font-medium">
-                      ⚠️ Conexão instável
+                      Conexao instavel
                     </p>
                     <p className="text-yellow-200 text-xs mt-1">
                       Recomendamos usar WiFi para melhor qualidade.
