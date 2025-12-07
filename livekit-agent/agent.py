@@ -273,8 +273,8 @@ class MetricsCollector:
 
     def calculate_cost_cents(self) -> int:
         """Calcula custo total em centavos BRL (Gemini + Avatar)."""
-        # Conversão USD -> BRL (≈ 5.0)
-        usd_to_brl = 5.0
+        # Conversão USD -> BRL (atualizado: R$5,42 por $1 USD)
+        usd_to_brl = 5.42
 
         # ========================================
         # GEMINI 2.5 Flash Native Audio (Live API) 
@@ -350,7 +350,7 @@ class MetricsCollector:
         # ========================================
         # Calcular custo Gemini (Gemini 2.5 Flash Native Audio - Dec 2025 Updated)
         # ========================================
-        usd_to_brl = 5.0
+        usd_to_brl = 5.42  # R$5,42 por $1 USD
         delta_stt_cost_usd = (delta_stt / 1_000_000) * 3.00       # Audio/Video input: $3.00/1M
         delta_llm_input_cost_usd = (delta_llm_input / 1_000_000) * 0.50    # Text input: $0.50/1M
         delta_llm_output_cost_usd = (delta_llm_output / 1_000_000) * 12.00  # Text output: $12.00/1M

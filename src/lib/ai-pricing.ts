@@ -294,8 +294,8 @@ export function calculateLiveKitCost(
   return durationMinutes * AI_PRICING.livekit.audioPerMinute;
 }
 
-// Default exchange rate: 5.0 (can be configured via EXCHANGE_RATE env)
-const DEFAULT_EXCHANGE_RATE = 5.0;
+// Default exchange rate: R$5.42 per $1 USD (can be configured via EXCHANGE_RATE env)
+const DEFAULT_EXCHANGE_RATE = 5.42;
 
 // Convert USD to BRL cents for storage
 export function usdToBRLCents(usdAmount: number, exchangeRate?: number): number {

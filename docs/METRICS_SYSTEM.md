@@ -40,15 +40,21 @@ Sistema completo de rastreamento de tokens e tempo de conversa do Gemini API par
 
 ### Custos
 
-Calculados em centavos BRL usando conversão USD→BRL ≈ 5.0:
+Calculados em centavos BRL usando conversão USD→BRL = R$5,42:
 
-- **Gemini Flash (STT/LLM/TTS):**
-  - Input: $0.10/1M tokens
-  - Output: $0.40/1M tokens
+- **Gemini 2.5 Flash Native Audio (Live API):**
+  - Text Input: $0.50/1M tokens
+  - Text Output: $12.00/1M tokens
+  - Audio/Video Input (STT): $3.00/1M tokens
+  - Audio/Video Output (TTS): $2.00/1M tokens
 
 - **Gemini Vision:**
-  - Input: $0.075/1M tokens
-  - Output: $0.30/1M tokens
+  - Input: $0.50/1M tokens (same as text)
+  - Output: $12.00/1M tokens (same as text)
+
+- **Avatar Providers:**
+  - BeyondPresence (BEY): $0.175/minuto
+  - Tavus CVI: $0.10/minuto
 
 ## Fluxo de Dados
 
