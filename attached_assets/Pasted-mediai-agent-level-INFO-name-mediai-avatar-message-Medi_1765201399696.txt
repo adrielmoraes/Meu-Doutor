@@ -1,0 +1,912 @@
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI] ✅ Beyon
+d Presence avatar started successfully!", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room
+_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:38:06.507462+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] 👤 Part
+icipant connected: bey-avatar-agent", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id"
+: "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:38:06.890364+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Skippin
+g avatar participant: bey-avatar-agent", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_
+id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:38:06.890884+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI] 🎤 Star
+ting consultation - awaiting user input...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "r
+oom_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:38:10.878487+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Metrics] 🔄 Ini
+ciando envio periódico de métricas a cada 60s...", "pid": 33, "job_id": "AJ_VHTycmfFoSE
+4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:38:10.878986+00:00"}     
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] 📹 Vide
+o track subscribed from: bey-avatar-agent", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "ro
+om_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:38:17.614753+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Skippin
+g avatar participant: bey-avatar-agent", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_
+id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:38:17.615072+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] 👤 Part
+icipant connected: Adriel Moraes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "
+RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:38:45.553535+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] 📹 Star
+ting video streaming for patient: Adriel Moraes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4
+", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:38:45.554051+00:00"}      
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] No v
+ideo track available from patient", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": 
+"RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:38:45.554142+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] 📹 Vide
+o track subscribed from: Adriel Moraes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_
+id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:38:53.803410+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] 📹 Star
+ting video streaming for patient: Adriel Moraes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4
+", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:38:53.803860+00:00"}      
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Found v
+ideo track: TR_VCMBjx7CwtJ83p", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_
+dUV5LMpV7aSm", "timestamp": "2025-12-08T13:38:53.804035+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] 🎥 Crea
+ting VideoStream (may crash on CPUs without AVX)...", "pid": 33, "job_id": "AJ_VHTycmfF
+oSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:38:53.804262+00:00"}  
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] 🎥 Vide
+o loop started - sending 1 frame every 4.0s", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "
+room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:38:53.807530+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ O.
+..", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp":
+ "2025-12-08T13:38:55.397551+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Ol
+á...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp
+": "2025-12-08T13:38:55.567581+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Ol
+á,...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestam
+p": "2025-12-08T13:38:55.590215+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Ol
+á, bo...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "times
+tamp": "2025-12-08T13:38:55.646583+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Ol
+á, boa tarde...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm",
+ "timestamp": "2025-12-08T13:38:55.809194+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Ol
+á, boa tarde,...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm"
+, "timestamp": "2025-12-08T13:38:55.976079+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Ol
+á, boa tarde, bom...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7
+aSm", "timestamp": "2025-12-08T13:38:56.143734+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Ol
+á, boa tarde, bom dia....", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:38:56.144279+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:39:00.239526+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:00.248161+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:39:00.248458+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:39:00.248635+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:00.267501+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Ol
+á, boa tarde, bom dia....", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:39:01.510136+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:39:01.785324+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:39:01.874162+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 22861 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:39:02.006296+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:02.274680+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:02.274992+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playback finish
+ed event received", "caller_identity": "bey-avatar-agent", "pid": 33, "job_id": "AJ_VHT
+ycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:03.380385+00:0
+0"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:39:04.282157+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:04.282658+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:39:04.282794+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:39:04.282953+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:04.283229+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:39:05.315579+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:39:05.437233+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 23856 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:39:05.443144+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:05.933693+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:05.933911+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:39:08.320130+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:08.320771+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:39:08.320931+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:39:08.321234+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:08.323059+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp"
+: "2025-12-08T13:39:08.566163+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+,...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp
+": "2025-12-08T13:39:08.789917+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+, vo...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timest
+amp": "2025-12-08T13:39:08.958276+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:39:10.289993+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+, você...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "time
+stamp": "2025-12-08T13:39:10.291788+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh 
+, você con...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "
+timestamp": "2025-12-08T13:39:10.292140+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+, você consegue...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:39:10.292313+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+, você consegue me...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:39:10.352403+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:39:10.492021+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 23856 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:39:10.526902+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:11.327296+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:11.327540+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh 
+, você consegue me en...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5L
+MpV7aSm", "timestamp": "2025-12-08T13:39:11.508161+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+, você consegue me enxergar, me visualizar?...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4"
+, "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:11.508398+00:00"}       
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:39:12.450250+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:12.450911+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:39:12.451239+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:39:12.451446+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:12.454054+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:39:13.820104+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 1/3 em 1s...", "pid": 33, "job_id": "AJ_VHTycmfFo
+SE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:13.844289+00:00"}   
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:39:13.891800+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 24683 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:39:13.923746+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:14.340863+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:14.341100+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+, você consegue me enxergar, me visualizar?...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4"
+, "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:15.945394+00:00"}       
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 2/3 em 2s...", "pid": 33, "job_id": "AJ_VHTycmfFo
+SE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:16.008573+00:00"}   
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playback finish
+ed event received", "caller_identity": "bey-avatar-agent", "pid": 33, "job_id": "AJ_VHT
+ycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:16.750346+00:0
+0"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:39:16.766512+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:16.767152+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:39:16.767488+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:39:16.767703+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:16.770199+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:39:17.757005+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:39:17.783910+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 24613 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:39:17.792368+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:18.036483+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:18.036866+00
+:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 3/3 em 4s...", "pid": 33, "job_id": "AJ_VHTycmfFo
+SE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:19.323485+00:00"}   
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:39:20.788751+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:20.789199+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:39:20.789408+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:39:20.789504+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:20.791260+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:39:21.852186+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:39:21.878577+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 24614 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:39:21.886232+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:22.125171+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:22.125476+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+,...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp
+": "2025-12-08T13:39:22.312699+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+, você...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "time
+stamp": "2025-12-08T13:39:22.532835+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+, você consegue...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:39:22.727463+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+, você consegue dar...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMp
+V7aSm", "timestamp": "2025-12-08T13:39:22.804807+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+, você consegue dar uma...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:39:22.921010+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+, você consegue dar uma de...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_
+dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:23.000056+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+, você consegue dar uma descrição...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id
+": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:23.124738+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+, você consegue dar uma descrição de...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room
+_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:23.283197+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+, você consegue dar uma descrição de mim...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "
+room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:23.380902+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+, você consegue dar uma descrição de mim?...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", 
+"room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:23.548007+00:00"}
+mediai-agent  | {"level": "ERROR", "name": "mediai-avatar", "message": "[Metrics] ❌ Fal
+ha ao enviar métricas após 3 tentativas: Server error '500 Internal Server Error' for u
+rl 'https://www.appmediai.com/api/agent-usage'\nFor more information check: https://dev
+eloper.mozilla.org/en-US/docs/Web/HTTP/Status/500", "pid": 33, "job_id": "AJ_VHTycmfFoS
+E4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:24.872528+00:00"}    
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:39:24.999071+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:24.999516+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:39:24.999730+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:39:24.999834+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:25.001153+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:39:26.438411+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:39:26.547705+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 24807 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:39:26.555879+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:26.966903+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:26.967256+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:39:29.108711+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:29.111575+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:39:29.111851+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:39:29.112124+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:29.114732+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:39:30.596851+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:39:30.624668+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 24768 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:39:30.633662+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:30.987032+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:30.987265+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:39:33.143063+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:33.143552+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:39:33.143707+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:39:33.143822+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:33.145265+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Eh
+, você consegue dar uma descrição de mim?...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", 
+"room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:33.580266+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:39:34.323665+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:39:34.348998+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 24785 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:39:34.359301+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:34.604432+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:34.604562+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playback finish
+ed event received", "caller_identity": "bey-avatar-agent", "pid": 33, "job_id": "AJ_VHT
+ycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:35.306549+00:0
+0"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:39:38.251685+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:38.252212+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:39:38.252373+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:39:38.252510+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:38.254625+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:39:39.160563+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:39:39.206638+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 24775 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:39:39.219353+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:39.512431+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:39.512700+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ so
+...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp"
+: "2025-12-08T13:39:43.557324+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ so
+ a...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestam
+p": "2025-12-08T13:39:43.557637+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ so
+ a minha...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "ti
+mestamp": "2025-12-08T13:39:43.699092+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ so
+ a minha é branca, é?...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5L
+MpV7aSm", "timestamp": "2025-12-08T13:39:43.699448+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:39:45.531932+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:45.532606+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:39:45.532819+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:39:45.533121+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:45.536068+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:39:46.680198+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:39:46.725722+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 23928 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:39:46.735556+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:47.032907+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:47.033178+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ so
+ a minha é branca, é?...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5L
+MpV7aSm", "timestamp": "2025-12-08T13:39:50.599810+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:39:52.450624+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:52.454038+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:39:52.454378+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:39:52.454603+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:52.465906+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:39:53.781709+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:39:53.841226+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 24259 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:39:53.849667+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:54.153939+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:54.154229+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playback finish
+ed event received", "caller_identity": "bey-avatar-agent", "pid": 33, "job_id": "AJ_VHT
+ycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:54.379689+00:0
+0"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:39:56.996876+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:56.997601+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:39:56.997823+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:39:56.998055+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:56.999971+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:39:57.934512+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:39:57.957686+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 22686 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:39:57.964767+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:39:58.235113+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:39:58.235252+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:40:01.127525+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:01.128044+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:40:01.128268+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:40:01.128363+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:01.130999+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:40:02.085085+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:40:02.119439+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 23229 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:40:02.129530+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:02.398631+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:02.398976+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:40:05.821035+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:05.821774+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:40:05.822083+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:40:05.822239+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:05.825145+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:40:06.837408+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:40:06.867235+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 21533 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:40:06.878210+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:07.159641+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:07.159929+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:40:10.311991+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:10.312843+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:40:10.313058+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:40:10.313288+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:10.316311+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:40:12.313125+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:40:12.341054+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 21396 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:40:12.350070+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:12.613158+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:12.613473+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:40:14.348841+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:14.349287+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:40:14.349439+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:40:14.349523+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:14.350994+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:40:15.242735+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:40:15.276364+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 21368 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:40:15.283542+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:15.572310+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:15.572644+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:40:18.380777+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:18.381205+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:40:18.381332+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:40:18.381422+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:18.382839+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:40:19.337351+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:40:19.361322+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 21766 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:40:19.373823+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:19.651185+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:19.651374+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ E.
+..", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp":
+ "2025-12-08T13:40:20.313818+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ E 
+agora...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "times
+tamp": "2025-12-08T13:40:20.445867+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ E 
+agora que você está vendo?...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_
+dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:21.092513+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:40:22.398770+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:22.401344+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:40:22.401592+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:40:22.401764+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:22.406603+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:40:23.797480+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:40:23.861084+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 21719 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:40:23.868629+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:24.241891+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:24.242142+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:40:26.456202+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:26.457273+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:40:26.457461+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:40:26.457594+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:26.459196+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 1/3 em 1s...", "pid": 33, "job_id": "AJ_VHTycmfFo
+SE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:26.844669+00:00"}   
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:40:28.055870+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:40:28.230173+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 21768 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:40:28.245814+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:28.666193+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:28.666486+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ E 
+agora que você está vendo?...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_
+dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:29.439115+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 2/3 em 2s...", "pid": 33, "job_id": "AJ_VHTycmfFo
+SE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:30.067955+00:00"}   
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:40:30.497922+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:30.510595+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:40:30.510948+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:40:30.511225+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:30.514914+00:00"}
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playback finish
+ed event received", "caller_identity": "bey-avatar-agent", "pid": 33, "job_id": "AJ_VHT
+ycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:30.846857+00:0
+0"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:40:31.820042+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:40:31.854034+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 22838 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:40:31.860886+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:32.131085+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:32.131325+00
+:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 3/3 em 4s...", "pid": 33, "job_id": "AJ_VHTycmfFo
+SE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:33.605402+00:00"}   
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "t
+imestamp": "2025-12-08T13:40:34.512495+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_i
+d": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:34.513247+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timesta
+mp": "2025-12-08T13:40:34.513461+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5
+LMpV7aSm", "timestamp": "2025-12-08T13:40:34.513710+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:34.515309+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aS
+m", "timestamp": "2025-12-08T13:40:35.526146+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV
+5LMpV7aSm", "timestamp": "2025-12-08T13:40:35.555913+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 23785 bytes", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV
+7aSm", "timestamp": "2025-12-08T13:40:35.562613+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_d
+UV5LMpV7aSm", "timestamp": "2025-12-08T13:40:35.843650+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 33, "job_id": "AJ_V
+HTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:35.843934+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "closing agent s
+ession due to participant disconnect (disable via `RoomInputOptions.close_on_disconnect
+=False`)", "room": "mediai-consultation-b773024a-19c3-4ea9-a4fa-dd390af64be8", "partici
+pant": "Adriel Moraes", "reason": "CLIENT_INITIATED", "pid": 33, "job_id": "AJ_VHTycmfF
+oSE4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:36.063121+00:00"}  
+mediai-agent  | {"level": "ERROR", "name": "mediai-avatar", "message": "[Metrics] ❌ Fal
+ha ao enviar métricas após 3 tentativas: Server error '500 Internal Server Error' for u
+rl 'https://www.appmediai.com/api/agent-usage'\nFor more information check: https://dev
+eloper.mozilla.org/en-US/docs/Web/HTTP/Status/500", "pid": 33, "job_id": "AJ_VHTycmfFoS
+E4", "room_id": "RM_dUV5LMpV7aSm", "timestamp": "2025-12-08T13:40:38.932590+00:00"}    
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "process exiting
+", "reason": "", "pid": 33, "job_id": "AJ_VHTycmfFoSE4", "room_id": "RM_dUV5LMpV7aSm", 
+"timestamp": "2025-12-08T13:40:59.215899+00:00"}
