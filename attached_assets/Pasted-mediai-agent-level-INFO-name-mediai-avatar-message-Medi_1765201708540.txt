@@ -1,0 +1,283 @@
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI] ✅ Sessi
+on started successfully!", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57U
+SyL8efV", "timestamp": "2025-12-08T13:44:55.169747+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI] 👁️ Vis 
+ion: ON-DEMAND mode via look_at_patient tool", "pid": 28, "job_id": "AJ_GExVd9M32rMD", 
+"room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:44:55.169851+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI] 💡 Agen
+t can see patient when needed (stable, no SIGILL risk)", "pid": 28, "job_id": "AJ_GExVd
+9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:44:55.169921+00:00"
+}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI] Avatar 
+provider configured: bey", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57U
+SyL8efV", "timestamp": "2025-12-08T13:44:55.409039+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI] 🎭 Avat
+ar provider selected: bey", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57
+USyL8efV", "timestamp": "2025-12-08T13:44:55.502854+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI] 🎭 Init
+ializing Beyond Presence (BEY) avatar...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "roo
+m_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:44:55.503180+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI] 🎥 Star
+ting BEY avatar...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8ef
+V", "timestamp": "2025-12-08T13:44:55.503522+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "livekit.agents", "message": "resume_false
+_interruption is enabled, but the audio output does not support pause, ignored", "audio
+_output": "DataStreamIO", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57US
+yL8efV", "timestamp": "2025-12-08T13:44:59.009081+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Metrics] Avatar
+ tracking started: bey", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USy
+L8efV", "timestamp": "2025-12-08T13:44:59.009310+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI] ✅ Beyon
+d Presence avatar started successfully!", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room
+_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:44:59.009461+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[MediAI] 🎤 Star
+ting consultation - awaiting user input...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "r
+oom_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:45:03.169723+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Metrics] 🔄 Ini
+ciando envio periódico de métricas a cada 60s...", "pid": 28, "job_id": "AJ_GExVd9M32rM
+D", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:45:03.170017+00:00"}     
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Ol
+á....", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestam
+p": "2025-12-08T13:45:49.553413+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Ol
+á....", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestam
+p": "2025-12-08T13:45:50.682919+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "livekit.agents", "message": "didn't recei
+ve playback finished event after clear buffer, marking playout as done arbitrarily", "p
+id": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-
+12-08T13:45:53.474014+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "livekit.agents", "message": "playback_fin
+ished called more times than playback segments were captured", "pid": 28, "job_id": "AJ
+_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:45:53.474289+
+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ <n
+oise>...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "times
+tamp": "2025-12-08T13:45:55.734998+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ <n
+oise>...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "times
+tamp": "2025-12-08T13:45:56.039603+00:00"}
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playback finish
+ed event received", "caller_identity": "bey-avatar-agent", "pid": 28, "job_id": "AJ_GEx
+Vd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:00.523142+00:0
+0"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 1/3 em 1s...", "pid": 28, "job_id": "AJ_GExVd9M32
+rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:04.489317+00:00"}   
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestam
+p": "2025-12-08T13:46:05.336353+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê con...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "time
+stamp": "2025-12-08T13:46:05.521125+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", 
+"timestamp": "2025-12-08T13:46:05.665466+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 2/3 em 2s...", "pid": 28, "job_id": "AJ_GExVd9M32
+rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:06.381543+00:00"}   
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue me...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV
+", "timestamp": "2025-12-08T13:46:06.763224+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue me dar...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL
+8efV", "timestamp": "2025-12-08T13:46:07.036430+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue me dar uma...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57
+USyL8efV", "timestamp": "2025-12-08T13:46:07.214681+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue me dar uma de...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_X
+u57USyL8efV", "timestamp": "2025-12-08T13:46:07.300672+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue me dar uma descrição...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id"
+: "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:07.415501+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue me dar uma descrição?...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id
+": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:08.507988+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue me dar uma descrição?...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id
+": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:08.508374+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] 👁️ Loo
+king at patient (focus: descrição geral)", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "roo
+m_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:08.548321+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Found v
+ideo track from: Adriel Moraes", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM
+_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:08.548750+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] 📸 Crea
+ting VideoStream for single frame capture...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", 
+"room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:08.548941+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got fra
+me: 720x1280", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "t
+imestamp": "2025-12-08T13:46:09.160840+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "t
+imestamp": "2025-12-08T13:46:09.161896+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_i
+d": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:09.191977+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timesta
+mp": "2025-12-08T13:46:09.192260+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57
+USyL8efV", "timestamp": "2025-12-08T13:46:09.192502+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_X
+u57USyL8efV", "timestamp": "2025-12-08T13:46:09.206372+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 3/3 em 4s...", "pid": 28, "job_id": "AJ_GExVd9M32
+rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:09.261603+00:00"}   
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8ef
+V", "timestamp": "2025-12-08T13:46:10.299869+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu5
+7USyL8efV", "timestamp": "2025-12-08T13:46:10.332331+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 22618 bytes", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL
+8efV", "timestamp": "2025-12-08T13:46:10.369471+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] LLM inj
+ection methods available: []", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_X
+u57USyL8efV", "timestamp": "2025-12-08T13:46:10.661101+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Vision] ❌ No
+ injection method available - LLM cannot see video frames!", "pid": 28, "job_id": "AJ_G
+ExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:10.661460+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] ✅ Frame
+ sent to Gemini (22618 bytes)", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_
+Xu57USyL8efV", "timestamp": "2025-12-08T13:46:10.661913+00:00"}
+mediai-agent  | {"level": "ERROR", "name": "mediai-avatar", "message": "[Metrics] ❌ Fal
+ha ao enviar métricas após 3 tentativas: Server error '500 Internal Server Error' for u
+rl 'https://www.appmediai.com/api/agent-usage'\nFor more information check: https://dev
+eloper.mozilla.org/en-US/docs/Web/HTTP/Status/500", "pid": 28, "job_id": "AJ_GExVd9M32r
+MD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:14.811394+00:00"}    
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playback finish
+ed event received", "caller_identity": "bey-avatar-agent", "pid": 28, "job_id": "AJ_GEx
+Vd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:25.805248+00:0
+0"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Nã
+o...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestamp
+": "2025-12-08T13:46:30.386214+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Nã
+o,...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestam
+p": "2025-12-08T13:46:30.480312+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Nã
+o, vo...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "times
+tamp": "2025-12-08T13:46:30.690530+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Nã
+o, você...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "tim
+estamp": "2025-12-08T13:46:30.833920+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Nã
+o, você nã...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "
+timestamp": "2025-12-08T13:46:31.906034+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Nã
+o, você não...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", 
+"timestamp": "2025-12-08T13:46:31.906277+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Nã 
+o, você não está...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8e
+fV", "timestamp": "2025-12-08T13:46:31.906365+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Nã
+o, você não está ana...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57US
+yL8efV", "timestamp": "2025-12-08T13:46:31.964186+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Nã
+o, você não está analisa...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu
+57USyL8efV", "timestamp": "2025-12-08T13:46:32.052806+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Nã
+o, você não está analisando...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM
+_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:32.138872+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Nã
+o, você não está analisando normalmente, eu acredito que...", "pid": 28, "job_id": "AJ_
+GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:32.285305+0
+0:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Nã
+o, você não está analisando normalmente, eu acredito que...", "pid": 28, "job_id": "AJ_
+GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:44.721402+0
+0:00"}
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playback finish
+ed event received", "caller_identity": "bey-avatar-agent", "pid": 28, "job_id": "AJ_GEx
+Vd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:46:46.568404+00:0
+0"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ e 
+a...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestamp
+": "2025-12-08T13:47:15.217098+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ e 
+aí consegue virtualizar....", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu
+57USyL8efV", "timestamp": "2025-12-08T13:47:15.261241+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 1/3 em 1s...", "pid": 28, "job_id": "AJ_GExVd9M32
+rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:47:16.160211+00:00"}   
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 2/3 em 2s...", "pid": 28, "job_id": "AJ_GExVd9M32
+rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:47:19.310896+00:00"}   
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ e 
+aí consegue virtualizar....", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu
+57USyL8efV", "timestamp": "2025-12-08T13:47:20.404748+00:00"}
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playback finish
+ed event received", "caller_identity": "bey-avatar-agent", "pid": 28, "job_id": "AJ_GEx
+Vd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:47:21.478060+00:0
+0"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 3/3 em 4s...", "pid": 28, "job_id": "AJ_GExVd9M32
+rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:47:22.387716+00:00"}   
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ En
+tã...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestam
+p": "2025-12-08T13:47:25.718355+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ En
+tão, deu...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", "ti
+mestamp": "2025-12-08T13:47:26.677144+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ En
+tão, deu uma...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV",
+ "timestamp": "2025-12-08T13:47:26.677394+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ En
+tão, deu uma des...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8e
+fV", "timestamp": "2025-12-08T13:47:26.952487+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ En
+tão, deu uma destina...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57US
+yL8efV", "timestamp": "2025-12-08T13:47:27.078284+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ En
+tão, deu uma destinada...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57
+USyL8efV", "timestamp": "2025-12-08T13:47:27.163861+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ En
+tão, deu uma destinada que...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_
+Xu57USyL8efV", "timestamp": "2025-12-08T13:47:27.237784+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ En
+tão, deu uma destinada que a...", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "R
+M_Xu57USyL8efV", "timestamp": "2025-12-08T13:47:27.269776+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ En
+tão, deu uma destinada que a imagem tá mostrando....", "pid": 28, "job_id": "AJ_GExVd9M
+32rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:47:27.303990+00:00"} 
+mediai-agent  | {"level": "ERROR", "name": "mediai-avatar", "message": "[Metrics] ❌ Fal
+ha ao enviar métricas após 3 tentativas: Server error '500 Internal Server Error' for u
+rl 'https://www.appmediai.com/api/agent-usage'\nFor more information check: https://dev
+eloper.mozilla.org/en-US/docs/Web/HTTP/Status/500", "pid": 28, "job_id": "AJ_GExVd9M32r
+MD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:47:28.794221+00:00"}    
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "closing agent s
+ession due to participant disconnect (disable via `RoomInputOptions.close_on_disconnect
+=False`)", "room": "mediai-consultation-b773024a-19c3-4ea9-a4fa-dd390af64be8", "partici
+pant": "Adriel Moraes", "reason": "CLIENT_INITIATED", "pid": 28, "job_id": "AJ_GExVd9M3
+2rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:47:41.444025+00:00"}  
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ En
+tão, deu uma destinada que a imagem tá mostrando....", "pid": 28, "job_id": "AJ_GExVd9M
+32rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:47:41.484171+00:00"} 
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playback finish
+ed event received", "caller_identity": "bey-avatar-agent", "pid": 28, "job_id": "AJ_GEx
+Vd9M32rMD", "room_id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:47:41.908785+00:0
+0"}
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "process exiting
+", "reason": "", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_id": "RM_Xu57USyL8efV", 
+"timestamp": "2025-12-08T13:48:04.768634+00:00"}
+mediai-agent  | {"level": "ERROR", "name": "livekit", "message": "livekit_api::signal_c
+lient::signal_stream:402:livekit_api::signal_client::signal_stream - unhandled websocke
+t message Err(Io(Kind(UnexpectedEof)))", "pid": 28, "job_id": "AJ_GExVd9M32rMD", "room_
+id": "RM_Xu57USyL8efV", "timestamp": "2025-12-08T13:48:04.812969+00:00"}
