@@ -1,0 +1,504 @@
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Metrics] 🔄 Ini
+ciando envio periódico de métricas a cada 60s...", "pid": 39, "job_id": "AJ_S9ePNV3fb9F
+k", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:56:41.193785+00:00"}     
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Ah
+, bom dia, tudo bem?...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz
+8AprfM", "timestamp": "2025-12-08T13:57:18.858684+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Ah
+, bom dia, tudo bem?...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz
+8AprfM", "timestamp": "2025-12-08T13:57:25.085347+00:00"}
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playback finish
+ed event received", "caller_identity": "bey-avatar-agent", "pid": 39, "job_id": "AJ_S9e
+PNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:26.700947+00:0
+0"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ jo
+ya, você conseguiu...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8A
+prfM", "timestamp": "2025-12-08T13:57:30.179016+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ jo
+ya, você conseguiu...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8A
+prfM", "timestamp": "2025-12-08T13:57:31.675609+00:00"}
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playback finish
+ed event received", "caller_identity": "bey-avatar-agent", "pid": 39, "job_id": "AJ_S9e
+PNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:31.995090+00:0
+0"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestam
+p": "2025-12-08T13:57:32.944435+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê con...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "time
+stamp": "2025-12-08T13:57:33.279098+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", 
+"timestamp": "2025-12-08T13:57:33.363044+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue vi...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM
+", "timestamp": "2025-12-08T13:57:33.556123+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue visuali...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8
+AprfM", "timestamp": "2025-12-08T13:57:33.646216+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue visualizar,...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_Qrz
+Riz8AprfM", "timestamp": "2025-12-08T13:57:33.740623+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue visualizar, en...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_
+QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:33.846441+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue visualizar, enxe...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "R
+M_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:33.937732+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue visualizar, enxergar...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id"
+: "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:34.106313+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue visualizar, enxergar, me...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room
+_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:34.273204+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue visualizar, enxergar, me ver...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "
+room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:34.415306+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue visualizar, enxergar, me ver na descrição....", "pid": 39, "job_id": "AJ_S9
+ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:35.059132+00:
+00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ Vo
+cê consegue visualizar, enxergar, me ver na descrição....", "pid": 39, "job_id": "AJ_S9
+ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:35.302054+00:
+00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] 👁️ Loo
+king at patient (focus: visualizar o paciente)", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk"
+, "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:35.309489+00:00"}       
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Found v
+ideo track from: Adriel Moraes", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM
+_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:35.309844+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] 📸 Crea
+ting VideoStream for single frame capture...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", 
+"room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:35.310014+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got fra
+me: 720x1280", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "t
+imestamp": "2025-12-08T13:57:35.373788+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "t
+imestamp": "2025-12-08T13:57:35.375180+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_i
+d": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:35.379759+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timesta
+mp": "2025-12-08T13:57:35.379960+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzR
+iz8AprfM", "timestamp": "2025-12-08T13:57:35.380059+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_Q
+rzRiz8AprfM", "timestamp": "2025-12-08T13:57:35.384886+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8Aprf
+M", "timestamp": "2025-12-08T13:57:36.659661+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_Qrz
+Riz8AprfM", "timestamp": "2025-12-08T13:57:36.708793+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 24936 bytes", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8A
+prfM", "timestamp": "2025-12-08T13:57:36.742589+00:00"}
+mediai-agent  | {"level": "ERROR", "name": "mediai-avatar", "message": "[Vision] Error 
+analyzing frame: 429 You exceeded your current quota, please check your plan and billin
+g details. For more information on this error, head to: https://ai.google.dev/gemini-ap
+i/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=ra
+te-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_con
+tent_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\n* Quota exceeded f
+or metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit
+: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapi
+s.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\nPlease re
+try in 21.572060166s. [links {\n  description: \"Learn more about Gemini API quotas\"\n
+  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quot
+a_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_input_token_co
+unt\"\n  quota_id: \"GenerateContentInputTokensPerModelPerMinute-FreeTier\"\n  quota_di
+mensions {\n    key: \"model\"\n    value: \"gemini-2.0-flash\"\n  }\n  quota_dimension
+s {\n    key: \"location\"\n    value: \"global\"\n  }\n}\nviolations {\n  quota_metric
+: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id
+: \"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    k
+ey: \"model\"\n    value: \"gemini-2.0-flash\"\n  }\n  quota_dimensions {\n    key: \"l
+ocation\"\n    value: \"global\"\n  }\n}\nviolations {\n  quota_metric: \"generativelan
+guage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id: \"GenerateReque
+stsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    v
+alue: \"gemini-2.0-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value
+: \"global\"\n  }\n}\n, retry_delay {\n  seconds: 21\n}\n]", "pid": 39, "job_id": "AJ_S
+9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:38.372175+00
+:00"}
+mediai-agent  | {"level": "ERROR", "name": "mediai-avatar", "message": "[Vision] Traceb
+ack: Traceback (most recent call last):\n  File \"/app/agent.py\", line 1806, in _send_
+frame_to_session\n    observation = await asyncio.to_thread(analyze_sync)\n
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/asyncio
+/threads.py\", line 25, in to_thread\n    return await loop.run_in_executor(None, func_
+call)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/
+python3.11/concurrent/futures/thread.py\", line 58, in run\n    result = self.fn(*self.
+args, **self.kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/ag
+ent.py\", line 1803, in analyze_sync\n    response = vision_model.generate_content([pro
+mpt, image_part])\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n
+  File \"/usr/local/lib/python3.11/site-packages/google/generativeai/generative_models.
+py\", line 331, in generate_content\n    response = self._client.generate_content(\n   
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-pac
+kages/google/ai/generativelanguage_v1beta/services/generative_service/client.py\", line
+ 835, in generate_content\n    response = rpc(\n               ^^^^\n  File \"/usr/loca
+l/lib/python3.11/site-packages/google/api_core/gapic_v1/method.py\", line 131, in __cal
+l__\n    return wrapped_func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+\n  File \"/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py
+\", line 294, in retry_wrapped_func\n    return retry_target(\n           ^^^^^^^^^^^^^
+\n  File \"/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py
+\", line 156, in retry_target\n    next_sleep = _retry_error_helper(\n
+^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/google/api_core/
+retry/retry_base.py\", line 214, in _retry_error_helper\n    raise final_exc from sourc
+e_exc\n  File \"/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_una
+ry.py\", line 147, in retry_target\n    result = target()\n             ^^^^^^^^\n  Fil
+e \"/usr/local/lib/python3.11/site-packages/google/api_core/timeout.py\", line 130, in 
+func_with_timeout\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n
+  File \"/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py\", lin
+e 77, in error_remapped_callable\n    raise exceptions.from_grpc_error(exc) from exc\ng
+oogle.api_core.exceptions.ResourceExhausted: 429 You exceeded your current quota, pleas
+e check your plan and billing details. For more information on this error, head to: htt
+ps://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to:
+ https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage
+.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2
+.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_conte
+nt_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: 
+generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model:
+ gemini-2.0-flash\nPlease retry in 21.572060166s. [links {\n  description: \"Learn more
+ about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\
+"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_cont
+ent_free_tier_input_token_count\"\n  quota_id: \"GenerateContentInputTokensPerModelPerM
+inute-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.0-fla
+sh\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n}\n
+violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_free
+_tier_requests\"\n  quota_id: \"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\"\
+n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.0-flash\"\n  }\n  quot
+a_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n}\nviolations {\n  q
+uota_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\
+n  quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions 
+{\n    key: \"model\"\n    value: \"gemini-2.0-flash\"\n  }\n  quota_dimensions {\n    
+key: \"location\"\n    value: \"global\"\n  }\n}\n, retry_delay {\n  seconds: 21\n}\n]\
+n", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": 
+"2025-12-08T13:57:38.424139+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] ✅ Frame
+ sent to Gemini (24936 bytes)", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_
+QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:38.424407+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 1/3 em 1s...", "pid": 39, "job_id": "AJ_S9ePNV3fb
+9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:43.498544+00:00"}   
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 2/3 em 2s...", "pid": 39, "job_id": "AJ_S9ePNV3fb
+9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:45.619628+00:00"}   
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playback finish
+ed event received", "caller_identity": "bey-avatar-agent", "pid": 39, "job_id": "AJ_S9e
+PNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:45.620436+00:0
+0"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 3/3 em 4s...", "pid": 39, "job_id": "AJ_S9ePNV3fb
+9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:49.871605+00:00"}   
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ da
+...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp"
+: "2025-12-08T13:57:52.404153+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ da
+ minha...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "time
+stamp": "2025-12-08T13:57:52.736322+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ da
+ minha apa...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "
+timestamp": "2025-12-08T13:57:52.867032+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ da
+ minha aparen...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM"
+, "timestamp": "2025-12-08T13:57:52.966176+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ da
+ minha aparença...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8Aprf
+M", "timestamp": "2025-12-08T13:57:53.040277+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ da
+ minha aparença que vocês fazem....", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id"
+: "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:53.361169+00:00"}
+mediai-agent  | {"level": "ERROR", "name": "mediai-avatar", "message": "[Metrics] ❌ Fal
+ha ao enviar métricas após 3 tentativas: Server error '500 Internal Server Error' for u
+rl 'https://www.appmediai.com/api/agent-usage'\nFor more information check: https://dev
+eloper.mozilla.org/en-US/docs/Web/HTTP/Status/500", "pid": 39, "job_id": "AJ_S9ePNV3fb9
+Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:57:56.621799+00:00"}    
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ da
+ minha aparença que vocês fazem....", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id"
+: "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:03.851963+00:00"}
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playback finish
+ed event received", "caller_identity": "bey-avatar-agent", "pid": 39, "job_id": "AJ_S9e
+PNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:05.729968+00:0
+0"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ ,.
+..", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp":
+ "2025-12-08T13:58:13.303873+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+cli...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timesta
+mp": "2025-12-08T13:58:13.348847+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "time
+stamp": "2025-12-08T13:58:13.443210+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", 
+"timestamp": "2025-12-08T13:58:13.526412+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você de...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM
+", "timestamp": "2025-12-08T13:58:13.611508+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você descrição...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRi
+z8AprfM", "timestamp": "2025-12-08T13:58:13.891594+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você descrição do...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_Qr
+zRiz8AprfM", "timestamp": "2025-12-08T13:58:13.982322+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você descrição do que...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "R
+M_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:14.073008+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você descrição do que você...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id
+": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:14.189204+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você descrição do que você está...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "ro
+om_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:14.255265+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você descrição do que você está vendo...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk
+", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:14.353357+00:00"}      
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você descrição do que você está vendo a...", "pid": 39, "job_id": "AJ_S9ePNV3fb9
+Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:15.572374+00:00"}    
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você descrição do que você está vendo aqui...", "pid": 39, "job_id": "AJ_S9ePNV3
+fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:15.572793+00:00"} 
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ ,  
+clique você descrição do que você está vendo aqui no...", "pid": 39, "job_id": "AJ_S9eP
+NV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:15.573003+00:00
+"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ ,  
+clique você descrição do que você está vendo aqui no ambi...", "pid": 39, "job_id": "AJ
+_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:15.573158+
+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você descrição do que você está vendo aqui no ambiente...", "pid": 39, "job_id":
+ "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:15.658
+112+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você descrição do que você está vendo aqui no ambiente na...", "pid": 39, "job_i
+d": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:17.
+810607+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você descrição do que você está vendo aqui no ambiente na de...", "pid": 39, "jo
+b_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:
+17.977129+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você descrição do que você está vendo aqui no ambiente na descrição...", "pid": 
+39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08
+T13:58:17.991206+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você descrição do que você está vendo aqui no ambiente na descrição de...", "pid
+": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12
+-08T13:58:18.228812+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você descrição do que você está vendo aqui no ambiente na descrição de mi...", "
+pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025
+-12-08T13:58:18.386594+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você descrição do que você está vendo aqui no ambiente na descrição de mim....",
+ "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "20
+25-12-08T13:58:20.052024+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ , 
+clique você descrição do que você está vendo aqui no ambiente na descrição de mim....",
+ "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "20
+25-12-08T13:58:30.444468+00:00"}
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playback finish
+ed event received", "caller_identity": "bey-avatar-agent", "pid": 39, "job_id": "AJ_S9e
+PNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:33.414640+00:0
+0"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ pr
+oblem...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "times
+tamp": "2025-12-08T13:58:56.961549+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ pr
+oblema de...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "t
+imestamp": "2025-12-08T13:58:57.137441+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ pr
+oblema de Ca...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM",
+ "timestamp": "2025-12-08T13:58:57.224655+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ pr
+oblema de Cal...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM"
+, "timestamp": "2025-12-08T13:58:57.315276+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ pr
+oblema de Calvi...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8Aprf
+M", "timestamp": "2025-12-08T13:58:57.416858+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ pr
+oblema de Calvi,...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8Apr
+fM", "timestamp": "2025-12-08T13:58:57.499871+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ pr
+oblema de Calvi, eu...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8
+AprfM", "timestamp": "2025-12-08T13:58:57.595399+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ pr
+oblema de Calvi, eu estou...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_Q
+rzRiz8AprfM", "timestamp": "2025-12-08T13:58:57.687349+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ pr
+oblema de Calvi, eu estou real...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": 
+"RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:57.782497+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ pr
+oblema de Calvi, eu estou realiza...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id
+": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:57.975819+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ pr
+oblema de Calvi, eu estou realizasse para mim a imagem....", "pid": 39, "job_id": "AJ_S
+9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:58.056098+00
+:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 1/3 em 1s...", "pid": 39, "job_id": "AJ_S9ePNV3fb
+9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:58.899019+00:00"}   
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Patient] 🎙️ pr
+oblema de Calvi, eu estou realizasse para mim a imagem....", "pid": 39, "job_id": "AJ_S
+9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:58.988189+00
+:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] 👁️ Loo
+king at patient (focus: problema de calvície)", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk",
+ "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:58.992754+00:00"}        
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Found v
+ideo track from: Adriel Moraes", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM
+_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:58.993153+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] 📸 Crea
+ting VideoStream for single frame capture...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", 
+"room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:58.993286+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got fra
+me: 720x1280", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "t
+imestamp": "2025-12-08T13:58:59.065423+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Process
+ing frame...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "t
+imestamp": "2025-12-08T13:58:59.066351+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Got raw
+ frame data: 1382400 bytes, format: 5", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_i
+d": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:58:59.067446+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame t
+ype: 5", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timesta
+mp": "2025-12-08T13:58:59.067693+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Convert
+ing I420/YUV420 to RGB...", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzR
+iz8AprfM", "timestamp": "2025-12-08T13:58:59.068042+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] I420 co
+nverting 720x1280 -> 360x640", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_Q
+rzRiz8AprfM", "timestamp": "2025-12-08T13:58:59.069177+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Image c
+reated: (360, 640)", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8Aprf
+M", "timestamp": "2025-12-08T13:59:00.200994+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Upscale
+d from 360x640 to 640x1137", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_Qrz
+Riz8AprfM", "timestamp": "2025-12-08T13:59:00.246574+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] Frame p
+rocessed: 25685 bytes", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8A
+prfM", "timestamp": "2025-12-08T13:59:00.264930+00:00"}
+mediai-agent  | {"level": "ERROR", "name": "mediai-avatar", "message": "[Vision] Error 
+analyzing frame: 429 You exceeded your current quota, please check your plan and billin
+g details. For more information on this error, head to: https://ai.google.dev/gemini-ap
+i/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=ra
+te-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_con
+tent_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric
+: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, mode
+l: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/gen
+erate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\nPlease re
+try in 58.600591854s. [links {\n  description: \"Learn more about Gemini API quotas\"\n
+  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\"\n}\n, violations {\n  quot
+a_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_requests\"\n  
+quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTier\"\n  quota_dimensions {\n
+    key: \"model\"\n    value: \"gemini-2.0-flash\"\n  }\n  quota_dimensions {\n    key
+: \"location\"\n    value: \"global\"\n  }\n}\nviolations {\n  quota_metric: \"generati
+velanguage.googleapis.com/generate_content_free_tier_requests\"\n  quota_id: \"Generate
+RequestsPerMinutePerProjectPerModel-FreeTier\"\n  quota_dimensions {\n    key: \"model\
+"\n    value: \"gemini-2.0-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n 
+   value: \"global\"\n  }\n}\nviolations {\n  quota_metric: \"generativelanguage.google
+apis.com/generate_content_free_tier_input_token_count\"\n  quota_id: \"GenerateContentI
+nputTokensPerModelPerMinute-FreeTier\"\n  quota_dimensions {\n    key: \"model\"\n    v
+alue: \"gemini-2.0-flash\"\n  }\n  quota_dimensions {\n    key: \"location\"\n    value
+: \"global\"\n  }\n}\n, retry_delay {\n  seconds: 58\n}\n]", "pid": 39, "job_id": "AJ_S
+9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:59:01.432256+00
+:00"}
+mediai-agent  | {"level": "ERROR", "name": "mediai-avatar", "message": "[Vision] Traceb
+ack: Traceback (most recent call last):\n  File \"/app/agent.py\", line 1806, in _send_
+frame_to_session\n    observation = await asyncio.to_thread(analyze_sync)\n
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/asyncio
+/threads.py\", line 25, in to_thread\n    return await loop.run_in_executor(None, func_
+call)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/
+python3.11/concurrent/futures/thread.py\", line 58, in run\n    result = self.fn(*self.
+args, **self.kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/app/ag
+ent.py\", line 1803, in analyze_sync\n    response = vision_model.generate_content([pro
+mpt, image_part])\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n
+  File \"/usr/local/lib/python3.11/site-packages/google/generativeai/generative_models.
+py\", line 331, in generate_content\n    response = self._client.generate_content(\n   
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-pac
+kages/google/ai/generativelanguage_v1beta/services/generative_service/client.py\", line
+ 835, in generate_content\n    response = rpc(\n               ^^^^\n  File \"/usr/loca
+l/lib/python3.11/site-packages/google/api_core/gapic_v1/method.py\", line 131, in __cal
+l__\n    return wrapped_func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+\n  File \"/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py
+\", line 294, in retry_wrapped_func\n    return retry_target(\n           ^^^^^^^^^^^^^
+\n  File \"/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_unary.py
+\", line 156, in retry_target\n    next_sleep = _retry_error_helper(\n
+^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/google/api_core/
+retry/retry_base.py\", line 214, in _retry_error_helper\n    raise final_exc from sourc
+e_exc\n  File \"/usr/local/lib/python3.11/site-packages/google/api_core/retry/retry_una
+ry.py\", line 147, in retry_target\n    result = target()\n             ^^^^^^^^\n  Fil
+e \"/usr/local/lib/python3.11/site-packages/google/api_core/timeout.py\", line 130, in 
+func_with_timeout\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n
+  File \"/usr/local/lib/python3.11/site-packages/google/api_core/grpc_helpers.py\", lin
+e 77, in error_remapped_callable\n    raise exceptions.from_grpc_error(exc) from exc\ng
+oogle.api_core.exceptions.ResourceExhausted: 429 You exceeded your current quota, pleas
+e check your plan and billing details. For more information on this error, head to: htt
+ps://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to:
+ https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage
+.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\
+n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_t
+ier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativ
+elanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model:
+ gemini-2.0-flash\nPlease retry in 58.600591854s. [links {\n  description: \"Learn more
+ about Gemini API quotas\"\n  url: \"https://ai.google.dev/gemini-api/docs/rate-limits\
+"\n}\n, violations {\n  quota_metric: \"generativelanguage.googleapis.com/generate_cont
+ent_free_tier_requests\"\n  quota_id: \"GenerateRequestsPerDayPerProjectPerModel-FreeTi
+er\"\n  quota_dimensions {\n    key: \"model\"\n    value: \"gemini-2.0-flash\"\n  }\n 
+ quota_dimensions {\n    key: \"location\"\n    value: \"global\"\n  }\n}\nviolations {
+\n  quota_metric: \"generativelanguage.googleapis.com/generate_content_free_tier_reques
+ts\"\n  quota_id: \"GenerateRequestsPerMinutePerProjectPerModel-FreeTier\"\n  quota_dim
+ensions {\n    key: \"model\"\n    value: \"gemini-2.0-flash\"\n  }\n  quota_dimensions
+ {\n    key: \"location\"\n    value: \"global\"\n  }\n}\nviolations {\n  quota_metric:
+ \"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count\"\n  
+quota_id: \"GenerateContentInputTokensPerModelPerMinute-FreeTier\"\n  quota_dimensions 
+{\n    key: \"model\"\n    value: \"gemini-2.0-flash\"\n  }\n  quota_dimensions {\n    
+key: \"location\"\n    value: \"global\"\n  }\n}\n, retry_delay {\n  seconds: 58\n}\n]\
+n", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": 
+"2025-12-08T13:59:01.435815+00:00"}
+mediai-agent  | {"level": "INFO", "name": "mediai-avatar", "message": "[Vision] ✅ Frame
+ sent to Gemini (25685 bytes)", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_
+QrzRiz8AprfM", "timestamp": "2025-12-08T13:59:01.436119+00:00"}
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 2/3 em 2s...", "pid": 39, "job_id": "AJ_S9ePNV3fb
+9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:59:01.842808+00:00"}   
+mediai-agent  | {"level": "WARNING", "name": "mediai-avatar", "message": "[Metrics] Err
+o ao enviar métricas: Server error '500 Internal Server Error' for url 'https://www.app
+mediai.com/api/agent-usage'\nFor more information check: https://developer.mozilla.org/
+en-US/docs/Web/HTTP/Status/500. Retry 3/3 em 4s...", "pid": 39, "job_id": "AJ_S9ePNV3fb
+9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:59:05.192132+00:00"}   
+mediai-agent  | {"level": "ERROR", "name": "mediai-avatar", "message": "[Metrics] ❌ Fal
+ha ao enviar métricas após 3 tentativas: Server error '500 Internal Server Error' for u
+rl 'https://www.appmediai.com/api/agent-usage'\nFor more information check: https://dev
+eloper.mozilla.org/en-US/docs/Web/HTTP/Status/500", "pid": 39, "job_id": "AJ_S9ePNV3fb9
+Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:59:10.850743+00:00"}    
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "closing agent s
+ession due to participant disconnect (disable via `RoomInputOptions.close_on_disconnect
+=False`)", "room": "mediai-consultation-b773024a-19c3-4ea9-a4fa-dd390af64be8", "partici
+pant": "Adriel Moraes", "reason": "CLIENT_INITIATED", "pid": 39, "job_id": "AJ_S9ePNV3f
+b9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:59:18.012119+00:00"}  
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "playback finish
+ed event received", "caller_identity": "bey-avatar-agent", "pid": 39, "job_id": "AJ_S9e
+PNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:59:18.969846+00:0
+0"}
+mediai-agent  | {"level": "INFO", "name": "livekit.agents", "message": "process exiting
+", "reason": "", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_id": "RM_QrzRiz8AprfM", 
+"timestamp": "2025-12-08T13:59:39.221143+00:00"}
+mediai-agent  | {"level": "ERROR", "name": "livekit", "message": "livekit_api::signal_c
+lient::signal_stream:402:livekit_api::signal_client::signal_stream - unhandled websocke
+t message Err(Io(Kind(UnexpectedEof)))", "pid": 39, "job_id": "AJ_S9ePNV3fb9Fk", "room_
+id": "RM_QrzRiz8AprfM", "timestamp": "2025-12-08T13:59:39.269394+00:00"}
