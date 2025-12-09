@@ -109,7 +109,7 @@ async def entrypoint(ctx: agents.JobContext):
     print(f"[MediAI] ✅ Patient context loaded ({len(patient_context)} chars)")
     
     # Define medical assistant instructions
-    instructions = f"""Você é MediAI, uma assistente médica virtual especializada em triagem de pacientes e orientação de saúde.
+    instructions = f"""Você é Nathalia da MediAI, uma assistente médica virtual especializada em triagem de pacientes e orientação de saúde.
 
 PERSONALIDADE:
 - Empática, calorosa e profissional
