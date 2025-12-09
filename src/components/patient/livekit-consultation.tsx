@@ -112,6 +112,32 @@ function CustomControls({ onEndConsultation, room }: { onEndConsultation: () => 
   const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([]);
   const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
   const [isSwitchingCamera, setIsSwitchingCamera] = useState(false);
+  const [cameraNotification, setCameraNotification] = useState<string | null>(null);
+
+  // Determine if current camera is front or back based on label
+  const getCurrentCameraType = (index: number): 'front' | 'back' | 'unknown' => {
+    if (cameraDevices.length === 0) return 'unknown';
+    const device = cameraDevices[index];
+    const label = device?.label?.toLowerCase() || '';
+    
+    // Common patterns for front/back camera detection
+    if (label.includes('front') || label.includes('frontal') || label.includes('user') || label.includes('facetime')) {
+      return 'front';
+    }
+    if (label.includes('back') || label.includes('rear') || label.includes('traseira') || label.includes('environment')) {
+      return 'back';
+    }
+    // Default: first camera is usually front, second is back
+    return index === 0 ? 'front' : 'back';
+  };
+
+  const getCameraLabel = (type: 'front' | 'back' | 'unknown'): string => {
+    switch (type) {
+      case 'front': return 'Câmera Frontal';
+      case 'back': return 'Câmera Traseira';
+      default: return 'Câmera';
+    }
+  };
 
   useEffect(() => {
     const loadCameraDevices = async () => {
@@ -131,6 +157,16 @@ function CustomControls({ onEndConsultation, room }: { onEndConsultation: () => 
       navigator.mediaDevices.removeEventListener('devicechange', loadCameraDevices);
     };
   }, []);
+
+  // Auto-hide camera notification after 2 seconds
+  useEffect(() => {
+    if (cameraNotification) {
+      const timer = setTimeout(() => {
+        setCameraNotification(null);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [cameraNotification]);
 
   const toggleMicrophone = async () => {
     if (localParticipant) {
@@ -160,65 +196,95 @@ function CustomControls({ onEndConsultation, room }: { onEndConsultation: () => 
       });
 
       setCurrentCameraIndex(nextIndex);
-      console.log('[CustomControls] ✅ Camera switched successfully');
+      
+      // Show notification with camera type
+      const cameraType = getCurrentCameraType(nextIndex);
+      const cameraLabel = getCameraLabel(cameraType);
+      setCameraNotification(cameraLabel);
+      
+      console.log('[CustomControls] ✅ Camera switched successfully to:', cameraLabel);
     } catch (error) {
       console.error('[CustomControls] Failed to switch camera:', error);
+      setCameraNotification('Erro ao trocar câmera');
     } finally {
       setIsSwitchingCamera(false);
     }
   };
 
   const hasMultipleCameras = cameraDevices.length > 1;
+  const currentCameraType = getCurrentCameraType(currentCameraIndex);
 
   return (
-    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50">
-      <div className="bg-slate-800/90 backdrop-blur-lg rounded-full shadow-2xl border border-slate-700 px-6 py-4 flex items-center gap-4">
-        <Button
-          onClick={toggleMicrophone}
-          variant={isMuted ? "destructive" : "secondary"}
-          size="lg"
-          className="rounded-full w-14 h-14 p-0"
-        >
-          {isMuted ? (
-            <MicOff className="w-6 h-6" />
-          ) : (
-            <Mic className="w-6 h-6" />
+    <>
+      {/* Camera switch notification toast */}
+      {cameraNotification && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="bg-slate-800/95 backdrop-blur-lg rounded-full shadow-2xl border border-slate-600 px-5 py-3 flex items-center gap-3">
+            <SwitchCamera className="w-5 h-5 text-blue-400" />
+            <span className="text-white font-medium text-sm">
+              {cameraNotification}
+            </span>
+          </div>
+        </div>
+      )}
+      
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50">
+        <div className="bg-slate-800/90 backdrop-blur-lg rounded-full shadow-2xl border border-slate-700 px-6 py-4 flex items-center gap-4">
+          <Button
+            onClick={toggleMicrophone}
+            variant={isMuted ? "destructive" : "secondary"}
+            size="lg"
+            className="rounded-full w-14 h-14 p-0"
+          >
+            {isMuted ? (
+              <MicOff className="w-6 h-6" />
+            ) : (
+              <Mic className="w-6 h-6" />
+            )}
+          </Button>
+
+          {hasMultipleCameras && (
+            <>
+              <div className="w-px h-8 bg-slate-600" />
+              
+              {/* Camera button with current camera indicator */}
+              <div className="relative">
+                <Button
+                  onClick={switchCamera}
+                  variant="secondary"
+                  size="lg"
+                  className="rounded-full w-14 h-14 p-0"
+                  disabled={isSwitchingCamera}
+                  title={`Câmera atual: ${getCameraLabel(currentCameraType)}. Clique para trocar.`}
+                >
+                  {isSwitchingCamera ? (
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                  ) : (
+                    <SwitchCamera className="w-6 h-6" />
+                  )}
+                </Button>
+                {/* Small indicator showing current camera type */}
+                <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-slate-800">
+                  {currentCameraType === 'front' ? 'F' : currentCameraType === 'back' ? 'T' : '?'}
+                </div>
+              </div>
+            </>
           )}
-        </Button>
 
-        {hasMultipleCameras && (
-          <>
-            <div className="w-px h-8 bg-slate-600" />
-            
-            <Button
-              onClick={switchCamera}
-              variant="secondary"
-              size="lg"
-              className="rounded-full w-14 h-14 p-0"
-              disabled={isSwitchingCamera}
-            >
-              {isSwitchingCamera ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : (
-                <SwitchCamera className="w-6 h-6" />
-              )}
-            </Button>
-          </>
-        )}
+          <div className="w-px h-8 bg-slate-600" />
 
-        <div className="w-px h-8 bg-slate-600" />
-
-        <Button
-          onClick={onEndConsultation}
-          variant="destructive"
-          size="lg"
-          className="rounded-full px-6"
-        >
-          <PhoneOff className="w-5 h-5 mr-2" />
-          Encerrar
-        </Button>
+          <Button
+            onClick={onEndConsultation}
+            variant="destructive"
+            size="lg"
+            className="rounded-full px-6"
+          >
+            <PhoneOff className="w-5 h-5 mr-2" />
+            Encerrar
+          </Button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -556,9 +622,13 @@ export default function LiveKitConsultation({
 
     // Start the timer
     timerStartedRef.current = true;
-    logEvent('Starting time limit countdown');
+    logEvent('Starting time limit countdown', { 
+      effectiveMinutes,
+      initialRemainingSeconds: remainingSeconds 
+    });
 
-    timerIntervalRef.current = setInterval(() => {
+    // Timer tick function - extracted for reuse
+    const timerTick = () => {
       // Check if plan changed to unlimited during interval (instant halt)
       const currentAvail = availableMinutesRef.current;
       const currentTotal = totalMinutesRef.current;
@@ -601,7 +671,10 @@ export default function LiveKitConsultation({
         
         return newValue;
       });
-    }, 1000);
+    };
+
+    // Start interval for continuous countdown (every second)
+    timerIntervalRef.current = setInterval(timerTick, 1000);
 
     return clearTimer;
   }, [room, connectionSupervisor.state, availableMinutes, totalMinutes, timeExpired, logEvent]);
