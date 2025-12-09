@@ -1,0 +1,38 @@
+Analise o arquivo atual e realize correções críticas no sistema de contagem de tokens (`MetricsCollector`) e cálculo de custos. O código atual possui lógica incompleta e preços desatualizados.
+
+Por favor, execute as seguintes alterações obrigatórias:
+
+### 1. Atualização de Preços e Modelo (Gemini 2.5 Flash Native Audio)
+Atualize os métodos `calculate_cost_cents` e `send_metrics` (e onde mais for pertinente) com a tabela de preços oficial fornecida para o modelo `gemini-2.5-flash-native-audio-preview-09-2025`:
+
+*   **Audio/Video Input:** $3.00 USD / 1 milhão de tokens.
+*   **Audio/Video Output:** $2.00 USD / 1 milhão de tokens.
+*   **Text Input:** $0.50 USD / 1 milhão de tokens.
+*   **Text/Vision Output:** $12.00 USD / 1 milhão de tokens.
+*   **Câmbio (Hardcoded):** Manter 5.42 (USD -> BRL).
+
+**Importante:** Atualize também o custo do Avatar no cálculo:
+*   **Beyond Presence (BEY):** $0.17 USD por minuto (fixo).
+
+### 2. Implementar Estimativa de Tokens de Áudio (Loop de Background)
+O sistema atual não contabiliza tokens de áudio (STT/TTS) porque os métodos `track_stt` e `track_tts` nunca são chamados pelo `RealtimeModel`. Como estamos usando Native Audio, devemos estimar os tokens baseados na duração da sessão, pois o canal de áudio fica aberto continuamente.
+
+Vá até a função `track_conversation` (por volta da linha 1286) e reescreva o loop `while True` para que ele realmente atualize o `metrics_collector`:
+
+1.  Defina uma constante de conversão aproximada: `TOKENS_PER_SECOND_AUDIO = 25` (Baseado na média do Gemini de ~25 tokens por segundo de áudio).
+2.  A cada iteração do loop (ex: a cada 5 segundos):
+    *   Calcule os segundos passados.
+    *   Adicione ao `metrics_collector.stt_tokens`: `segundos * TOKENS_PER_SECOND_AUDIO` (O modelo "ouve" o tempo todo).
+    *   Adicione ao `metrics_collector.tts_tokens`: `segundos * TOKENS_PER_SECOND_AUDIO * 0.5` (Estimativa conservadora de que o agente fala 50% do tempo da sessão).
+3.  Certifique-se de chamar `metrics_collector.update_active_time()` dentro deste loop.
+
+### 3. Ajuste no MetricsCollector
+Na classe `MetricsCollector`, certifique-se de que os cálculos de custo (`calculate_cost_cents`) estejam multiplicando as variáveis corretas (`stt_tokens`, `tts_tokens`) pelos novos preços definidos no passo 1.
+
+### 4. Configuração do Modelo
+Certifique-se de que a variável de ambiente ou o default do `gemini_model` na função `entrypoint` esteja apontando para `gemini-2.5-flash-native-audio-preview-09-2025`.
+
+**Resumo da Lógica Esperada:**
+O custo final deve ser: (Tokens de Áudio Input * $3/1M) + (Tokens de Áudio Output * $2/1M) + (Minutos de Avatar * $0.17) + (Tokens de Visão/Texto se houver).
+
+Não remova a lógica de visão existente, apenas conserte a contagem de áudio e os preços.

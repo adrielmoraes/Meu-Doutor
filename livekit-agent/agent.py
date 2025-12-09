@@ -305,12 +305,12 @@ class MetricsCollector:
         # ========================================
         # AVATAR COST (adicional, cobrado por minuto)
         # ========================================
-        # BeyondPresence (BEY): $0.175/minuto
+        # BeyondPresence (BEY): $0.17/minuto (fixo)
         # Tavus CVI: $0.10/minuto (estimado)
         
         avatar_minutes = self.avatar_seconds / 60.0
         if self.avatar_provider == 'bey':
-            avatar_cost_usd = avatar_minutes * 0.175  # BeyondPresence
+            avatar_cost_usd = avatar_minutes * 0.17  # BeyondPresence (fixo)
         elif self.avatar_provider == 'tavus':
             avatar_cost_usd = avatar_minutes * 0.10   # Tavus (estimado)
         else:
@@ -369,11 +369,11 @@ class MetricsCollector:
         # ========================================
         # Calcular custo Avatar (separado, cobrado por minuto)
         # ========================================
-        # BeyondPresence (BEY): $0.175/minuto
+        # BeyondPresence (BEY): $0.17/minuto (fixo)
         # Tavus CVI: $0.10/minuto (estimado)
         delta_avatar_minutes = delta_avatar_seconds / 60.0
         if self.avatar_provider == 'bey':
-            delta_avatar_cost_usd = delta_avatar_minutes * 0.175
+            delta_avatar_cost_usd = delta_avatar_minutes * 0.17  # BeyondPresence (fixo)
         elif self.avatar_provider == 'tavus':
             delta_avatar_cost_usd = delta_avatar_minutes * 0.10
         else:
@@ -1915,8 +1915,9 @@ async def entrypoint(ctx: JobContext):
 
     logger.info(f"[MediAI] 🤖 Creating Gemini Live API model...")
 
-    # Select Gemini model (native audio or standard realtime)
-    gemini_model = os.getenv('GEMINI_LLM_MODEL', 'gemini-2.5-flash')
+    # Select Gemini model (native audio for STT+LLM+TTS integration)
+    # Default: gemini-2.5-flash-native-audio-preview-09-2025 for best audio quality
+    gemini_model = os.getenv('GEMINI_LLM_MODEL', 'gemini-2.5-flash-preview-native-audio')
     logger.info(f"[MediAI] 🎙️ Using Gemini model: {gemini_model}")
 
     # Check if vision is enabled
@@ -2094,23 +2095,49 @@ CONTEXTO DO PACIENTE:
 
     # Hook into session events to track metrics
     # Note: Gemini Live API integrates STT/LLM/TTS, so we estimate based on interaction
+    # CRITICAL: Since we use Native Audio, the audio channel is continuously open.
+    # We must estimate audio tokens based on session duration.
+    
+    # Estimated tokens per second of audio (based on Gemini average ~25 tokens/second)
+    TOKENS_PER_SECOND_AUDIO = 25
+    
     async def track_conversation():
-        """Background task to track conversation metrics."""
+        """Background task to track conversation metrics with audio token estimation."""
+        last_track_time = time.time()
+        
         try:
             while True:
                 await asyncio.sleep(5)  # Check every 5 seconds
+                
+                current_time = time.time()
+                elapsed_seconds = current_time - last_track_time
+                last_track_time = current_time
+                
+                # Update active time on every iteration
+                metrics_collector.update_active_time()
 
                 # Rastrear atividade baseado em participantes conectados
                 if len(ctx.room.remote_participants) > 0:
-                    # Estimar tokens baseado na duração da conversa
-                    # Em uma conversa típica: ~50 palavras/min = ~200 caracteres/min = ~50 tokens/min
-                    # Dividimos igualmente entre STT, LLM e TTS
-                    elapsed_minutes = (time.time() -
-                                       metrics_collector.session_start) / 60
-                    estimated_tokens_per_minute = 50
-
-                    # Esta é uma estimativa conservadora
-                    # Tokens reais serão capturados se disponíveis via callbacks
+                    # ========================================
+                    # AUDIO TOKEN ESTIMATION (Native Audio)
+                    # ========================================
+                    # The audio channel is continuously open with Gemini Native Audio.
+                    # We estimate tokens based on elapsed time:
+                    # - STT (Audio Input): Model "listens" continuously = 100% of time
+                    # - TTS (Audio Output): Model speaks ~50% of time (conservative estimate)
+                    
+                    stt_tokens_delta = int(elapsed_seconds * TOKENS_PER_SECOND_AUDIO)
+                    tts_tokens_delta = int(elapsed_seconds * TOKENS_PER_SECOND_AUDIO * 0.5)
+                    
+                    # Add to metrics collector
+                    metrics_collector.stt_tokens += stt_tokens_delta
+                    metrics_collector.tts_tokens += tts_tokens_delta
+                    
+                    logger.debug(
+                        f"[Metrics] Audio estimation: +{stt_tokens_delta} STT, +{tts_tokens_delta} TTS "
+                        f"(totals: {metrics_collector.stt_tokens} STT, {metrics_collector.tts_tokens} TTS)"
+                    )
+                    
         except asyncio.CancelledError:
             logger.info("[Metrics] Background tracking stopped")
 
