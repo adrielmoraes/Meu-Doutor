@@ -1,12 +1,21 @@
 // Custos reais de tokens dos modelos Gemini (por 1 milhão de tokens)
-// Fonte: Google AI Studio Pricing - Atualizado em 24/11/2024
+// Fonte: Google AI Studio Pricing - Atualizado em Dezembro/2025
+// https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash-native-audio
 // Valores em USD
 
 export const GEMINI_TOKEN_COSTS = {
   // Gemini 2.5 Flash Native Audio - Usado em consultas ao vivo com voz
+  // IMPORTANTE: Este modelo tem preços diferentes para texto vs áudio/vídeo
   'gemini-2.5-flash-native-audio-preview-09-2025': {
-    input: 1.00,   // $1.00 por 1M tokens
-    output: 20.00, // $20.00 por 1M tokens
+    // Preços de TEXTO (para system prompt, contexto, etc.)
+    textInput: 0.50,    // $0.50 por 1M tokens (texto)
+    textOutput: 12.00,  // $12.00 por 1M tokens (texto)
+    // Preços de ÁUDIO/VÍDEO (para STT e TTS)
+    audioInput: 3.00,   // $3.00 por 1M tokens (áudio/vídeo input - STT)
+    audioOutput: 2.00,  // $2.00 por 1M tokens (áudio/vídeo output - TTS)
+    // Preços legado (média ponderada para compatibilidade)
+    input: 0.50,        // Usar textInput para cálculos gerais
+    output: 12.00,      // Usar textOutput para cálculos gerais
     description: 'Modelo de áudio nativo para consultas ao vivo',
   },
   
@@ -52,10 +61,13 @@ export const TOKEN_ESTIMATES = {
   },
   
   // Consulta ao vivo (por minuto)
+  // Estimativa baseada em conversas reais: ~25 tokens/segundo de áudio
+  // 1 minuto = 60 segundos × 25 tokens = ~1500 tokens
   aiConsultationPerMinute: {
     model: 'gemini-2.5-flash-native-audio-preview-09-2025',
-    inputTokens: 2000,   // ~2K tokens por minuto de conversa
-    outputTokens: 2000,  // ~2K tokens por minuto de resposta
+    inputTokens: 1500,   // ~1.5K tokens por minuto de fala do paciente (STT)
+    outputTokens: 1500,  // ~1.5K tokens por minuto de resposta da IA (TTS)
+    useAudioPricing: true, // Usar preços de áudio, não texto
     description: 'Consulta ao vivo com IA (áudio nativo)',
   },
   
@@ -87,8 +99,21 @@ export function calculateServiceCost(serviceName: keyof typeof TOKEN_ESTIMATES):
   }
   
   // Custos por 1 milhão de tokens, então dividimos por 1.000.000
-  const inputCost = (estimate.inputTokens / 1_000_000) * modelCosts.input;
-  const outputCost = (estimate.outputTokens / 1_000_000) * modelCosts.output;
+  // Para consultas ao vivo, usar preços de áudio (STT/TTS)
+  const useAudio = 'useAudioPricing' in estimate && estimate.useAudioPricing;
+  
+  let inputCost: number;
+  let outputCost: number;
+  
+  if (useAudio && 'audioInput' in modelCosts && 'audioOutput' in modelCosts) {
+    // Usar preços de áudio para STT (input) e TTS (output)
+    inputCost = (estimate.inputTokens / 1_000_000) * modelCosts.audioInput;
+    outputCost = (estimate.outputTokens / 1_000_000) * modelCosts.audioOutput;
+  } else {
+    // Usar preços de texto padrão
+    inputCost = (estimate.inputTokens / 1_000_000) * modelCosts.input;
+    outputCost = (estimate.outputTokens / 1_000_000) * modelCosts.output;
+  }
   
   return inputCost + outputCost;
 }
@@ -119,7 +144,8 @@ export function calculatePlanCost(limits: {
 }
 
 // Conversão USD para BRL (atualizar periodicamente)
-export const USD_TO_BRL = 5.10; // Taxa de câmbio aproximada (nov 2024)
+// Sincronizado com ai-pricing.ts
+export const USD_TO_BRL = 5.42; // Taxa de câmbio (Dezembro 2025)
 
 // Converte USD para centavos de BRL (formato Stripe)
 export function usdToBrlCents(usd: number): number {
