@@ -14,6 +14,7 @@ import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallback
 
 const specialistPrompt = ai.definePrompt({
     name: 'nutritionistAgentPrompt',
+    model: 'googleai/gemini-2.0-flash',
     input: {schema: SpecialistAgentInputSchema},
     output: {schema: SpecialistAgentOutputSchema},
     tools: [medicalKnowledgeBaseTool, internetSearchTool],

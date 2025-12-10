@@ -52,6 +52,7 @@ const GenerateWellnessPlanFromExamsOutputSchema = z.object({
 
 const wellnessPlanSynthesisPrompt = ai.definePrompt({
   name: 'wellnessPlanSynthesisPrompt',
+  model: 'googleai/gemini-2.0-flash',
   input: {
     schema: z.object({
       nutritionistReport: z.string(),
