@@ -157,7 +157,7 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
     inputText,
     textResponse,
     !!audioDataUri,
-    'gemini-2.0-flash'
+    'gemini-2.5-flash'
   ).catch(err => console.error('[Consultation Flow] Usage tracking error:', err));
 
   return {

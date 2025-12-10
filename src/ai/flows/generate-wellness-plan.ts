@@ -242,7 +242,7 @@ const generateWellnessPlanFlow = ai.defineFlow(
             ].filter(Boolean).join('\n\n');
             const nutritionistInputTokens = countTextTokens(nutritionistInputText);
             const nutritionistOutputTokens = countTextTokens(nutritionistOutputText);
-            trackWellnessPlan(input.patientId, nutritionistInputTokens, nutritionistOutputTokens, 'gemini-2.0-flash')
+            trackWellnessPlan(input.patientId, nutritionistInputTokens, nutritionistOutputTokens, 'gemini-2.5-flash')
                 .catch(err => console.error('[Generate Wellness Plan] Nutritionist tracking error:', err));
         }
 
@@ -269,7 +269,7 @@ const generateWellnessPlanFlow = ai.defineFlow(
                     ].filter(Boolean).join('\n\n');
                     const synthesisInputTokens = countTextTokens(synthesisInputText);
                     const synthesisOutputTokens = countTextTokens(JSON.stringify(output || {}));
-                    trackWellnessPlan(input.patientId, synthesisInputTokens, synthesisOutputTokens, 'gemini-2.0-flash')
+                    trackWellnessPlan(input.patientId, synthesisInputTokens, synthesisOutputTokens, 'gemini-2.5-flash')
                         .catch(err => console.error('[Generate Wellness Plan] Synthesis tracking error:', err));
                 }
 

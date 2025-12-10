@@ -36,9 +36,22 @@ task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
 
+[[workflows.workflow]]
+name = "livikit-agent"
+mode = "parallel"
+author = 40924732
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python agent.py start"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 8081
+externalPort = 8081
 
 [userenv]
 

@@ -52,7 +52,7 @@ const GenerateWellnessPlanFromExamsOutputSchema = z.object({
 
 const wellnessPlanSynthesisPrompt = ai.definePrompt({
   name: 'wellnessPlanSynthesisPrompt',
-  model: 'googleai/gemini-2.0-flash',
+  model: 'googleai/gemini-2.5-flash',
   input: {
     schema: z.object({
       nutritionistReport: z.string(),
@@ -234,7 +234,7 @@ Histórico de Conversas: ${patient.conversationHistory || 'Nenhuma conversa regi
     ].filter(Boolean).join('\n\n');
     const nutritionistInputTokens = countTextTokens(nutritionistInputText);
     const nutritionistOutputTokens = countTextTokens(nutritionistOutputText);
-    trackWellnessPlan(patientId, nutritionistInputTokens, nutritionistOutputTokens, 'gemini-2.0-flash')
+    trackWellnessPlan(patientId, nutritionistInputTokens, nutritionistOutputTokens, 'gemini-2.5-flash')
       .catch(err => console.error('[Wellness Plan Update] Nutritionist tracking error:', err));
 
     // 5. Generate comprehensive wellness plan
@@ -259,7 +259,7 @@ ${nutritionistAnalysis.recommendations}
     const synthesisInputText = [nutritionistReport, patientHistory].filter(Boolean).join('\n\n');
     const synthesisInputTokens = countTextTokens(synthesisInputText);
     const synthesisOutputTokens = countTextTokens(JSON.stringify(output || {}));
-    trackWellnessPlan(patientId, synthesisInputTokens, synthesisOutputTokens, 'gemini-2.0-flash')
+    trackWellnessPlan(patientId, synthesisInputTokens, synthesisOutputTokens, 'gemini-2.5-flash')
       .catch(err => console.error('[Wellness Plan Update] Synthesis tracking error:', err));
 
     if (!output) {

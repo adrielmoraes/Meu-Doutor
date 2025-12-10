@@ -208,7 +208,7 @@ DIRETRIZES IMPORTANTES:
 - Quando o paciente quiser agendar consulta, apresente os médicos disponíveis e ajude no agendamento
 
 Forneça sua resposta abaixo:`,
-  model: "googleai/gemini-2.0-flash-lite",
+  model: "googleai/gemini-2.5-flash",
 });
 
 const therapistChatFlow = ai.defineFlow(
@@ -234,7 +234,7 @@ const therapistChatFlow = ai.defineFlow(
       input.patientId,
       input.message,
       response.response,
-      'gemini-2.0-flash-lite'
+      'gemini-2.5-flash'
     ).catch(err => console.error('[Therapist Chat Flow] Usage tracking error:', err));
 
     return response;
