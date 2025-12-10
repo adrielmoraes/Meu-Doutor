@@ -1,15 +1,22 @@
-'use server';
+"use server";
 /**
  * @fileOverview An AI specialist agent for nutrition and diet.
  *
  * - nutritionistAgent - A flow that analyzes patient data from a nutritional perspective.
  */
 
-import {ai} from '@/ai/genkit';
-import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
-import { internetSearchTool } from '../tools/internet-search';
-import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
-import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
+import { ai } from "@/ai/genkit";
+import { medicalKnowledgeBaseTool } from "../tools/medical-knowledge-base";
+import { internetSearchTool } from "../tools/internet-search";
+import type {
+    SpecialistAgentInput,
+    SpecialistAgentOutput,
+} from "./specialist-agent-types";
+import {
+    SpecialistAgentInputSchema,
+    SpecialistAgentOutputSchema,
+    createFallbackResponse,
+} from "./specialist-agent-types";
 
 const NUTRITIONIST_PROMPT = `You are **Dra. Laura Mendes, RD, MSc** - Registered Dietitian and Clinical Nutritionist specializing in medical nutrition therapy, sports nutrition, and metabolic diseases.
 
@@ -65,53 +72,64 @@ Example structure:
 {"findings": "Text here in Portuguese", "clinicalAssessment": "mild", "recommendations": "Text here in Portuguese"}`;
 
 const FALLBACK_MODELS = [
-    'googleai/gemini-2.0-flash',
-    'googleai/gemini-2.0-flash-lite',
-    'googleai/gemini-1.5-flash-latest',
+    "googleai/gemini-2.5-flash",
+    "googleai/gemini-2.5-flash-lite",
+    "googleai/gemini-flash-lite-latest",
 ];
 
-async function executeWithRetry(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
+async function executeWithRetry(
+    input: SpecialistAgentInput,
+): Promise<SpecialistAgentOutput> {
     for (const model of FALLBACK_MODELS) {
         try {
             console.log(`[Nutritionist Agent] Tentando modelo: ${model}`);
             const prompt = ai.definePrompt({
-                name: `nutritionistPrompt_${model.replace(/[^a-zA-Z0-9]/g, '_')}`,
+                name: `nutritionistPrompt_${model.replace(/[^a-zA-Z0-9]/g, "_")}`,
                 model,
-                input: {schema: SpecialistAgentInputSchema},
-                output: {schema: SpecialistAgentOutputSchema},
+                input: { schema: SpecialistAgentInputSchema },
+                output: { schema: SpecialistAgentOutputSchema },
                 tools: [medicalKnowledgeBaseTool, internetSearchTool],
                 prompt: NUTRITIONIST_PROMPT,
             });
-            const {output} = await prompt(input);
+            const { output } = await prompt(input);
             if (output) {
-                console.log(`[Nutritionist Agent] ✅ Sucesso com modelo: ${model}`);
+                console.log(
+                    `[Nutritionist Agent] ✅ Sucesso com modelo: ${model}`,
+                );
                 return output;
             }
         } catch (error: any) {
-            console.warn(`[Nutritionist Agent] ⚠️ Falha com ${model}: ${error.message?.substring(0, 100)}`);
-            if (error.status !== 429) {
+            const retryableErrors = [429, 503, 404, 500];
+            console.warn(
+                `[Nutritionist Agent] ⚠️ Falha com ${model} (status: ${error.status}): ${error.message?.substring(0, 100)}`,
+            );
+            if (!retryableErrors.includes(error.status)) {
                 throw error;
             }
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            const delay = error.status === 503 ? 5000 : 2000;
+            await new Promise((resolve) => setTimeout(resolve, delay));
         }
     }
-    
-    console.error('[Nutritionist Agent] ❌ Todos os modelos falharam, usando fallback');
-    return createFallbackResponse('Nutricionista');
+
+    console.error(
+        "[Nutritionist Agent] ❌ Todos os modelos falharam, usando fallback",
+    );
+    return createFallbackResponse("Nutricionista");
 }
 
 const nutritionistAgentFlow = ai.defineFlow(
     {
-      name: 'nutritionistAgentFlow',
-      inputSchema: SpecialistAgentInputSchema,
-      outputSchema: SpecialistAgentOutputSchema,
+        name: "nutritionistAgentFlow",
+        inputSchema: SpecialistAgentInputSchema,
+        outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
         return await executeWithRetry(input);
-    }
+    },
 );
 
-
-export async function nutritionistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
+export async function nutritionistAgent(
+    input: SpecialistAgentInput,
+): Promise<SpecialistAgentOutput> {
     return await nutritionistAgentFlow(input);
 }
