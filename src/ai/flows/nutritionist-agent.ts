@@ -99,14 +99,16 @@ async function executeWithRetry(
                 return output;
             }
         } catch (error: any) {
-            const retryableErrors = [429, 503, 404, 500];
+            const retryableErrors = [429, 503, 404, 500, 400];
+            const errorStatus = error.status || error.code;
             console.warn(
-                `[Nutritionist Agent] ⚠️ Falha com ${model} (status: ${error.status}): ${error.message?.substring(0, 100)}`,
+                `[Nutritionist Agent] ⚠️ Falha com ${model} (status: ${errorStatus}): ${error.message?.substring(0, 150)}`,
             );
-            if (!retryableErrors.includes(error.status)) {
-                throw error;
+            if (!retryableErrors.includes(errorStatus)) {
+                console.error(`[Nutritionist Agent] Erro não-retentável, usando fallback`);
+                return createFallbackResponse("Nutricionista");
             }
-            const delay = error.status === 503 ? 5000 : 2000;
+            const delay = errorStatus === 503 ? 5000 : 2000;
             await new Promise((resolve) => setTimeout(resolve, delay));
         }
     }
