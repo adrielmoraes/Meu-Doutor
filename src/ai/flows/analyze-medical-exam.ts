@@ -10,6 +10,8 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { generatePreliminaryDiagnosis } from './generate-preliminary-diagnosis';
+import { estimateImageTokens, countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 const DocumentInputSchema = z.object({
   examDataUri: z
@@ -150,6 +152,11 @@ const analyzeMedicalExamFlow = ai.defineFlow(
       examResultsSummary = docAnalysis.examResultsSummary;
       patientExplanation = docAnalysis.patientExplanation;
       allStructuredResults = docAnalysis.structuredResults || [];
+      
+      // TRACK TOKEN USAGE: Count image tokens
+      const imageTokens = estimateImageTokens(2048, 1536, 'high'); // Avg medical image size
+      const textTokens = countTextTokens(examResultsSummary + patientExplanation);
+      console.log(`[📊 Token Accounting] Image: ${imageTokens} tokens, Text: ${textTokens} tokens, Total: ${imageTokens + textTokens} tokens`);
       
     } else {
       // Multiple documents - process SEQUENTIALLY to avoid Vercel timeouts

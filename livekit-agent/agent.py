@@ -203,10 +203,45 @@ class MetricsCollector:
             )
 
     def estimate_tokens(self, text: str) -> int:
-        """Estima tokens baseado em texto (1 token ≈ 4 caracteres)."""
+        """
+        Estima tokens com mais precisão que antes.
+        UPDATED: Usar ~3.2 chars per token (mais preciso que 4).
+        Para contagem REAL, usar track_actual_tokens() com resposta da API.
+        """
         if not text:
             return 0
-        return max(1, len(text) // 4)
+        # Melhorado: 3.2 chars por token (melhor que 4)
+        return max(1, int(len(text) / 3.2))
+
+    def track_actual_tokens(self, usage_metadata):
+        """
+        Extrai tokens REAIS da resposta do Gemini Live API.
+        CRÍTICO: Usar isso ao invés de estimar quando possível.
+        """
+        if not usage_metadata:
+            return False
+        
+        try:
+            # Gemini Live API retorna tokens reais na resposta
+            input_tokens = getattr(usage_metadata, 'prompt_token_count', None)
+            output_tokens = getattr(usage_metadata, 'candidates_token_count', None)
+            
+            if input_tokens is not None:
+                self.llm_input_tokens += input_tokens
+                logger.info(
+                    f"[Metrics] ✅ REAL LLM Input tokens: +{input_tokens} (total: {self.llm_input_tokens})"
+                )
+            
+            if output_tokens is not None:
+                self.llm_output_tokens += output_tokens
+                logger.info(
+                    f"[Metrics] ✅ REAL LLM Output tokens: +{output_tokens} (total: {self.llm_output_tokens})"
+                )
+            
+            return True
+        except Exception as e:
+            logger.warning(f"[Metrics] Erro ao extrair tokens reais: {e}")
+            return False
 
     def track_stt(self, text: str):
         """Rastreia tokens STT estimados."""
@@ -215,38 +250,68 @@ class MetricsCollector:
         logger.debug(
             f"[Metrics] STT: +{tokens} tokens (total: {self.stt_tokens})")
 
+    def track_stt_audio(self, duration_seconds: float):
+        """
+        Rastreia tokens STT baseado em duração de áudio.
+        UPDATED: 180 tokens/segundo (antes era 25 = 85% subestimação)
+        """
+        # Gemini 2.5 Flash Native Audio: ~180 tokens per second
+        tokens = int(duration_seconds * 180)
+        self.stt_tokens += tokens
+        logger.info(
+            f"[Metrics] STT (audio): +{tokens} tokens for {duration_seconds:.1f}s (total: {self.stt_tokens})"
+        )
+
     def track_llm(self, input_text: str = "", output_text: str = ""):
-        """Rastreia tokens LLM estimados."""
+        """Rastreia tokens LLM estimados. DEPRECATED: use track_actual_tokens quando possível."""
         if input_text:
             tokens = self.estimate_tokens(input_text)
             self.llm_input_tokens += tokens
-            logger.debug(f"[Metrics] LLM Input: +{tokens} tokens")
+            logger.debug(f"[Metrics] LLM Input: +{tokens} tokens (estimated)")
 
         if output_text:
             tokens = self.estimate_tokens(output_text)
             self.llm_output_tokens += tokens
-            logger.debug(f"[Metrics] LLM Output: +{tokens} tokens")
+            logger.debug(f"[Metrics] LLM Output: +{tokens} tokens (estimated)")
 
     def track_tts(self, text: str):
         """Rastreia tokens TTS estimados."""
         tokens = self.estimate_tokens(text)
         self.tts_tokens += tokens
         logger.debug(
-            f"[Metrics] TTS: +{tokens} tokens (total: {self.tts_tokens})")
+            f"[Metrics] TTS (text): +{tokens} tokens (total: {self.tts_tokens})")
+
+    def track_tts_audio(self, duration_seconds: float):
+        """
+        Rastreia tokens TTS baseado em duração de áudio.
+        UPDATED: 50 tokens/segundo (antes era 25 = 50% subestimação)
+        TTS output audio: ~45-60 tokens per second
+        """
+        tokens = int(duration_seconds * 50)
+        self.tts_tokens += tokens
+        logger.info(
+            f"[Metrics] TTS (audio): +{tokens} tokens for {duration_seconds:.1f}s (total: {self.tts_tokens})"
+        )
 
     def track_vision(self, usage_metadata):
-        """Rastreia tokens de visão do Gemini Vision."""
-        if usage_metadata:
+        """Rastreia tokens de visão do Gemini Vision - EXTRAI VALORES REAIS."""
+        if not usage_metadata:
+            return
+            
+        try:
             input_tokens = getattr(usage_metadata, 'prompt_token_count', 0)
-            output_tokens = getattr(usage_metadata, 'candidates_token_count',
-                                    0)
+            output_tokens = getattr(usage_metadata, 'candidates_token_count', 0)
 
-            self.vision_input_tokens += input_tokens
-            self.vision_output_tokens += output_tokens
+            if input_tokens > 0:
+                self.vision_input_tokens += input_tokens
+            if output_tokens > 0:
+                self.vision_output_tokens += output_tokens
 
             logger.info(
-                f"[Metrics] Vision: +{input_tokens} input, +{output_tokens} output tokens"
+                f"[Metrics] Vision: +{input_tokens} input, +{output_tokens} output tokens (total: {self.vision_input_tokens + self.vision_output_tokens})"
             )
+        except Exception as e:
+            logger.warning(f"[Metrics] Erro ao rastrear vision tokens: {e}")
 
     def update_active_time(self):
         """Atualiza tempo ativo de conversa (exclui tempo de avatar)."""

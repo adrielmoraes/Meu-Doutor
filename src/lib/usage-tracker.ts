@@ -16,6 +16,7 @@ import {
   estimateAudioTokens,
   AI_PRICING
 } from './ai-pricing';
+import { countTextTokens, estimateImageTokens, estimateAudioTokens as estimateAudioTokensAccurate } from './token-counter';
 
 export type UsageType = 
   | 'chat'              // AI Therapist chat
@@ -60,8 +61,9 @@ export async function trackAIUsage({
 }: TrackUsageParams): Promise<string> {
   try {
     // Estimate tokens from text if not provided
-    const estimatedInputTokens = inputTokens ?? (inputText ? estimateTokens(inputText) : 0);
-    const estimatedOutputTokens = outputTokens ?? (outputText ? estimateTokens(outputText) : 0);
+    // UPDATED: Use accurate token counting from token-counter.ts
+    const estimatedInputTokens = inputTokens ?? (inputText ? countTextTokens(inputText) : 0);
+    const estimatedOutputTokens = outputTokens ?? (outputText ? countTextTokens(outputText) : 0);
     
     let costUSD = 0;
     let resourceName = '';
@@ -85,8 +87,9 @@ export async function trackAIUsage({
         break;
 
       case 'stt':
-        // STT costs based on audio tokens (Gemini multimodal audio input: $1.00/1M tokens)
-        const audioTokens = estimateAudioTokens(durationSeconds);
+        // STT costs based on audio tokens (Gemini multimodal audio input: $3.00/1M tokens)
+        // UPDATED: Use more accurate estimation (180 tokens/sec instead of 25)
+        const audioTokens = estimateAudioTokensAccurate(durationSeconds);
         costUSD = calculateSTTCost(audioTokens);
         resourceName = 'Gemini 2.5 Flash STT';
         break;

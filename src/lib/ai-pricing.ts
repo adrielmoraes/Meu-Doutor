@@ -269,9 +269,11 @@ export function calculateSTTCost(
 }
 
 // Estimate tokens from audio duration
-// Approximately 25 tokens per second of audio (16kHz, mono)
+// UPDATED: Gemini 2.5 Flash Native Audio uses ~180 tokens per second
+// Previous: 25 tokens/second (40% underestimate)
+// New: 180 tokens/second (accurate based on official pricing)
 export function estimateAudioTokens(durationSeconds: number): number {
-  return Math.ceil(durationSeconds * 25);
+  return Math.ceil(durationSeconds * 180);
 }
 
 // Helper function to calculate avatar cost
@@ -322,8 +324,12 @@ export function formatCostBRL(amountCents: number): string {
   }).format(amountCents / 100);
 }
 
-// Estimate tokens from text (rough estimation)
+// Estimate tokens from text (rough estimation - DEPRECATED)
+// Use countTextTokens from token-counter.ts for accurate counting
 export function estimateTokens(text: string): number {
+  // DEPRECATED: This is a fallback for backwards compatibility
+  // For new code, use countTextTokens from 'token-counter.ts'
   // Rough estimate: 1 token ~= 4 characters for English, ~3 for Portuguese
+  console.warn('[AI Pricing] estimateTokens is deprecated, use countTextTokens from token-counter.ts');
   return Math.ceil(text.length / 3.5);
 }
