@@ -217,7 +217,7 @@ export type AuditLog = {
 export type UsageTracking = {
     id: string;
     patientId: string;
-    usageType: 'exam_analysis' | 'stt' | 'llm' | 'tts' | 'ai_call' | 'doctor_call' | 'chat';
+    usageType: 'exam_analysis' | 'stt' | 'llm' | 'tts' | 'ai_call' | 'doctor_call' | 'chat' | 'diagnosis' | 'wellness_plan' | 'consultation_flow' | 'live_consultation' | 'vision';
     resourceName?: string | null;
     tokensUsed: number;
     durationSeconds: number;
@@ -252,6 +252,11 @@ export type PatientUsageStats = {
         aiCall: number; // segundos
         doctorCall: number; // segundos
         chat: number; // tokens
+        diagnosis: number; // tokens
+        wellnessPlan: number; // tokens
+        consultationFlow: number; // tokens
+        liveConsultation: number; // tokens
+        vision: number; // tokens
     };
 };
 

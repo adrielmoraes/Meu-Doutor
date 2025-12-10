@@ -1,6 +1,6 @@
 import { getAllPatientsUsageStats } from "@/lib/db-adapter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Activity, Clock, FileText, Mic, MessageCircle, Phone, TrendingUp, Brain } from "lucide-react";
+import { Activity, Clock, FileText, Mic, MessageCircle, Phone, TrendingUp, Brain, Stethoscope, Salad, Video, Eye, MessagesSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 function formatDuration(seconds: number): string {
@@ -208,6 +208,41 @@ export default async function UsagePage() {
                           <span className="text-xs">Chat</span>
                         </div>
                         <p className="font-medium text-white">{stat.breakdown.chat.toLocaleString()} tokens</p>
+                      </div>
+                      <div className="p-2 rounded bg-slate-950/50">
+                        <div className="flex items-center gap-1 text-gray-400 mb-1">
+                          <Stethoscope className="h-3 w-3" />
+                          <span className="text-xs">Diagnóstico</span>
+                        </div>
+                        <p className="font-medium text-white">{stat.breakdown.diagnosis.toLocaleString()} tokens</p>
+                      </div>
+                      <div className="p-2 rounded bg-slate-950/50">
+                        <div className="flex items-center gap-1 text-gray-400 mb-1">
+                          <Salad className="h-3 w-3" />
+                          <span className="text-xs">Plano Bem-Estar</span>
+                        </div>
+                        <p className="font-medium text-white">{stat.breakdown.wellnessPlan.toLocaleString()} tokens</p>
+                      </div>
+                      <div className="p-2 rounded bg-slate-950/50">
+                        <div className="flex items-center gap-1 text-gray-400 mb-1">
+                          <MessagesSquare className="h-3 w-3" />
+                          <span className="text-xs">Fluxo de Consulta</span>
+                        </div>
+                        <p className="font-medium text-white">{stat.breakdown.consultationFlow.toLocaleString()} tokens</p>
+                      </div>
+                      <div className="p-2 rounded bg-slate-950/50">
+                        <div className="flex items-center gap-1 text-gray-400 mb-1">
+                          <Video className="h-3 w-3" />
+                          <span className="text-xs">Consulta ao Vivo</span>
+                        </div>
+                        <p className="font-medium text-white">{stat.breakdown.liveConsultation.toLocaleString()} tokens</p>
+                      </div>
+                      <div className="p-2 rounded bg-slate-950/50">
+                        <div className="flex items-center gap-1 text-gray-400 mb-1">
+                          <Eye className="h-3 w-3" />
+                          <span className="text-xs">Visão IA</span>
+                        </div>
+                        <p className="font-medium text-white">{stat.breakdown.vision.toLocaleString()} tokens</p>
                       </div>
                     </div>
                   </details>

@@ -305,6 +305,56 @@ export async function trackWellnessPlan(
 }
 
 /**
+ * Track exam document analysis (image processing + LLM)
+ */
+export async function trackExamDocumentAnalysis(
+  patientId: string,
+  documentCount: number,
+  inputTokens: number,
+  outputTokens: number,
+  imageTokens: number = 0,
+  model: string = 'gemini-2.5-flash'
+): Promise<string> {
+  return trackAIUsage({
+    patientId,
+    usageType: 'exam_analysis',
+    model,
+    inputTokens: inputTokens + imageTokens,
+    outputTokens,
+    metadata: { 
+      documentCount, 
+      imageTokens,
+      textInputTokens: inputTokens,
+      pipeline: 'document_analysis' 
+    },
+  });
+}
+
+/**
+ * Track multi-specialist diagnosis generation
+ */
+export async function trackMultiSpecialistDiagnosis(
+  patientId: string,
+  inputTokens: number,
+  outputTokens: number,
+  specialistCount: number,
+  model: string = 'gemini-2.5-flash'
+): Promise<string> {
+  return trackAIUsage({
+    patientId,
+    usageType: 'diagnosis',
+    model,
+    inputTokens,
+    outputTokens,
+    metadata: { 
+      specialistCount, 
+      pipeline: 'multi-specialist',
+      tokensPerSpecialist: Math.round((inputTokens + outputTokens) / Math.max(specialistCount, 1))
+    },
+  });
+}
+
+/**
  * Track consultation flow (AI therapist chat with audio)
  */
 export async function trackConsultationFlow(

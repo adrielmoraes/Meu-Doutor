@@ -11,7 +11,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { generatePreliminaryDiagnosis } from './generate-preliminary-diagnosis';
 import { estimateImageTokens, countTextTokens } from '@/lib/token-counter';
-import { trackAIUsage } from '@/lib/usage-tracker';
+import { trackExamDocumentAnalysis } from '@/lib/usage-tracker';
 
 const DocumentInputSchema = z.object({
   examDataUri: z
@@ -246,6 +246,24 @@ const analyzeMedicalExamFlow = ai.defineFlow(
       structuredResults: allStructuredResults.length > 0 ? allStructuredResults : undefined,
       specialistFindings: specialistAnalysis.structuredFindings,
     };
+    
+    // STEP 4: Track usage for cost accounting
+    // Calculate total tokens used across document analysis
+    const documentCount = input.documents.length;
+    const avgImageTokensPerDoc = estimateImageTokens(2048, 1536, 'high'); // Avg medical image
+    const totalImageTokens = documentCount * avgImageTokensPerDoc;
+    const inputTextTokens = countTextTokens(examResultsSummary);
+    const outputTextTokens = countTextTokens(
+      finalResult.preliminaryDiagnosis + 
+      finalResult.explanation + 
+      finalResult.suggestions +
+      JSON.stringify(finalResult.specialistFindings || [])
+    );
+    
+    // Note: patientId is not available in this flow - tracking is done in the caller (patient actions)
+    // Log token usage for monitoring
+    console.log(`[📊 Token Accounting] Documents: ${documentCount}, Image tokens: ${totalImageTokens}, Input text: ${inputTextTokens}, Output: ${outputTextTokens}`);
+    console.log(`[📊 Token Accounting] Total estimated tokens: ${totalImageTokens + inputTextTokens + outputTextTokens}`);
     
     console.log('[✅ Analysis Complete] Multi-specialist system activated successfully!');
     

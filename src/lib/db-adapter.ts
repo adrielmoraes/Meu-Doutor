@@ -865,8 +865,13 @@ export async function getPatientUsageStats(patientId: string): Promise<PatientUs
         aiCall: 0,
         doctorCall: 0,
         chat: 0,
+        diagnosis: 0,
+        wellnessPlan: 0,
+        consultationFlow: 0,
+        liveConsultation: 0,
+        vision: 0,
       },
-    };
+    } as PatientUsageStats;
   }
 
   const patient = await getPatientById(patientId);
@@ -890,6 +895,11 @@ export async function getPatientUsageStats(patientId: string): Promise<PatientUs
       aiCall: 0,
       doctorCall: 0,
       chat: 0,
+      diagnosis: 0,
+      wellnessPlan: 0,
+      consultationFlow: 0,
+      liveConsultation: 0,
+      vision: 0,
     },
   };
 
@@ -922,6 +932,22 @@ export async function getPatientUsageStats(patientId: string): Promise<PatientUs
         break;
       case 'chat':
         stats.breakdown.chat += record.tokensUsed || 0;
+        break;
+      case 'diagnosis':
+        stats.breakdown.diagnosis += record.tokensUsed || 0;
+        break;
+      case 'wellness_plan':
+        stats.breakdown.wellnessPlan += record.tokensUsed || 0;
+        break;
+      case 'consultation_flow':
+        stats.breakdown.consultationFlow += record.tokensUsed || 0;
+        break;
+      case 'live_consultation':
+        stats.breakdown.liveConsultation += record.tokensUsed || 0;
+        stats.aiCallDuration += record.durationSeconds || 0;
+        break;
+      case 'vision':
+        stats.breakdown.vision += record.tokensUsed || 0;
         break;
     }
   }

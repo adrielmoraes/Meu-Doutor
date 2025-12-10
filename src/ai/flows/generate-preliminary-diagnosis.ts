@@ -9,6 +9,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { countTextTokens } from '@/lib/token-counter';
 import {
   SpecialistAgentInputSchema,
   SpecialistAgentOutputSchema,
@@ -665,6 +666,33 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     console.log(`[Síntese] ✅ Síntese concluída`);
     console.log(`[Síntese] Diagnóstico preliminar: ${synthesisResult.output!.synthesis.substring(0, 150)}...`);
     console.log(`[Síntese] Sugestões geradas: ${synthesisResult.output!.suggestions.substring(0, 150)}...`);
+    
+    // Token accounting for multi-specialist analysis
+    // Each specialist prompt uses ~2000-3000 input tokens + ~1500 output tokens
+    // Triage prompt: ~1500 input, ~200 output
+    // Synthesis prompt: ~3000 input (all reports), ~2000 output
+    const specialistCount = specialistReports.length;
+    const triageInputTokens = countTextTokens(input.examResults + (input.patientHistory || ''));
+    const triageOutputTokens = 200; // Approximate
+    
+    // Estimate tokens per specialist (conservative estimate)
+    const tokensPerSpecialist = 4500; // ~3000 input + ~1500 output per specialist
+    const specialistTokens = specialistCount * tokensPerSpecialist;
+    
+    // Synthesis tokens
+    const synthesisInputTokens = countTextTokens(JSON.stringify(specialistReports));
+    const synthesisOutputTokens = countTextTokens(synthesisResult.output!.synthesis + synthesisResult.output!.suggestions);
+    
+    const totalInputTokens = triageInputTokens + (specialistCount * 3000) + synthesisInputTokens;
+    const totalOutputTokens = triageOutputTokens + (specialistCount * 1500) + synthesisOutputTokens;
+    const totalTokens = totalInputTokens + totalOutputTokens;
+    
+    console.log(`[📊 Token Accounting] Multi-Specialist Analysis:`);
+    console.log(`  - Specialists consulted: ${specialistCount}`);
+    console.log(`  - Triage: ${triageInputTokens} input + ${triageOutputTokens} output`);
+    console.log(`  - Specialists: ~${specialistTokens} tokens total`);
+    console.log(`  - Synthesis: ${synthesisInputTokens} input + ${synthesisOutputTokens} output`);
+    console.log(`  - TOTAL: ${totalTokens} tokens (~${totalInputTokens} in, ~${totalOutputTokens} out)`);
     
     console.log(`\n╔════════════════════════════════════════════════════════╗`);
     console.log(`║  ✅ ANÁLISE MULTI-ESPECIALISTA FINALIZADA COM SUCESSO ║`);
