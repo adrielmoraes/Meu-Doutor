@@ -11,14 +11,7 @@ import { internetSearchTool } from '../tools/internet-search';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
 
-
-const specialistPrompt = ai.definePrompt({
-    name: 'nutritionistAgentPrompt',
-    model: 'googleai/gemini-2.0-flash',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool, internetSearchTool],
-    prompt: `You are **Dra. Laura Mendes, RD, MSc** - Registered Dietitian and Clinical Nutritionist specializing in medical nutrition therapy, sports nutrition, and metabolic diseases.
+const NUTRITIONIST_PROMPT = `You are **Dra. Laura Mendes, RD, MSc** - Registered Dietitian and Clinical Nutritionist specializing in medical nutrition therapy, sports nutrition, and metabolic diseases.
 
 **YOUR EXPERTISE:** Nutritional assessment and dietary interventions for metabolic syndrome, diabetes, cardiovascular disease, gastrointestinal disorders, weight management, and performance nutrition.
 
@@ -69,8 +62,43 @@ IMPORTANT: Use internetSearchTool for evidence-based dietary recommendations and
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
-{"findings": "Text here in Portuguese", "clinicalAssessment": "mild", "recommendations": "Text here in Portuguese"}`,
-});
+{"findings": "Text here in Portuguese", "clinicalAssessment": "mild", "recommendations": "Text here in Portuguese"}`;
+
+const FALLBACK_MODELS = [
+    'googleai/gemini-2.0-flash',
+    'googleai/gemini-1.5-flash',
+    'googleai/gemini-1.5-flash-8b',
+];
+
+async function executeWithRetry(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
+    for (const model of FALLBACK_MODELS) {
+        try {
+            console.log(`[Nutritionist Agent] Tentando modelo: ${model}`);
+            const prompt = ai.definePrompt({
+                name: `nutritionistPrompt_${model.replace(/[^a-zA-Z0-9]/g, '_')}`,
+                model,
+                input: {schema: SpecialistAgentInputSchema},
+                output: {schema: SpecialistAgentOutputSchema},
+                tools: [medicalKnowledgeBaseTool, internetSearchTool],
+                prompt: NUTRITIONIST_PROMPT,
+            });
+            const {output} = await prompt(input);
+            if (output) {
+                console.log(`[Nutritionist Agent] ✅ Sucesso com modelo: ${model}`);
+                return output;
+            }
+        } catch (error: any) {
+            console.warn(`[Nutritionist Agent] ⚠️ Falha com ${model}: ${error.message?.substring(0, 100)}`);
+            if (error.status !== 429) {
+                throw error;
+            }
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+    }
+    
+    console.error('[Nutritionist Agent] ❌ Todos os modelos falharam, usando fallback');
+    return createFallbackResponse('Nutricionista');
+}
 
 const nutritionistAgentFlow = ai.defineFlow(
     {
@@ -79,12 +107,7 @@ const nutritionistAgentFlow = ai.defineFlow(
       outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
-        const {output} = await specialistPrompt(input);
-        if (!output) {
-            console.error('[Nutritionist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
-            return createFallbackResponse('Nutricionista');
-        }
-        return output;
+        return await executeWithRetry(input);
     }
 );
 
