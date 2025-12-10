@@ -272,16 +272,19 @@ export async function consolidateExamsAction(
         ].join(' ');
         
         const outputTokens = countTextTokens(outputText);
-        const inputTokens = 12000;
         const specialistCount = consolidatedAnalysis.specialistFindings?.length || 1;
+        const triageTokens = 1700;
+        const tokensPerSpecialist = 4500;
+        const synthesisTokens = 5000;
+        const inputTokens = triageTokens + (specialistCount * tokensPerSpecialist) + synthesisTokens;
         const model = 'gemini-2.5-flash';
         const { totalCost } = calculateLLMCost(model, inputTokens, outputTokens);
         const costCents = usdToBRLCents(totalCost);
 
         trackUsage({
             patientId,
-            usageType: 'exam_analysis',
-            resourceName: `consolidation_${examResults.length}_exams`,
+            usageType: 'diagnosis',
+            resourceName: `multi_specialist_diagnosis_${specialistCount}_specialists`,
             model,
             inputTokens,
             outputTokens,
@@ -290,10 +293,10 @@ export async function consolidateExamsAction(
             metadata: {
                 examIds: consolidatedAnalysis.examIds,
                 specialistCount,
-                stage: 'consolidation',
+                stage: 'multi_specialist_diagnosis',
             },
         }).catch(error => {
-            console.error('[Usage Tracking] Failed to track consolidation:', error);
+            console.error('[Usage Tracking] Failed to track multi-specialist diagnosis:', error);
         });
 
         console.log(`[Consolidate Exams] ✅ Consolidation complete`);
