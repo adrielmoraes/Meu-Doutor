@@ -66,8 +66,8 @@ Example structure:
 
 const FALLBACK_MODELS = [
     'googleai/gemini-2.0-flash',
-    'googleai/gemini-1.5-flash',
-    'googleai/gemini-1.5-flash-8b',
+    'googleai/gemini-2.0-flash-lite',
+    'googleai/gemini-1.5-flash-latest',
 ];
 
 async function executeWithRetry(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
