@@ -347,6 +347,8 @@ ${nutritionistAnalysis.recommendations}
     if (error.stack) {
       console.error(`[Wellness Plan Update] Stack trace:`, error.stack);
     }
-    // Don't throw - we don't want to block exam analysis if wellness plan update fails
+    // Re-throw the error so the caller can handle it appropriately
+    // The caller (exam analysis) should catch this and not block the exam save
+    throw error;
   }
 }
