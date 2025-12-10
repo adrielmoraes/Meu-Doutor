@@ -12,7 +12,6 @@ import {
   calculateAvatarCost,
   calculateLiveKitCost,
   usdToBRLCents,
-  estimateTokens,
   estimateAudioTokens,
   AI_PRICING
 } from './ai-pricing';
@@ -76,7 +75,7 @@ export async function trackAIUsage({
       case 'diagnosis':
       case 'wellness_plan':
       case 'vision':
-        const llmCost = calculateLLMCost(model, estimatedInputTokens, estimatedOutputTokens, contextLength);
+        const llmCost = calculateLLMCost(model, estimatedInputTokens, estimatedOutputTokens, { contextLength });
         costUSD = llmCost.totalCost;
         resourceName = AI_PRICING.models[model as keyof typeof AI_PRICING.models]?.name || model;
         break;

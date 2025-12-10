@@ -712,9 +712,9 @@ import {
   calculateAvatarCost,
   calculateLiveKitCost,
   usdToBRLCents,
-  estimateTokens,
   AI_PRICING,
 } from './ai-pricing';
+import { countTextTokens } from './token-counter';
 
 export type UsageType = 
   | 'exam_analysis'
@@ -752,10 +752,10 @@ export async function trackUsage(usageData: {
   let outputTokens = usageData.outputTokens || 0;
   
   if (usageData.inputText && !usageData.inputTokens) {
-    inputTokens = estimateTokens(usageData.inputText);
+    inputTokens = countTextTokens(usageData.inputText);
   }
   if (usageData.outputText && !usageData.outputTokens) {
-    outputTokens = estimateTokens(usageData.outputText);
+    outputTokens = countTextTokens(usageData.outputText);
   }
   
   const totalTokens = inputTokens + outputTokens + (usageData.tokensUsed || 0);

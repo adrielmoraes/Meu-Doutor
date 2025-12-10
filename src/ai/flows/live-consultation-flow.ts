@@ -13,7 +13,7 @@ import { consultationHistoryAccessTool } from '../tools/consultation-history-acc
 import { doctorsListAccessTool } from '../tools/doctors-list-access';
 import { gemini15Pro } from '@genkit-ai/googleai';
 import { trackLiveConsultation, trackSTT } from '@/lib/usage-tracker';
-import { estimateTokens } from '@/lib/ai-pricing';
+import { countTextTokens } from '@/lib/token-counter';
 
 // Schemas for the live consultation flow
 const LiveConsultationInputSchema = z.object({
@@ -165,8 +165,8 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
   const historyTexts = input.history?.map(m => m.content.map(c => c.text).join(' ')) || [];
   const inputTextParts = [SYSTEM_PROMPT, ...historyTexts, toolRequestText, toolOutputText].filter(Boolean);
   const inputText = inputTextParts.join('\n\n');
-  const inputTokens = estimateTokens(inputText) + 500;
-  const outputTokens = estimateTokens(textResponse);
+  const inputTokens = countTextTokens(inputText) + 500;
+  const outputTokens = countTextTokens(textResponse);
   
   trackSTT(input.patientId, audioDurationSeconds, `audio_duration_${audioDurationSeconds}s`)
     .catch(err => console.error('[Live Consultation] STT tracking error:', err));

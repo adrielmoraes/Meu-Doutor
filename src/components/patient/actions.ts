@@ -6,7 +6,8 @@ import { revalidatePath } from "next/cache";
 import type { Appointment, Exam } from "@/types";
 import { regeneratePatientWellnessPlan } from "@/ai/flows/update-wellness-plan";
 import { getSession } from "@/lib/session";
-import { estimateTokens, calculateLLMCost, usdToBRLCents } from "@/lib/ai-pricing";
+import { calculateLLMCost, usdToBRLCents } from "@/lib/ai-pricing";
+import { countTextTokens } from "@/lib/token-counter";
 import { analyzeSingleExam, type SingleDocumentOutput } from "@/ai/flows/analyze-single-exam";
 import { consolidateExamsAnalysis, type IndividualExamResult } from "@/ai/flows/consolidate-exams-analysis";
 
@@ -49,7 +50,7 @@ export async function saveExamAnalysisAction(patientId: string, analysisData: Ex
             ),
         ].join(' ');
         
-        const outputTokens = estimateTokens(outputText);
+        const outputTokens = countTextTokens(outputText);
         const inputTokens = 15000; // Estimated based on context + documents + specialist prompts
         const specialistCount = analysisData.specialistFindings?.length || 1;
         
@@ -198,7 +199,7 @@ export async function analyzeSingleExamAction(
             analysis.patientExplanation,
         ].join(' ');
         
-        const outputTokens = estimateTokens(outputText);
+        const outputTokens = countTextTokens(outputText);
         const inputTokens = 3000;
         const model = 'gemini-2.5-flash';
         const { totalCost } = calculateLLMCost(model, inputTokens, outputTokens);
@@ -270,7 +271,7 @@ export async function consolidateExamsAction(
             ),
         ].join(' ');
         
-        const outputTokens = estimateTokens(outputText);
+        const outputTokens = countTextTokens(outputText);
         const inputTokens = 12000;
         const specialistCount = consolidatedAnalysis.specialistFindings?.length || 1;
         const model = 'gemini-2.5-flash';

@@ -4,10 +4,10 @@
  * Includes special handling for images, audio, and multimodal content
  */
 
-import { encoding_for_model } from 'js-tiktoken';
+import { encodingForModel } from 'js-tiktoken';
 
 // Cache encoding instance (expensive to create)
-let cachedEncoding: ReturnType<typeof encoding_for_model> | null = null;
+let cachedEncoding: ReturnType<typeof encodingForModel> | null = null;
 
 /**
  * Get cached encoding instance for Gemini-compatible tokenization
@@ -17,7 +17,7 @@ function getEncoding() {
   if (!cachedEncoding) {
     try {
       // cl100k_base is compatible with Gemini tokenization
-      cachedEncoding = encoding_for_model('gpt-3.5-turbo');
+      cachedEncoding = encodingForModel('gpt-3.5-turbo');
     } catch (error) {
       console.error('[Token Counter] Error loading encoding, falling back to estimation');
       return null;

@@ -12,7 +12,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { nutritionistAgent } from './nutritionist-agent';
 import { trackWellnessPlan } from '@/lib/usage-tracker';
-import { estimateTokens } from '@/lib/ai-pricing';
+import { countTextTokens } from '@/lib/token-counter';
 
 const GenerateWellnessPlanInputSchema = z.object({
     patientId: z.string().optional().describe("The patient ID for usage tracking."),
@@ -240,8 +240,8 @@ const generateWellnessPlanFlow = ai.defineFlow(
                 (nutritionistReport as any).clinicalAssessment || '',
                 nutritionistReport.recommendations || ''
             ].filter(Boolean).join('\n\n');
-            const nutritionistInputTokens = estimateTokens(nutritionistInputText);
-            const nutritionistOutputTokens = estimateTokens(nutritionistOutputText);
+            const nutritionistInputTokens = countTextTokens(nutritionistInputText);
+            const nutritionistOutputTokens = countTextTokens(nutritionistOutputText);
             trackWellnessPlan(input.patientId, nutritionistInputTokens, nutritionistOutputTokens, 'gemini-2.0-flash')
                 .catch(err => console.error('[Generate Wellness Plan] Nutritionist tracking error:', err));
         }
@@ -267,8 +267,8 @@ const generateWellnessPlanFlow = ai.defineFlow(
                         nutritionistReport.findings || '',
                         nutritionistReport.recommendations || ''
                     ].filter(Boolean).join('\n\n');
-                    const synthesisInputTokens = estimateTokens(synthesisInputText);
-                    const synthesisOutputTokens = estimateTokens(JSON.stringify(output || {}));
+                    const synthesisInputTokens = countTextTokens(synthesisInputText);
+                    const synthesisOutputTokens = countTextTokens(JSON.stringify(output || {}));
                     trackWellnessPlan(input.patientId, synthesisInputTokens, synthesisOutputTokens, 'gemini-2.0-flash')
                         .catch(err => console.error('[Generate Wellness Plan] Synthesis tracking error:', err));
                 }

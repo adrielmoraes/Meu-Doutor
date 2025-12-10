@@ -9,7 +9,7 @@ import { nutritionistAgent } from './nutritionist-agent';
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { trackWellnessPlan } from '@/lib/usage-tracker';
-import { estimateTokens } from '@/lib/ai-pricing';
+import { countTextTokens } from '@/lib/token-counter';
 
 const RecipeSchema = z.object({
     title: z.string().describe("Nome da receita"),
@@ -232,8 +232,8 @@ Histórico de Conversas: ${patient.conversationHistory || 'Nenhuma conversa regi
       (nutritionistAnalysis as any).clinicalAssessment || '',
       nutritionistAnalysis.recommendations || ''
     ].filter(Boolean).join('\n\n');
-    const nutritionistInputTokens = estimateTokens(nutritionistInputText);
-    const nutritionistOutputTokens = estimateTokens(nutritionistOutputText);
+    const nutritionistInputTokens = countTextTokens(nutritionistInputText);
+    const nutritionistOutputTokens = countTextTokens(nutritionistOutputText);
     trackWellnessPlan(patientId, nutritionistInputTokens, nutritionistOutputTokens, 'gemini-2.0-flash')
       .catch(err => console.error('[Wellness Plan Update] Nutritionist tracking error:', err));
 
@@ -257,8 +257,8 @@ ${nutritionistAnalysis.recommendations}
     
     // Track wellness plan synthesis LLM usage
     const synthesisInputText = [nutritionistReport, patientHistory].filter(Boolean).join('\n\n');
-    const synthesisInputTokens = estimateTokens(synthesisInputText);
-    const synthesisOutputTokens = estimateTokens(JSON.stringify(output || {}));
+    const synthesisInputTokens = countTextTokens(synthesisInputText);
+    const synthesisOutputTokens = countTextTokens(JSON.stringify(output || {}));
     trackWellnessPlan(patientId, synthesisInputTokens, synthesisOutputTokens, 'gemini-2.0-flash')
       .catch(err => console.error('[Wellness Plan Update] Synthesis tracking error:', err));
 
