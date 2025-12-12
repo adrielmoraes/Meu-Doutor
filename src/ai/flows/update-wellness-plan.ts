@@ -69,18 +69,25 @@ You received a detailed nutritionist's analysis of the patient's exam results.
 **Your task:** Create 6 sections:
 
 1. **Plano Alimentar (dietaryPlan):**
+   - **MANDATORY**: Cite specific values from the exams (e.g., "Seu colesterol total é X, então...").
    - Specific meal suggestions and timing
    - Foods to include/increase
    - Foods to avoid/limit
    - Portion guidance
    - Hydration recommendations
+   - **FORMATTING RULES**: 
+     - Use proper Markdown.
+     - ALWAYS put a blank line before **Bold Headers**.
+     - ALWAYS put a blank line before list items.
 
 2. **Plano de Exercícios (exercisePlan):**
+   - **MANDATORY**: Reference patient's physical conditions/exams (e.g., "Devido à condromalácia...").
    - Safe, appropriate exercises for their condition
    - Frequency and duration
    - Progression plan
    - Activities to avoid if relevant
    - Recovery recommendations
+   - **FORMATTING RULES**: Same as above. Blank lines before headers/lists.
 
 3. **Plano de Bem-Estar Mental (mentalWellnessPlan):**
    - Stress management techniques
@@ -88,6 +95,7 @@ You received a detailed nutritionist's analysis of the patient's exam results.
    - Mindfulness practices
    - Social connection recommendations
    - Work-life balance tips
+   - **FORMATTING RULES**: Same as above. Blank lines before headers/lists.
 
 4. **Lembretes Diários (dailyReminders):**
    - 3-4 simple, actionable daily reminders
@@ -170,6 +178,10 @@ You received a detailed nutritionist's analysis of the patient's exam results.
 - Make recommendations practical and achievable
 - Consider the patient's medical conditions
 - Focus on gradual, sustainable changes
+- **STRICT MARKDOWN RULES**:
+  - Never put list items on the same line as the header.
+  - Always add a blank line before starting a list.
+  - Always add a blank line before **Bold Text**.
 
 **Nutritionist Analysis:**
 {{nutritionistReport}}
@@ -177,7 +189,7 @@ You received a detailed nutritionist's analysis of the patient's exam results.
 **Patient History:**
 {{patientHistory}}
 
-Return ONLY valid JSON matching the schema. No markdown, no extra text.`,
+Return ONLY valid JSON matching the schema. No markdown in the JSON wrapper, no extra text.`,
 });
 
 export async function regeneratePatientWellnessPlan(patientId: string): Promise<void> {

@@ -104,7 +104,7 @@ export const AI_PRICING = {
       textInput: 0.50,          // $0.50 per 1M text input tokens
       textOutput: 12.00,        // $12.00 per 1M text output tokens
       audioVideoInput: 3.00,    // $3.00 per 1M audio/video input tokens
-      audioVideoOutput: 2.00,   // $2.00 per 1M audio/video output tokens
+      audioVideoOutput: 12.00,  // $12.00 per 1M audio/video output tokens
     },
     // Standard TTS Models
     'gemini-2.5-flash-preview-tts': {
@@ -120,21 +120,21 @@ export const AI_PRICING = {
       output: 20.00,            // $20.00 per 1M tokens
     },
   },
-  
+
   // Live API Native Audio (for real-time consultations with Gemini 2.5 Flash Native Audio)
   liveApiAudio: {
     // Gemini 2.5 Flash Native Audio (Live API)
     textInput: 0.50,           // $0.50 per 1M text input tokens
     textOutput: 12.00,         // $12.00 per 1M text output tokens
     audioVideoInput: 3.00,     // $3.00 per 1M audio/video input tokens
-    audioVideoOutput: 2.00,    // $2.00 per 1M audio/video output tokens
+    audioVideoOutput: 12.00,   // $12.00 per 1M audio/video output tokens
   },
 
   // Avatar Providers (per minute)
   avatars: {
     'beyondpresence': {
       name: 'BeyondPresence Avatar',
-      perMinute: 0.175, // $0.175/min
+      perMinute: 0.176, // $0.176/min
     },
     'tavus': {
       name: 'Tavus CVI',
@@ -161,7 +161,7 @@ export function calculateLLMCost(
   } = {}
 ): { inputCost: number; outputCost: number; totalCost: number } {
   const pricing = AI_PRICING.models[model as keyof typeof AI_PRICING.models];
-  
+
   if (!pricing) {
     console.warn(`[AI Pricing] Unknown model: ${model}, using gemini-2.5-flash pricing`);
     return calculateLLMCost('gemini-2.5-flash', inputTokens, outputTokens, options);
@@ -169,7 +169,7 @@ export function calculateLLMCost(
 
   const { contextLength = 0, hasAudioInput = false, hasThinking = false } = options;
   const isOver200k = contextLength > 200000;
-  
+
   let inputPrice: number;
   let outputPrice: number;
 
@@ -181,7 +181,7 @@ export function calculateLLMCost(
     } else {
       inputPrice = pricing.input.all;
     }
-    
+
     // Check if thinking output pricing is available
     if (hasThinking && 'withThinking' in pricing.output) {
       outputPrice = (pricing.output as { all: number; withThinking: number }).withThinking;
@@ -191,8 +191,8 @@ export function calculateLLMCost(
   } else {
     // For models with tiered pricing (Pro, etc)
     inputPrice = isOver200k ? pricing.input.over200k : pricing.input.upTo200k;
-    outputPrice = isOver200k 
-      ? (pricing.output as { upTo200k: number; over200k: number }).over200k 
+    outputPrice = isOver200k
+      ? (pricing.output as { upTo200k: number; over200k: number }).over200k
       : (pricing.output as { upTo200k: number; over200k: number }).upTo200k;
   }
 
@@ -214,18 +214,18 @@ export function calculateLiveApiAudioCost(
   textOutputTokens: number,
   audioVideoInputTokens: number = 0,
   audioVideoOutputTokens: number = 0
-): { 
-  textInputCost: number; 
-  textOutputCost: number; 
+): {
+  textInputCost: number;
+  textOutputCost: number;
   audioInputCost: number;
   audioOutputCost: number;
-  totalCost: number 
+  totalCost: number
 } {
   const textInputCost = (textInputTokens / 1_000_000) * AI_PRICING.liveApiAudio.textInput;
   const textOutputCost = (textOutputTokens / 1_000_000) * AI_PRICING.liveApiAudio.textOutput;
   const audioInputCost = (audioVideoInputTokens / 1_000_000) * AI_PRICING.liveApiAudio.audioVideoInput;
   const audioOutputCost = (audioVideoOutputTokens / 1_000_000) * AI_PRICING.liveApiAudio.audioVideoOutput;
-  
+
   return {
     textInputCost,
     textOutputCost,
@@ -241,7 +241,7 @@ export function calculateTTSCost(
   outputTokens: number
 ): number {
   const pricing = AI_PRICING.audioModels[model as keyof typeof AI_PRICING.audioModels];
-  
+
   if (!pricing) {
     // Default to flash TTS pricing
     return (outputTokens / 1_000_000) * 10.00;
@@ -254,7 +254,7 @@ export function calculateTTSCost(
     // Native audio model - use audio output pricing
     return (outputTokens / 1_000_000) * pricing.audioVideoOutput;
   }
-  
+
   // Fallback
   return (outputTokens / 1_000_000) * 10.00;
 }

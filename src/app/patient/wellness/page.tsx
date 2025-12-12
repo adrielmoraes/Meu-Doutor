@@ -285,7 +285,7 @@ export default async function WellnessPlanPage() {
                                 <h3 className={`font - semibold text - xl ${section.titleColor} `}>{section.title}</h3>
                             </div>
                             <WellnessMarkdownContent content={section.content} variant={section.section} />
-                            <WellnessAudioPlayback textToSpeak={section.content} section={section.section} preGeneratedAudioUri={section.audioUri} />
+                            <WellnessAudioPlayback textToSpeak={section.content} section={section.section} preGeneratedAudioUri={section.audioUri} patientId={patient.id} />
                         </div>
                     ))}
                 </div>

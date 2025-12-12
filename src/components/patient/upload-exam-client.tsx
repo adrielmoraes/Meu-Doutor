@@ -54,7 +54,7 @@ export default function UploadExamClient() {
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [limitInfo, setLimitInfo] = useState<any>(null);
   const [analysisPhase, setAnalysisPhase] = useState<'idle' | 'individual' | 'consolidating' | 'wellness'>('idle');
-  const [previewImage, setPreviewImage] = useState<{dataUri: string; name: string} | null>(null);
+  const [previewImage, setPreviewImage] = useState<{ dataUri: string; name: string } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -85,11 +85,11 @@ export default function UploadExamClient() {
       const reader = new FileReader();
       reader.onload = (e) => {
         const dataUri = e.target?.result as string;
-        setStagedFiles(prev => [...prev, { 
-          id: crypto.randomUUID(), 
-          file, 
-          dataUri, 
-          name: file.name, 
+        setStagedFiles(prev => [...prev, {
+          id: crypto.randomUUID(),
+          file,
+          dataUri,
+          name: file.name,
           type: 'file',
           status: 'pending'
         }]);
@@ -137,11 +137,11 @@ export default function UploadExamClient() {
       context?.drawImage(video, 0, 0, canvas.width, canvas.height);
       const dataUri = canvas.toDataURL('image/jpeg');
       const fileName = `captura_${new Date().toISOString()}.jpg`;
-      setStagedFiles(prev => [...prev, { 
-        id: crypto.randomUUID(), 
-        file: null, 
-        dataUri, 
-        name: fileName, 
+      setStagedFiles(prev => [...prev, {
+        id: crypto.randomUUID(),
+        file: null,
+        dataUri,
+        name: fileName,
         type: 'camera',
         status: 'pending'
       }]);
@@ -196,7 +196,7 @@ export default function UploadExamClient() {
 
     setIsAnalyzing(true);
     setAnalysisPhase('individual');
-    
+
     toast({
       title: "Iniciando Análise Sequencial",
       description: `Analisando ${stagedFiles.length} arquivo(s) um por vez...`,
@@ -213,8 +213,8 @@ export default function UploadExamClient() {
     for (let i = 0; i < stagedFiles.length; i++) {
       const file = stagedFiles[i];
       setCurrentFileIndex(i);
-      
-      setStagedFiles(prev => prev.map((f, idx) => 
+
+      setStagedFiles(prev => prev.map((f, idx) =>
         idx === i ? { ...f, status: 'analyzing' as FileStatus } : f
       ));
 
@@ -229,18 +229,18 @@ export default function UploadExamClient() {
         const result = await analyzeSingleExamAction(session.userId, {
           examDataUri: file.dataUri,
           fileName: file.name,
-        });
+        }, { skipWellnessUpdate: true }); // Skip intermediate updates, wait for consolidation
 
         if (result.success && result.examId && result.analysis) {
-          setStagedFiles(prev => prev.map((f, idx) => 
-            idx === i ? { 
-              ...f, 
-              status: 'completed' as FileStatus, 
+          setStagedFiles(prev => prev.map((f, idx) =>
+            idx === i ? {
+              ...f,
+              status: 'completed' as FileStatus,
               examId: result.examId,
-              analysis: result.analysis 
+              analysis: result.analysis
             } : f
           ));
-          
+
           results.push({
             fileName: file.name,
             examId: result.examId,
@@ -258,10 +258,10 @@ export default function UploadExamClient() {
         }
       } catch (error: any) {
         console.error(`Error analyzing file ${i}:`, error);
-        setStagedFiles(prev => prev.map((f, idx) => 
+        setStagedFiles(prev => prev.map((f, idx) =>
           idx === i ? { ...f, status: 'error' as FileStatus, error: error.message } : f
         ));
-        
+
         toast({
           variant: "destructive",
           title: `Erro no arquivo ${i + 1}`,
@@ -296,7 +296,7 @@ export default function UploadExamClient() {
 
       if (consolidationResult.success) {
         setAnalysisPhase('wellness');
-        
+
         toast({
           title: "Análise Consolidada!",
           description: "Gerando seu plano de bem-estar personalizado...",
@@ -311,7 +311,7 @@ export default function UploadExamClient() {
             duration: 3000,
             className: "bg-gradient-to-r from-green-100 to-emerald-100 border-green-400 shadow-xl animate-in zoom-in-95 text-green-900 font-semibold",
           });
-          
+
           setTimeout(() => {
             router.push(`/patient/history/${consolidationResult.primaryExamId}`);
             router.refresh();
@@ -328,7 +328,7 @@ export default function UploadExamClient() {
         description: "Análises individuais salvas, mas houve erro na consolidação.",
         duration: 5000,
       });
-      
+
       if (results.length > 0) {
         setTimeout(() => {
           router.push(`/patient/history/${results[0].examId}`);
@@ -343,8 +343,8 @@ export default function UploadExamClient() {
   };
 
   const completedCount = stagedFiles.filter(f => f.status === 'completed').length;
-  const overallProgress = stagedFiles.length > 0 
-    ? (completedCount / stagedFiles.length) * 100 
+  const overallProgress = stagedFiles.length > 0
+    ? (completedCount / stagedFiles.length) * 100
     : 0;
 
   return (
@@ -353,11 +353,11 @@ export default function UploadExamClient() {
         {showCamera && (
           <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center p-2 md:p-4">
             <div className="relative w-full h-full max-h-[85vh] flex items-center justify-center">
-              <video 
-                ref={videoRef} 
-                autoPlay 
-                playsInline 
-                className="w-full h-full max-h-[80vh] object-contain rounded-lg" 
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                className="w-full h-full max-h-[80vh] object-contain rounded-lg"
               />
             </div>
             <canvas ref={canvasRef} className="hidden" />
@@ -374,9 +374,9 @@ export default function UploadExamClient() {
         )}
 
         <div className="flex flex-col sm:flex-row gap-4">
-          <Button 
-            onClick={() => fileInputRef.current?.click()} 
-            className="flex-1 py-6 text-base sm:py-4" 
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex-1 py-6 text-base sm:py-4"
             size="lg"
             disabled={isAnalyzing}
           >
@@ -385,10 +385,10 @@ export default function UploadExamClient() {
           </Button>
           <input type="file" ref={fileInputRef} onChange={handleFileChange} multiple accept=".pdf,.jpg,.jpeg,.png" className="hidden" />
 
-          <Button 
-            onClick={startCamera} 
-            className="flex-1 py-6 text-base sm:py-4" 
-            size="lg" 
+          <Button
+            onClick={startCamera}
+            className="flex-1 py-6 text-base sm:py-4"
+            size="lg"
             variant="secondary"
             disabled={isAnalyzing}
           >
@@ -406,7 +406,7 @@ export default function UploadExamClient() {
               </span>
             )}
           </div>
-          
+
           {isAnalyzing && stagedFiles.length > 0 && (
             <div className="space-y-2">
               <Progress value={overallProgress} className="h-2" />
@@ -417,7 +417,7 @@ export default function UploadExamClient() {
               </p>
             </div>
           )}
-          
+
           {stagedFiles.length === 0 ? (
             <div className="text-center text-muted-foreground border-2 border-dashed rounded-lg p-8">
               Nenhum arquivo adicionado.
@@ -425,22 +425,21 @@ export default function UploadExamClient() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {stagedFiles.map((sf, index) => (
-                <Card 
-                  key={sf.id} 
-                  className={`relative group overflow-hidden transition-all duration-300 ${
-                    sf.status === 'analyzing' ? 'ring-2 ring-blue-500 ring-offset-2' :
-                    sf.status === 'completed' ? 'ring-2 ring-green-500 ring-offset-2' :
-                    sf.status === 'error' ? 'ring-2 ring-red-500 ring-offset-2' : ''
-                  }`}
+                <Card
+                  key={sf.id}
+                  className={`relative group overflow-hidden transition-all duration-300 ${sf.status === 'analyzing' ? 'ring-2 ring-blue-500 ring-offset-2' :
+                      sf.status === 'completed' ? 'ring-2 ring-green-500 ring-offset-2' :
+                        sf.status === 'error' ? 'ring-2 ring-red-500 ring-offset-2' : ''
+                    }`}
                 >
                   {sf.status === 'analyzing' && (
                     <>
                       <div className="absolute inset-0 z-[5] pointer-events-none">
-                        <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-80 blur-sm animate-scan" 
-                             style={{ 
-                               boxShadow: '0 0 20px 5px rgba(59, 130, 246, 0.5)',
-                               animation: 'scan 2s ease-in-out infinite'
-                             }} 
+                        <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-80 blur-sm animate-scan"
+                          style={{
+                            boxShadow: '0 0 20px 5px rgba(59, 130, 246, 0.5)',
+                            animation: 'scan 2s ease-in-out infinite'
+                          }}
                         />
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 via-transparent to-blue-500/10 z-[4] pointer-events-none animate-pulse" />
@@ -448,19 +447,18 @@ export default function UploadExamClient() {
                   )}
 
                   <div className="absolute top-1 right-1 z-10 flex gap-1">
-                    <div className={`p-1 rounded-full ${
-                      sf.status === 'pending' ? 'bg-gray-100' :
-                      sf.status === 'analyzing' ? 'bg-blue-100' :
-                      sf.status === 'completed' ? 'bg-green-100' :
-                      'bg-red-100'
-                    }`}>
+                    <div className={`p-1 rounded-full ${sf.status === 'pending' ? 'bg-gray-100' :
+                        sf.status === 'analyzing' ? 'bg-blue-100' :
+                          sf.status === 'completed' ? 'bg-green-100' :
+                            'bg-red-100'
+                      }`}>
                       {getStatusIcon(sf.status)}
                     </div>
                     {!isAnalyzing && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="destructive" size="icon" className="h-7 w-7 opacity-80 group-hover:opacity-100 transition-opacity">
-                            <X className="h-4 w-4"/>
+                            <X className="h-4 w-4" />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
@@ -478,18 +476,18 @@ export default function UploadExamClient() {
                       </AlertDialog>
                     )}
                   </div>
-                  
+
                   {sf.dataUri.startsWith('data:image') ? (
-                    <div 
+                    <div
                       className="cursor-pointer hover:opacity-90 transition-opacity"
                       onClick={() => setPreviewImage({ dataUri: sf.dataUri, name: sf.name })}
                     >
-                      <Image 
-                        src={sf.dataUri} 
-                        alt={sf.name} 
-                        width={400} 
-                        height={300} 
-                        className="w-full h-48 md:h-56 object-cover" 
+                      <Image
+                        src={sf.dataUri}
+                        alt={sf.name}
+                        width={400}
+                        height={300}
+                        className="w-full h-48 md:h-56 object-cover"
                       />
                       <div className="absolute bottom-12 left-0 right-0 text-center text-xs text-white bg-black/50 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         Clique para ampliar
@@ -500,15 +498,14 @@ export default function UploadExamClient() {
                       <FileText className="h-16 w-16 text-muted-foreground" />
                     </div>
                   )}
-                  
+
                   <div className="p-2 text-xs bg-card/80 space-y-1">
                     <p className="font-semibold truncate">{sf.name}</p>
-                    <p className={`text-xs font-medium ${
-                      sf.status === 'pending' ? 'text-gray-500' :
-                      sf.status === 'analyzing' ? 'text-blue-600' :
-                      sf.status === 'completed' ? 'text-green-600' :
-                      'text-red-600'
-                    }`}>
+                    <p className={`text-xs font-medium ${sf.status === 'pending' ? 'text-gray-500' :
+                        sf.status === 'analyzing' ? 'text-blue-600' :
+                          sf.status === 'completed' ? 'text-green-600' :
+                            'text-red-600'
+                      }`}>
                       {getStatusText(sf.status)}
                     </p>
                     {sf.error && (

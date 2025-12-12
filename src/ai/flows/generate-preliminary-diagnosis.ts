@@ -32,6 +32,11 @@ import { urologistAgent } from './urologist-agent';
 import { psychiatristAgent } from './psychiatrist-agent';
 import { rheumatologistAgent } from './rheumatologist-agent';
 import { nephrologistAgent } from './nephrologist-agent';
+import { oncologistAgent } from './oncologist-agent';
+import { hematologistAgent } from './hematologist-agent';
+import { infectologistAgent } from './infectologist-agent';
+import { geriatricianAgent } from './geriatrician-agent';
+import { angiologistAgent } from './angiologist-agent';
 
 // Define Schemas centrally
 const GeneratePreliminaryDiagnosisInputSchema = SpecialistAgentInputSchema;
@@ -107,6 +112,11 @@ const specialistAgents = {
   nutritionist: nutritionistAgent,
   rheumatologist: rheumatologistAgent,
   nephrologist: nephrologistAgent,
+  oncologist: oncologistAgent,
+  hematologist: hematologistAgent,
+  infectologist: infectologistAgent,
+  geriatrician: geriatricianAgent,
+  angiologist: angiologistAgent,
 } as const;
 
 type Specialist = keyof typeof specialistAgents;
@@ -182,6 +192,13 @@ DO NOT select specialists when:
 **Lifestyle & Special Populations:**
 - nutritionist: Diet, weight management, eating disorders, nutritional deficiencies
 - pediatrician: Children/adolescent-specific conditions (use ONLY if patient is <18 years old)
+- geriatrician: Elderly patients (>65y), frailty, falls risk, polypharmacy, cognitive decline
+
+**Complex & Systemic Conditions:**
+- oncologist: Cancer screening (PSA, CEA), suspicious nodules/masses (lung, breast, thyroid), weight loss + anemia
+- hematologist: Anemia, leukopenia/leukocytosis, platelet disorders, coagulation, enlarged lymph nodes
+- infectologist: Complex infections, HIV/Hepatitis/Syphilis, fever of unknown origin, multi-drug resistant organisms
+- angiologist: Varicose veins, deep vein thrombosis (DVT), peripheral artery disease (poor circulation), diabetic foot
 
 **📊 PATIENT DATA FOR ANALYSIS:**
 
@@ -211,7 +228,10 @@ Group abnormalities by system:
 - Musculoskeletal → orthopedist, rheumatologist
 - Dermatological → dermatologist
 - Reproductive → gynecologist, urologist
-- Mental/Behavioral → psychiatrist
+- Mental/Behavioral → psychiatrist, geriatrician (dementia)
+- Hematologic/Oncologic → hematologist, oncologist
+- Vascular/Circulatory → angiologist, cardiologist
+- Infectious/Systemic → infectologist
 
 **STEP 3 - APPLY EXCLUSION CRITERIA:**
 For each specialist, ask:

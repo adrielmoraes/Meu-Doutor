@@ -10,14 +10,16 @@ interface WellnessAudioPlaybackProps {
   textToSpeak: string;
   section: 'dietary' | 'exercise' | 'mental';
   preGeneratedAudioUri?: string | null;
+  patientId?: string;
 }
 
-const MAX_TTS_CHARS = 4000;
+const MAX_TTS_CHARS = 6000;
 
-const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({ 
-  textToSpeak, 
+const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
+  textToSpeak,
   section,
-  preGeneratedAudioUri 
+  preGeneratedAudioUri,
+  patientId
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -107,12 +109,12 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
 
     setIsGenerating(true);
     try {
-      const response = await textToSpeech({ text: textToSpeak });
+      const response = await textToSpeech({ text: textToSpeak, patientId });
       if (response?.audioDataUri) {
         audioRef.current.src = response.audioDataUri;
         setAudioLoaded(true);
         audioRef.current.play().catch(e => console.error("Audio play failed after generation:", e));
-        
+
         saveAudioToServer(response.audioDataUri);
       } else {
         throw new Error("A API de áudio não retornou dados.");

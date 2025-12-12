@@ -178,7 +178,8 @@ export type SingleExamAnalysisResult = {
 
 export async function analyzeSingleExamAction(
     patientId: string,
-    document: { examDataUri: string; fileName: string }
+    document: { examDataUri: string; fileName: string },
+    options?: { skipWellnessUpdate?: boolean }
 ): Promise<SingleExamAnalysisResult> {
     try {
         console.log(`[Analyze Single Exam] Starting analysis for: ${document.fileName}`);
@@ -227,6 +228,13 @@ export async function analyzeSingleExamAction(
         });
 
         console.log(`[Analyze Single Exam] ✅ Completed: ${document.fileName}, examId: ${examId}`);
+
+        // Automatically update wellness plan unless explicitly skipped
+        if (!options?.skipWellnessUpdate) {
+            regeneratePatientWellnessPlan(patientId).catch(error => {
+                console.error('[Analyze Single Exam] Failed to update wellness plan:', error);
+            });
+        }
 
         return { success: true, examId, analysis };
     } catch (error: any) {

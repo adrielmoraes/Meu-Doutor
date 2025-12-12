@@ -101,6 +101,10 @@ Essa estrutura separa os dados de perfil das credenciais de autenticação, o qu
 *   **Metas Rastreáveis:** O sistema cria metas de saúde mensuráveis (ex: "Reduzir Pressão Arterial") com barras de progresso.
 *   **Interação do Usuário:** O paciente pode registrar seu progresso clicando em um botão, o que atualiza visualmente a barra de progresso, criando um ciclo de engajamento.
 
+#### 6. **Automação Inteligente e Rastreamento de Custos**
+*   **Atualização Automática do Plano:** Sempre que um novo exame é analisado, o plano de bem-estar é automaticamente regenerado em segundo plano para incorporar as novas descobertas, garantindo que o paciente tenha sempre as recomendações mais atuais.
+*   **Auditoria de Custos em Tempo Real:** O sistema implementa um rastreamento rigoroso de custos para todas as interações de IA (Gemini Live, TTS, Vision). Cada token de entrada e saída (texto, áudio, vídeo) é contabilizado com precisão milimétrica, incluindo a cobrança por minuto do Avatar (Beyond Presence), garantindo transparência financeira total.
+
 ### Portal do Médico
 
 #### 1. **Painel de Controle Centralizado**
@@ -112,20 +116,33 @@ Essa estrutura separa os dados de perfil das credenciais de autenticação, o qu
 *   **Indicadores Visuais:** Ícones e cores destacam o status e a prioridade de cada paciente, permitindo uma rápida identificação visual.
 
 #### 3. **Fluxo de Validação de Diagnóstico com Múltiplos Especialistas**
-*   **Síntese da Equipe de IAs:** O médico visualiza um diagnóstico preliminar que não é gerado por uma única IA, mas sim pela colaboração de uma equipe de especialistas de IA.
-*   **Triagem Inteligente:** Um fluxo orquestrador (`generatePreliminaryDiagnosis`) primeiro realiza uma triagem para invocar apenas os agentes especialistas relevantes para o caso (ex: Cardiologista, Neurologista, Radiologista).
-*   **Pareceres Estruturados:** As descobertas de cada especialista são apresentadas de forma organizada e separada, permitindo que o médico humano entenda o raciocínio por trás da síntese final.
-*   **Edição e Validação:** O médico tem uma área de texto para editar as notas da IA, adicionar sua própria análise, diagnóstico final e prescrição.
-*   **Ações de Salvar e Validar:** Ao clicar em "Validar Diagnóstico", o caso é finalizado e isso dispara a geração automática do plano de bem-estar e da explicação simplificada para o paciente.
+*   **Síntese da Equipe de IAs:** O médico visualiza um diagnóstico preliminar gerado por uma "Junta Médica Virtual".
+*   **Triagem e Orquestração:** O fluxo (`generatePreliminaryDiagnosis`) invoca dinamicamente agentes especialistas (Cardiologista, Endocrinologista, etc.) com base nos achados do exame.
+*   **Consolidação de Exames:** Capacidade de analisar múltiplos exames simultaneamente e consolidar os achados em um único relatório coerente.
+*   **Pareceres Estruturados:** As descobertas de cada especialista são apresentadas isoladamente para revisão, antes da síntese final.
+*   **Edição e Validação:** O médico humano tem a palavra final, validando ou ajustando o diagnóstico e a prescrição.
 
 #### 4. **Agenda e Consultas com Base na Localização**
-*   **Listagem Inteligente:** Quando um paciente busca por médicos, o sistema primeiro mostra os profissionais disponíveis em sua cidade, facilitando a conexão local. Se não houver médicos locais, ele exibe profissionais de outras regiões.
-*   **Calendário Visual:** Uma página de agenda exibe as consultas marcadas em um calendário, permitindo ao médico gerenciar seu tempo.
-*   **Agendamento Flexível:** O paciente pode ver os horários disponíveis de um médico (o sistema verifica a disponibilidade no Firestore) e agendar uma nova consulta.
+*   **Listagem Inteligente:** Busca de médicos por geolocalização.
+*   **Calendário Visual:** Gestão intuitiva de horários e agendamentos.
+*   **Agendamento Flexível:** Pacientes podem visualizar e reservar horários livres em tempo real.
 
 #### 5. **Perfil do Médico com Gamificação**
-*   **Progressão de Carreira:** Médicos sobem de nível (de "Residente" a "Mestre em Diagnóstico") e ganham pontos de experiência (XP) a cada diagnóstico que validam.
-*   **Estatísticas e Conquistas:** Uma página de perfil mostra estatísticas de desempenho, como o total de validações, e exibe "badges" (conquistas) por marcos alcançados, incentivando o engajamento e a excelência.
+*   **Progressão de Carreira:** Sistema de níveis e XP baseado em validações realizadas.
+*   **Estatísticas e Conquistas:** Badges e métricas de desempenho para engajamento profissional.
+
+## 💰 Estrutura de Custos de IA (Validada)
+
+O sistema possui uma tabela de preços (`ai-pricing.ts`) auditada e alinhada com os valores oficiais do Google (Dez/2025):
+
+| Serviço | Detalhes | Custo Estimado |
+| :--- | :--- | :--- |
+| **Gemini Live (Áudio)** | Entrada (Ouvir) | $3.00 / 1M tokens |
+| **Gemini Live (Fala)** | Saída (Falar) | $12.00 / 1M tokens |
+| **Avatar (Beyond)** | Visual (Vídeo) | $0.176 / minuto |
+| **Análise de Exames** | Visão + Texto | Variável (por token) |
+
+*Nota: O sistema rastreia separadamente o tempo de conexão do avatar e o fluxo de dados do Gemini, garantindo cobrança justa.*
 
 ## 💰 Modelos de Negócio e Monetização
 

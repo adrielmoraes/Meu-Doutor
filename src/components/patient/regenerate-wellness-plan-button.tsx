@@ -20,21 +20,21 @@ export default function RegenerateWellnessPlanButton({ patientId, lastUpdated }:
 
   const canRegenerate = useMemo(() => {
     if (!lastUpdated) return true;
-    
+
     const lastUpdateDate = new Date(lastUpdated);
     const now = new Date();
     const daysSinceUpdate = Math.floor((now.getTime() - lastUpdateDate.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     return daysSinceUpdate >= 7;
   }, [lastUpdated]);
 
   const nextAvailableDate = useMemo(() => {
     if (!lastUpdated) return null;
-    
+
     const lastUpdateDate = new Date(lastUpdated);
     const nextDate = new Date(lastUpdateDate);
     nextDate.setDate(nextDate.getDate() + 7);
-    
+
     return nextDate.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: 'long',
@@ -55,7 +55,7 @@ export default function RegenerateWellnessPlanButton({ patientId, lastUpdated }:
     setIsRegenerating(true);
     try {
       const result = await regenerateWellnessPlanAction(patientId);
-      
+
       if (result.success) {
         toast({
           title: "Plano Atualizado!",
@@ -107,7 +107,7 @@ export default function RegenerateWellnessPlanButton({ patientId, lastUpdated }:
             <Button
               onClick={handleRegenerate}
               disabled={true}
-              className="bg-gradient-to-r from-slate-500 to-slate-600 text-white font-semibold shadow-lg shadow-slate-500/20 transition-all cursor-not-allowed"
+              className="h-9 text-xs px-3 sm:h-10 sm:text-sm sm:px-4 bg-gradient-to-r from-slate-500 to-slate-600 text-white font-semibold shadow-lg shadow-slate-500/20 transition-all cursor-not-allowed"
             >
               {buttonContent}
             </Button>
@@ -125,7 +125,7 @@ export default function RegenerateWellnessPlanButton({ patientId, lastUpdated }:
     <Button
       onClick={handleRegenerate}
       disabled={isRegenerating}
-      className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold shadow-lg shadow-cyan-500/20 transition-all"
+      className="h-9 text-xs px-3 sm:h-10 sm:text-sm sm:px-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold shadow-lg shadow-cyan-500/20 transition-all"
     >
       {buttonContent}
     </Button>
