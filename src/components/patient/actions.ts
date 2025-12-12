@@ -23,6 +23,7 @@ interface ExamAnalysisData {
         clinicalAssessment: string;
         recommendations: string;
     }>;
+    examDate?: string;
 }
 
 export async function saveExamAnalysisAction(patientId: string, analysisData: ExamAnalysisData): Promise<{ success: boolean; message: string; examId?: string; }> {
@@ -36,6 +37,7 @@ export async function saveExamAnalysisAction(patientId: string, analysisData: Ex
             suggestions: analysisData.suggestions,
             results: analysisData.structuredResults || [],
             specialistFindings: analysisData.specialistFindings || [],
+            date: analysisData.examDate ? new Date(analysisData.examDate) : undefined,
         });
 
         // Calculate token estimates based on output text
@@ -45,15 +47,15 @@ export async function saveExamAnalysisAction(patientId: string, analysisData: Ex
             analysisData.preliminaryDiagnosis,
             analysisData.explanation,
             analysisData.suggestions,
-            ...(analysisData.specialistFindings || []).map(f => 
+            ...(analysisData.specialistFindings || []).map(f =>
                 `${f.specialist}: ${f.findings} ${f.clinicalAssessment} ${f.recommendations}`
             ),
         ].join(' ');
-        
+
         const outputTokens = countTextTokens(outputText);
         const inputTokens = 15000; // Estimated based on context + documents + specialist prompts
         const specialistCount = analysisData.specialistFindings?.length || 1;
-        
+
         // Calculate cost
         const model = 'gemini-2.5-flash';
         const { totalCost } = calculateLLMCost(model, inputTokens, outputTokens);
@@ -104,7 +106,7 @@ export async function saveExamAnalysisAction(patientId: string, analysisData: Ex
     }
 }
 
-export async function saveConversationHistoryAction(patientId: string, history: {role: 'user' | 'model', content: string}[]) {
+export async function saveConversationHistoryAction(patientId: string, history: { role: 'user' | 'model', content: string }[]) {
     try {
         const conversationText = history.map(msg => `${msg.role}: ${msg.content}`).join('\n');
         await updatePatient(patientId, {
@@ -180,9 +182,9 @@ export async function analyzeSingleExamAction(
 ): Promise<SingleExamAnalysisResult> {
     try {
         console.log(`[Analyze Single Exam] Starting analysis for: ${document.fileName}`);
-        
+
         const analysis = await analyzeSingleExam(document);
-        
+
         const examId = await addExamToPatient(patientId, {
             type: document.fileName,
             result: analysis.examResultsSummary.substring(0, 200) + '...',
@@ -192,13 +194,14 @@ export async function analyzeSingleExamAction(
             suggestions: 'A ser gerado após análise completa.',
             results: analysis.structuredResults || [],
             specialistFindings: [],
+            date: analysis.examDate ? new Date(analysis.examDate) : undefined, // Use extracted date if available
         });
 
         const outputText = [
             analysis.examResultsSummary,
             analysis.patientExplanation,
         ].join(' ');
-        
+
         const outputTokens = countTextTokens(outputText);
         const inputTokens = 3000;
         const model = 'gemini-2.5-flash';
@@ -224,7 +227,7 @@ export async function analyzeSingleExamAction(
         });
 
         console.log(`[Analyze Single Exam] ✅ Completed: ${document.fileName}, examId: ${examId}`);
-        
+
         return { success: true, examId, analysis };
     } catch (error: any) {
         console.error(`[Analyze Single Exam] ❌ Failed: ${document.fileName}`, error);
@@ -248,11 +251,11 @@ export async function consolidateExamsAction(
 ): Promise<ConsolidationResult> {
     try {
         console.log(`[Consolidate Exams] Consolidating ${examResults.length} exam(s)...`);
-        
+
         const consolidatedAnalysis = await consolidateExamsAnalysis(examResults);
-        
+
         const primaryExamId = consolidatedAnalysis.examIds[0];
-        
+
         for (const examId of consolidatedAnalysis.examIds) {
             await updateExam(patientId, examId, {
                 preliminaryDiagnosis: consolidatedAnalysis.preliminaryDiagnosis,
@@ -266,11 +269,11 @@ export async function consolidateExamsAction(
             consolidatedAnalysis.preliminaryDiagnosis,
             consolidatedAnalysis.explanation,
             consolidatedAnalysis.suggestions,
-            ...(consolidatedAnalysis.specialistFindings || []).map(f => 
+            ...(consolidatedAnalysis.specialistFindings || []).map(f =>
                 `${f.specialist}: ${f.findings} ${f.clinicalAssessment} ${f.recommendations}`
             ),
         ].join(' ');
-        
+
         const outputTokens = countTextTokens(outputText);
         const specialistCount = consolidatedAnalysis.specialistFindings?.length || 1;
         const triageTokens = 1700;
@@ -308,10 +311,10 @@ export async function consolidateExamsAction(
         revalidatePath('/patient/history');
         revalidatePath('/patient/wellness');
 
-        return { 
-            success: true, 
-            message: 'Análise consolidada com sucesso!', 
-            primaryExamId 
+        return {
+            success: true,
+            message: 'Análise consolidada com sucesso!',
+            primaryExamId
         };
     } catch (error: any) {
         console.error('[Consolidate Exams] ❌ Failed:', error);

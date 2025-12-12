@@ -7,26 +7,26 @@
  * - GeneratePreliminaryDiagnosisOutput - Output type for the function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 import { countTextTokens } from '@/lib/token-counter';
 import {
   SpecialistAgentInputSchema,
   SpecialistAgentOutputSchema,
   type SpecialistAgentInput,
 } from './specialist-agent-types';
-import {cardiologistAgent} from './cardiologist-agent';
-import {pulmonologistAgent} from './pulmonologist-agent';
-import {radiologistAgent} from './radiologist-agent';
-import {neurologistAgent} from './neurologist-agent';
-import {gastroenterologistAgent} from './gastroenterologist-agent';
-import {endocrinologistAgent} from './endocrinologist-agent';
-import {dermatologistAgent} from './dermatologist-agent';
-import {orthopedistAgent} from './orthopedist-agent';
-import {ophthalmologistAgent} from './ophthalmologist-agent';
-import {otolaryngologistAgent} from './otolaryngologist-agent';
-import {nutritionistAgent} from './nutritionist-agent';
-import {pediatricianAgent} from './pediatrician-agent';
+import { cardiologistAgent } from './cardiologist-agent';
+import { pulmonologistAgent } from './pulmonologist-agent';
+import { radiologistAgent } from './radiologist-agent';
+import { neurologistAgent } from './neurologist-agent';
+import { gastroenterologistAgent } from './gastroenterologist-agent';
+import { endocrinologistAgent } from './endocrinologist-agent';
+import { dermatologistAgent } from './dermatologist-agent';
+import { orthopedistAgent } from './orthopedist-agent';
+import { ophthalmologistAgent } from './ophthalmologist-agent';
+import { otolaryngologistAgent } from './otolaryngologist-agent';
+import { nutritionistAgent } from './nutritionist-agent';
+import { pediatricianAgent } from './pediatrician-agent';
 import { gynecologistAgent } from './gynecologist-agent';
 import { urologistAgent } from './urologist-agent';
 import { psychiatristAgent } from './psychiatrist-agent';
@@ -113,7 +113,8 @@ type Specialist = keyof typeof specialistAgents;
 
 const triagePrompt = ai.definePrompt({
   name: 'specialistTriagePrompt',
-  input: {schema: GeneratePreliminaryDiagnosisInputSchema},
+  model: 'googleai/gemini-2.5-flash-lite',
+  input: { schema: GeneratePreliminaryDiagnosisInputSchema },
   output: {
     schema: z.object({
       specialists: z
@@ -254,6 +255,7 @@ You are the gatekeeper of efficient, high-value medical care. Every specialist y
 
 const synthesisPrompt = ai.definePrompt({
   name: 'diagnosisSynthesisPrompt',
+  model: 'googleai/gemini-2.5-flash-lite',
   input: {
     schema: z.object({
       patientHistory: z.string(),
@@ -294,7 +296,7 @@ const synthesisPrompt = ai.definePrompt({
       ),
     }),
   },
-  output: {schema: z.object({ synthesis: z.string(), suggestions: z.string() })},
+  output: { schema: z.object({ synthesis: z.string(), suggestions: z.string() }) },
   prompt: `You are Dr. Márcio Silva, an experienced General Practitioner AI and Medical Coordinator with 20+ years synthesizing multi-specialty consultations into comprehensive, actionable clinical assessments.
 
 **Your Mission:**
@@ -533,14 +535,14 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     console.log(`\n╔════════════════════════════════════════════════════════╗`);
     console.log(`║  🏥 SISTEMA DE ANÁLISE MULTI-ESPECIALISTA INICIADO   ║`);
     console.log(`╚════════════════════════════════════════════════════════╝\n`);
-    
+
     // Step 1: Triage to decide which specialists to call.
     console.log(`[Triagem] 🎯 Analisando dados do exame para selecionar especialistas...`);
     console.log(`[Triagem] Dados do exame: ${input.examResults.substring(0, 200)}...`);
-    
+
     const triageResult = await triagePrompt(input);
     const specialistsToCall = triageResult.output?.specialists || [];
-    
+
     console.log(`\n[Triagem] ✅ Triagem concluída`);
     console.log(`[Triagem] Raciocínio: ${triageResult.output?.reasoning || 'N/A'}`);
     console.log(`[Triagem] Especialistas selecionados: ${specialistsToCall.length}`);
@@ -559,47 +561,47 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     console.log(`[Orchestrator] Total de especialistas selecionados: ${specialistsToCall.length}`);
     console.log(`[Orchestrator] Especialistas: ${specialistsToCall.join(', ')}`);
     console.log(`========================================\n`);
-    
+
     const specialistPromises = specialistsToCall.map(async (specialistKey, index) => {
       const agent = specialistAgents[specialistKey];
       const specialistName = specialistKey.charAt(0).toUpperCase() + specialistKey.slice(1);
-      
+
       console.log(`\n--- [Especialista ${index + 1}/${specialistsToCall.length}] ---`);
       console.log(`[${specialistName}] 🩺 Iniciando análise...`);
       console.log(`[${specialistName}] 📊 Dados do exame recebidos: ${input.examResults.substring(0, 150)}...`);
-      
+
       const startTime = Date.now();
-      
+
       try {
         // Chama o especialista
         console.log(`[${specialistName}] 🧠 Processando análise especializada...`);
         const report = await agent(input);
-        
+
         const analysisTime = ((Date.now() - startTime) / 1000).toFixed(2);
         console.log(`[${specialistName}] ⏱️ Análise concluída em ${analysisTime}s`);
-        
+
         // Log dos achados principais
         console.log(`[${specialistName}] 📋 Achados principais:`);
         console.log(`  - Gravidade: ${report.clinicalAssessment}`);
         console.log(`  - Achados: ${report.findings.substring(0, 200)}...`);
-        
+
         if (report.suggestedMedications && report.suggestedMedications.length > 0) {
           console.log(`  - Medicamentos sugeridos: ${report.suggestedMedications.length}`);
           report.suggestedMedications.forEach((med, i) => {
             console.log(`    ${i + 1}. ${med.medication} - ${med.dosage}`);
           });
         }
-        
+
         if (report.relevantMetrics && report.relevantMetrics.length > 0) {
           console.log(`  - Métricas relevantes: ${report.relevantMetrics.length}`);
           report.relevantMetrics.forEach((metric, i) => {
             console.log(`    ${i + 1}. ${metric.metric}: ${metric.value} (${metric.status})`);
           });
         }
-        
+
         // VALIDAÇÃO: Envia resposta para o agente validador
         console.log(`[${specialistName}] 🔍 Enviando para validação...`);
-        const {validateSpecialistResponse} = await import('./validator-agent');
+        const { validateSpecialistResponse } = await import('./validator-agent');
         const validationResult = await validateSpecialistResponse(
           specialistName,
           input,
@@ -611,7 +613,7 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
           console.error(`[${specialistName}] ❌ FALHA NA VALIDAÇÃO`);
           console.error(`[${specialistName}] Motivo: ${validationResult.error}`);
           console.error(`[${specialistName}] A análise será incluída com marcação de aviso`);
-          
+
           // Ainda inclui o relatório, mas marca como não validado
           return {
             specialist: specialistKey,
@@ -629,7 +631,7 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
         console.log(`[${specialistName}] ✅ VALIDAÇÃO APROVADA`);
         console.log(`[${specialistName}] Status: Análise completa e validada`);
         console.log(`--- [Fim ${specialistName}] ---\n`);
-        
+
         return {
           specialist: specialistKey,
           findings: validationResult.response.findings,
@@ -648,16 +650,16 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     });
 
     const specialistReports = await Promise.all(specialistPromises);
-    
+
     console.log(`\n========================================`);
     console.log(`[Orchestrator] ✅ ANÁLISE MULTI-ESPECIALISTA CONCLUÍDA`);
     console.log(`[Orchestrator] Total de relatórios coletados: ${specialistReports.length}`);
     console.log(`========================================\n`);
-    
+
     // Step 3: Synthesize the reports into a final diagnosis.
     console.log(`\n[Síntese] 📊 Iniciando integração de todos os relatórios...`);
     console.log(`[Síntese] Consolidando ${specialistReports.length} relatórios especializados`);
-    
+
     const synthesisResult = await synthesisPrompt({
       ...input,
       specialistReports,
@@ -666,7 +668,7 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     console.log(`[Síntese] ✅ Síntese concluída`);
     console.log(`[Síntese] Diagnóstico preliminar: ${synthesisResult.output!.synthesis.substring(0, 150)}...`);
     console.log(`[Síntese] Sugestões geradas: ${synthesisResult.output!.suggestions.substring(0, 150)}...`);
-    
+
     // Token accounting for multi-specialist analysis
     // Each specialist prompt uses ~2000-3000 input tokens + ~1500 output tokens
     // Triage prompt: ~1500 input, ~200 output
@@ -674,34 +676,34 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     const specialistCount = specialistReports.length;
     const triageInputTokens = countTextTokens(input.examResults + (input.patientHistory || ''));
     const triageOutputTokens = 200; // Approximate
-    
+
     // Estimate tokens per specialist (conservative estimate)
     const tokensPerSpecialist = 4500; // ~3000 input + ~1500 output per specialist
     const specialistTokens = specialistCount * tokensPerSpecialist;
-    
+
     // Synthesis tokens
     const synthesisInputTokens = countTextTokens(JSON.stringify(specialistReports));
     const synthesisOutputTokens = countTextTokens(synthesisResult.output!.synthesis + synthesisResult.output!.suggestions);
-    
+
     const totalInputTokens = triageInputTokens + (specialistCount * 3000) + synthesisInputTokens;
     const totalOutputTokens = triageOutputTokens + (specialistCount * 1500) + synthesisOutputTokens;
     const totalTokens = totalInputTokens + totalOutputTokens;
-    
+
     console.log(`[📊 Token Accounting] Multi-Specialist Analysis:`);
     console.log(`  - Specialists consulted: ${specialistCount}`);
     console.log(`  - Triage: ${triageInputTokens} input + ${triageOutputTokens} output`);
     console.log(`  - Specialists: ~${specialistTokens} tokens total`);
     console.log(`  - Synthesis: ${synthesisInputTokens} input + ${synthesisOutputTokens} output`);
     console.log(`  - TOTAL: ${totalTokens} tokens (~${totalInputTokens} in, ~${totalOutputTokens} out)`);
-    
+
     console.log(`\n╔════════════════════════════════════════════════════════╗`);
     console.log(`║  ✅ ANÁLISE MULTI-ESPECIALISTA FINALIZADA COM SUCESSO ║`);
     console.log(`╚════════════════════════════════════════════════════════╝\n`);
 
     return {
-        synthesis: synthesisResult.output!.synthesis,
-        suggestions: synthesisResult.output!.suggestions,
-        structuredFindings: specialistReports,
+      synthesis: synthesisResult.output!.synthesis,
+      suggestions: synthesisResult.output!.suggestions,
+      structuredFindings: specialistReports,
     };
   }
 );

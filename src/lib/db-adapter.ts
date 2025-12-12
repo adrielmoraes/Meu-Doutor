@@ -254,14 +254,16 @@ export async function getExamById(patientId: string, examId: string): Promise<Ex
 
 export async function addExamToPatient(
   patientId: string,
-  examData: Omit<Exam, 'id' | 'date' | 'status' | 'patientId'>
+  examData: Omit<Exam, 'id' | 'date' | 'status' | 'patientId'> & { date?: string | Date }
 ): Promise<string> {
   const id = randomUUID();
   const examRecord = {
     ...examData,
     id,
     patientId,
-    date: new Date().toISOString(),
+    date: examData.date
+      ? (examData.date instanceof Date ? examData.date.toISOString() : examData.date)
+      : new Date().toISOString(),
     status: 'Requer Validação' as const,
   };
 
@@ -318,9 +320,9 @@ export async function updatePatientWellnessPlan(
     lastUpdated: string;
   }
 ): Promise<void> {
-  await db.update(patients).set({ 
-    wellnessPlan, 
-    updatedAt: new Date() 
+  await db.update(patients).set({
+    wellnessPlan,
+    updatedAt: new Date()
   }).where(eq(patients.id, patientId));
 }
 
@@ -716,7 +718,7 @@ import {
 } from './ai-pricing';
 import { countTextTokens } from './token-counter';
 
-export type UsageType = 
+export type UsageType =
   | 'exam_analysis'
   | 'stt'
   | 'llm'
@@ -750,24 +752,24 @@ export async function trackUsage(usageData: {
   // Estimate tokens if text provided but not token counts
   let inputTokens = usageData.inputTokens || 0;
   let outputTokens = usageData.outputTokens || 0;
-  
+
   if (usageData.inputText && !usageData.inputTokens) {
     inputTokens = countTextTokens(usageData.inputText);
   }
   if (usageData.outputText && !usageData.outputTokens) {
     outputTokens = countTextTokens(usageData.outputText);
   }
-  
+
   const totalTokens = inputTokens + outputTokens + (usageData.tokensUsed || 0);
-  
+
   // Calculate cost if not provided
   let costCents = usageData.cost || 0;
   let resourceName = usageData.resourceName || '';
   const model = usageData.model || 'gemini-2.5-flash';
-  
+
   if (!usageData.cost && (inputTokens > 0 || outputTokens > 0 || usageData.durationSeconds)) {
     let costUSD = 0;
-    
+
     switch (usageData.usageType) {
       case 'chat':
       case 'exam_analysis':
@@ -780,17 +782,17 @@ export async function trackUsage(usageData: {
         costUSD = llmCost.totalCost;
         resourceName = resourceName || AI_PRICING.models[model as keyof typeof AI_PRICING.models]?.name || model;
         break;
-        
+
       case 'tts':
         costUSD = calculateTTSCost(model, outputTokens);
         resourceName = resourceName || 'Gemini TTS';
         break;
-        
+
       case 'stt':
         costUSD = (usageData.durationSeconds || 0) / 60 * 0.006;
         resourceName = resourceName || 'Gemini STT';
         break;
-        
+
       case 'ai_call':
       case 'live_consultation':
         const avatarProvider = usageData.metadata?.avatarProvider as 'beyondpresence' | 'tavus' || 'beyondpresence';
@@ -799,19 +801,19 @@ export async function trackUsage(usageData: {
         costUSD = llmLiveCost.totalCost + avatarCost;
         resourceName = resourceName || `Live Consultation (${AI_PRICING.avatars[avatarProvider].name})`;
         break;
-        
+
       case 'avatar':
         const provider = usageData.metadata?.avatarProvider as 'beyondpresence' | 'tavus' || 'beyondpresence';
         costUSD = calculateAvatarCost(provider, (usageData.durationSeconds || 0) / 60);
         resourceName = resourceName || AI_PRICING.avatars[provider].name;
         break;
-        
+
       case 'doctor_call':
         costUSD = calculateLiveKitCost((usageData.durationSeconds || 0) / 60, true);
         resourceName = resourceName || 'LiveKit Video Call';
         break;
     }
-    
+
     costCents = usdToBRLCents(costUSD);
   }
 
@@ -831,7 +833,7 @@ export async function trackUsage(usageData: {
       ...usageData.metadata,
     },
   });
-  
+
   console.log(`[Usage Tracker] ${usageData.usageType}: ${resourceName}, tokens: ${totalTokens}, cost: R$${(costCents / 100).toFixed(4)}`);
 }
 

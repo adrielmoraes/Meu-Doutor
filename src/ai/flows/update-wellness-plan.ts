@@ -11,6 +11,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { trackWellnessPlan } from '@/lib/usage-tracker';
 import { countTextTokens } from '@/lib/token-counter';
+import { generateWithFallback } from '@/lib/ai-resilience';
 
 const RecipeSchema = z.object({
   title: z.string().describe("Nome da receita"),
@@ -264,9 +265,12 @@ ${nutritionistAnalysis.clinicalAssessment}
 ${nutritionistAnalysis.recommendations}
     `.trim();
 
-    const { output } = await wellnessPlanSynthesisPrompt({
-      nutritionistReport,
-      patientHistory,
+    const { output } = await generateWithFallback({
+      prompt: wellnessPlanSynthesisPrompt,
+      input: {
+        nutritionistReport,
+        patientHistory,
+      }
     });
 
     // Track wellness plan synthesis LLM usage

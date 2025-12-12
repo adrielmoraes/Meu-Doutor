@@ -7,11 +7,12 @@
  * Optimized for Vercel serverless environment with sequential document processing.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 import { generatePreliminaryDiagnosis } from './generate-preliminary-diagnosis';
 import { estimateImageTokens, countTextTokens } from '@/lib/token-counter';
 import { trackExamDocumentAnalysis } from '@/lib/usage-tracker';
+import { generateWithFallback } from '@/lib/ai-resilience';
 
 const DocumentInputSchema = z.object({
   examDataUri: z
@@ -19,7 +20,7 @@ const DocumentInputSchema = z.object({
     .describe(
       "A medical exam document (PDF, JPG, PNG) as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
-    fileName: z.string().describe("The original file name of the document.")
+  fileName: z.string().describe("The original file name of the document.")
 });
 
 const AnalyzeMedicalExamInputSchema = z.object({
@@ -28,9 +29,9 @@ const AnalyzeMedicalExamInputSchema = z.object({
 export type AnalyzeMedicalExamInput = z.infer<typeof AnalyzeMedicalExamInputSchema>;
 
 const StructuredResultSchema = z.object({
-    name: z.string().describe("The name of the test or measurement (e.g., 'Troponina I', 'Colesterol HDL')."),
-    value: z.string().describe("The measured value (e.g., '0.8 ng/mL', '150 mg/dL')."),
-    reference: z.string().describe("The reference range for the test (e.g., '< 0.4 ng/mL', '40-60 mg/dL')."),
+  name: z.string().describe("The name of the test or measurement (e.g., 'Troponina I', 'Colesterol HDL')."),
+  value: z.string().describe("The measured value (e.g., '0.8 ng/mL', '150 mg/dL')."),
+  reference: z.string().describe("The reference range for the test (e.g., '< 0.4 ng/mL', '40-60 mg/dL')."),
 });
 
 const AnalyzeMedicalExamOutputSchema = z.object({
@@ -44,6 +45,7 @@ const AnalyzeMedicalExamOutputSchema = z.object({
     clinicalAssessment: z.string(),
     recommendations: z.string(),
   })).optional().describe("Detailed findings from specialist consultations, if applicable."),
+  examDate: z.string().optional().describe("The date the exam was performed, extracted from the document."),
 });
 export type AnalyzeMedicalExamOutput = z.infer<typeof AnalyzeMedicalExamOutputSchema>;
 
@@ -51,6 +53,7 @@ const SingleDocumentResultSchema = z.object({
   examResultsSummary: z.string().describe("A comprehensive summary of the exam results in medical terminology."),
   structuredResults: z.array(StructuredResultSchema).optional().describe("Structured lab results, if available."),
   patientExplanation: z.string().describe("A simple, empathetic explanation for the patient (Brazilian Portuguese)."),
+  examDate: z.string().optional().describe("The date the exam was performed (not the current date), if found in the document. Use YYYY-MM-DD format if possible, or DD/MM/YYYY."),
 });
 
 export async function analyzeMedicalExam(input: AnalyzeMedicalExamInput): Promise<AnalyzeMedicalExamOutput> {
@@ -60,7 +63,8 @@ export async function analyzeMedicalExam(input: AnalyzeMedicalExamInput): Promis
 // Prompt for analyzing a SINGLE document (optimized for Vercel serverless)
 const singleDocumentAnalysisPrompt = ai.definePrompt({
   name: 'singleDocumentAnalysisPrompt',
-  input: {schema: DocumentInputSchema},
+  model: 'googleai/gemini-2.5-flash-lite',
+  input: { schema: DocumentInputSchema },
   output: {
     schema: SingleDocumentResultSchema,
   },
@@ -69,9 +73,11 @@ const singleDocumentAnalysisPrompt = ai.definePrompt({
 1. **Extract and Summarize**: Review the medical document and create a comprehensive medical summary of the findings.
 2. **Structure Lab Results**: If the document contains lab results (blood tests, etc.), extract them into structured format.
 3. **Patient Explanation**: Write a simple, empathetic explanation of the findings for a non-medical patient in Brazilian Portuguese.
+4. **Extract Date**: Find the date when the exam was actually performed/collected.
 
 **CRITICAL INSTRUCTIONS:**
 - Be thorough in extracting all medical findings
+- **EXTRACT EXAM DATE**: Look for "Data da Coleta", "Data do Exame", or similar. Do NOT use the print date if different.
 - Use proper medical terminology in the summary
 - Make the patient explanation warm, simple, and reassuring
 - Use analogies and avoid medical jargon in the patient explanation
@@ -88,6 +94,7 @@ Return ONLY a bare JSON object with the exact fields specified. NO markdown fenc
 // Prompt for combining multiple document summaries into a unified analysis
 const combineDocumentSummariesPrompt = ai.definePrompt({
   name: 'combineDocumentSummariesPrompt',
+  model: 'googleai/gemini-2.5-flash-lite',
   input: {
     schema: z.object({
       summaries: z.array(z.object({
@@ -134,60 +141,72 @@ const analyzeMedicalExamFlow = ai.defineFlow(
   async input => {
     console.log('[🏥 Multi-Specialist Analysis] Starting comprehensive exam analysis...');
     console.log(`[📄 Document Analysis] Processing ${input.documents.length} document(s)...`);
-    
+
     let examResultsSummary: string;
     let patientExplanation: string;
     let allStructuredResults: z.infer<typeof StructuredResultSchema>[] = [];
-    
+
     // STEP 1: Process documents - sequential for Vercel compatibility
     if (input.documents.length === 1) {
       // Single document - direct analysis
       console.log('[📄 Document Analysis] Single document mode - direct analysis...');
-      const {output: docAnalysis} = await singleDocumentAnalysisPrompt(input.documents[0]);
-      
+      const { output: docAnalysis } = await generateWithFallback({
+        prompt: singleDocumentAnalysisPrompt,
+        input: input.documents[0]
+      });
+
       if (!docAnalysis) {
         throw new Error("Failed to analyze document");
       }
-      
+
       examResultsSummary = docAnalysis.examResultsSummary;
       patientExplanation = docAnalysis.patientExplanation;
       allStructuredResults = docAnalysis.structuredResults || [];
-      
+      extractedExamDate = docAnalysis.examDate;
+
       // TRACK TOKEN USAGE: Count image tokens
       const imageTokens = estimateImageTokens(2048, 1536, 'high'); // Avg medical image size
       const textTokens = countTextTokens(examResultsSummary + patientExplanation);
       console.log(`[📊 Token Accounting] Image: ${imageTokens} tokens, Text: ${textTokens} tokens, Total: ${imageTokens + textTokens} tokens`);
-      
+
     } else {
       // Multiple documents - process SEQUENTIALLY to avoid Vercel timeouts
       console.log('[📄 Document Analysis] Multiple documents mode - sequential processing for production compatibility...');
-      
+
       const documentSummaries: Array<{
         fileName: string;
         examResultsSummary: string;
         patientExplanation: string;
       }> = [];
-      
+
       // Process each document one at a time
       for (let i = 0; i < input.documents.length; i++) {
         const doc = input.documents[i];
         console.log(`[📄 Document Analysis] Processing document ${i + 1}/${input.documents.length}: ${doc.fileName}...`);
-        
+
         try {
-          const {output: docResult} = await singleDocumentAnalysisPrompt(doc);
-          
+          const { output: docResult } = await generateWithFallback({
+            prompt: singleDocumentAnalysisPrompt,
+            input: doc
+          });
+
           if (docResult) {
             documentSummaries.push({
               fileName: doc.fileName,
               examResultsSummary: docResult.examResultsSummary,
               patientExplanation: docResult.patientExplanation,
             });
-            
+
             // Collect structured results from each document
             if (docResult.structuredResults) {
               allStructuredResults = [...allStructuredResults, ...docResult.structuredResults];
             }
-            
+
+            // Capture date from the first document that has one
+            if (!extractedExamDate && docResult.examDate) {
+              extractedExamDate = docResult.examDate;
+            }
+
             console.log(`[📄 Document Analysis] ✅ Document ${i + 1} processed successfully`);
           } else {
             console.warn(`[📄 Document Analysis] ⚠️ Document ${i + 1} returned no output, skipping...`);
@@ -197,56 +216,60 @@ const analyzeMedicalExamFlow = ai.defineFlow(
           // Continue with other documents instead of failing completely
         }
       }
-      
+
       if (documentSummaries.length === 0) {
         throw new Error("Failed to analyze any documents");
       }
-      
+
       // Combine all summaries into unified analysis
       console.log('[📄 Document Analysis] Combining summaries from all documents...');
-      const {output: combinedAnalysis} = await combineDocumentSummariesPrompt({
-        summaries: documentSummaries,
+      const { output: combinedAnalysis } = await generateWithFallback({
+        prompt: combineDocumentSummariesPrompt,
+        input: {
+          summaries: documentSummaries,
+        }
       });
-      
+
       if (!combinedAnalysis) {
         throw new Error("Failed to combine document analyses");
       }
-      
+
       examResultsSummary = combinedAnalysis.examResultsSummary;
       patientExplanation = combinedAnalysis.patientExplanation;
     }
-    
+
     console.log('[📄 Document Analysis] ✅ All documents processed successfully');
-    
+
     // STEP 2: Call multi-specialist system for comprehensive diagnosis
     console.log('[🩺 Specialist Team] Activating multi-specialist diagnostic system...');
     console.log('[🩺 Specialist Team] Exam Summary:', examResultsSummary.substring(0, 200) + '...');
-    
+
     const specialistAnalysis = await generatePreliminaryDiagnosis({
       examResults: examResultsSummary,
       patientHistory: "Histórico não disponível nesta análise inicial.",
     });
-    
+
     console.log('[🩺 Specialist Team] ✅ Specialist analysis complete!');
     console.log(`[🩺 Specialist Team] Consulted ${specialistAnalysis.structuredFindings.length} specialist(s)`);
-    
+
     // Log which specialists were consulted
     if (specialistAnalysis.structuredFindings.length > 0) {
       const specialists = specialistAnalysis.structuredFindings.map(f => f.specialist).join(', ');
       console.log(`[🩺 Specialist Team] Specialists consulted: ${specialists}`);
     }
-    
+
     // STEP 3: Combine results
     console.log('[📊 Synthesis] Combining specialist findings with patient-friendly explanation...');
-    
+
     const finalResult = {
       preliminaryDiagnosis: specialistAnalysis.synthesis,
       explanation: patientExplanation,
       suggestions: specialistAnalysis.suggestions,
       structuredResults: allStructuredResults.length > 0 ? allStructuredResults : undefined,
       specialistFindings: specialistAnalysis.structuredFindings,
+      examDate: extractedExamDate,
     };
-    
+
     // STEP 4: Track usage for cost accounting
     // Calculate total tokens used across document analysis
     const documentCount = input.documents.length;
@@ -254,19 +277,19 @@ const analyzeMedicalExamFlow = ai.defineFlow(
     const totalImageTokens = documentCount * avgImageTokensPerDoc;
     const inputTextTokens = countTextTokens(examResultsSummary);
     const outputTextTokens = countTextTokens(
-      finalResult.preliminaryDiagnosis + 
-      finalResult.explanation + 
+      finalResult.preliminaryDiagnosis +
+      finalResult.explanation +
       finalResult.suggestions +
       JSON.stringify(finalResult.specialistFindings || [])
     );
-    
+
     // Note: patientId is not available in this flow - tracking is done in the caller (patient actions)
     // Log token usage for monitoring
     console.log(`[📊 Token Accounting] Documents: ${documentCount}, Image tokens: ${totalImageTokens}, Input text: ${inputTextTokens}, Output: ${outputTextTokens}`);
     console.log(`[📊 Token Accounting] Total estimated tokens: ${totalImageTokens + inputTextTokens + outputTextTokens}`);
-    
+
     console.log('[✅ Analysis Complete] Multi-specialist system activated successfully!');
-    
+
     return finalResult;
   }
 );

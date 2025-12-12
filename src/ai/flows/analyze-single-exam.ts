@@ -8,6 +8,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { generateWithFallback } from '@/lib/ai-resilience';
 
 const SingleDocumentInputSchema = z.object({
   examDataUri: z.string().describe("A medical exam document as a data URI"),
@@ -26,6 +27,7 @@ const SingleDocumentOutputSchema = z.object({
   structuredResults: z.array(StructuredResultSchema).optional().describe("Structured lab results, if available"),
   patientExplanation: z.string().describe("A simple, empathetic explanation for the patient in Brazilian Portuguese"),
   documentType: z.string().optional().describe("The type of exam detected (e.g., blood test, X-ray, ECG)"),
+  examDate: z.string().optional().describe("The date the exam was performed (collected), extracted from the document. YYYY-MM-DD or DD/MM/YYYY."),
 });
 export type SingleDocumentOutput = z.infer<typeof SingleDocumentOutputSchema>;
 
@@ -36,11 +38,12 @@ const singleDocumentAnalysisPrompt = ai.definePrompt({
   prompt: `Você é um assistente médico de IA analisando um documento de exame médico. Sua tarefa é:
 
 1. **Extrair e Resumir**: Revise o documento médico e crie um resumo médico abrangente das descobertas.
-2. **Estruturar Resultados de Laboratório**: Se o documento contém resultados de laboratório (exames de sangue, etc.), extraia-os em formato estruturado.
 3. **Explicação para o Paciente**: Escreva uma explicação simples e empática das descobertas para um paciente leigo em português brasileiro.
 4. **Identificar Tipo**: Identifique o tipo de exame (hemograma, raio-X, ECG, ultrassom, etc.)
+5. **Extrair Data**: Encontre a data de realização/coleta do exame (não a data de impressão, se possível).
 
 **INSTRUÇÕES CRÍTICAS:**
+- **EXTRAIR DATA**: Procure por "Data da Coleta", "Data do Exame", "Realizado em".
 - Seja minucioso na extração de todas as descobertas médicas
 - Use terminologia médica apropriada no resumo
 - Faça a explicação ao paciente calorosa, simples e reconfortante
@@ -57,14 +60,17 @@ Retorne APENAS um objeto JSON simples com os campos exatos especificados. SEM ma
 
 export async function analyzeSingleExam(input: SingleDocumentInput): Promise<SingleDocumentOutput> {
   console.log(`[📄 Single Exam Analysis] Analyzing document: ${input.fileName}...`);
-  
+
   try {
-    const { output } = await singleDocumentAnalysisPrompt(input);
-    
+    const { output } = await generateWithFallback({
+      prompt: singleDocumentAnalysisPrompt,
+      input: input
+    });
+
     if (!output) {
       throw new Error('Failed to analyze document - no output received');
     }
-    
+
     console.log(`[📄 Single Exam Analysis] ✅ Document analyzed successfully: ${input.fileName}`);
     return output;
   } catch (error) {

@@ -33,7 +33,7 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
   const [isProcessing, setIsProcessing] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
-  
+
   const audioChunks = useRef<Blob[]>([]);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -64,6 +64,53 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
   useEffect(() => {
     scrollToBottom();
   }, [messages, isProcessing]);
+
+  // Helper function to simulate human-like typing
+  const simulateTypingAndSend = async (fullText: string, audioUri?: string) => {
+    // 1. Split text into chunks (sentences)
+    // Regex matches sentences ending in . ! ? or newlines, keeping the delimiter
+    const rawChunks = fullText.match(/[^.!?\n]+[.!?\n]+|[^.!?\n]+$/g) || [fullText];
+
+    // Merge very short chunks with previous ones to avoid weird pacing
+    const chunks: string[] = [];
+    let currentChunk = "";
+
+    for (const chunk of rawChunks) {
+      if ((currentChunk + chunk).length < 20 && chunks.length > 0) {
+        // If current accumulation is too short, keep adding
+        currentChunk += chunk;
+      } else {
+        if (currentChunk) chunks.push(currentChunk);
+        currentChunk = chunk;
+      }
+    }
+    if (currentChunk) chunks.push(currentChunk);
+
+    // 2. Send chunks sequentially
+    setIsProcessing(true); // Maintain typing state
+
+    for (let i = 0; i < chunks.length; i++) {
+      const textChunk = chunks[i].trim();
+      if (!textChunk) continue;
+
+      // Calculate delay: random between 5s and 10s
+      const delay = Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000;
+
+      // Wait for the delay
+      await new Promise(resolve => setTimeout(resolve, delay));
+
+      const assistantMessage: Message = {
+        id: (Date.now() + i).toString(),
+        role: 'assistant',
+        content: textChunk,
+        isAudio: i === chunks.length - 1 && !!audioUri, // Only attach audio to the last chunk if present
+        audioDataUri: (i === chunks.length - 1) ? audioUri : undefined,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    }
+  };
 
   const sendTextMessage = async () => {
     if (!inputText.trim() || isProcessing) return;
@@ -101,15 +148,9 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
         throw new Error(data.error || 'Erro ao enviar mensagem');
       }
 
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: data.response,
-        isAudio: false,
-        timestamp: new Date(),
-      };
+      // Use the new human-like simulation
+      await simulateTypingAndSend(data.response);
 
-      setMessages(prev => [...prev, assistantMessage]);
     } catch (error: any) {
       console.error('Erro ao enviar mensagem:', error);
       toast({
@@ -126,7 +167,7 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
-      
+
       audioChunks.current = [];
 
       recorder.ondataavailable = (event) => {
@@ -158,7 +199,7 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
     if (mediaRecorder && isRecording) {
       mediaRecorder.stop();
       setIsRecording(false);
-      
+
       if (audioStream) {
         audioStream.getTracks().forEach(track => track.stop());
       }
@@ -226,16 +267,8 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
         throw new Error(data.error || 'Erro ao processar mensagem de voz');
       }
 
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: data.response,
-        isAudio: true,
-        audioDataUri: data.audioDataUri,
-        timestamp: new Date(),
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
+      // Use the new human-like simulation
+      await simulateTypingAndSend(data.response, data.audioDataUri);
 
     } catch (error: any) {
       console.error('Erro ao processar mensagem de voz:', error);
@@ -280,14 +313,13 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`rounded-2xl px-4 py-3 shadow-md ${
-                  message.role === 'user'
+                className={`rounded-2xl px-4 py-3 shadow-md ${message.role === 'user'
                     ? 'bg-gradient-to-br from-pink-500 to-pink-600 dark:from-primary dark:to-primary/90 text-white'
                     : 'bg-card text-foreground border border-border'
-                } ${message.isAudio ? 'min-w-[250px] max-w-[85%] md:min-w-[300px] md:max-w-[80%]' : 'max-w-[85%] md:max-w-[75%]'}`}
+                  } ${message.isAudio ? 'min-w-[250px] max-w-[85%] md:min-w-[300px] md:max-w-[80%]' : 'max-w-[85%] md:max-w-[75%]'}`}
               >
                 {message.isAudio && message.audioDataUri ? (
-                  <AudioMessage 
+                  <AudioMessage
                     audioDataUri={message.audioDataUri}
                     isUser={message.role === 'user'}
                     timestamp={formatTime(message.timestamp)}
@@ -295,9 +327,8 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
                 ) : (
                   <div className="flex-1">
                     <p className="text-[15px] md:text-[17px] leading-[1.4] whitespace-pre-wrap break-words">{message.content}</p>
-                    <p className={`text-[11px] md:text-xs mt-1.5 ${
-                      message.role === 'user' ? 'text-white/70' : 'text-muted-foreground'
-                    }`}>
+                    <p className={`text-[11px] md:text-xs mt-1.5 ${message.role === 'user' ? 'text-white/70' : 'text-muted-foreground'
+                      }`}>
                       {formatTime(message.timestamp)}
                     </p>
                   </div>
