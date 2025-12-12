@@ -6,27 +6,28 @@
 
 import { getAllExamsForWellnessPlan, updatePatientWellnessPlan, getPatientById } from '@/lib/db-adapter';
 import { nutritionistAgent } from './nutritionist-agent';
+import { generateHealthInsights } from './generate-health-insights';
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { trackWellnessPlan } from '@/lib/usage-tracker';
 import { countTextTokens } from '@/lib/token-counter';
 
 const RecipeSchema = z.object({
-    title: z.string().describe("Nome da receita"),
-    ingredients: z.array(z.string()).describe("Lista de ingredientes com quantidades"),
-    instructions: z.string().describe("Modo de preparo passo a passo"),
-    prepTime: z.string().describe("Tempo de preparo (ex: '20 minutos')"),
+  title: z.string().describe("Nome da receita"),
+  ingredients: z.array(z.string()).describe("Lista de ingredientes com quantidades"),
+  instructions: z.string().describe("Modo de preparo passo a passo"),
+  prepTime: z.string().describe("Tempo de preparo (ex: '20 minutos')"),
 });
 
 const MealPrepSuggestionSchema = z.object({
-    day: z.string().describe("Day of the week in Portuguese (e.g., Segunda-feira)."),
-    breakfast: z.string().describe("Brief breakfast description."),
-    breakfastRecipe: RecipeSchema.optional().describe("Receita detalhada do café da manhã"),
-    lunch: z.string().describe("Brief lunch description."),
-    lunchRecipe: RecipeSchema.optional().describe("Receita detalhada do almoço"),
-    dinner: z.string().describe("Brief dinner description."),
-    dinnerRecipe: RecipeSchema.optional().describe("Receita detalhada do jantar"),
-    snacks: z.string().optional().describe("Optional healthy snack suggestions.")
+  day: z.string().describe("Day of the week in Portuguese (e.g., Segunda-feira)."),
+  breakfast: z.string().describe("Brief breakfast description."),
+  breakfastRecipe: RecipeSchema.optional().describe("Receita detalhada do café da manhã"),
+  lunch: z.string().describe("Brief lunch description."),
+  lunchRecipe: RecipeSchema.optional().describe("Receita detalhada do almoço"),
+  dinner: z.string().describe("Brief dinner description."),
+  dinnerRecipe: RecipeSchema.optional().describe("Receita detalhada do jantar"),
+  snacks: z.string().optional().describe("Optional healthy snack suggestions.")
 });
 
 const GenerateWellnessPlanFromExamsOutputSchema = z.object({
@@ -52,7 +53,7 @@ const GenerateWellnessPlanFromExamsOutputSchema = z.object({
 
 const wellnessPlanSynthesisPrompt = ai.definePrompt({
   name: 'wellnessPlanSynthesisPrompt',
-  model: 'googleai/gemini-2.5-flash',
+  model: 'googleai/gemini-2.5-flash-lite',
   input: {
     schema: z.object({
       nutritionistReport: z.string(),
@@ -237,6 +238,19 @@ Histórico de Conversas: ${patient.conversationHistory || 'Nenhuma conversa regi
     trackWellnessPlan(patientId, nutritionistInputTokens, nutritionistOutputTokens, 'gemini-2.5-flash')
       .catch(err => console.error('[Wellness Plan Update] Nutritionist tracking error:', err));
 
+    // 4.5. Generate Health Insights (Coach Comment, Goals, Alerts)
+    console.log(`[Wellness Plan Update] Generating health insights...`);
+    const healthInsights = await generateHealthInsights({
+      patientHistory: patientHistory,
+      validatedDiagnosis: examSummary,
+    });
+
+    console.log(`[Wellness Plan Update] Health insights generated:`, {
+      hasCoachComment: !!healthInsights.coachComment,
+      goalsCount: healthInsights.healthGoals?.length || 0,
+      alertsCount: healthInsights.preventiveAlerts?.length || 0,
+    });
+
     // 5. Generate comprehensive wellness plan
     console.log(`[Wellness Plan Update] Generating wellness plan...`);
     const nutritionistReport = `
@@ -254,12 +268,12 @@ ${nutritionistAnalysis.recommendations}
       nutritionistReport,
       patientHistory,
     });
-    
+
     // Track wellness plan synthesis LLM usage
     const synthesisInputText = [nutritionistReport, patientHistory].filter(Boolean).join('\n\n');
     const synthesisInputTokens = countTextTokens(synthesisInputText);
     const synthesisOutputTokens = countTextTokens(JSON.stringify(output || {}));
-    trackWellnessPlan(patientId, synthesisInputTokens, synthesisOutputTokens, 'gemini-2.5-flash')
+    trackWellnessPlan(patientId, synthesisInputTokens, synthesisOutputTokens, 'gemini-2.5-flash-lite')
       .catch(err => console.error('[Wellness Plan Update] Synthesis tracking error:', err));
 
     if (!output) {
@@ -278,9 +292,9 @@ ${nutritionistAnalysis.recommendations}
     try {
       // Validate reminders before saving
       for (const reminder of output.dailyReminders) {
-        const validIcons = ['Droplet', 'Clock', 'Coffee', 'Bed', 'Dumbbell', 
-                            'Apple', 'Heart', 'Sun', 'Moon', 'Activity', 
-                            'Utensils', 'Brain', 'Smile', 'Wind', 'Leaf'];
+        const validIcons = ['Droplet', 'Clock', 'Coffee', 'Bed', 'Dumbbell',
+          'Apple', 'Heart', 'Sun', 'Moon', 'Activity',
+          'Utensils', 'Brain', 'Smile', 'Wind', 'Leaf'];
         if (!validIcons.includes(reminder.icon)) {
           console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid icon "${reminder.icon}" in reminder "${reminder.title}". Must be one of: ${validIcons.join(', ')}`);
           console.error(`[Wellness Plan Update] Full reminder data:`, JSON.stringify(reminder, null, 2));
@@ -331,6 +345,10 @@ ${nutritionistAnalysis.recommendations}
         dailyReminders: output.dailyReminders,
         weeklyMealPlan: output.weeklyMealPlan,
         weeklyTasks: output.weeklyTasks,
+        // NEW: Add health insights fields
+        coachComment: healthInsights.coachComment,
+        healthGoals: healthInsights.healthGoals,
+        preventiveAlerts: healthInsights.preventiveAlerts,
         lastUpdated: new Date().toISOString(),
       };
 
