@@ -37,6 +37,10 @@ import { hematologistAgent } from './hematologist-agent';
 import { infectologistAgent } from './infectologist-agent';
 import { geriatricianAgent } from './geriatrician-agent';
 import { angiologistAgent } from './angiologist-agent';
+import { mastologistAgent } from './mastologist-agent';
+import { allergistAgent } from './allergist-agent';
+import { sportsDoctorAgent } from './sports-doctor-agent';
+import { geneticistAgent } from './geneticist-agent';
 
 // Define Schemas centrally
 const GeneratePreliminaryDiagnosisInputSchema = SpecialistAgentInputSchema;
@@ -117,6 +121,10 @@ const specialistAgents = {
   infectologist: infectologistAgent,
   geriatrician: geriatricianAgent,
   angiologist: angiologistAgent,
+  mastologist: mastologistAgent,
+  allergist: allergistAgent,
+  sportsDoctor: sportsDoctorAgent,
+  geneticist: geneticistAgent,
 } as const;
 
 type Specialist = keyof typeof specialistAgents;
@@ -200,6 +208,12 @@ DO NOT select specialists when:
 - infectologist: Complex infections, HIV/Hepatitis/Syphilis, fever of unknown origin, multi-drug resistant organisms
 - angiologist: Varicose veins, deep vein thrombosis (DVT), peripheral artery disease (poor circulation), diabetic foot
 
+**Premium & Niche Specialties:**
+- mastologist: Breast lumps, mammography findings, breast pain, nipple discharge (Female health focus)
+- allergist: Recurrent rhinitis, asthma, hives (urticaria), suspected food/drug allergies, elevated IgE/Eosinophils
+- sportsDoctor: Performance optimization, muscle recovery, overtraining, supplement advice (Wellness focus)
+- geneticist: Family history of cancer, hereditary diseases, rare syndromes, genetic test interpretation
+
 **📊 PATIENT DATA FOR ANALYSIS:**
 
 **Exam Results:**
@@ -231,7 +245,10 @@ Group abnormalities by system:
 - Mental/Behavioral → psychiatrist, geriatrician (dementia)
 - Hematologic/Oncologic → hematologist, oncologist
 - Vascular/Circulatory → angiologist, cardiologist
-- Infectious/Systemic → infectologist
+- Infectious/Systemic → infectologist, allergist (immune)
+- Breast Health → mastologist, gynecologist
+- Performance/Lifestyle → sportsDoctor, nutritionist
+- Hereditary/Genetic → geneticist
 
 **STEP 3 - APPLY EXCLUSION CRITERIA:**
 For each specialist, ask:
