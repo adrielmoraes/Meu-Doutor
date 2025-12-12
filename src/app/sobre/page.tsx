@@ -8,13 +8,13 @@ export default function SobreNosPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white">
       <Header />
-      
+
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative w-full py-20 md:py-32 overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
           <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
-          
+
           <div className="container px-4 md:px-6 relative z-10">
             <div className="max-w-4xl mx-auto text-center space-y-6">
               <h1 className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
@@ -35,17 +35,17 @@ export default function SobreNosPage() {
                 <CardContent className="p-8 md:p-12 space-y-6">
                   <h2 className="text-3xl md:text-4xl font-bold text-cyan-300 mb-6">Nossa História</h2>
                   <p className="text-lg text-blue-100/80 leading-relaxed">
-                    A MediAI nasceu de uma visão clara: democratizar o acesso a diagnósticos médicos de qualidade 
-                    através da inteligência artificial. Fundada em 2024, nossa plataforma foi desenvolvida por uma 
+                    A MediAI nasceu de uma visão clara: democratizar o acesso a diagnósticos médicos de qualidade
+                    através da inteligência artificial. Fundada em 2024, nossa plataforma foi desenvolvida por uma
                     equipe multidisciplinar de médicos, engenheiros de software e especialistas em IA.
                   </p>
                   <p className="text-lg text-blue-100/80 leading-relaxed">
-                    Percebemos que milhões de pessoas enfrentam longas esperas para consultas médicas, dificuldade 
-                    de acesso a especialistas e altos custos com saúde. Decidimos usar a tecnologia mais avançada 
+                    Percebemos que milhões de pessoas enfrentam longas esperas para consultas médicas, dificuldade
+                    de acesso a especialistas e altos custos com saúde. Decidimos usar a tecnologia mais avançada
                     disponível para mudar essa realidade.
                   </p>
                   <p className="text-lg text-blue-100/80 leading-relaxed">
-                    Hoje, a MediAI é uma plataforma completa que combina análise de exames por 15 especialistas IA, 
+                    Hoje, a MediAI é uma plataforma completa que combina análise de exames por mais de 25 especialistas IA,
                     consultas ao vivo por vídeo, monitoramento contínuo de saúde e planos de bem-estar personalizados.
                   </p>
                 </CardContent>
@@ -65,7 +65,7 @@ export default function SobreNosPage() {
                   </div>
                   <h3 className="text-2xl font-bold text-cyan-300">Missão</h3>
                   <p className="text-blue-100/70 leading-relaxed">
-                    Tornar diagnósticos médicos de qualidade acessíveis a todos, usando inteligência artificial 
+                    Tornar diagnósticos médicos de qualidade acessíveis a todos, usando inteligência artificial
                     para reduzir custos e tempo de espera.
                   </p>
                 </CardContent>
@@ -78,7 +78,7 @@ export default function SobreNosPage() {
                   </div>
                   <h3 className="text-2xl font-bold text-purple-300">Visão</h3>
                   <p className="text-blue-100/70 leading-relaxed">
-                    Ser a plataforma líder global em saúde assistida por IA, combinando tecnologia de ponta 
+                    Ser a plataforma líder global em saúde assistida por IA, combinando tecnologia de ponta
                     com cuidado humanizado.
                   </p>
                 </CardContent>
@@ -122,7 +122,7 @@ export default function SobreNosPage() {
                       <h3 className="text-xl font-bold text-cyan-300">Modelos de Inteligência Artificial Avançados</h3>
                     </div>
                     <p className="text-blue-100/70 leading-relaxed">
-                      Motor de inteligência artificial multimodal de última geração, capaz de analisar 
+                      Motor de inteligência artificial multimodal de última geração, capaz de analisar
                       texto, imagens e dados médicos complexos com precisão superior.
                     </p>
                   </CardContent>
@@ -137,7 +137,7 @@ export default function SobreNosPage() {
                       <h3 className="text-xl font-bold text-purple-300">Infraestrutura de Comunicação em Tempo Real</h3>
                     </div>
                     <p className="text-blue-100/70 leading-relaxed">
-                      Plataforma de comunicação em tempo real que permite consultas por vídeo e voz de alta 
+                      Plataforma de comunicação em tempo real que permite consultas por vídeo e voz de alta
                       qualidade com baixa latência e criptografia end-to-end.
                     </p>
                   </CardContent>
@@ -152,7 +152,7 @@ export default function SobreNosPage() {
                       <h3 className="text-xl font-bold text-emerald-300">Avatares Virtuais Hiper-Realistas</h3>
                     </div>
                     <p className="text-blue-100/70 leading-relaxed">
-                      Tecnologia avançada de avatares que cria interações naturais 
+                      Tecnologia avançada de avatares que cria interações naturais
                       e humanizadas com assistentes médicos virtuais.
                     </p>
                   </CardContent>
@@ -167,7 +167,7 @@ export default function SobreNosPage() {
                       <h3 className="text-xl font-bold text-orange-300">Segurança e Pagamentos</h3>
                     </div>
                     <p className="text-blue-100/70 leading-relaxed">
-                      Processador de pagamentos seguro com criptografia de dados médicos e 
+                      Processador de pagamentos seguro com criptografia de dados médicos e
                       conformidade total com LGPD e normas brasileiras de saúde.
                     </p>
                   </CardContent>
@@ -183,7 +183,7 @@ export default function SobreNosPage() {
             <div className="max-w-5xl mx-auto space-y-12">
               <div className="text-center space-y-4">
                 <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
-                  15 Especialistas IA
+                  25+ Especialistas IA
                 </h2>
                 <p className="text-lg text-blue-200/70">
                   Cada exame é analisado simultaneamente por múltiplos especialistas virtuais
@@ -208,7 +208,18 @@ export default function SobreNosPage() {
                       "Pneumologia",
                       "Radiologia",
                       "Urologia",
-                      "Nutrição"
+                      "Nutrição",
+                      "Oncologia",
+                      "Hematologia",
+                      "Infectologia",
+                      "Geriatria",
+                      "Angiologia",
+                      "Mastologia",
+                      "Alergologia",
+                      "Medicina Esportiva",
+                      "Genética",
+                      "Nefrologia",
+                      "Reumatologia"
                     ].map((especialidade, index) => (
                       <div
                         key={index}
@@ -237,7 +248,7 @@ export default function SobreNosPage() {
                     </div>
                     <h2 className="text-3xl md:text-4xl font-bold text-cyan-300">Nosso Compromisso</h2>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div className="flex items-start gap-4">
                       <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-1">
@@ -246,7 +257,7 @@ export default function SobreNosPage() {
                       <div>
                         <h3 className="text-xl font-bold text-cyan-300 mb-2">Privacidade e Segurança</h3>
                         <p className="text-blue-100/70 leading-relaxed">
-                          Seus dados médicos são criptografados e protegidos com os mais altos padrões de segurança. 
+                          Seus dados médicos são criptografados e protegidos com os mais altos padrões de segurança.
                           Conformidade total com LGPD e legislação brasileira de saúde.
                         </p>
                       </div>
@@ -259,7 +270,7 @@ export default function SobreNosPage() {
                       <div>
                         <h3 className="text-xl font-bold text-purple-300 mb-2">IA Complementar, Não Substituta</h3>
                         <p className="text-blue-100/70 leading-relaxed">
-                          Nossa IA é uma ferramenta de triagem e apoio diagnóstico. Sempre recomendamos consulta 
+                          Nossa IA é uma ferramenta de triagem e apoio diagnóstico. Sempre recomendamos consulta
                           com médicos reais para diagnósticos definitivos e tratamentos.
                         </p>
                       </div>
@@ -272,7 +283,7 @@ export default function SobreNosPage() {
                       <div>
                         <h3 className="text-xl font-bold text-emerald-300 mb-2">Inovação Contínua</h3>
                         <p className="text-blue-100/70 leading-relaxed">
-                          Investimos constantemente em pesquisa e desenvolvimento para melhorar nossos algoritmos 
+                          Investimos constantemente em pesquisa e desenvolvimento para melhorar nossos algoritmos
                           e oferecer diagnósticos cada vez mais precisos.
                         </p>
                       </div>

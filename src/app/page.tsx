@@ -45,7 +45,7 @@ export default function LandingPage() {
   const handlePlayClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     setIsTransitioning(true);
-    
+
     setTimeout(() => {
       setVideoStarted(true);
       if (iframeRef.current) {
@@ -87,14 +87,14 @@ export default function LandingPage() {
         {/* Hero Section - Ultra Futuristic */}
         <section className="relative w-full min-h-screen flex items-center overflow-hidden">
           {/* Realistic Background Image */}
-          <div 
+          <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: "url('/images/futuristic_medical_tech_background.png')" }}
           ></div>
           {/* Overlay for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/70 to-transparent"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/50"></div>
-          
+
           {/* Floating Particles */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-cyan-400 rounded-full animate-ping"></div>
@@ -136,7 +136,7 @@ export default function LandingPage() {
                 <div className="flex flex-wrap justify-center gap-3">
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20">
                     <CheckCircle2 className="h-4 w-4 text-cyan-400" />
-                    <span className="text-sm text-cyan-300">45+ Especialistas IA</span>
+                    <span className="text-sm text-cyan-300">25+ Especialistas de Elite</span>
                   </div>
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20">
                     <Video className="h-4 w-4 text-purple-400" />
@@ -159,8 +159,8 @@ export default function LandingPage() {
                       {/* Video Iframe - YouTube com autoplay */}
                       <iframe
                         ref={iframeRef}
-                        src={videoStarted 
-                          ? "https://www.youtube.com/embed/8YTSeJI2_pc?autoplay=1&rel=0&modestbranding=1" 
+                        src={videoStarted
+                          ? "https://www.youtube.com/embed/8YTSeJI2_pc?autoplay=1&rel=0&modestbranding=1"
                           : "https://www.youtube.com/embed/8YTSeJI2_pc?rel=0&modestbranding=1"
                         }
                         className="w-full h-full"
@@ -168,10 +168,10 @@ export default function LandingPage() {
                         allowFullScreen
                         title="MediAI - Inteligência Artificial a Serviço da Sua Saúde"
                       ></iframe>
-                      
+
                       {/* Animated Play Overlay */}
                       {!videoStarted && (
-                        <div 
+                        <div
                           onClick={handlePlayClick}
                           className={`absolute inset-0 bg-gradient-to-br from-slate-900/95 via-blue-950/90 to-slate-900/95 cursor-pointer flex flex-col items-center justify-center gap-6 transition-all duration-300 hover:from-slate-900/90 hover:via-blue-950/85 hover:to-slate-900/90 group/overlay ${isTransitioning ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                         >
@@ -181,7 +181,7 @@ export default function LandingPage() {
                             <div className="absolute w-40 h-40 md:w-56 md:h-56 rounded-full border border-purple-500/10 animate-pulse"></div>
                             <div className="absolute w-48 h-48 md:w-64 md:h-64 rounded-full border border-blue-500/10 animate-pulse delay-300"></div>
                           </div>
-                          
+
                           {/* Play Button */}
                           <div className="relative z-10">
                             <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full blur-xl opacity-60 animate-pulse"></div>
@@ -190,7 +190,7 @@ export default function LandingPage() {
                               <Play className="relative z-10 h-8 w-8 md:h-12 md:w-12 text-white fill-white ml-1" />
                             </div>
                           </div>
-                          
+
                           {/* Text */}
                           <div className="relative z-10 text-center space-y-2">
                             <p className="text-lg md:text-2xl font-bold bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent animate-pulse">
@@ -200,7 +200,7 @@ export default function LandingPage() {
                               Descubra como a IA pode transformar sua saúde
                             </p>
                           </div>
-                          
+
                           {/* Floating Icons */}
                           <div className="absolute top-8 left-8 text-cyan-400/40 animate-bounce">
                             <Stethoscope className="h-6 w-6 md:h-8 md:w-8" />
@@ -217,7 +217,7 @@ export default function LandingPage() {
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Decorative Corner Elements */}
                     <div className="absolute top-0 left-0 w-16 h-16 border-l-2 border-t-2 border-cyan-500/50 rounded-tl-2xl pointer-events-none"></div>
                     <div className="absolute top-0 right-0 w-16 h-16 border-r-2 border-t-2 border-purple-500/50 rounded-tr-2xl pointer-events-none"></div>
@@ -254,7 +254,7 @@ export default function LandingPage() {
               {/* Stats Row */}
               <div className="flex flex-wrap justify-center gap-8 pt-6 border-t border-cyan-500/20 w-full max-w-2xl relative z-20">
                 <div className="space-y-1 text-center">
-                  <div className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(34,211,238,0.4)]">45+</div>
+                  <div className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(34,211,238,0.4)]">25+</div>
                   <div className="text-sm text-blue-200/70">Especialistas IA</div>
                 </div>
                 <div className="space-y-1 text-center">
@@ -281,7 +281,7 @@ export default function LandingPage() {
         {/* AI Doctor Section */}
         <section className="relative w-full py-24 md:py-32 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-950/50 to-slate-900"></div>
-          
+
           <div className="container px-4 md:px-6 relative z-10">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               {/* AI Doctor Video */}
@@ -301,14 +301,14 @@ export default function LandingPage() {
                         controls
                       />
                     </div>
-                    
+
                     {/* Decorative Corner Elements */}
                     <div className="absolute top-0 left-0 w-16 h-16 border-l-2 border-t-2 border-cyan-500/50 rounded-tl-2xl pointer-events-none"></div>
                     <div className="absolute top-0 right-0 w-16 h-16 border-r-2 border-t-2 border-purple-500/50 rounded-tr-2xl pointer-events-none"></div>
                     <div className="absolute bottom-0 left-0 w-16 h-16 border-l-2 border-b-2 border-purple-500/50 rounded-bl-2xl pointer-events-none"></div>
                     <div className="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 border-cyan-500/50 rounded-br-2xl pointer-events-none"></div>
                   </div>
-                  
+
                   {/* Floating Elements */}
                   <div className="absolute -top-4 -right-4 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-3 shadow-lg shadow-cyan-500/30 animate-bounce z-10">
                     <Mic className="h-6 w-6 text-white" />
@@ -369,8 +369,8 @@ export default function LandingPage() {
                       <Cpu className="h-6 w-6 text-emerald-400" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-lg text-emerald-300">45+ Especialidades</h4>
-                      <p className="text-blue-200/70">Cardiologia, dermatologia, neurologia e mais 40 áreas médicas.</p>
+                      <h4 className="font-bold text-lg text-emerald-300">25+ Especialidades</h4>
+                      <p className="text-blue-200/70">Cardiologia, oncologia, genética e mais 20 áreas médicas.</p>
                     </div>
                   </div>
                 </div>
@@ -398,13 +398,13 @@ export default function LandingPage() {
                 <Brain className="h-4 w-4 text-blue-400" />
                 <span className="text-sm font-medium text-blue-300">Tecnologia Revolucionária</span>
               </div>
-              
+
               <h2 className="text-4xl md:text-6xl font-bold">
                 <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
                   Recursos Revolucionários
                 </span>
               </h2>
-              
+
               <p className="text-xl text-blue-200/70 max-w-3xl mx-auto">
                 Inteligência artificial de última geração trabalhando para sua saúde
               </p>
@@ -421,7 +421,7 @@ export default function LandingPage() {
                   </div>
                   <h3 className="text-2xl font-bold text-white">Diagnóstico Instantâneo</h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    Upload de exames com análise por mais de 45 especialistas IA em segundos.
+                    Upload de exames com análise por mais de 25 especialistas IA em segundos.
                   </p>
                 </div>
               </div>
@@ -463,7 +463,7 @@ export default function LandingPage() {
                   </div>
                   <h3 className="text-2xl font-bold text-white">Análise Genética</h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    Interpretação avançada de exames genéticos e biomarcadores.
+                    Rastreamento de câncer e riscos hereditários com precisão molecular.
                   </p>
                 </div>
               </div>
@@ -491,7 +491,7 @@ export default function LandingPage() {
                   </div>
                   <h3 className="text-2xl font-bold text-white">Bem-Estar Total</h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    Planos personalizados de nutrição, exercícios e lifestyle.
+                    Alta performance esportiva, recuperação muscular e longevidade.
                   </p>
                 </div>
               </div>
@@ -539,7 +539,7 @@ export default function LandingPage() {
                   </div>
                   <h3 className="text-2xl font-bold mb-4">IA Analisa</h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    45+ especialistas IA examinam simultaneamente: cardiologista, neurologista, dermatologista e mais.
+                    25+ especialistas IA examinam simultaneamente: oncologista, cardiologista, geneticista e mais.
                   </p>
                 </div>
               </div>
@@ -571,7 +571,7 @@ export default function LandingPage() {
                   className="w-full h-auto object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent"></div>
-                
+
                 {/* Overlay Content */}
                 <div className="absolute bottom-0 left-0 right-0 p-8">
                   <div className="bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6 border border-cyan-500/30">
@@ -689,7 +689,7 @@ export default function LandingPage() {
         <section className="relative w-full py-24 md:py-32">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-blue-950 to-purple-950"></div>
           <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:60px_60px]"></div>
-          
+
           {/* Glowing Background */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-cyan-500/10 rounded-full blur-[120px]"></div>
 
@@ -727,7 +727,7 @@ export default function LandingPage() {
         <section className="relative w-full py-24 md:py-32">
           <div className="absolute inset-0 bg-gradient-to-br from-cyan-950/50 via-blue-950/50 to-purple-950/50"></div>
           <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:60px_60px]"></div>
-          
+
           {/* Animated Glow */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-cyan-500/20 rounded-full blur-[100px] animate-pulse"></div>
 
@@ -737,7 +737,7 @@ export default function LandingPage() {
                 <Sparkles className="h-4 w-4 text-cyan-400" />
                 <span className="text-sm font-medium text-cyan-300">Oferta Especial</span>
               </div>
-              
+
               <h2 className="text-4xl md:text-6xl font-bold">
                 <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
                   Experimente Gratuitamente
@@ -745,11 +745,11 @@ export default function LandingPage() {
                 <br />
                 <span className="text-white">por 7 Dias</span>
               </h2>
-              
+
               <p className="text-xl text-blue-200/70 max-w-2xl mx-auto">
                 Teste todos os recursos premium sem compromisso. Cancele quando quiser. Sem necessidade de cartão de crédito.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
                 <Button
                   asChild
@@ -770,7 +770,7 @@ export default function LandingPage() {
                   <Link href="/pricing">Ver Planos e Preços</Link>
                 </Button>
               </div>
-              
+
               <div className="flex flex-wrap items-center justify-center gap-6 pt-8 text-sm text-blue-200/60">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5 text-emerald-400" />
