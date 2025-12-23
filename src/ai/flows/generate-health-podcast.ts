@@ -31,7 +31,7 @@ const SPEAKERS = {
 } as const;
 
 const TTS_CONFIG = {
-    model: "gemini-2.5-flash-preview-tts",
+    model: "gemini-2.5-pro-preview-tts",
     sampleRate: 24000,
     numChannels: 1,
     bitsPerSample: 16,
@@ -156,7 +156,7 @@ const PODCAST_PROMPT_TEMPLATE = `
 - **EXPLIQUE CAUSAS E EFEITOS:** Conecte os pontos para o paciente. "Isso acontece porque..." -> "Isso pode levar a...".
 - **TRATAMENTOS:** Se houver menção a medicamentos ou terapias no contexto, explique como eles funcionam. Se for mudança de estilo de vida, explique a biologia por trás da mudança (ex: como o exercício baixa a glicose).
 - **TOM:** Profissional, mas extremamente humano, paciente e encorajador. Evite alarmismo, foque em soluções.
-- **FALAS CURTAS:** Cada fala deve ter no máximo **1 a 2 frases curtas**.
+- **FALAS CURTAS:** Cada fala deve ter no máximo **2 a 4 frases curtas**.
 - **DURAÇÃO:** Gere um roteiro objetivo, entre **12 e 14 falas**.
 
 **DADOS DO PACIENTE (USE ESTAS INFORMAÇÕES COMO BASE):**
@@ -218,13 +218,13 @@ async function generateAudio(dialogText: string): Promise<Buffer> {
                             {
                                 speaker: SPEAKERS.SPECIALIST, // ✅ Corrigido
                                 voiceConfig: {
-                                    prebuiltVoiceConfig: { voiceName: "Fenrir" },
+                                    prebuiltVoiceConfig: { voiceName: "Orus" },
                                 },
                             },
                             {
                                 speaker: SPEAKERS.HOST, // ✅ Corrigido
                                 voiceConfig: {
-                                    prebuiltVoiceConfig: { voiceName: "Aoede" },
+                                    prebuiltVoiceConfig: { voiceName: "Kore" },
                                 },
                             },
                         ],
