@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { FileText, Phone, MessageSquare, AlertCircle, Loader2 } from "lucide-react";
+import { FileText, Phone, MessageSquare, AlertCircle, Loader2, Mic, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
 
@@ -22,6 +22,16 @@ interface UsageSummaryData {
     percentage: number;
   };
   doctorConsultation: {
+    current: number;
+    limit: number | typeof Infinity;
+    percentage: number;
+  };
+  therapistChat: {
+    current: number;
+    limit: number | typeof Infinity;
+    percentage: number;
+  };
+  podcast: {
     current: number;
     limit: number | typeof Infinity;
     percentage: number;
@@ -134,6 +144,48 @@ export default function UsageSummary() {
               <div 
                 className={`h-full ${getProgressColor(summary.aiConsultation.percentage)} transition-all duration-300`}
                 style={{ width: `${Math.min(summary.aiConsultation.percentage, 100)}%` }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Chat Terapeuta */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4 text-pink-600 dark:text-cyan-400" />
+              <span className="text-sm text-gray-700 dark:text-slate-300">Chat Terapeuta (dias)</span>
+            </div>
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
+              {summary.therapistChat.current} / {formatLimit(summary.therapistChat.limit)}
+            </span>
+          </div>
+          {summary.therapistChat.limit !== Infinity && (
+            <div className={`h-2 w-full bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden`}>
+              <div 
+                className={`h-full ${getProgressColor(summary.therapistChat.percentage)} transition-all duration-300`}
+                style={{ width: `${Math.min(summary.therapistChat.percentage, 100)}%` }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Podcast */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Mic className="h-4 w-4 text-pink-600 dark:text-cyan-400" />
+              <span className="text-sm text-gray-700 dark:text-slate-300">Podcast (minutos)</span>
+            </div>
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
+              {summary.podcast.current} / {formatLimit(summary.podcast.limit)}
+            </span>
+          </div>
+          {summary.podcast.limit !== Infinity && (
+            <div className={`h-2 w-full bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden`}>
+              <div 
+                className={`h-full ${getProgressColor(summary.podcast.percentage)} transition-all duration-300`}
+                style={{ width: `${Math.min(summary.podcast.percentage, 100)}%` }}
               />
             </div>
           )}

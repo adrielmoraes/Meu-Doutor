@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Loader2, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -60,17 +60,17 @@ export function RealisticAvatar({
     }
   }, [avatarType, gender]);
 
-  useEffect(() => {
-    if (audioBase64 && audioPlayerRef.current && isSpeaking) {
-      playAudioWithLipSync(audioBase64);
-    }
-  }, [audioBase64, isSpeaking]);
-
-  const playAudioWithLipSync = async (base64Audio: string) => {
+  const playAudioWithLipSync = useCallback(async (base64Audio: string) => {
     try {
       if (!audioPlayerRef.current) return;
 
-      const audioBlob = base64ToBlob(base64Audio, 'audio/mpeg');
+      const byteCharacters = atob(base64Audio);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const audioBlob = new Blob([byteArray], { type: 'audio/mpeg' });
       const audioUrl = URL.createObjectURL(audioBlob);
       
       audioPlayerRef.current.src = audioUrl;
@@ -82,17 +82,13 @@ export function RealisticAvatar({
     } catch (err) {
       console.error('[Avatar] Erro ao reproduzir áudio:', err);
     }
-  };
+  }, [isMuted]);
 
-  const base64ToBlob = (base64: string, mimeType: string): Blob => {
-    const byteCharacters = atob(base64);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
+  useEffect(() => {
+    if (audioBase64 && audioPlayerRef.current && isSpeaking) {
+      playAudioWithLipSync(audioBase64);
     }
-    const byteArray = new Uint8Array(byteNumbers);
-    return new Blob([byteArray], { type: mimeType });
-  };
+  }, [audioBase64, isSpeaking, playAudioWithLipSync]);
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
@@ -124,10 +120,12 @@ export function RealisticAvatar({
 
         {!isLoading && !error && avatarType === 'd-id' && avatarImage && (
           <div className="relative w-full h-full">
-            <img
+            <Image
               src={avatarImage}
               alt="AI Medical Assistant"
-              className="w-full h-full object-cover rounded-lg"
+              fill
+              sizes="100vw"
+              className="object-cover rounded-lg"
               style={{ filter: isSpeaking ? 'brightness(1.1)' : 'brightness(1)' }}
             />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">

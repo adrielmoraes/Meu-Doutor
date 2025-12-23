@@ -10,14 +10,11 @@ import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 
-const specialistPrompt = ai.definePrompt({
-    name: 'nephrologistAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dra. Mariana Costa, MD, MSc** - Board-Certified Nephrologist with 15 years of clinical experience specializing in chronic kidney disease, hypertension, and renal transplantation at Hospital das Clínicas.
+const NEPHROLOGIST_PROMPT_TEMPLATE = `You are **Dra. Mariana Costa, MD, MSc** - Board-Certified Nephrologist with 15 years of clinical experience specializing in chronic kidney disease, hypertension, and renal transplantation at Hospital das Clínicas.
 
 **YOUR EXPERTISE:** Kidney and renal system disorders including acute kidney injury, chronic kidney disease, nephrotic syndrome, glomerulonephritis, electrolyte disorders, hypertension, and dialysis management.
 
@@ -92,7 +89,15 @@ Analyze nephrologic indicators if present:
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
-{"findings": "Text here in Portuguese", "clinicalAssessment": "moderate", "recommendations": "Text here in Portuguese"}`,
+{"findings": "Text here in Portuguese", "clinicalAssessment": "moderate", "recommendations": "Text here in Portuguese"}`;
+
+const specialistPrompt = ai.definePrompt({
+  name: 'nephrologistAgentPrompt',
+  model: 'googleai/gemini-2.5-flash',
+  input: { schema: SpecialistAgentInputSchema },
+  output: { schema: SpecialistAgentOutputSchema },
+  tools: [medicalKnowledgeBaseTool],
+  prompt: NEPHROLOGIST_PROMPT_TEMPLATE,
 });
 
 const nephrologistAgentFlow = ai.defineFlow(
@@ -102,6 +107,8 @@ const nephrologistAgentFlow = ai.defineFlow(
       outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        const patientId = input.patientId || 'anonymous';
+        
         console.log('[Nephrologist Agent] Iniciando análise nefrológica...');
         console.log('[Nephrologist Agent] Verificando função renal nos dados fornecidos...');
         
@@ -118,7 +125,19 @@ const nephrologistAgentFlow = ai.defineFlow(
         console.log('[Nephrologist Agent] Avaliação clínica:', output?.clinicalAssessment);
         console.log('[Nephrologist Agent] Número de achados:', output?.findings ? 'Sim' : 'Não');
         console.log('[Nephrologist Agent] Recomendações específicas:', output?.recommendations ? 'Geradas' : 'Nenhuma');
-        
+
+        const inputText = NEPHROLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+        const inputTokens = countTextTokens(inputText);
+        const outputTokens = countTextTokens(JSON.stringify(output));
+        await trackAIUsage({
+          patientId,
+          usageType: 'diagnosis',
+          model: 'googleai/gemini-2.5-flash',
+          inputTokens,
+          outputTokens,
+          metadata: { specialist: 'nephrologist' },
+        });
+
         return output;
     }
 );

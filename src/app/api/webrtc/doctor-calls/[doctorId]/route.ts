@@ -3,10 +3,10 @@ import { getActiveCallsForDoctor, getPatientById } from '@/lib/db-adapter';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { doctorId: string } }
+  context: { params: Promise<{ doctorId: string }> }
 ) {
   try {
-    const { doctorId } = params;
+    const { doctorId } = await context.params;
 
     const callRooms = await getActiveCallsForDoctor(doctorId);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useRef } from "react";
 import {
 	DailyAudio,
 	DailyVideo,
@@ -45,6 +45,7 @@ const VideoPreview = React.memo(({ id }: { id: string }) => {
 		</div>
 	);
 });
+VideoPreview.displayName = "VideoPreview";
 
 const PreviewVideos = React.memo(() => {
 	const localId = useLocalSessionId();
@@ -61,6 +62,7 @@ const PreviewVideos = React.memo(() => {
 		</>
 	);
 });
+PreviewVideos.displayName = "PreviewVideos";
 
 const MainVideo = React.memo(() => {
 	const replicaIds = useReplicaIDs();
@@ -95,11 +97,13 @@ const MainVideo = React.memo(() => {
 		</div>
 	);
 });
+MainVideo.displayName = "MainVideo";
 
 export const Conversation = React.memo(({ onLeave, conversationUrl }: ConversationProps) => {
 	const { joinCall, leaveCall } = useCVICall();
 	const meetingState = useMeetingState();
 	const { hasMicError } = useDevices()
+	const hasJoinedRef = useRef(false);
 
 	useEffect(() => {
 		if (meetingState === 'error') {
@@ -109,8 +113,18 @@ export const Conversation = React.memo(({ onLeave, conversationUrl }: Conversati
 
 	// Initialize call when conversation is available
 	useEffect(() => {
+		if (!conversationUrl || hasJoinedRef.current) return;
+
 		joinCall({ url: conversationUrl });
-	}, []);
+		hasJoinedRef.current = true;
+
+		return () => {
+			if (hasJoinedRef.current) {
+				leaveCall();
+				hasJoinedRef.current = false;
+			}
+		};
+	}, [conversationUrl, joinCall, leaveCall]);
 
 	const handleLeave = useCallback(() => {
 		leaveCall();
@@ -173,3 +187,4 @@ export const Conversation = React.memo(({ onLeave, conversationUrl }: Conversati
 		</div>
 	);
 });
+Conversation.displayName = "Conversation";

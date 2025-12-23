@@ -37,6 +37,7 @@ export default function StartConsultation({ doctor, type }: StartConsultationPro
     }
 
     let connectionTimer: NodeJS.Timeout;
+    const videoEl = videoRef.current;
 
     const startCallSimulation = async () => {
         setCallStatus('connecting');
@@ -44,8 +45,8 @@ export default function StartConsultation({ doctor, type }: StartConsultationPro
             // Request camera and microphone permissions
             const stream = await navigator.mediaDevices.getUserMedia({ video: type === 'video', audio: true });
             setHasCameraPermission(true);
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
+            if (videoEl) {
+                videoEl.srcObject = stream;
             }
 
             // Simulate a 5-second connection attempt
@@ -64,9 +65,10 @@ export default function StartConsultation({ doctor, type }: StartConsultationPro
 
     // Cleanup function to stop media tracks and clear timers
     return () => {
-        if (videoRef.current && videoRef.current.srcObject) {
-            const stream = videoRef.current.srcObject as MediaStream;
+        if (videoEl?.srcObject) {
+            const stream = videoEl.srcObject as MediaStream;
             stream.getTracks().forEach(track => track.stop());
+            videoEl.srcObject = null;
         }
         if (connectionTimer) {
             clearTimeout(connectionTimer);

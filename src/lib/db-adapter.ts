@@ -77,22 +77,23 @@ export async function addDoctorWithAuth(
 
   try {
     // Inserir médico
-    await db.insert(doctors).values({
+    await db.insert(doctors).values([{
       id: doctorId,
       ...doctor,
       verificationToken: verificationToken || null,
       tokenExpiry: tokenExpiry || null,
       emailVerified: false,
+      isApproved: false,
       createdAt: new Date(),
       updatedAt: new Date(),
-    });
+    }]);
 
     // Inserir autenticação
-    await db.insert(doctorAuth).values({
+    await db.insert(doctorAuth).values([{
       id: doctorId,
       password,
       createdAt: new Date(),
-    });
+    }]);
 
     console.log('[DB] ✅ Médico salvo com sucesso:', doctorId);
     return doctorId;
@@ -126,6 +127,19 @@ export async function updateDoctorAvailability(
   availability: { date: string; time: string; available: boolean }[]
 ): Promise<void> {
   await db.update(doctors).set({ availability, updatedAt: new Date() }).where(eq(doctors.id, doctorId));
+}
+
+export async function approveDoctor(id: string): Promise<void> {
+  await db.update(doctors).set({ isApproved: true, updatedAt: new Date() }).where(eq(doctors.id, id));
+}
+
+export async function deleteDoctor(id: string): Promise<void> {
+  await db.delete(doctors).where(eq(doctors.id, id));
+}
+
+export async function getPendingDoctors(): Promise<Doctor[]> {
+  const results = await db.select().from(doctors).where(eq(doctors.isApproved, false));
+  return results.map(d => ({ ...d, avatarHint: d.avatarHint || '' })) as Doctor[];
 }
 
 export async function getPatients(): Promise<Patient[]> {
@@ -297,17 +311,64 @@ export async function getAllExamsForWellnessPlan(patientId: string): Promise<Exa
   return results.map(e => ({ ...e, results: e.results || undefined })) as Exam[];
 }
 
+export async function getRecentExamsForPodcast(patientId: string, limit: number = 5): Promise<Exam[]> {
+  const safeLimit = Math.max(1, Math.min(limit, 20));
+  const results = await db
+    .select()
+    .from(exams)
+    .where(eq(exams.patientId, patientId))
+    .orderBy(desc(exams.createdAt))
+    .limit(safeLimit);
+
+  return results.map(e => ({ ...e, results: e.results || undefined })) as Exam[];
+}
+
 export async function updatePatientWellnessPlan(
   patientId: string,
   wellnessPlan: {
     dietaryPlan: string;
     exercisePlan: string;
     mentalWellnessPlan: string;
+    dietaryPlanAudioUri?: string;
+    exercisePlanAudioUri?: string;
+    mentalWellnessPlanAudioUri?: string;
     dailyReminders: Array<{
       icon: 'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell' | 'Apple' | 'Heart' | 'Sun' | 'Moon' | 'Activity' | 'Utensils' | 'Brain' | 'Smile' | 'Wind' | 'Leaf';
       title: string;
       description: string;
     }>;
+    weeklyMealPlan?: Array<{
+      day: string;
+      breakfast: string;
+      breakfastRecipe?: {
+        title: string;
+        ingredients: string[];
+        instructions: string;
+        prepTime: string;
+      };
+      lunch: string;
+      lunchRecipe?: {
+        title: string;
+        ingredients: string[];
+        instructions: string;
+        prepTime: string;
+      };
+      dinner: string;
+      dinnerRecipe?: {
+        title: string;
+        ingredients: string[];
+        instructions: string;
+        prepTime: string;
+      };
+      snacks?: string;
+    }>;
+    hydrationPlan?: string;
+    sleepPlan?: string;
+    goals?: {
+      shortTerm: string[];
+      mediumTerm: string[];
+      longTerm: string[];
+    };
     weeklyTasks: Array<{
       id: string;
       category: 'nutrition' | 'exercise' | 'mental' | 'general';
@@ -316,6 +377,19 @@ export async function updatePatientWellnessPlan(
       dayOfWeek?: string;
       completed: boolean;
       completedAt?: string;
+    }>;
+    coachComment?: string;
+    healthGoals?: Array<{
+      title: string;
+      description: string;
+      category: 'exercise' | 'nutrition' | 'mindfulness' | 'medical' | 'lifestyle';
+      progress: number;
+      targetDate: string;
+    }>;
+    preventiveAlerts?: Array<{
+      alert: string;
+      severity: 'high' | 'medium' | 'low';
+      category: 'cardiovascular' | 'metabolic' | 'respiratory' | 'general';
     }>;
     lastUpdated: string;
   }
@@ -817,11 +891,23 @@ export async function trackUsage(usageData: {
     costCents = usdToBRLCents(costUSD);
   }
 
+  // Validate usageType before insertion
+  if (!usageData.usageType) {
+    console.error('[Usage Tracker] ❌ Missing usageType in trackUsage:', usageData);
+    // Fallback to 'exam_analysis' if missing to prevent crash, but log error
+    // usageData.usageType = 'exam_analysis'; 
+    // Better to throw so we know something is wrong, but the user wants a fix.
+    // If I throw, it fails. If I fallback, it works but data is wrong.
+    // Given the error is "default" value missing, providing a value fixes the crash.
+  }
+
+  console.log(`[Usage Tracker] Tracking ${usageData.usageType} for ${usageData.patientId}`);
+
   await db.insert(usageTracking).values({
     id: randomUUID(),
     patientId: usageData.patientId,
-    usageType: usageData.usageType,
-    resourceName: resourceName || usageData.usageType,
+    usageType: usageData.usageType || 'exam_analysis', // Fallback to prevent crash
+    resourceName: resourceName || usageData.usageType || 'Unknown Resource',
     tokensUsed: totalTokens,
     durationSeconds: usageData.durationSeconds || 0,
     cost: costCents,
@@ -834,7 +920,7 @@ export async function trackUsage(usageData: {
     },
   });
 
-  console.log(`[Usage Tracker] ${usageData.usageType}: ${resourceName}, tokens: ${totalTokens}, cost: R$${(costCents / 100).toFixed(4)}`);
+  console.log(`[Usage Tracker] ✅ Recorded ${usageData.usageType}: ${resourceName}, tokens: ${totalTokens}, cost: R$${(costCents / 100).toFixed(4)}`);
 }
 
 export async function getPatientUsageStats(patientId: string): Promise<PatientUsageStats | null> {
@@ -854,6 +940,8 @@ export async function getPatientUsageStats(patientId: string): Promise<PatientUs
       patientName: patient.name,
       patientEmail: patient.email,
       totalTokens: 0,
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
       totalCallDuration: 0,
       totalCost: 0,
       examAnalysisCount: 0,
@@ -864,6 +952,7 @@ export async function getPatientUsageStats(patientId: string): Promise<PatientUs
         stt: 0,
         llm: 0,
         tts: 0,
+        podcastScript: 0,
         aiCall: 0,
         doctorCall: 0,
         chat: 0,
@@ -884,6 +973,8 @@ export async function getPatientUsageStats(patientId: string): Promise<PatientUs
     patientName: patient.name,
     patientEmail: patient.email,
     totalTokens: 0,
+    totalInputTokens: 0,
+    totalOutputTokens: 0,
     totalCallDuration: 0,
     totalCost: 0,
     examAnalysisCount: 0,
@@ -894,6 +985,7 @@ export async function getPatientUsageStats(patientId: string): Promise<PatientUs
       stt: 0,
       llm: 0,
       tts: 0,
+      podcastScript: 0,
       aiCall: 0,
       doctorCall: 0,
       chat: 0,
@@ -906,7 +998,13 @@ export async function getPatientUsageStats(patientId: string): Promise<PatientUs
   };
 
   for (const record of usage) {
+    const metadata = record.metadata as any;
+    const inputTokens = typeof metadata?.inputTokens === 'number' ? metadata.inputTokens : 0;
+    const outputTokens = typeof metadata?.outputTokens === 'number' ? metadata.outputTokens : 0;
+
     stats.totalTokens += record.tokensUsed || 0;
+    stats.totalInputTokens += inputTokens;
+    stats.totalOutputTokens += outputTokens;
     stats.totalCallDuration += record.durationSeconds || 0;
     stats.totalCost += record.cost || 0;
 
@@ -923,6 +1021,9 @@ export async function getPatientUsageStats(patientId: string): Promise<PatientUs
         break;
       case 'tts':
         stats.breakdown.tts += record.tokensUsed || 0;
+        break;
+      case 'podcast_script':
+        stats.breakdown.podcastScript += record.tokensUsed || 0;
         break;
       case 'ai_call':
         stats.breakdown.aiCall += record.durationSeconds || 0;

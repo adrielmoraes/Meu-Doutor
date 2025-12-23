@@ -62,9 +62,10 @@ Your response must always be in Brazilian Portuguese.`;
 
 export async function consultationFlow(input: ConsultationInput): Promise<ConsultationOutput> {
   
-    const messages = [
+    type GenkitMessage = { role: 'system' | 'user' | 'model' | 'tool'; content: any[] };
+    const messages: GenkitMessage[] = [
         { role: 'system', content: [{ text: SYSTEM_PROMPT }] },
-        ...input.history
+        ...(input.history as unknown as GenkitMessage[]),
     ];
 
     console.log('[Consultation Flow] Messages sent to AI:', JSON.stringify(messages, null, 2));
@@ -78,15 +79,17 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
         messages,
         tools: [patientDataAccessTool, consultationHistoryAccessTool, doctorsListAccessTool],
         toolRequest: 'auto'
-    });
+    } as any);
     
     console.log('[Consultation Flow] Initial AI response:', JSON.stringify(initialResponse, null, 2));
 
     const initialMessage = initialResponse.message;
     // Correctly extract the text from the initial response using the modern Genkit 1.x syntax
     let textResponse = initialResponse.text || '';
-    const toolRequests = initialMessage?.toolRequests;
-    const toolRequest = toolRequests?.[0];
+    const toolRequestPart = (initialMessage?.content as any[] | undefined)?.find(
+        (p) => p && typeof p === 'object' && 'toolRequest' in p
+    );
+    const toolRequest = toolRequestPart?.toolRequest as { name: string; input?: unknown } | undefined;
 
     // Step 2: If the model wants to use a tool, execute it and get a follow-up response.
     if (toolRequest) {
@@ -94,11 +97,11 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
         
         let toolResult;
         if (toolRequest.name === 'consultationHistoryAccessTool') {
-            toolResult = await consultationHistoryAccessTool(toolRequest.input);
+            toolResult = await consultationHistoryAccessTool(toolRequest.input as any);
         } else if (toolRequest.name === 'doctorsListAccessTool') {
-            toolResult = await doctorsListAccessTool(toolRequest.input);
+            toolResult = await doctorsListAccessTool(toolRequest.input as any);
         } else {
-            toolResult = await patientDataAccessTool(toolRequest.input);
+            toolResult = await patientDataAccessTool(toolRequest.input as any);
         }
         
         console.log(`[Consultation Flow] Tool ${toolRequest.name} result:`, JSON.stringify(toolResult, null, 2));
@@ -111,12 +114,12 @@ export async function consultationFlow(input: ConsultationInput): Promise<Consul
         const toolFollowUpResponse = await ai.generate({
             messages: [
                 ...messages,
-                initialMessage, // Corrected: Use the full initialMessage here
+                initialMessage,
                 { role: 'tool', content: [{ toolResponse: { name: toolRequest.name, output: toolResult } }] }
             ],
             tools: [patientDataAccessTool, consultationHistoryAccessTool, doctorsListAccessTool], // Still provide tools in case it needs another one.
             toolRequest: 'auto'
-        });
+        } as any);
         
         console.log('[Consultation Flow] Tool follow-up AI response:', JSON.stringify(toolFollowUpResponse, null, 2));
 

@@ -86,7 +86,7 @@ export function PaymentSettings({ adminId }: PaymentSettingsProps) {
           <CreditCard className="h-5 w-5" />
           Configurações de Pagamento
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-white">
           Gerencie os métodos de pagamento disponíveis para os usuários
         </CardDescription>
       </CardHeader>

@@ -9,14 +9,11 @@ import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 
-const specialistPrompt = ai.definePrompt({
-    name: 'pediatricianAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dra. Nathalia Souza, MD** - Board-Certified Pediatrician specializing in developmental pediatrics, pediatric infectious diseases, and adolescent medicine.
+const PEDIATRICIAN_PROMPT_TEMPLATE = `You are **Dra. Nathalia Souza, MD** - Board-Certified Pediatrician specializing in developmental pediatrics, pediatric infectious diseases, and adolescent medicine.
 
 **YOUR EXPERTISE:** Child health from newborn through adolescence (0-18 years) including growth and development, childhood infections, immunizations, congenital conditions, and adolescent health.
 
@@ -68,7 +65,15 @@ For pediatric patients, analyze:
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
-{"findings": "Text here in Portuguese", "clinicalAssessment": "Not Applicable", "recommendations": "Text here in Portuguese"}`,
+{"findings": "Text here in Portuguese", "clinicalAssessment": "Not Applicable", "recommendations": "Text here in Portuguese"}`;
+
+const specialistPrompt = ai.definePrompt({
+  name: 'pediatricianAgentPrompt',
+  model: 'googleai/gemini-2.5-flash',
+  input: { schema: SpecialistAgentInputSchema },
+  output: { schema: SpecialistAgentOutputSchema },
+  tools: [medicalKnowledgeBaseTool],
+  prompt: PEDIATRICIAN_PROMPT_TEMPLATE,
 });
 
 const pediatricianAgentFlow = ai.defineFlow(
@@ -78,11 +83,29 @@ const pediatricianAgentFlow = ai.defineFlow(
       outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        const patientId = input.patientId || 'anonymous';
+        
+        
+        const inputText = PEDIATRICIAN_PROMPT_TEMPLATE + JSON.stringify(input);
+        const inputTokens = countTextTokens(inputText);
+        
         const {output} = await specialistPrompt(input);
         if (!output) {
             console.error('[Pediatrician Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
             return createFallbackResponse('Pediatra');
         }
+        
+        const outputTokens = countTextTokens(JSON.stringify(output));
+        
+        await trackAIUsage({
+          patientId,
+          usageType: 'diagnosis',
+          model: 'googleai/gemini-2.5-flash',
+          inputTokens: inputTokens,
+          outputTokens: outputTokens,
+          metadata: { specialist: 'pediatrician' },
+        });
+        
         return output;
     }
 );

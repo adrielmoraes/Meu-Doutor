@@ -105,7 +105,7 @@ export default async function AdminDashboard() {
               <Activity className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
               Exames Recentes
             </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Últimos 5 exames enviados</CardDescription>
+            <CardDescription className="text-xs sm:text-sm text-white">Últimos 5 exames enviados</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 sm:space-y-3 p-4 pt-0 md:p-6 md:pt-0">
             {recentExams.length > 0 ? (
@@ -142,7 +142,7 @@ export default async function AdminDashboard() {
               <Clock className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
               Pacientes Recentes
             </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Últimos 5 pacientes cadastrados</CardDescription>
+            <CardDescription className="text-xs sm:text-sm text-white">Últimos 5 pacientes cadastrados</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 sm:space-y-3 p-4 pt-0 md:p-6 md:pt-0">
             {recentPatients.length > 0 ? (
@@ -179,10 +179,10 @@ export default async function AdminDashboard() {
 
       {/* Quick Actions - Otimizado para Mobile */}
       <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-cyan-500/20">
-        <CardHeader className="p-4 md:p-6">
-          <CardTitle className="text-white text-base sm:text-lg">Ações Rápidas</CardTitle>
-          <CardDescription className="text-xs sm:text-sm">Acesso rápido às funcionalidades principais</CardDescription>
-        </CardHeader>
+      <CardHeader className="p-4 md:p-6">
+        <CardTitle className="text-white text-base sm:text-lg">Ações Rápidas</CardTitle>
+        <CardDescription className="text-xs sm:text-sm text-white">Acesso rápido às funcionalidades principais</CardDescription>
+      </CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 p-4 pt-0 md:p-6 md:pt-0">
           <Link href="/admin/patients">
             <div className="p-3 sm:p-4 rounded-lg bg-cyan-500/10 border border-cyan-500/20 hover:border-cyan-500/50 transition-all cursor-pointer text-center">

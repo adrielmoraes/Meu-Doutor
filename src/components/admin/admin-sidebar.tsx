@@ -72,7 +72,12 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
           isCollapsed && "items-center"
         )}>
           {/* Logo */}
-          <div className="flex h-16 items-center justify-between border-b border-cyan-500/20 px-6">
+          <div
+            className={cn(
+              "relative flex h-16 items-center border-b border-cyan-500/20",
+              isCollapsed ? "justify-center px-3" : "px-6"
+            )}
+          >
             {!isCollapsed && (
               <div className="flex items-center gap-2">
                 <Shield className="h-8 w-8 text-cyan-400" />
@@ -87,6 +92,23 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
             {isCollapsed && (
               <Shield className="h-6 w-6 text-cyan-400 mx-auto" />
             )}
+
+            <Button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "absolute right-3 top-1/2 -translate-y-1/2 bg-slate-900 border border-cyan-500/20 hover:bg-slate-800 hover:border-cyan-500/40 transition-all",
+                isCollapsed ? "hidden lg:flex" : "flex"
+              )}
+              title={isCollapsed ? "Expandir sidebar" : "Recolher sidebar"}
+            >
+              {isCollapsed ? (
+                <Menu className="h-5 w-5 text-cyan-400" />
+              ) : (
+                <X className="h-5 w-5 text-cyan-400" />
+              )}
+            </Button>
           </div>
 
           {/* Admin Info */}
@@ -156,28 +178,16 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
         </div>
       </div>
 
-      {/* Toggle Button */}
-      <Button
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        variant="ghost"
-        size="icon"
-        className={cn(
-          "fixed top-4 z-50 bg-slate-900 border border-cyan-500/20 hover:bg-slate-800 hover:border-cyan-500/40 transition-all",
-          isCollapsed ? "left-24" : "left-[272px]",
-          "lg:block hidden"
-        )}
-        title={isCollapsed ? "Expandir sidebar" : "Recolher sidebar"}
-      >
-        {isCollapsed ? <Menu className="h-5 w-5 text-cyan-400" /> : <X className="h-5 w-5 text-cyan-400" />}
-      </Button>
-
       {/* Mobile Toggle Button */}
       <Button
         onClick={() => setIsCollapsed(!isCollapsed)}
         variant="ghost"
         size="icon"
-        className="fixed top-4 left-4 z-50 bg-slate-900 border border-cyan-500/20 hover:bg-slate-800 hover:border-cyan-500/40 lg:hidden"
-        title="Menu"
+        className={cn(
+          "fixed top-4 left-4 z-50 bg-slate-900 border border-cyan-500/20 hover:bg-slate-800 hover:border-cyan-500/40 lg:hidden",
+          !isCollapsed && "hidden"
+        )}
+        title="Abrir menu"
       >
         <Menu className="h-5 w-5 text-cyan-400" />
       </Button>

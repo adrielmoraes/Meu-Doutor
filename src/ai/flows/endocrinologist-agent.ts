@@ -9,13 +9,10 @@ import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
-const specialistPrompt = ai.definePrompt({
-    name: 'endocrinologistAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dra. Beatriz Almeida, MD, FACE, ECNU** - Board-Certified Endocrinologist with 18 years of clinical experience specializing in diabetes management, thyroid disorders, metabolic syndrome, and reproductive endocrinology at Hospital Alemão Oswaldo Cruz.
+const ENDOCRINOLOGIST_PROMPT_TEMPLATE = `You are **Dra. Beatriz Almeida, MD, FACE, ECNU** - Board-Certified Endocrinologist with 18 years of clinical experience specializing in diabetes management, thyroid disorders, metabolic syndrome, and reproductive endocrinology at Hospital Alemão Oswaldo Cruz.
 
 **YOUR EXPERTISE:** Comprehensive endocrine system analysis including diabetes mellitus (type 1, 2, gestational), thyroid diseases (hypothyroidism, hyperthyroidism, thyroiditis, nodules), adrenal disorders, pituitary conditions, metabolic syndrome, PCOS, osteoporosis, and hormonal imbalances.
 
@@ -290,7 +287,14 @@ Extract ALL endocrine metrics with interpretation
 - Provide medication recommendations with EXACT dosages when indicated
 
 **OUTPUT FORMAT:**
-Return complete JSON with all SpecialistAgentOutputSchema fields including suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, and relevantMetrics when applicable.`,
+Return complete JSON with all SpecialistAgentOutputSchema fields including suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, and relevantMetrics when applicable.`;
+
+const specialistPrompt = ai.definePrompt({
+    name: 'endocrinologistAgentPrompt',
+    input: {schema: SpecialistAgentInputSchema},
+    output: {schema: SpecialistAgentOutputSchema},
+    tools: [medicalKnowledgeBaseTool],
+    prompt: ENDOCRINOLOGIST_PROMPT_TEMPLATE,
 });
 
 const endocrinologistAgentFlow = ai.defineFlow(
@@ -300,8 +304,13 @@ const endocrinologistAgentFlow = ai.defineFlow(
       outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        const patientId = input.patientId || 'anonymous';
+        
         console.log('[Endocrinologist Agent] Iniciando análise endocrinológica...');
         console.log('[Endocrinologist Agent] Dados do exame:', input.examResults?.substring(0, 100) + '...');
+        
+        const inputText = ENDOCRINOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+        const inputTokens = countTextTokens(inputText);
         
         const startTime = Date.now();
         const {output} = await specialistPrompt(input);
@@ -312,7 +321,19 @@ const endocrinologistAgentFlow = ai.defineFlow(
             return createFallbackResponse('Endocrinologista');
         }
         
+        const outputTokens = countTextTokens(JSON.stringify(output));
+        
+        await trackAIUsage({
+            patientId,
+            usageType: 'diagnosis',
+            model: 'googleai/gemini-2.5-flash',
+            inputTokens: inputTokens,
+            outputTokens: outputTokens,
+            metadata: { feature: 'Specialist Agent - Endocrinologist', specialist: 'endocrinologist' },
+        });
+        
         console.log('[Endocrinologist Agent] ✅ Análise concluída em', duration, 'ms');
+        console.log('[Endocrinologist Agent] Tokens - Input:', inputTokens, 'Output:', outputTokens);
         console.log('[Endocrinologist Agent] Avaliação:', output?.clinicalAssessment);
         console.log('[Endocrinologist Agent] Plano de tratamento definido:', !!output?.treatmentPlan);
         console.log('[Endocrinologist Agent] Protocolo de monitoramento definido:', !!output?.monitoringProtocol);

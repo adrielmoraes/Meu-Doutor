@@ -89,6 +89,15 @@ export async function loginAction(prevState: any, formData: FormData) {
               };
             }
 
+            // Verificar se o médico foi aprovado
+            if (!doctor.isApproved) {
+              return {
+                ...prevState,
+                message: 'Sua conta ainda está aguardando aprovação da administração. Você receberá um aviso quando for aprovado.',
+                errors: { email: ['Conta em análise.'], password: [] },
+              };
+            }
+
             const passwordIsValid = await bcrypt.compare(password, doctor.password);
 
             if (passwordIsValid) {

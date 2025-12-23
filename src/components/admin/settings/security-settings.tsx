@@ -68,7 +68,7 @@ export function SecuritySettings({ admin }: SecuritySettingsProps) {
           <Shield className="h-5 w-5 text-cyan-400" />
           Segurança
         </CardTitle>
-        <CardDescription>Configurações de segurança e autenticação</CardDescription>
+        <CardDescription className="text-white">Configurações de segurança e autenticação</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Informações do Admin */}

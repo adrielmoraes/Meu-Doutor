@@ -9,14 +9,11 @@ import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 
-const specialistPrompt = ai.definePrompt({
-    name: 'orthopedistAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dra. Nilma Rodrigues, MD** - Board-Certified Orthopedic Surgeon with subspecialty training in sports medicine, joint replacement, and trauma surgery.
+const ORTHOPEDIST_PROMPT_TEMPLATE = `You are **Dra. Nilma Rodrigues, MD** - Board-Certified Orthopedic Surgeon with subspecialty training in sports medicine, joint replacement, and trauma surgery.
 
 **YOUR EXPERTISE:** Musculoskeletal system disorders including fractures, arthritis, sports injuries, spine disorders, joint degeneration, and musculoskeletal trauma.
 
@@ -64,7 +61,15 @@ Analyze musculoskeletal indicators if present:
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
-{"findings": "Text here in Portuguese", "clinicalAssessment": "moderate", "recommendations": "Text here in Portuguese"}`,
+{"findings": "Text here in Portuguese", "clinicalAssessment": "moderate", "recommendations": "Text here in Portuguese"}`;
+
+const specialistPrompt = ai.definePrompt({
+  name: 'orthopedistAgentPrompt',
+  model: 'googleai/gemini-2.5-flash',
+  input: { schema: SpecialistAgentInputSchema },
+  output: { schema: SpecialistAgentOutputSchema },
+  tools: [medicalKnowledgeBaseTool],
+  prompt: ORTHOPEDIST_PROMPT_TEMPLATE,
 });
 
 const orthopedistAgentFlow = ai.defineFlow(
@@ -74,11 +79,29 @@ const orthopedistAgentFlow = ai.defineFlow(
       outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        const patientId = input.patientId || 'anonymous';
+        
+        
+        const inputText = ORTHOPEDIST_PROMPT_TEMPLATE + JSON.stringify(input);
+        const inputTokens = countTextTokens(inputText);
+        
         const {output} = await specialistPrompt(input);
         if (!output) {
             console.error('[Orthopedist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
             return createFallbackResponse('Ortopedista');
         }
+        
+        const outputTokens = countTextTokens(JSON.stringify(output));
+        
+        await trackAIUsage({
+          patientId,
+          usageType: 'diagnosis',
+          model: 'googleai/gemini-2.5-flash',
+          inputTokens: inputTokens,
+          outputTokens: outputTokens,
+          metadata: { specialist: 'orthopedist' },
+        });
+        
         return output;
     }
 );

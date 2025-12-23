@@ -19,6 +19,7 @@ import { createPatientAction } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import MediAILogo from '@/components/layout/mediai-logo';
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -73,13 +74,17 @@ export default function PatientRegisterPage() {
   }, [state, toast, router]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden py-12">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden py-12">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
       <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
       
+      <div className="mb-8 relative z-10 flex justify-center">
+        <MediAILogo size="lg" />
+      </div>
+
       <Card className="mx-auto max-w-md w-full shadow-2xl bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-cyan-500/20 relative z-10">
         <CardHeader className="space-y-4">
           <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center">

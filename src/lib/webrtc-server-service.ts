@@ -62,7 +62,7 @@ export class WebRTCService {
       .add(fullSignal);
   }
 
-  async listenForSignals(
+  listenForSignals(
     roomId: string,
     userId: string,
     callback: (signal: CallSignal) => void

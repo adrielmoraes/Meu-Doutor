@@ -79,7 +79,7 @@ export function AvatarSettings({ adminId }: AvatarSettingsProps) {
           <Video className="h-5 w-5 text-pink-400" />
           Avatar Provider
         </CardTitle>
-        <CardDescription>Configure qual provedor de avatar usar nas consultas com IA</CardDescription>
+        <CardDescription className="text-white">Configure qual provedor de avatar usar nas consultas com IA</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Informação */}

@@ -242,7 +242,7 @@ const generateWellnessPlanFlow = ai.defineFlow(
             ].filter(Boolean).join('\n\n');
             const nutritionistInputTokens = countTextTokens(nutritionistInputText);
             const nutritionistOutputTokens = countTextTokens(nutritionistOutputText);
-            trackWellnessPlan(input.patientId, nutritionistInputTokens, nutritionistOutputTokens, 'gemini-2.5-flash')
+            trackWellnessPlan(input.patientId, nutritionistInputTokens, nutritionistOutputTokens, 'gemini-3-flash-preview')
                 .catch(err => console.error('[Generate Wellness Plan] Nutritionist tracking error:', err));
         }
 

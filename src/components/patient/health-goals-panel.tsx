@@ -49,7 +49,7 @@ export default function HealthGoalsPanel({ insights }: HealthGoalsPanelProps) {
           </h3>
           <ul className="space-y-2 list-disc pl-5 text-sm text-muted-foreground">
             {insights.preventiveAlerts.map((alert, index) => (
-              <li key={index}>{alert}</li>
+              <li key={index}>{alert.alert}</li>
             ))}
           </ul>
         </div>

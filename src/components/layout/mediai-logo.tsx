@@ -40,9 +40,9 @@ export default function MediAILogo({
             x2="100%"
             y2="100%"
           >
-            <stop offset="0%" stopColor="#f774c0" />
-            <stop offset="50%" stopColor="#e85fb8" />
-            <stop offset="100%" stopColor="#d94aaf" />
+            <stop offset="0%" stopColor="var(--logo-gradient-start)" />
+            <stop offset="50%" stopColor="var(--logo-gradient-middle)" />
+            <stop offset="100%" stopColor="var(--logo-gradient-end)" />
           </linearGradient>
           <filter id="glow">
             <feGaussianBlur stdDeviation="2" result="coloredBlur" />
@@ -141,9 +141,8 @@ export default function MediAILogo({
         <span
           className={cn(
             currentSize.text,
-            "font-['Poppins',sans-serif] font-bold tracking-tight transition-all",
+            "font-['Poppins',sans-serif] font-bold tracking-tight transition-all text-[#e85fb8]",
           )}
-          style={{ color: "#f774c0" }}
         >
           Medi<span className="font-extrabold">.AI</span>
         </span>

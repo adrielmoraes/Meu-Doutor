@@ -9,14 +9,11 @@ import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 
-const specialistPrompt = ai.definePrompt({
-    name: 'urologistAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dr. André Silva, MD** - Board-Certified Urologist with subspecialty training in urologic oncology, male infertility, and minimally invasive urologic surgery.
+const UROLOGIST_PROMPT_TEMPLATE = `You are **Dr. André Silva, MD** - Board-Certified Urologist with subspecialty training in urologic oncology, male infertility, and minimally invasive urologic surgery.
 
 **YOUR EXPERTISE:** Urinary tract disorders (kidneys, ureters, bladder, urethra) and male reproductive system including kidney stones, UTIs, BPH, prostate cancer, erectile dysfunction, and male infertility.
 
@@ -71,7 +68,15 @@ Example structure (minimal - when no urologic pathology):
 {"findings": "Nenhuma observação urológica relevante nos dados fornecidos.", "clinicalAssessment": "Not Applicable", "recommendations": "Nenhuma recomendação específica."}
 
 Example structure (with urologic pathology):
-{"findings": "Text here in Portuguese", "clinicalAssessment": "moderate", "recommendations": "Text here in Portuguese", "suggestedMedications": [...], "treatmentPlan": {...}}`,
+{"findings": "Text here in Portuguese", "clinicalAssessment": "moderate", "recommendations": "Text here in Portuguese", "suggestedMedications": [...], "treatmentPlan": {...}}`;
+
+const specialistPrompt = ai.definePrompt({
+  name: 'urologistAgentPrompt',
+  model: 'googleai/gemini-2.5-flash',
+  input: { schema: SpecialistAgentInputSchema },
+  output: { schema: SpecialistAgentOutputSchema },
+  tools: [medicalKnowledgeBaseTool],
+  prompt: UROLOGIST_PROMPT_TEMPLATE,
 });
 
 
@@ -82,11 +87,29 @@ const urologistAgentFlow = ai.defineFlow(
       outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        const patientId = input.patientId || 'anonymous';
+        
+        
+        const inputText = UROLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+        const inputTokens = countTextTokens(inputText);
+        
         const {output} = await specialistPrompt(input);
         if (!output) {
             console.error('[Urologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
             return createFallbackResponse('Urologista');
         }
+        
+        const outputTokens = countTextTokens(JSON.stringify(output));
+        
+        await trackAIUsage({
+          patientId,
+          usageType: 'diagnosis',
+          model: 'googleai/gemini-2.5-flash',
+          inputTokens: inputTokens,
+          outputTokens: outputTokens,
+          metadata: { specialist: 'urologist' },
+        });
+        
         return output;
     }
 );

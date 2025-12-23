@@ -209,6 +209,65 @@ function getEmailTemplate(name: string, verificationUrl: string): string {
   `;
 }
 
+export async function sendApprovalEmail(to: string, name: string): Promise<boolean> {
+  try {
+    console.log('[Email] 📧 Enviando email de aprovação para:', to);
+    const { getUncachableResendClient } = await import('./resend-client');
+    const { client, fromEmail } = await getUncachableResendClient();
+
+    await client.emails.send({
+      from: fromEmail || 'MediAI <noreply@appmediai.com>',
+      to: [to],
+      subject: 'Cadastro Aprovado - MediAI',
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; color: #333;">
+          <h2 style="color: #4CAF50;">Parabéns, Dr(a). ${name}!</h2>
+          <p>Temos o prazer de informar que seu cadastro na plataforma MediAI foi <strong>aprovado</strong>.</p>
+          <p>Sua documentação foi verificada e você já tem acesso total à plataforma para atender pacientes.</p>
+          <div style="margin: 30px 0;">
+            <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://mediai.com.br'}/login" style="padding: 12px 24px; background-color: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Acessar Minha Conta</a>
+          </div>
+          <p style="color: #666; font-size: 14px;">Se tiver dúvidas, nossa equipe de suporte está à disposição.</p>
+        </div>
+      `
+    });
+    return true;
+  } catch (e) {
+    console.error('[Email] ❌ Erro ao enviar email de aprovação:', e);
+    return false;
+  }
+}
+
+export async function sendRejectionEmail(to: string, name: string, reason: string): Promise<boolean> {
+  try {
+    console.log('[Email] 📧 Enviando email de rejeição para:', to);
+    const { getUncachableResendClient } = await import('./resend-client');
+    const { client, fromEmail } = await getUncachableResendClient();
+
+    await client.emails.send({
+      from: fromEmail || 'MediAI <noreply@appmediai.com>',
+      to: [to],
+      subject: 'Atualização sobre seu cadastro - MediAI',
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; color: #333;">
+          <h2 style="color: #e53e3e;">Atualização Cadastral</h2>
+          <p>Olá, ${name}.</p>
+          <p>Agradecemos seu interesse na MediAI. Após análise da sua documentação, informamos que seu cadastro <strong>não foi aprovado</strong> neste momento.</p>
+          <div style="background-color: #fff5f5; border-left: 4px solid #e53e3e; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0; font-weight: bold; color: #c53030;">Motivo da recusa:</p>
+            <p style="margin: 5px 0 0 0; color: #2d3748;">${reason}</p>
+          </div>
+          <p>Você pode realizar um novo cadastro com a documentação correta ou entrar em contato com nosso suporte para mais esclarecimentos.</p>
+        </div>
+      `
+    });
+    return true;
+  } catch (e) {
+    console.error('[Email] ❌ Erro ao enviar email de rejeição:', e);
+    return false;
+  }
+}
+
 export async function sendAppointmentConfirmationEmail(data: AppointmentConfirmationData): Promise<boolean> {
   try {
     console.log('[Email] 📧 Enviando email de confirmação de agendamento para:', data.patientEmail);

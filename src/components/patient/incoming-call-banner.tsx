@@ -29,7 +29,14 @@ export default function IncomingCallBanner({ patientId }: IncomingCallBannerProp
 
   const checkForActiveCalls = useCallback(async () => {
     try {
-      const response = await fetch('/api/patient/active-calls');
+      const response = await fetch('/api/patient/active-calls', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
       if (response.ok) {
         const data = await response.json();
         if (data.hasActiveCall && data.calls.length > 0) {
@@ -42,9 +49,17 @@ export default function IncomingCallBanner({ patientId }: IncomingCallBannerProp
         } else {
           setActiveCall(null);
         }
+      } else if (response.status === 401) {
+        // Unauthorized - user might not be logged in
+        console.warn('Usuário não autenticado para verificar chamadas');
+        setActiveCall(null);
+      } else {
+        console.error('Erro ao verificar chamadas:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('Erro ao verificar chamadas:', error);
+      // Network error or server not responding - fail silently
+      console.error('Erro de rede ao verificar chamadas:', error);
+      // Don't clear activeCall on network errors to avoid flickering
     }
   }, [isDismissed, activeCall?.roomId]);
 

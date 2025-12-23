@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import { generateVerificationToken, getTokenExpiry, sendVerificationEmail } from '@/lib/email-service';
+import { saveUploadedFile } from '@/lib/file-storage';
 import type { Doctor } from '@/types';
 
 const DoctorSchema = z.object({
@@ -22,6 +23,26 @@ const DoctorSchema = z.object({
 });
 
 export async function createDoctorAction(prevState: any, formData: FormData) {
+  // Validar documento
+  const documentFile = formData.get('document') as File | null;
+  
+  if (!documentFile || documentFile.size === 0) {
+    return {
+        ...prevState,
+        message: 'Por favor, envie um documento de identificação (CRM ou RG).',
+        errors: { document: ['Documento obrigatório.'] }
+    };
+  }
+
+  // Validar tamanho (max 5MB)
+  if (documentFile.size > 5 * 1024 * 1024) {
+      return {
+          ...prevState,
+          message: 'O documento deve ter no máximo 5MB.',
+          errors: { document: ['Arquivo muito grande.'] }
+      };
+  }
+
   const validatedFields = DoctorSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validatedFields.success) {
@@ -34,6 +55,9 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
   const { fullName, email, password, specialty, crm, city, state } = validatedFields.data;
 
   try {
+    // Salvar documento
+    const documentUrl = await saveUploadedFile(documentFile, 'documents');
+
     // Verificar se email já existe
     const existingEmail = await getDoctorByEmail(email);
     if (existingEmail) {
@@ -74,6 +98,8 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
       xpToNextLevel: 100,
       validations: 0,
       badges: [],
+      isApproved: false,
+      verificationDocument: documentUrl,
     } as Omit<Doctor, 'id'>, hashedPassword, verificationToken, tokenExpiry);
 
     // Enviar email de verificação
@@ -103,7 +129,7 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
     revalidatePath('/doctor/patients');
     return {
       ...prevState,
-      message: 'Cadastro realizado com sucesso! Verifique seu email para ativar sua conta.',
+      message: 'Cadastro realizado! Verifique seu email. Sua conta aguarda aprovação da administração.',
       errors: null,
       success: true,
     };

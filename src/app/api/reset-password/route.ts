@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '../../../../server/storage';
-import { patients, doctors } from '../../../../shared/schema';
+import { patients, doctors, patientAuth, doctorAuth } from '../../../../shared/schema';
 import { eq, and, gt } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 
@@ -45,9 +45,15 @@ export async function POST(request: NextRequest) {
       }
 
       await db
+        .update(patientAuth)
+        .set({
+          password: hashedPassword,
+        })
+        .where(eq(patientAuth.id, result[0].id));
+
+      await db
         .update(patients)
         .set({
-          passwordHash: hashedPassword,
           resetPasswordToken: null,
           resetPasswordExpiry: null,
           updatedAt: new Date(),
@@ -75,9 +81,15 @@ export async function POST(request: NextRequest) {
       }
 
       await db
+        .update(doctorAuth)
+        .set({
+          password: hashedPassword,
+        })
+        .where(eq(doctorAuth.id, result[0].id));
+
+      await db
         .update(doctors)
         .set({
-          passwordHash: hashedPassword,
           resetPasswordToken: null,
           resetPasswordExpiry: null,
           updatedAt: new Date(),

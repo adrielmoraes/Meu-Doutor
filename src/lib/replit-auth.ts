@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 export interface ReplitUser {
   replitUserId: string;
   replitUserName: string;
-  role?: 'doctor' | 'patient';
+  role?: 'doctor' | 'patient' | 'admin';
   profileId?: string;
 }
 

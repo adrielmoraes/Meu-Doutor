@@ -1,6 +1,8 @@
 
 import { ai } from '../genkit';
 import { z } from 'zod';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 const AnalyzeTavusConversationInputSchema = z.object({
   transcript: z.string(),
@@ -16,28 +18,14 @@ const AnalyzeTavusConversationOutputSchema = z.object({
   qualityScore: z.number()
 });
 
-export const analyzeTavusConversation = ai.defineFlow(
-  {
-    name: 'analyzeTavusConversation',
-    inputSchema: AnalyzeTavusConversationInputSchema,
-    outputSchema: AnalyzeTavusConversationOutputSchema,
-  },
-  async (input) => {
-    const { transcript, patientId } = input;
-
-    const { text } = await ai.generate({
-      model: 'googleai/gemini-2.5-flash',
-      config: {
-        temperature: 0.3,
-      },
-      prompt: `Você é um assistente médico especializado em análise de consultas virtuais.
+const TAVUS_ANALYSIS_PROMPT_TEMPLATE = `Você é um assistente médico especializado em análise de consultas virtuais.
 
 Analise a seguinte transcrição de uma consulta virtual entre um paciente e a assistente virtual MediAI:
 
 TRANSCRIÇÃO:
-${transcript}
+{{{transcript}}}
 
-PACIENTE ID: ${patientId}
+PACIENTE ID: {{{patientId}}}
 
 Forneça uma análise detalhada no seguinte formato JSON:
 
@@ -55,7 +43,39 @@ IMPORTANTE:
 - Identifique os principais sintomas mencionados
 - Sugira próximos passos relevantes
 - Avalie a qualidade da conversa (clareza, completude, empatia)
-- O sentiment deve refletir o tom geral da conversa`,
+- O sentiment deve refletir o tom geral da conversa`;
+
+export const analyzeTavusConversation = ai.defineFlow(
+  {
+    name: 'analyzeTavusConversation',
+    inputSchema: AnalyzeTavusConversationInputSchema,
+    outputSchema: AnalyzeTavusConversationOutputSchema,
+  },
+  async (input) => {
+    const { transcript, patientId } = input;
+
+    const inputTokens = countTextTokens(transcript + patientId);
+    const promptTokens = countTextTokens(TAVUS_ANALYSIS_PROMPT_TEMPLATE);
+
+    const { text } = await ai.generate({
+      model: 'googleai/gemini-2.5-flash',
+      config: {
+        temperature: 0.3,
+      },
+      prompt: TAVUS_ANALYSIS_PROMPT_TEMPLATE.replace('{{{transcript}}}', transcript).replace('{{{patientId}}}', patientId),
+    });
+
+    const outputTokens = countTextTokens(text);
+
+    await trackAIUsage({
+      patientId: patientId || 'system',
+      usageType: 'consultation_flow',
+      inputTokens: inputTokens + promptTokens,
+      outputTokens,
+      metadata: {
+        flowName: 'analyzeTavusConversation',
+        totalTokens: inputTokens + promptTokens + outputTokens,
+      },
     });
 
     try {

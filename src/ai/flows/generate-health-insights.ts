@@ -6,6 +6,8 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { trackAIUsage } from '@/lib/usage-tracker';
+import { countTextTokens } from '@/lib/token-counter';
 
 // --- SCHEMAS ---
 
@@ -24,6 +26,7 @@ const PreventiveAlertSchema = z.object({
 });
 
 const GenerateHealthInsightsInputSchema = z.object({
+    patientId: z.string().optional().describe("Optional patient ID for usage tracking."),
     patientHistory: z.string().describe("Summary of patient history and lifestyle."),
     validatedDiagnosis: z.string().describe("The doctor's final validated diagnosis."),
 });
@@ -39,12 +42,7 @@ export type GenerateHealthInsightsOutput = z.infer<typeof GenerateHealthInsights
 
 // --- PROMPT DEFINITION ---
 
-const healthInsightsPrompt = ai.definePrompt({
-    name: 'generateHealthInsightsPrompt',
-    model: 'googleai/gemini-2.5-flash-lite',
-    input: { schema: GenerateHealthInsightsInputSchema },
-    output: { schema: GenerateHealthInsightsOutputSchema },
-    prompt: `You are Dr. Health, a proactive, empathetic, and scientifically grounded AI Health Coach.
+const HEALTH_INSIGHTS_PROMPT_TEMPLATE = `You are Dr. Health, a proactive, empathetic, and scientifically grounded AI Health Coach.
     
     **MISSION:**
     Analyze the patient's data to create a preventive plan. Transform clinical diagnoses into POSITIVE, ACTIONABLE lifestyle changes.
@@ -71,7 +69,14 @@ const healthInsightsPrompt = ai.definePrompt({
     3. **Coach Comment:**
        - Write a short (1-2 sentences) motivating closing phrase.
 
-    Generate the JSON response below.`,
+    Generate the JSON response below.`;
+
+const healthInsightsPrompt = ai.definePrompt({
+    name: 'generateHealthInsightsPrompt',
+    model: 'googleai/gemini-2.5-flash',
+    input: { schema: GenerateHealthInsightsInputSchema },
+    output: { schema: GenerateHealthInsightsOutputSchema },
+    prompt: HEALTH_INSIGHTS_PROMPT_TEMPLATE,
 });
 
 // --- FLOW DEFINITION (MOVED OUTSIDE FUNCTION) ---
@@ -88,7 +93,28 @@ const generateHealthInsightsFlow = ai.defineFlow(
 
         while (attempt < maxAttempts) {
             try {
+                const startTime = Date.now();
                 const { output } = await healthInsightsPrompt(input);
+
+                // Track Usage if patientId is provided
+                if (input.patientId && output) {
+                    const inputText = (input.patientHistory || '') + (input.validatedDiagnosis || '');
+                    const totalInputTokens = countTextTokens(inputText) + countTextTokens(HEALTH_INSIGHTS_PROMPT_TEMPLATE);
+                    const outputTokens = countTextTokens(JSON.stringify(output));
+
+                    trackAIUsage({
+                        patientId: input.patientId,
+                        usageType: 'wellness_plan', // Reusing wellness_plan type as it fits context
+                        model: 'gemini-2.5-flash',
+                        inputTokens: totalInputTokens,
+                        outputTokens: outputTokens,
+                        metadata: {
+                            feature: 'health-insights',
+                            durationMs: Date.now() - startTime,
+                        }
+                    }).catch(err => console.error('[HealthCoach] Usage tracking error:', err));
+                }
+
                 return output!;
             } catch (error: any) {
                 const isRateLimit = error.status === 429 || error.message?.includes('429') || error.message?.includes('Quota');

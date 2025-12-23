@@ -9,6 +9,8 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { generateWithFallback } from '@/lib/ai-resilience';
+import { countTextTokens, estimateImageTokens } from '@/lib/token-counter';
+import { trackAIUsage, trackExamDocumentAnalysis } from '@/lib/usage-tracker';
 
 const SingleDocumentInputSchema = z.object({
   examDataUri: z.string().describe("A medical exam document as a data URI"),
@@ -31,11 +33,7 @@ const SingleDocumentOutputSchema = z.object({
 });
 export type SingleDocumentOutput = z.infer<typeof SingleDocumentOutputSchema>;
 
-const singleDocumentAnalysisPrompt = ai.definePrompt({
-  name: 'singleExamDocumentAnalysisPrompt',
-  input: { schema: SingleDocumentInputSchema },
-  output: { schema: SingleDocumentOutputSchema },
-  prompt: `Você é um assistente médico de IA analisando um documento de exame médico. Sua tarefa é:
+const SINGLE_EXAM_PROMPT_TEMPLATE = `Você é um assistente médico de IA analisando um documento de exame médico. Sua tarefa é:
 
 1. **Extrair e Resumir**: Revise o documento médico e crie um resumo médico abrangente das descobertas.
 3. **Explicação para o Paciente**: Escreva uma explicação simples e empática das descobertas para um paciente leigo em português brasileiro.
@@ -55,13 +53,23 @@ Nome do Documento: {{fileName}}
 Conteúdo do Documento:
 {{media url=examDataUri}}
 
-Retorne APENAS um objeto JSON simples com os campos exatos especificados. SEM marcas de markdown, SEM acentos graves.`,
+Retorne APENAS um objeto JSON simples com os campos exatos especificados. SEM marcas de markdown, SEM acentos graves.`;
+
+const singleDocumentAnalysisPrompt = ai.definePrompt({
+  name: 'singleExamDocumentAnalysisPrompt',
+  input: { schema: SingleDocumentInputSchema },
+  output: { schema: SingleDocumentOutputSchema },
+  prompt: SINGLE_EXAM_PROMPT_TEMPLATE,
 });
 
-export async function analyzeSingleExam(input: SingleDocumentInput): Promise<SingleDocumentOutput> {
+export async function analyzeSingleExam(input: SingleDocumentInput, patientId: string): Promise<SingleDocumentOutput> {
   console.log(`[📄 Single Exam Analysis] Analyzing document: ${input.fileName}...`);
 
   try {
+    const imageTokens = estimateImageTokens(2048, 1536, 'high');
+    const inputTextTokens = countTextTokens(input.fileName);
+    const promptTokens = countTextTokens(SINGLE_EXAM_PROMPT_TEMPLATE);
+
     const { output } = await generateWithFallback({
       prompt: singleDocumentAnalysisPrompt,
       input: input
@@ -70,6 +78,18 @@ export async function analyzeSingleExam(input: SingleDocumentInput): Promise<Sin
     if (!output) {
       throw new Error('Failed to analyze document - no output received');
     }
+
+    const outputText = output.examResultsSummary + output.patientExplanation + (output.documentType || '') + (output.examDate || '');
+    const outputTokens = countTextTokens(outputText);
+
+    await trackExamDocumentAnalysis(
+      patientId,
+      1,
+      inputTextTokens + promptTokens,
+      outputTokens,
+      imageTokens,
+      'googleai/gemini-2.5-flash'
+    );
 
     console.log(`[📄 Single Exam Analysis] ✅ Document analyzed successfully: ${input.fileName}`);
     return output;

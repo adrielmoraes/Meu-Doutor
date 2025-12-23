@@ -57,7 +57,7 @@ export default async function ExamHistoryPage() {
               {error}
               {fixUrl && (
                 <p className="mt-2">
-                  Por favor, habilite a API manualmente visitando o seguinte link e clicando em "Habilitar":
+                  Por favor, habilite a API manualmente visitando o seguinte link e clicando em &quot;Habilitar&quot;:
                   <br />
                   <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
                     Habilitar API do Firestore

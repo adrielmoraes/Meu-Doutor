@@ -235,28 +235,38 @@ export function calculateLiveApiAudioCost(
   };
 }
 
-// Helper function to calculate TTS cost (based on output tokens/characters)
+// Helper function to calculate TTS cost (based on input text tokens and output audio tokens)
 export function calculateTTSCost(
   model: string,
-  outputTokens: number
+  outputTokens: number,
+  inputTokens: number = 0
 ): number {
   const pricing = AI_PRICING.audioModels[model as keyof typeof AI_PRICING.audioModels];
 
   if (!pricing) {
     // Default to flash TTS pricing
-    return (outputTokens / 1_000_000) * 10.00;
+    return (outputTokens / 1_000_000) * 10.00 + (inputTokens / 1_000_000) * 0.50;
   }
+
+  let inputCost = 0;
+  let outputCost = 0;
 
   // Handle different audio model pricing structures
-  if ('output' in pricing) {
-    return (outputTokens / 1_000_000) * pricing.output;
-  } else if ('audioVideoOutput' in pricing) {
-    // Native audio model - use audio output pricing
-    return (outputTokens / 1_000_000) * pricing.audioVideoOutput;
+  if ('input' in pricing) {
+    inputCost = (inputTokens / 1_000_000) * pricing.input;
+  } else if ('textInput' in pricing) {
+    // Native audio model - use text input pricing
+    inputCost = (inputTokens / 1_000_000) * pricing.textInput;
   }
 
-  // Fallback
-  return (outputTokens / 1_000_000) * 10.00;
+  if ('output' in pricing) {
+    outputCost = (outputTokens / 1_000_000) * pricing.output;
+  } else if ('audioVideoOutput' in pricing) {
+    // Native audio model - use audio output pricing
+    outputCost = (outputTokens / 1_000_000) * pricing.audioVideoOutput;
+  }
+
+  return inputCost + outputCost;
 }
 
 // Helper function to calculate STT cost (based on audio input tokens)

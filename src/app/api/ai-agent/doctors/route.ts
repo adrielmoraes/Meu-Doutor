@@ -64,10 +64,9 @@ export async function GET(request: NextRequest) {
       specialty: doctor.specialty,
       crm: doctor.crm,
       online: doctor.online,
-      bio: doctor.bio,
-      experienceYears: doctor.experienceYears,
-      languages: doctor.languages,
-      consultationPrice: doctor.consultationPrice,
+      city: doctor.city,
+      state: doctor.state,
+      avatar: doctor.avatar,
     }));
 
     return NextResponse.json({

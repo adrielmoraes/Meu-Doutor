@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { VideoCall } from '@/components/video-call/VideoCall';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,19 +23,7 @@ export default function DoctorCallsPage() {
   const [doctorId, setDoctorId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    initializePage();
-  }, []);
-
-  useEffect(() => {
-    if (doctorId) {
-      loadCallRequests();
-      const interval = setInterval(loadCallRequests, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [doctorId]);
-
-  const initializePage = async () => {
+  const initializePage = useCallback(async () => {
     try {
       const currentDoctorId = await getCurrentDoctorId();
       setDoctorId(currentDoctorId);
@@ -44,9 +32,9 @@ export default function DoctorCallsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const loadCallRequests = async () => {
+  const loadCallRequests = useCallback(async () => {
     if (!doctorId) return;
     
     try {
@@ -56,7 +44,19 @@ export default function DoctorCallsPage() {
     } catch (error) {
       console.error('Erro ao carregar chamadas:', error);
     }
-  };
+  }, [doctorId]);
+
+  useEffect(() => {
+    initializePage();
+  }, [initializePage]);
+
+  useEffect(() => {
+    if (doctorId) {
+      loadCallRequests();
+      const interval = setInterval(loadCallRequests, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [doctorId, loadCallRequests]);
 
   const acceptCall = async (call: CallRequest) => {
     setActiveCall(call);

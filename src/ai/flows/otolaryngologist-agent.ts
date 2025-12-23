@@ -9,14 +9,11 @@ import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 
-const specialistPrompt = ai.definePrompt({
-    name: 'otolaryngologistAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dr. Rafael Gonçalves, MD** - Board-Certified Otolaryngologist (ENT) specializing in head and neck surgery, rhinology, and otology.
+const OTOLARYNGOLOGIST_PROMPT_TEMPLATE = `You are **Dr. Rafael Gonçalves, MD** - Board-Certified Otolaryngologist (ENT) specializing in head and neck surgery, rhinology, and otology.
 
 **YOUR EXPERTISE:** Ear, nose, throat, head and neck disorders including hearing loss, sinusitis, tonsillitis, voice disorders, sleep apnea, head and neck malignancies.
 
@@ -64,7 +61,15 @@ Analyze ENT indicators if present:
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
-{"findings": "Text here in Portuguese", "clinicalAssessment": "moderate", "recommendations": "Text here in Portuguese"}`,
+{"findings": "Text here in Portuguese", "clinicalAssessment": "moderate", "recommendations": "Text here in Portuguese"}`;
+
+const specialistPrompt = ai.definePrompt({
+  name: 'otolaryngologistAgentPrompt',
+  model: 'googleai/gemini-2.5-flash',
+  input: { schema: SpecialistAgentInputSchema },
+  output: { schema: SpecialistAgentOutputSchema },
+  tools: [medicalKnowledgeBaseTool],
+  prompt: OTOLARYNGOLOGIST_PROMPT_TEMPLATE,
 });
 
 const otolaryngologistAgentFlow = ai.defineFlow(
@@ -74,11 +79,29 @@ const otolaryngologistAgentFlow = ai.defineFlow(
       outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        const patientId = input.patientId || 'anonymous';
+        
+        
+        const inputText = OTOLARYNGOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+        const inputTokens = countTextTokens(inputText);
+        
         const {output} = await specialistPrompt(input);
         if (!output) {
             console.error('[Otolaryngologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
             return createFallbackResponse('Otorrinolaringologista');
         }
+        
+        const outputTokens = countTextTokens(JSON.stringify(output));
+        
+        await trackAIUsage({
+          patientId,
+          usageType: 'diagnosis',
+          model: 'googleai/gemini-2.5-flash',
+          inputTokens: inputTokens,
+          outputTokens: outputTokens,
+          metadata: { specialist: 'otolaryngologist' },
+        });
+        
         return output;
     }
 );

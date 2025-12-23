@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { VideoCall } from '@/components/video-call/VideoCall';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Phone } from 'lucide-react';
 import { getDoctorByIdAction } from './actions';
-import { Doctor } from '@/lib/types';
+import type { Doctor } from '@/types';
 import { getCurrentPatientId } from '../actions';
 import { TalkingAvatar3D } from '@/components/avatar/TalkingAvatar3D';
 
@@ -21,11 +21,7 @@ export default function PatientCallPage() {
   const [callStarted, setCallStarted] = useState(false);
   const [roomId, setRoomId] = useState<string>('');
 
-  useEffect(() => {
-    loadData();
-  }, [doctorId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [doctorData, currentPatientId] = await Promise.all([
         getDoctorByIdAction(doctorId),
@@ -38,7 +34,11 @@ export default function PatientCallPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [doctorId]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const startCall = async () => {
     if (!patientId) {

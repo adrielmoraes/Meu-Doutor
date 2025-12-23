@@ -10,11 +10,14 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 const UrgencyLevelSchema = z.enum(['Urgente', 'Alta', 'Normal']);
 export type UrgencyLevel = z.infer<typeof UrgencyLevelSchema>;
 
 const TriageUrgencyInputSchema = z.object({
+  patientId: z.string().optional().describe("Optional patient ID for usage tracking."),
   diagnosisSynthesis: z
     .string()
     .describe("The preliminary diagnosis synthesis from the specialist AI team."),
@@ -26,11 +29,7 @@ const TriageUrgencyOutputSchema = z.object({
 });
 export type TriageUrgencyOutput = z.infer<typeof TriageUrgencyOutputSchema>;
 
-const triagePrompt = ai.definePrompt({
-    name: 'triageUrgencyPrompt',
-    input: { schema: TriageUrgencyInputSchema },
-    output: { schema: TriageUrgencyOutputSchema },
-    prompt: `You are an expert triage AI, equivalent to an experienced emergency room doctor or head nurse.
+const TRIAGE_PROMPT_TEMPLATE = `You are an expert triage AI, equivalent to an experienced emergency room doctor or head nurse.
     Your task is to analyze a preliminary diagnosis and assign an urgency level.
     Your response must always be in Brazilian Portuguese.
 
@@ -41,7 +40,13 @@ const triagePrompt = ai.definePrompt({
     Preliminary Diagnosis Synthesis:
     {{{diagnosisSynthesis}}}
 
-    Based on this information, determine the correct priority level.`,
+    Based on this information, determine the correct priority level.`;
+
+const triagePrompt = ai.definePrompt({
+    name: 'triageUrgencyPrompt',
+    input: { schema: TriageUrgencyInputSchema },
+    output: { schema: TriageUrgencyOutputSchema },
+    prompt: TRIAGE_PROMPT_TEMPLATE,
 });
 
 export async function triageUrgency(
@@ -54,7 +59,26 @@ export async function triageUrgency(
           outputSchema: TriageUrgencyOutputSchema,
         },
         async (input) => {
+            const inputTokens = countTextTokens(input.diagnosisSynthesis);
+            const promptTokens = countTextTokens(TRIAGE_PROMPT_TEMPLATE);
+
             const { output } = await triagePrompt(input);
+
+            const outputTokens = countTextTokens(JSON.stringify(output));
+
+            if (input.patientId) {
+              await trackAIUsage({
+                patientId: input.patientId,
+                usageType: 'diagnosis',
+                inputTokens: inputTokens + promptTokens,
+                outputTokens,
+                metadata: {
+                  flowName: 'triageUrgencyFlow',
+                  totalTokens: inputTokens + promptTokens + outputTokens,
+                },
+              });
+            }
+
             return output!;
         }
     );

@@ -73,7 +73,7 @@ const getStatusColor = (value: number, type: 'hr' | 'bp') => {
     return 'text-green-700 dark:text-green-400';
 }
 
-export default function LiveMonitoringClient() {
+export default function LiveMonitoringClient({ patientId }: { patientId: string }) {
     const [vitalsData, setVitalsData] = useState<any[]>([]);
     const [currentVitals, setCurrentVitals] = useState({ hr: 0, systolic: 0, diastolic: 0 });
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -169,7 +169,7 @@ export default function LiveMonitoringClient() {
         setIsAnalyzing(true);
         setAnalysisResult(null);
         try {
-            const result = await summarizeVitals({ vitalsData });
+            const result = await summarizeVitals({ vitalsData, patientId });
             setAnalysisResult(result);
         } catch (error) {
             console.error("Failed to analyze vitals:", error);

@@ -7,6 +7,8 @@ import { ai } from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 const specialistPrompt = ai.definePrompt({
     name: 'geriatricianAgentPrompt',
@@ -84,6 +86,8 @@ const geriatricianAgentFlow = ai.defineFlow(
         outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        const patientId = input.patientId || 'anonymous';
+        
         console.log('[Geriatrician Agent] Iniciando análise geriátrica...');
         try {
             const { output } = await specialistPrompt(input);

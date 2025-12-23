@@ -95,7 +95,7 @@ export function GeneralSettings({ adminId }: GeneralSettingsProps) {
             <Settings className="h-5 w-5 text-orange-400" />
             Geral
           </CardTitle>
-          <CardDescription>Configurações gerais da plataforma</CardDescription>
+          <CardDescription className="text-white">Configurações gerais da plataforma</CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-orange-400" />
@@ -111,7 +111,7 @@ export function GeneralSettings({ adminId }: GeneralSettingsProps) {
           <Settings className="h-5 w-5 text-orange-400" />
           Geral
         </CardTitle>
-        <CardDescription>Configurações gerais da plataforma</CardDescription>
+        <CardDescription className="text-white">Configurações gerais da plataforma</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Platform Info */}

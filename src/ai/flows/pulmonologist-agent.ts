@@ -9,14 +9,10 @@ import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
-
-const specialistPrompt = ai.definePrompt({
-    name: 'pulmonologistAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dr. Carlos Mendes, MD** - Board-Certified Pulmonologist with expertise in respiratory diseases, critical care pulmonology, and interventional bronchoscopy.
+const PULMONOLOGIST_PROMPT_TEMPLATE = `You are **Dr. Carlos Mendes, MD** - Board-Certified Pulmonologist with expertise in respiratory diseases, critical care pulmonology, and interventional bronchoscopy.
 
 **YOUR EXPERTISE:** Respiratory system disorders including asthma, COPD, pneumonia, interstitial lung diseases, pulmonary embolism, lung cancer, and sleep-disordered breathing.
 
@@ -62,7 +58,14 @@ Analyze respiratory indicators if present:
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
-{"findings": "Text here in Portuguese", "clinicalAssessment": "moderate", "recommendations": "Text here in Portuguese"}`,
+{"findings": "Text here in Portuguese", "clinicalAssessment": "moderate", "recommendations": "Text here in Portuguese"}`;
+
+const specialistPrompt = ai.definePrompt({
+    name: 'pulmonologistAgentPrompt',
+    input: {schema: SpecialistAgentInputSchema},
+    output: {schema: SpecialistAgentOutputSchema},
+    tools: [medicalKnowledgeBaseTool],
+    prompt: PULMONOLOGIST_PROMPT_TEMPLATE,
 });
 
 const pulmonologistAgentFlow = ai.defineFlow(
@@ -72,11 +75,28 @@ const pulmonologistAgentFlow = ai.defineFlow(
       outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        const patientId = input.patientId || 'anonymous';
+        
+        const inputText = PULMONOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+        const inputTokens = countTextTokens(inputText);
+        
         const {output} = await specialistPrompt(input);
         if (!output) {
             console.error('[Pulmonologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
             return createFallbackResponse('Pneumologista');
         }
+        
+        const outputTokens = countTextTokens(JSON.stringify(output));
+        
+        await trackAIUsage({
+            patientId,
+            usageType: 'diagnosis',
+            model: 'googleai/gemini-2.5-flash',
+            inputTokens: inputTokens,
+            outputTokens: outputTokens,
+            metadata: { feature: 'Specialist Agent - Pulmonologist', specialist: 'pulmonologist' },
+        });
+        
         return output;
     }
 );

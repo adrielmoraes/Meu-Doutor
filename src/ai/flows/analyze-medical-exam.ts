@@ -24,6 +24,7 @@ const DocumentInputSchema = z.object({
 });
 
 const AnalyzeMedicalExamInputSchema = z.object({
+  patientId: z.string().optional().describe("The ID of the patient for usage tracking."),
   documents: z.array(DocumentInputSchema).describe("An array of medical exam documents to be analyzed together.")
 });
 export type AnalyzeMedicalExamInput = z.infer<typeof AnalyzeMedicalExamInputSchema>;
@@ -63,7 +64,7 @@ export async function analyzeMedicalExam(input: AnalyzeMedicalExamInput): Promis
 // Prompt for analyzing a SINGLE document (optimized for Vercel serverless)
 const singleDocumentAnalysisPrompt = ai.definePrompt({
   name: 'singleDocumentAnalysisPrompt',
-  model: 'googleai/gemini-2.5-flash-lite',
+  model: 'googleai/gemini-2.5-flash',
   input: { schema: DocumentInputSchema },
   output: {
     schema: SingleDocumentResultSchema,
@@ -94,7 +95,7 @@ Return ONLY a bare JSON object with the exact fields specified. NO markdown fenc
 // Prompt for combining multiple document summaries into a unified analysis
 const combineDocumentSummariesPrompt = ai.definePrompt({
   name: 'combineDocumentSummariesPrompt',
-  model: 'googleai/gemini-2.5-flash-lite',
+  model: 'googleai/gemini-2.5-flash',
   input: {
     schema: z.object({
       summaries: z.array(z.object({
@@ -145,6 +146,7 @@ const analyzeMedicalExamFlow = ai.defineFlow(
     let examResultsSummary: string;
     let patientExplanation: string;
     let allStructuredResults: z.infer<typeof StructuredResultSchema>[] = [];
+    let extractedExamDate: string | undefined = undefined;
 
     // STEP 1: Process documents - sequential for Vercel compatibility
     if (input.documents.length === 1) {
@@ -283,8 +285,15 @@ const analyzeMedicalExamFlow = ai.defineFlow(
       JSON.stringify(finalResult.specialistFindings || [])
     );
 
-    // Note: patientId is not available in this flow - tracking is done in the caller (patient actions)
-    // Log token usage for monitoring
+    // Track usage for admin dashboard
+    await trackExamDocumentAnalysis(
+      input.patientId || 'anonymous',
+      documentCount,
+      inputTextTokens,
+      outputTextTokens,
+      totalImageTokens
+    );
+
     console.log(`[📊 Token Accounting] Documents: ${documentCount}, Image tokens: ${totalImageTokens}, Input text: ${inputTextTokens}, Output: ${outputTextTokens}`);
     console.log(`[📊 Token Accounting] Total estimated tokens: ${totalImageTokens + inputTextTokens + outputTextTokens}`);
 

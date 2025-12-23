@@ -10,6 +10,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 import {
   SpecialistAgentInputSchema,
   SpecialistAgentOutputSchema,
@@ -129,21 +130,7 @@ const specialistAgents = {
 
 type Specialist = keyof typeof specialistAgents;
 
-const triagePrompt = ai.definePrompt({
-  name: 'specialistTriagePrompt',
-  model: 'googleai/gemini-2.5-flash-lite',
-  input: { schema: GeneratePreliminaryDiagnosisInputSchema },
-  output: {
-    schema: z.object({
-      specialists: z
-        .array(z.enum(Object.keys(specialistAgents) as [Specialist, ...Specialist[]]))
-        .describe(
-          'A list of specialist agents to consult for this case, based on the patient data. Choose the most relevant specialists.'
-        ),
-      reasoning: z.string().describe('Brief explanation of why each specialist was selected and which specialists were explicitly excluded'),
-    }),
-  },
-  prompt: `You are Dr. Márcio Silva, an elite General Practitioner AI and Medical Triage Specialist with 25+ years coordinating multidisciplinary teams. Your mission is to perform INTELLIGENT TRIAGE, selecting ONLY the specialists whose expertise is ABSOLUTELY CRITICAL for this specific case.
+const TRIAGE_PROMPT_TEMPLATE = `You are Dr. Márcio Silva, an elite General Practitioner AI and Medical Triage Specialist with 25+ years coordinating multidisciplinary teams. Your mission is to perform INTELLIGENT TRIAGE, selecting ONLY the specialists whose expertise is ABSOLUTELY CRITICAL for this specific case.
 
 **🎯 YOUR CORE RESPONSIBILITY:**
 Act as a precision filter - eliminate noise, maximize signal. Every specialist consultation has a cost (time, resources, patient anxiety). Choose wisely.
@@ -287,54 +274,26 @@ Return a JSON object with:
   "Selected cardiologist due to elevated BP (150/95) and abnormal ECG. Selected endocrinologist due to HbA1c 8.5% indicating uncontrolled diabetes. Excluded neurologist (no neurological symptoms), excluded gastroenterologist (digestive system exam normal)."
 
 **🎯 REMEMBER:**
-You are the gatekeeper of efficient, high-value medical care. Every specialist you select should be able to provide ACTIONABLE insights that directly impact diagnosis and treatment. Be ruthless in excluding unnecessary consultations.`,
-});
+You are the gatekeeper of efficient, high-value medical care. Every specialist you select should be able to provide ACTIONABLE insights that directly impact diagnosis and treatment. Be ruthless in excluding unnecessary consultations.`;
 
-const synthesisPrompt = ai.definePrompt({
-  name: 'diagnosisSynthesisPrompt',
-  model: 'googleai/gemini-2.5-flash-lite',
-  input: {
+const triagePrompt = ai.definePrompt({
+  name: 'specialistTriagePrompt',
+  model: 'googleai/gemini-2.5-flash',
+  input: { schema: GeneratePreliminaryDiagnosisInputSchema },
+  output: {
     schema: z.object({
-      patientHistory: z.string(),
-      examResults: z.string(),
-      specialistReports: z.array(
-        z.object({
-          specialist: z.string(),
-          findings: z.string(),
-          clinicalAssessment: z.string(),
-          recommendations: z.string(),
-          suggestedMedications: z.array(z.object({
-            medication: z.string(),
-            dosage: z.string(),
-            frequency: z.string(),
-            duration: z.string(),
-            route: z.string(),
-            justification: z.string(),
-          })).optional(),
-          treatmentPlan: z.object({
-            primaryTreatment: z.string(),
-            supportiveCare: z.string().optional(),
-            lifestyleModifications: z.string().optional(),
-            expectedOutcome: z.string(),
-          }).optional(),
-          monitoringProtocol: z.object({
-            parameters: z.string(),
-            frequency: z.string(),
-            warningSignals: z.string(),
-          }).optional(),
-          contraindications: z.array(z.string()).optional(),
-          relevantMetrics: z.array(z.object({
-            metric: z.string(),
-            value: z.string(),
-            status: z.enum(['normal', 'borderline', 'abnormal', 'critical']),
-            interpretation: z.string(),
-          })).optional(),
-        })
-      ),
+      specialists: z
+        .array(z.enum(Object.keys(specialistAgents) as [Specialist, ...Specialist[]]))
+        .describe(
+          'A list of specialist agents to consult for this case, based on the patient data. Choose the most relevant specialists.'
+        ),
+      reasoning: z.string().describe('Brief explanation of why each specialist was selected and which specialists were explicitly excluded'),
     }),
   },
-  output: { schema: z.object({ synthesis: z.string(), suggestions: z.string() }) },
-  prompt: `You are Dr. Márcio Silva, an experienced General Practitioner AI and Medical Coordinator with 20+ years synthesizing multi-specialty consultations into comprehensive, actionable clinical assessments.
+  prompt: TRIAGE_PROMPT_TEMPLATE,
+});
+
+const SYNTHESIS_PROMPT_TEMPLATE = `You are Dr. Márcio Silva, an experienced General Practitioner AI and Medical Coordinator with 20+ years synthesizing multi-specialty consultations into comprehensive, actionable clinical assessments.
 
 **Your Mission:**
 Create a unified, evidence-based preliminary diagnosis by integrating ALL specialist findings, medications, and treatment plans into a coherent therapeutic strategy that guides the attending physician's immediate actions.
@@ -556,9 +515,55 @@ Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO b
 
 Example structure:
 {
-  "synthesis": "**A. Resumo Executivo:**\n- Diagnóstico primário: Hipercolesterolemia\n- Gravidade: Moderada\n\n**B. Achados Principais por Sistema:**\n...",
-  "suggestions": "**A. PLANO MEDICAMENTOSO INTEGRADO:**\n\n**Medicamentos Cardiovasculares:**\n- Atorvastatina 40mg 1x/dia VO à noite (hipolipemiante - alvo LDL <70mg/dL)\n\n**B. EXAMES COMPLEMENTARES PRIORIZADOS:**\n\n**Urgentes (próxima semana):**\n- Perfil lipídico completo (justificativa: confirmar diagnóstico)\n..."
-}`,
+  "synthesis": "**A. Resumo Executivo:**\\n- Diagnóstico primário: Hipercolesterolemia\\n- Gravidade: Moderada\\n\\n**B. Achados Principais por Sistema:**\\n...",
+  "suggestions": "**A. PLANO MEDICAMENTOSO INTEGRADO:**\\n\\n**Medicamentos Cardiovasculares:**\\n- Atorvastatina 40mg 1x/dia VO à noite (hipolipemiante - alvo LDL <70mg/dL)\\n\\n**B. EXAMES COMPLEMENTARES PRIORIZADOS:**\\n\\n**Urgentes (próxima semana):**\\n- Perfil lipídico completo (justificativa: confirmar diagnóstico)\\n..."
+}`;
+
+const synthesisPrompt = ai.definePrompt({
+  name: 'diagnosisSynthesisPrompt',
+  model: 'googleai/gemini-2.5-flash',
+  input: {
+    schema: z.object({
+      patientHistory: z.string(),
+      examResults: z.string(),
+      specialistReports: z.array(
+        z.object({
+          specialist: z.string(),
+          findings: z.string(),
+          clinicalAssessment: z.string(),
+          recommendations: z.string(),
+          suggestedMedications: z.array(z.object({
+            medication: z.string(),
+            dosage: z.string(),
+            frequency: z.string(),
+            duration: z.string(),
+            route: z.string(),
+            justification: z.string(),
+          })).optional(),
+          treatmentPlan: z.object({
+            primaryTreatment: z.string().optional(),
+            supportiveCare: z.string().optional(),
+            lifestyleModifications: z.string().optional(),
+            expectedOutcome: z.string().optional(),
+          }).optional(),
+          monitoringProtocol: z.object({
+            parameters: z.string().optional(),
+            frequency: z.string().optional(),
+            warningSignals: z.string().optional(),
+          }).optional(),
+          contraindications: z.array(z.string()).optional(),
+          relevantMetrics: z.array(z.object({
+            metric: z.string(),
+            value: z.string(),
+            status: z.enum(['normal', 'borderline', 'abnormal', 'critical']),
+            interpretation: z.string(),
+          })).optional(),
+        })
+      ),
+    }),
+  },
+  output: { schema: z.object({ synthesis: z.string(), suggestions: z.string() }) },
+  prompt: SYNTHESIS_PROMPT_TEMPLATE,
 });
 
 
@@ -569,6 +574,10 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     outputSchema: GeneratePreliminaryDiagnosisOutputSchema,
   },
   async input => {
+    const patientId = input.patientId;
+    if (!patientId) {
+      throw new Error("Patient ID is required for diagnosis generation.");
+    }
     console.log(`\n╔════════════════════════════════════════════════════════╗`);
     console.log(`║  🏥 SISTEMA DE ANÁLISE MULTI-ESPECIALISTA INICIADO   ║`);
     console.log(`╚════════════════════════════════════════════════════════╝\n`);
@@ -577,8 +586,25 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     console.log(`[Triagem] 🎯 Analisando dados do exame para selecionar especialistas...`);
     console.log(`[Triagem] Dados do exame: ${input.examResults.substring(0, 200)}...`);
 
+    const triageInputText = TRIAGE_PROMPT_TEMPLATE + JSON.stringify(input);
+    const triageInputTokens = countTextTokens(triageInputText);
+    
     const triageResult = await triagePrompt(input);
     const specialistsToCall = triageResult.output?.specialists || [];
+    
+    const triageOutputTokens = countTextTokens(JSON.stringify(triageResult.output));
+    
+    // Track Triage Usage
+    await trackAIUsage({
+      usageType: 'diagnosis',
+      model: 'googleai/gemini-2.5-flash',
+      inputTokens: triageInputTokens,
+      outputTokens: triageOutputTokens,
+      patientId,
+      metadata: {
+        feature: 'Medical Triage'
+      }
+    });
 
     console.log(`\n[Triagem] ✅ Triagem concluída`);
     console.log(`[Triagem] Raciocínio: ${triageResult.output?.reasoning || 'N/A'}`);
@@ -697,9 +723,27 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     console.log(`\n[Síntese] 📊 Iniciando integração de todos os relatórios...`);
     console.log(`[Síntese] Consolidando ${specialistReports.length} relatórios especializados`);
 
+    const synthesisInputText = SYNTHESIS_PROMPT_TEMPLATE + JSON.stringify({ ...input, specialistReports });
+    const synthesisInputTokens = countTextTokens(synthesisInputText);
+
     const synthesisResult = await synthesisPrompt({
       ...input,
       specialistReports,
+    });
+
+    const synthesisOutputText = (synthesisResult.output!.synthesis || '') + (synthesisResult.output!.suggestions || '');
+    const synthesisOutputTokens = countTextTokens(synthesisOutputText);
+
+    // Track Synthesis Usage
+    await trackAIUsage({
+      usageType: 'diagnosis',
+      model: 'googleai/gemini-2.5-flash',
+      inputTokens: synthesisInputTokens,
+      outputTokens: synthesisOutputTokens,
+      patientId,
+      metadata: {
+        feature: 'Medical Diagnosis Synthesis'
+      }
     });
 
     console.log(`[Síntese] ✅ Síntese concluída`);
@@ -707,31 +751,19 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     console.log(`[Síntese] Sugestões geradas: ${synthesisResult.output!.suggestions.substring(0, 150)}...`);
 
     // Token accounting for multi-specialist analysis
-    // Each specialist prompt uses ~2000-3000 input tokens + ~1500 output tokens
-    // Triage prompt: ~1500 input, ~200 output
-    // Synthesis prompt: ~3000 input (all reports), ~2000 output
+    // Note: This is logging only, real tracking is handled by trackAIUsage above
     const specialistCount = specialistReports.length;
-    const triageInputTokens = countTextTokens(input.examResults + (input.patientHistory || ''));
-    const triageOutputTokens = 200; // Approximate
-
-    // Estimate tokens per specialist (conservative estimate)
-    const tokensPerSpecialist = 4500; // ~3000 input + ~1500 output per specialist
+    // Estimate tokens per specialist (conservative estimate for display)
+    const tokensPerSpecialist = 4500; 
     const specialistTokens = specialistCount * tokensPerSpecialist;
-
-    // Synthesis tokens
-    const synthesisInputTokens = countTextTokens(JSON.stringify(specialistReports));
-    const synthesisOutputTokens = countTextTokens(synthesisResult.output!.synthesis + synthesisResult.output!.suggestions);
-
-    const totalInputTokens = triageInputTokens + (specialistCount * 3000) + synthesisInputTokens;
-    const totalOutputTokens = triageOutputTokens + (specialistCount * 1500) + synthesisOutputTokens;
-    const totalTokens = totalInputTokens + totalOutputTokens;
+    const totalTokens = triageInputTokens + triageOutputTokens + specialistTokens + synthesisInputTokens + synthesisOutputTokens;
 
     console.log(`[📊 Token Accounting] Multi-Specialist Analysis:`);
     console.log(`  - Specialists consulted: ${specialistCount}`);
     console.log(`  - Triage: ${triageInputTokens} input + ${triageOutputTokens} output`);
-    console.log(`  - Specialists: ~${specialistTokens} tokens total`);
+    console.log(`  - Specialists: ~${specialistTokens} tokens total (tracked individually)`);
     console.log(`  - Synthesis: ${synthesisInputTokens} input + ${synthesisOutputTokens} output`);
-    console.log(`  - TOTAL: ${totalTokens} tokens (~${totalInputTokens} in, ~${totalOutputTokens} out)`);
+    console.log(`  - TOTAL ESTIMATED: ${totalTokens} tokens`);
 
     console.log(`\n╔════════════════════════════════════════════════════════╗`);
     console.log(`║  ✅ ANÁLISE MULTI-ESPECIALISTA FINALIZADA COM SUCESSO ║`);

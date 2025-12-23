@@ -1,6 +1,6 @@
 'use client';
 
-import { FileClock, UserPlus, HeartPulse, Video, Activity, User, Upload, Brain, Calendar, TrendingUp, Award, Sparkles, MessageCircle, LayoutDashboard, FileText, Heart, Users, Apple, Dumbbell, BrainCircuit, Zap } from "lucide-react";
+import { FileClock, UserPlus, HeartPulse, Video, Activity, User, Upload, Brain, Calendar, TrendingUp, Award, Sparkles, MessageCircle, LayoutDashboard, FileText, Heart, Users, Apple, Dumbbell, BrainCircuit, Zap, Headphones } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import type { Patient } from "@/types";
@@ -9,21 +9,20 @@ import { PatientHeader } from './patient-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { MediAILogo } from "./medi-ai-logo";
 import { useLiveKitWarmup } from '@/hooks/use-livekit-warmup';
 import IncomingCallBanner from './incoming-call-banner';
 
 
 
 interface PatientDashboardProps {
-    patient: Patient;
-    examCount?: number;
-    upcomingAppointments?: number;
+  patient: Patient;
+  examCount?: number;
+  upcomingAppointments?: number;
 }
 
 export default function PatientDashboardImproved({ patient, examCount = 0, upcomingAppointments = 0 }: PatientDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview");
-  
+
   // Pre-load LiveKit connection for instant consultation start
   const { isWarming, isWarmed } = useLiveKitWarmup(patient.id ?? null, patient.name ?? null);
 
@@ -67,6 +66,16 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
       borderColor: "border-blue-500/30",
       hoverBorder: "hover:border-blue-500/60",
       hoverShadow: "hover:shadow-blue-500/20",
+    },
+    {
+      title: "Podcast de Saúde",
+      icon: <Headphones className="h-6 w-6 text-pink-700 dark:text-pink-400" />,
+      href: "/patient/podcast",
+      description: "Seu Deep Dive de saúde personalizado",
+      gradient: "from-pink-500/20 to-rose-500/20",
+      borderColor: "border-pink-500/30",
+      hoverBorder: "hover:border-pink-500/60",
+      hoverShadow: "hover:shadow-pink-500/20",
     },
   ];
 
@@ -133,7 +142,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
     <div className="bg-gradient-to-br from-[#fce7f5] via-[#f9d5ed] to-[#fce7f5] dark:from-slate-950 dark:via-blue-950 dark:to-slate-900 min-h-screen relative overflow-hidden">
       {/* Incoming Call Banner - shows when doctor is calling */}
       <IncomingCallBanner patientId={patient.id || ''} />
-      
+
       {/* Header with Menu */}
       <PatientHeader patient={patient} />
 
@@ -208,7 +217,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                 <Video className="h-16 w-16 text-primary mx-auto mb-4" />
                 <h3 className="text-2xl font-bold text-foreground dark:text-card-foreground">Pronto para começar?</h3>
                 <p className="text-foreground/80 dark:text-muted-foreground max-w-md mx-auto">
-                  Clique no botão abaixo para iniciar sua consulta ao vivo com a MediAI. 
+                  Clique no botão abaixo para iniciar sua consulta ao vivo com a MediAI.
                   Você poderá conversar por voz e vídeo em tempo real.
                 </p>
                 <div className="space-y-2">
@@ -238,10 +247,10 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
           <TabsContent value="overview" className="space-y-6 mt-6">
             {/* Live Consultation Banner - Responsivo */}
             <Card className="text-white border-0 shadow-2xl overflow-hidden relative min-h-[320px] md:min-h-[400px] lg:min-h-[450px]">
-              <video 
-                autoPlay 
-                loop 
-                muted 
+              <video
+                autoPlay
+                loop
+                muted
                 playsInline
                 className="absolute inset-0 w-full h-full object-cover"
               >
@@ -388,7 +397,7 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                 <Calendar className="h-16 w-16 text-purple-400 mx-auto mb-4" />
                 <h3 className="text-2xl font-bold text-foreground dark:text-card-foreground">Gerencie suas consultas</h3>
                 <p className="text-foreground/80 dark:text-muted-foreground max-w-md mx-auto">
-                  {upcomingAppointments > 0 
+                  {upcomingAppointments > 0
                     ? `Você tem ${upcomingAppointments} ${upcomingAppointments === 1 ? 'consulta agendada' : 'consultas agendadas'}.`
                     : 'Você ainda não tem consultas agendadas. Conecte-se com nossos médicos especialistas!'}
                 </p>

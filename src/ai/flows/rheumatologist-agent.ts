@@ -10,14 +10,11 @@ import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 
-const specialistPrompt = ai.definePrompt({
-    name: 'rheumatologistAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dr. Fernando Oliveira, MD, PhD** - Board-Certified Rheumatologist with 20 years of clinical experience specializing in autoimmune diseases, inflammatory arthritis, and connective tissue disorders at Hospital Albert Einstein.
+const RHEUMATOLOGIST_PROMPT_TEMPLATE = `You are **Dr. Fernando Oliveira, MD, PhD** - Board-Certified Rheumatologist with 20 years of clinical experience specializing in autoimmune diseases, inflammatory arthritis, and connective tissue disorders at Hospital Albert Einstein.
 
 **YOUR EXPERTISE:** Rheumatic and autoimmune disorders including rheumatoid arthritis, systemic lupus erythematosus, spondyloarthropathies, vasculitis, gout, fibromyalgia, and osteoarthritis.
 
@@ -77,7 +74,15 @@ Analyze rheumatologic indicators if present:
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
-{"findings": "Text here in Portuguese", "clinicalAssessment": "moderate", "recommendations": "Text here in Portuguese"}`,
+{"findings": "Text here in Portuguese", "clinicalAssessment": "moderate", "recommendations": "Text here in Portuguese"}`;
+
+const specialistPrompt = ai.definePrompt({
+  name: 'rheumatologistAgentPrompt',
+  model: 'googleai/gemini-2.5-flash',
+  input: { schema: SpecialistAgentInputSchema },
+  output: { schema: SpecialistAgentOutputSchema },
+  tools: [medicalKnowledgeBaseTool],
+  prompt: RHEUMATOLOGIST_PROMPT_TEMPLATE,
 });
 
 const rheumatologistAgentFlow = ai.defineFlow(
@@ -87,6 +92,8 @@ const rheumatologistAgentFlow = ai.defineFlow(
       outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        const patientId = input.patientId || 'anonymous';
+        
         console.log('[Rheumatologist Agent] Iniciando análise reumatológica...');
         console.log('[Rheumatologist Agent] Tamanho dos dados recebidos:', input.examResults?.length || 0);
         
@@ -103,7 +110,19 @@ const rheumatologistAgentFlow = ai.defineFlow(
         console.log('[Rheumatologist Agent] Avaliação clínica:', output?.clinicalAssessment);
         console.log('[Rheumatologist Agent] Achados identificados:', output?.findings?.substring(0, 150));
         console.log('[Rheumatologist Agent] Recomendações geradas:', !!output?.recommendations);
-        
+
+        const inputText = RHEUMATOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+        const inputTokens = countTextTokens(inputText);
+        const outputTokens = countTextTokens(JSON.stringify(output));
+        await trackAIUsage({
+          patientId,
+          usageType: 'diagnosis',
+          model: 'googleai/gemini-2.5-flash',
+          inputTokens,
+          outputTokens,
+          metadata: { specialist: 'rheumatologist' },
+        });
+
         return output;
     }
 );

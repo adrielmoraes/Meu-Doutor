@@ -11,6 +11,8 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { textToSpeech } from './text-to-speech';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 const VitalsDataPointSchema = z.object({
     time: z.string(),
@@ -21,6 +23,7 @@ const VitalsDataPointSchema = z.object({
 
 const SummarizeVitalsInputSchema = z.object({
   vitalsData: z.array(VitalsDataPointSchema).describe("An array of time-series vital signs data points."),
+  patientId: z.string().optional().describe("Optional patient ID for usage tracking."),
 });
 export type SummarizeVitalsInput = z.infer<typeof SummarizeVitalsInputSchema>;
 
@@ -31,11 +34,7 @@ const SummarizeVitalsOutputSchema = z.object({
 export type SummarizeVitalsOutput = z.infer<typeof SummarizeVitalsOutputSchema>;
 
 
-const summaryPrompt = ai.definePrompt({
-  name: 'summarizeVitalsPrompt',
-  input: {schema: z.object({ vitalsDataJson: z.string() }) },
-  output: {schema: z.object({ summary: z.string() })},
-  prompt: `You are a friendly AI medical assistant with excellent communication skills.
+const VITALS_SUMMARY_PROMPT_TEMPLATE = `You are a friendly AI medical assistant with excellent communication skills.
 Your task is to analyze a series of vital signs data and provide a simple, clear, and reassuring summary for a patient.
 Your response must always be in Brazilian Portuguese.
 
@@ -48,7 +47,13 @@ Your response must always be in Brazilian Portuguese.
 Here is the vital signs data in JSON format:
 {{{vitalsDataJson}}}
 
-Provide a concise summary of your analysis below.`,
+Provide a concise summary of your analysis below.`;
+
+const summaryPrompt = ai.definePrompt({
+  name: 'summarizeVitalsPrompt',
+  input: {schema: z.object({ vitalsDataJson: z.string() }) },
+  output: {schema: z.object({ summary: z.string() })},
+  prompt: VITALS_SUMMARY_PROMPT_TEMPLATE,
 });
 
 const summarizeVitalsFlow = ai.defineFlow(
@@ -58,22 +63,35 @@ const summarizeVitalsFlow = ai.defineFlow(
     outputSchema: SummarizeVitalsOutputSchema,
   },
   async input => {
-    // Step 1: Generate the text-based summary.
-    // We stringify the JSON to pass it into the prompt, which is more reliable for complex objects.
-    const summaryResult = await summaryPrompt({ vitalsDataJson: JSON.stringify(input.vitalsData, null, 2) });
+    const patientId = input.patientId || 'anonymous';
+    const vitalsDataJson = JSON.stringify(input.vitalsData, null, 2);
+    const inputTokens = countTextTokens(vitalsDataJson);
+    const promptTokens = countTextTokens(VITALS_SUMMARY_PROMPT_TEMPLATE);
+
+    const summaryResult = await summaryPrompt({ vitalsDataJson });
     const summaryText = summaryResult.output?.summary;
 
     if (!summaryText) {
         throw new Error("Failed to generate a summary for the vital signs.");
     }
+
+    const outputTokens = countTextTokens(summaryText);
+
+    await trackAIUsage({
+      patientId,
+      usageType: 'consultation_flow',
+      inputTokens: inputTokens + promptTokens,
+      outputTokens,
+      metadata: {
+        flowName: 'summarizeVitals',
+        totalTokens: inputTokens + promptTokens + outputTokens,
+      },
+    });
     
-    // Step 2: Generate the audio for the summary text.
     const audioResult = await textToSpeech({ text: summaryText });
 
-    // Make the flow resilient. If audio fails, we can still return the text.
     const audioDataUri = audioResult?.audioDataUri || "";
 
-    // Step 3: Return both the text summary and the audio URI.
     return {
       summary: summaryText,
       audioDataUri: audioDataUri,

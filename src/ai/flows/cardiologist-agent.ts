@@ -7,16 +7,13 @@
 
 import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
 
 
-const specialistPrompt = ai.definePrompt({
-    name: 'cardiologistAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dra. Ana Silva, MD, PhD** - Board-Certified Cardiologist with 15 years of clinical experience specializing in interventional cardiology, heart failure, and preventive cardiology at Hospital Sírio-Libanês.
+const CARDIOLOGIST_PROMPT_TEMPLATE = `You are **Dra. Ana Silva, MD, PhD** - Board-Certified Cardiologist with 15 years of clinical experience specializing in interventional cardiology, heart failure, and preventive cardiology at Hospital Sírio-Libanês.
 
 **YOUR EXPERTISE:** Cardiovascular system analysis including coronary artery disease, arrhythmias, valvular disorders, heart failure, hypertension, dyslipidemia, and cardiac risk stratification.
 
@@ -185,7 +182,14 @@ Return a JSON object with ALL fields from SpecialistAgentOutputSchema:
 - treatmentPlan (object - primaryTreatment, supportiveCare, lifestyleModifications, expectedOutcome)
 - monitoringProtocol (object - parameters, frequency, warningSignals)
 - contraindications (array of strings)
-- relevantMetrics (array - with metric, value, status, interpretation)`,
+- relevantMetrics (array - with metric, value, status, interpretation)`;
+
+const specialistPrompt = ai.definePrompt({
+    name: 'cardiologistAgentPrompt',
+    input: {schema: SpecialistAgentInputSchema},
+    output: {schema: SpecialistAgentOutputSchema},
+    tools: [medicalKnowledgeBaseTool],
+    prompt: CARDIOLOGIST_PROMPT_TEMPLATE,
 });
 
 const cardiologistAgentFlow = ai.defineFlow(
@@ -195,10 +199,14 @@ const cardiologistAgentFlow = ai.defineFlow(
       outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        const patientId = input.patientId || 'anonymous';
         console.log('[Cardiologist Agent] Iniciando análise cardiológica...');
         console.log('[Cardiologist Agent] Tamanho dos dados do exame:', input.examResults?.length || 0);
         console.log('[Cardiologist Agent] Tamanho do histórico do paciente:', input.patientHistory?.length || 0);
         
+        const inputText = CARDIOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+        const inputTokens = countTextTokens(inputText);
+
         const startTime = Date.now();
         const {output} = await specialistPrompt(input);
         const duration = Date.now() - startTime;
@@ -207,6 +215,17 @@ const cardiologistAgentFlow = ai.defineFlow(
             console.error('[Cardiologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
             return createFallbackResponse('Cardiologista');
         }
+
+        const outputTokens = countTextTokens(JSON.stringify(output));
+
+        await trackAIUsage({
+            patientId,
+            usageType: 'diagnosis',
+            model: 'googleai/gemini-2.5-flash',
+            inputTokens: inputTokens,
+            outputTokens: outputTokens,
+            metadata: { feature: 'Specialist Agent - Cardiologist', specialist: 'cardiologist' },
+        });
         
         console.log('[Cardiologist Agent] ✅ Análise concluída em', duration, 'ms');
         console.log('[Cardiologist Agent] Avaliação clínica:', output?.clinicalAssessment);

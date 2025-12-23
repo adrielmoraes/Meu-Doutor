@@ -118,7 +118,7 @@ export default async function SchedulePage() {
                        {error || 'Não foi possível carregar os dados do médico.'}
                        {fixUrl && (
                            <p className="mt-2">
-                               Por favor, habilite a API manualmente visitando o seguinte link e clicando em "Habilitar":
+                               Por favor, habilite a API manualmente visitando o seguinte link e clicando em &quot;Habilitar&quot;:
                                <br />
                                <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
                                    Habilitar API do Firestore

@@ -9,14 +9,11 @@ import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 
-const specialistPrompt = ai.definePrompt({
-    name: 'psychiatristAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dra. Sofia Ribeiro, MD** - Board-Certified Psychiatrist specializing in mood disorders, anxiety disorders, and psychopharmacology.
+const PSYCHIATRIST_PROMPT_TEMPLATE = `You are **Dra. Sofia Ribeiro, MD** - Board-Certified Psychiatrist specializing in mood disorders, anxiety disorders, and psychopharmacology.
 
 **YOUR EXPERTISE:** Mental health disorders including major depression, bipolar disorder, anxiety disorders, PTSD, psychotic disorders, ADHD, substance use disorders, and cognitive disorders.
 
@@ -70,7 +67,15 @@ IMPORTANT: This is a screening assessment, not a formal diagnosis. Highlight con
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
-{"findings": "Text here in Portuguese", "clinicalAssessment": "critical", "recommendations": "Text here in Portuguese"}`,
+{"findings": "Text here in Portuguese", "clinicalAssessment": "critical", "recommendations": "Text here in Portuguese"}`;
+
+const specialistPrompt = ai.definePrompt({
+  name: 'psychiatristAgentPrompt',
+  model: 'googleai/gemini-2.5-flash',
+  input: { schema: SpecialistAgentInputSchema },
+  output: { schema: SpecialistAgentOutputSchema },
+  tools: [medicalKnowledgeBaseTool],
+  prompt: PSYCHIATRIST_PROMPT_TEMPLATE,
 });
 
 
@@ -81,11 +86,29 @@ const psychiatristAgentFlow = ai.defineFlow(
       outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        const patientId = input.patientId || 'anonymous';
+        
+        
+        const inputText = PSYCHIATRIST_PROMPT_TEMPLATE + JSON.stringify(input);
+        const inputTokens = countTextTokens(inputText);
+        
         const {output} = await specialistPrompt(input);
         if (!output) {
             console.error('[Psychiatrist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
             return createFallbackResponse('Psiquiatra');
         }
+        
+        const outputTokens = countTextTokens(JSON.stringify(output));
+        
+        await trackAIUsage({
+          patientId,
+          usageType: 'diagnosis',
+          model: 'googleai/gemini-2.5-flash',
+          inputTokens: inputTokens,
+          outputTokens: outputTokens,
+          metadata: { specialist: 'psychiatrist' },
+        });
+        
         return output;
     }
 );

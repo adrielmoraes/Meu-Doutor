@@ -59,7 +59,7 @@ export default async function AdminConsultationsPage() {
       <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-orange-500/20">
         <CardHeader>
           <CardTitle className="text-white">Lista de Consultas</CardTitle>
-          <CardDescription>Visualize todas as consultas e conversas</CardDescription>
+          <CardDescription className="text-white">Visualize todas as consultas e conversas</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">

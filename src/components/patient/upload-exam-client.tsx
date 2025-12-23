@@ -307,13 +307,13 @@ export default function UploadExamClient() {
         setTimeout(() => {
           toast({
             title: "Análise Completa!",
-            description: "Todos os exames foram analisados. Redirecionando para os resultados...",
+            description: "Todos os exames foram analisados. Redirecionando para seu plano de bem-estar...",
             duration: 3000,
             className: "bg-gradient-to-r from-green-100 to-emerald-100 border-green-400 shadow-xl animate-in zoom-in-95 text-green-900 font-semibold",
           });
 
           setTimeout(() => {
-            router.push(`/patient/history/${consolidationResult.primaryExamId}`);
+            router.push('/patient/wellness');
             router.refresh();
           }, 2000);
         }, 2000);
@@ -331,7 +331,7 @@ export default function UploadExamClient() {
 
       if (results.length > 0) {
         setTimeout(() => {
-          router.push(`/patient/history/${results[0].examId}`);
+          router.push('/patient/wellness');
           router.refresh();
         }, 3000);
       }
@@ -464,10 +464,10 @@ export default function UploadExamClient() {
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Você tem certeza que deseja remover o arquivo "{sf.name}" da fila de análise?
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
+                          <AlertDialogDescription>
+                              Você tem certeza que deseja remover o arquivo &quot;{sf.name}&quot; da fila de análise?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
                             <AlertDialogAction onClick={() => removeFile(sf.id)}>Excluir</AlertDialogAction>

@@ -41,7 +41,7 @@ export async function getDoctorByEmailWithAuth(email: string): Promise<DoctorWit
     const password = authDoc.exists ? authDoc.data()?.password : null;
 
 
-    return { id: doctorDoc.id, ...doctorData, password };
+    return { ...doctorData, id: doctorDoc.id, password };
 }
 
 export async function getDoctors(): Promise<Doctor[]> {
@@ -177,7 +177,7 @@ export async function getPatientByEmailWithAuth(email: string): Promise<PatientW
     const authDoc = await adminDb.collection('patientAuth').doc(patientDoc.id).get();
     const password = authDoc.exists ? authDoc.data()?.password : null;
 
-    return { id: patientDoc.id, ...patientData, password };
+    return { ...patientData, id: patientDoc.id, password };
 }
 
 export async function addPatientWithAuth(patientData: Omit<Patient, 'id'>, hashedPassword: string): Promise<void> {

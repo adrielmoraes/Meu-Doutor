@@ -4,13 +4,8 @@ import { getSession } from "@/lib/session";
 import { revalidateTag } from "next/cache";
 import { updatePatient } from "@/lib/db-adapter";
 import type { Patient } from "@/types";
-import { v2 as cloudinary } from "cloudinary";
-
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { saveFileBuffer } from '@/lib/file-storage';
+import path from 'path';
 
 // Ação para atualizar os campos de texto do perfil do paciente
 export async function updatePatientProfile(
@@ -52,7 +47,7 @@ export async function updatePatientProfile(
     }
 }
 
-// Ação para fazer upload do avatar do paciente (Cloudinary)
+// Ação para fazer upload do avatar do paciente (Vercel Blob / Local)
 export async function uploadPatientAvatarAction(
     formData: FormData,
 ): Promise<{ success: boolean; message: string; url?: string }> {
@@ -107,22 +102,8 @@ export async function uploadPatientAvatarAction(
             };
         }
 
-        // Converter buffer para base64 para upload no Cloudinary
-        const base64File = `data:${detectedType.mime};base64,${fileBuffer.toString("base64")}`;
-
-        // Upload para Cloudinary
-        const uploadResult = await cloudinary.uploader.upload(base64File, {
-            folder: "mediai/avatars/patients",
-            public_id: `patient_${userId}_${Date.now()}`,
-            transformation: [
-                { width: 400, height: 400, crop: "fill", gravity: "face" },
-                { quality: "auto:good" },
-            ],
-            format: "jpg",
-        });
-
-        // URL pública do Cloudinary
-        const publicUrl = uploadResult.secure_url;
+        const fileName = `patient_${userId}_${Date.now()}.${detectedType.ext}`;
+        const publicUrl = await saveFileBuffer(fileBuffer, fileName, 'avatars/patients');
 
         await updatePatient(userId, { avatar: publicUrl });
         revalidateTag(`patient-profile-${userId}`);

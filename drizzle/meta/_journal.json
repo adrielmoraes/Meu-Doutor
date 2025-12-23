@@ -22,6 +22,13 @@
       "when": 1762807674780,
       "tag": "0002_flawless_zuras",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1765818983593,
+      "tag": "0003_magenta_power_man",
+      "breakpoints": true
     }
   ]
 }

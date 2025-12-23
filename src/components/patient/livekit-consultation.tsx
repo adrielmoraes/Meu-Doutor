@@ -623,8 +623,7 @@ export default function LiveKitConsultation({
     // Start the timer
     timerStartedRef.current = true;
     logEvent('Starting time limit countdown', { 
-      effectiveMinutes,
-      initialRemainingSeconds: remainingSeconds 
+      effectiveMinutes
     });
 
     // Timer tick function - extracted for reuse
@@ -679,35 +678,9 @@ export default function LiveKitConsultation({
     return clearTimer;
   }, [room, connectionSupervisor.state, availableMinutes, totalMinutes, timeExpired, logEvent]);
 
-  // Handle time expired - end consultation (only if room was connected)
-  useEffect(() => {
-    if (timeExpired && room && connectionSupervisor.state === 'connected') {
-      // Only auto-disconnect if we're actually connected
-      // This allows showing upgrade CTAs without forced redirect
-      disconnectTimeoutRef.current = setTimeout(() => {
-        endConsultation();
-      }, 5000); // 5 seconds to show "time expired" message
-
-      return () => {
-        if (disconnectTimeoutRef.current) {
-          clearTimeout(disconnectTimeoutRef.current);
-          disconnectTimeoutRef.current = null;
-        }
-      };
-    }
-  }, [timeExpired, room, connectionSupervisor.state]);
-
-  // Helper to format remaining time
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const endConsultation = async () => {
+  const endConsultation = useCallback(async () => {
     logEvent('Ending consultation');
     
-    // Track consultation duration
     if (consultationStartTime.current) {
       const durationSeconds = Math.floor((Date.now() - consultationStartTime.current) / 1000);
       
@@ -734,12 +707,36 @@ export default function LiveKitConsultation({
       }
     }
     
-    // Clean up
     connectionSupervisor.disconnect();
     tokenManager.clearToken();
     clearCachedToken();
     
     window.location.href = '/patient/dashboard';
+  }, [connectionSupervisor, logEvent, patientId, tokenManager]);
+
+  // Handle time expired - end consultation (only if room was connected)
+  useEffect(() => {
+    if (timeExpired && room && connectionSupervisor.state === 'connected') {
+      // Only auto-disconnect if we're actually connected
+      // This allows showing upgrade CTAs without forced redirect
+      disconnectTimeoutRef.current = setTimeout(() => {
+        endConsultation();
+      }, 5000); // 5 seconds to show "time expired" message
+
+      return () => {
+        if (disconnectTimeoutRef.current) {
+          clearTimeout(disconnectTimeoutRef.current);
+          disconnectTimeoutRef.current = null;
+        }
+      };
+    }
+  }, [timeExpired, room, connectionSupervisor.state, endConsultation]);
+
+  // Helper to format remaining time
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const getConnectionStateMessage = () => {

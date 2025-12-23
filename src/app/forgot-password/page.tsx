@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Mail, ArrowLeft, Loader2, CheckCircle } from 'lucide-react';
 import Link from "next/link";
 import { useToast } from '@/hooks/use-toast';
+import MediAILogo from '@/components/layout/mediai-logo';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -55,10 +56,14 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
       
+      <div className="mb-8 relative z-10 flex justify-center">
+        <MediAILogo size="lg" />
+      </div>
+
       <Card className="mx-auto max-w-md w-full shadow-2xl bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-cyan-500/20 relative z-10">
         <CardHeader className="space-y-4">
           {emailSent ? (

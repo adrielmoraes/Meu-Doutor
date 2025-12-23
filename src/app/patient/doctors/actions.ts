@@ -96,7 +96,7 @@ export async function scheduleAppointmentAction(prevState: any, formData: FormDa
             date: date,
             time: time,
             type: type,
-            status: 'Agendada',
+            status: 'Agendada' as const,
         };
 
         await addAppointment(newAppointment); // Supondo que addAppointment existe no admin-adapter

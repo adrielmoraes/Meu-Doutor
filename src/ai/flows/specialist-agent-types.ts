@@ -7,6 +7,7 @@
 import {z} from 'genkit';
 
 export const SpecialistAgentInputSchema = z.object({
+  patientId: z.string().optional().describe("The patient ID for usage tracking."),
   examResults: z
     .string()
     .describe('The results of the medical exams as a single string.'),

@@ -22,6 +22,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import MediAILogo from "@/components/layout/mediai-logo";
 
 const MEDICAL_SPECIALTIES = [
   "Acupuntura",
@@ -129,12 +130,16 @@ export default function DoctorRegisterPage() {
   const finalSpecialty = customSpecialty || selectedSpecialty;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden py-12">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden py-12">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
       <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
       
+      <div className="mb-8 relative z-10 flex justify-center">
+        <MediAILogo size="lg" />
+      </div>
+
       <Card className="mx-auto max-w-md w-full shadow-2xl bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-purple-500/20 relative z-10">
         <CardHeader className="space-y-4">
           <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
@@ -333,6 +338,21 @@ export default function DoctorRegisterPage() {
                   </button>
                 </div>
                 {state?.errors?.confirmPassword && <p className="text-xs text-red-400">{state.errors.confirmPassword[0]}</p>}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="document" className="text-blue-100">Documento de Identificação (CRM/RG)</Label>
+                <Input
+                  id="document"
+                  name="document"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  required
+                  className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white file:bg-purple-600 file:text-white file:border-0 file:rounded-md file:px-2 file:py-1 file:mr-4 file:text-sm file:font-medium hover:file:bg-purple-700 cursor-pointer"
+                />
+                <p className="text-xs text-slate-400">Envie uma foto do seu CRM ou documento oficial. Formatos: PDF, JPG, PNG. Máx: 5MB.</p>
+                {/* @ts-ignore */}
+                {state?.errors?.document && <p className="text-xs text-red-400">{state.errors.document[0]}</p>}
               </div>
 
               {state.success && state.message && (

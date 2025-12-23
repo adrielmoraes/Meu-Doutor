@@ -9,14 +9,11 @@ import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 
-const specialistPrompt = ai.definePrompt({
-    name: 'ophthalmologistAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dra. Sofia Martins, MD** - Board-Certified Ophthalmologist specializing in retinal diseases, glaucoma management, and cataract surgery.
+const OPHTHALMOLOGIST_PROMPT_TEMPLATE = `You are **Dra. Sofia Martins, MD** - Board-Certified Ophthalmologist specializing in retinal diseases, glaucoma management, and cataract surgery.
 
 **YOUR EXPERTISE:** Eye and vision disorders including refractive errors, cataracts, glaucoma, retinal diseases, corneal conditions, and neuro-ophthalmology.
 
@@ -65,7 +62,15 @@ Analyze ophthalmologic indicators if present:
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
-{"findings": "Text here in Portuguese", "clinicalAssessment": "mild", "recommendations": "Text here in Portuguese"}`,
+{"findings": "Text here in Portuguese", "clinicalAssessment": "mild", "recommendations": "Text here in Portuguese"}`;
+
+const specialistPrompt = ai.definePrompt({
+  name: 'ophthalmologistAgentPrompt',
+  model: 'googleai/gemini-2.5-flash',
+  input: { schema: SpecialistAgentInputSchema },
+  output: { schema: SpecialistAgentOutputSchema },
+  tools: [medicalKnowledgeBaseTool],
+  prompt: OPHTHALMOLOGIST_PROMPT_TEMPLATE,
 });
 
 const ophthalmologistAgentFlow = ai.defineFlow(
@@ -75,11 +80,29 @@ const ophthalmologistAgentFlow = ai.defineFlow(
       outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        const patientId = input.patientId || 'anonymous';
+        
+        
+        const inputText = OPHTHALMOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+        const inputTokens = countTextTokens(inputText);
+        
         const {output} = await specialistPrompt(input);
         if (!output) {
             console.error('[Ophthalmologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
             return createFallbackResponse('Oftalmologista');
         }
+        
+        const outputTokens = countTextTokens(JSON.stringify(output));
+        
+        await trackAIUsage({
+          patientId,
+          usageType: 'diagnosis',
+          model: 'googleai/gemini-2.5-flash',
+          inputTokens: inputTokens,
+          outputTokens: outputTokens,
+          metadata: { specialist: 'ophthalmologist' },
+        });
+        
         return output;
     }
 );

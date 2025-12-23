@@ -8,33 +8,37 @@ import { eq, and, gte, sql } from 'drizzle-orm';
 export const PLAN_LIMITS = {
   trial: {
     examAnalysis: 5,
-    aiConsultationMinutes: 5,
+    aiConsultationMinutes: 3,
     doctorConsultationMinutes: 0,
-    therapistChat: Infinity, // ilimitado
+    therapistChatDays: 7,
+    podcastMinutes: 2,
     trialDurationDays: 7,
   },
   basico: {
     examAnalysis: 20,
-    aiConsultationMinutes: 5,
-    doctorConsultationMinutes: 0,
-    therapistChat: Infinity,
+    aiConsultationMinutes: 10,
+    doctorConsultationMinutes: 15,
+    therapistChatDays: 20,
+    podcastMinutes: 4,
   },
   premium: {
-    examAnalysis: Infinity,
-    aiConsultationMinutes: 30,
+    examAnalysis: 35,
+    aiConsultationMinutes: 20,
     doctorConsultationMinutes: 30,
-    therapistChat: Infinity,
+    therapistChatDays: 30,
+    podcastMinutes: 8,
   },
   familiar: {
     examAnalysis: Infinity,
     aiConsultationMinutes: Infinity,
     doctorConsultationMinutes: Infinity,
-    therapistChat: Infinity,
+    therapistChatDays: Infinity,
+    podcastMinutes: Infinity,
   },
 } as const;
 
 export type PlanId = keyof typeof PLAN_LIMITS;
-export type LimitType = 'examAnalysis' | 'aiConsultationMinutes' | 'doctorConsultationMinutes' | 'therapistChat';
+export type LimitType = 'examAnalysis' | 'aiConsultationMinutes' | 'doctorConsultationMinutes' | 'therapistChatDays' | 'podcastMinutes';
 
 // Verificar se o usuário tem uma assinatura ativa
 export async function checkActiveSubscription(patientId: string): Promise<{
@@ -46,6 +50,21 @@ export async function checkActiveSubscription(patientId: string): Promise<{
   
   if (!subscription) {
     return { hasActive: false, planId: null, subscription: null };
+  }
+
+  // Verificar se o período já expirou (para trials locais ou assinaturas canceladas que chegaram ao fim)
+  const now = new Date();
+  const periodEnd = subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd) : null;
+  const isExpired = periodEnd && periodEnd < now;
+
+  // Se estiver expirado, não considerar ativo mesmo que o status diga o contrário
+  // (Isso corrige o problema dos trials locais que não atualizam o status automaticamente)
+  if (isExpired) {
+    return { 
+      hasActive: false, 
+      planId: null, 
+      subscription: { ...subscription, status: 'canceled' } // Retornar como cancelado para a UI
+    };
   }
 
   const isActive = subscription.status === 'active' || subscription.status === 'trialing';
@@ -62,6 +81,42 @@ export async function getCurrentMonthUsage(patientId: string, usageType: string)
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
+
+  // Lógica especial para dias de chat (conta dias distintos)
+  if (usageType === 'chat_days') {
+    const result = await db
+      .select({
+        count: sql<number>`count(distinct date(${usageTracking.createdAt}))`,
+      })
+      .from(usageTracking)
+      .where(
+        and(
+          eq(usageTracking.patientId, patientId),
+          eq(usageTracking.usageType, 'chat'),
+          gte(usageTracking.createdAt, startOfMonth)
+        )
+      );
+    return Number(result[0]?.count || 0);
+  }
+
+  // Lógica especial para minutos de podcast (filtra por metadata)
+  if (usageType === 'podcast_minutes') {
+    const result = await db
+      .select({
+        totalDuration: sql<number>`sum(${usageTracking.durationSeconds})`,
+      })
+      .from(usageTracking)
+      .where(
+        and(
+          eq(usageTracking.patientId, patientId),
+          eq(usageTracking.usageType, 'tts'),
+          sql`${usageTracking.metadata}->>'feature' = 'health-podcast-audio'`,
+          gte(usageTracking.createdAt, startOfMonth)
+        )
+      );
+    const seconds = Number(result[0]?.totalDuration || 0);
+    return Math.ceil(seconds / 60);
+  }
 
   const usage = await db
     .select({
@@ -119,7 +174,8 @@ export async function canUseResource(
       examAnalysis: 'exam_analysis',
       aiConsultationMinutes: 'ai_call',
       doctorConsultationMinutes: 'doctor_call',
-      therapistChat: 'chat',
+      therapistChatDays: 'chat_days',
+      podcastMinutes: 'podcast_minutes',
     };
 
     const current = await getCurrentMonthUsage(patientId, usageTypeMap[resourceType]);
@@ -177,7 +233,8 @@ export async function canUseResource(
     examAnalysis: 'exam_analysis',
     aiConsultationMinutes: 'ai_call',
     doctorConsultationMinutes: 'doctor_call',
-    therapistChat: 'chat',
+    therapistChatDays: 'chat_days',
+    podcastMinutes: 'podcast_minutes',
   };
 
   // Sempre calcular o uso atual, mesmo para planos ilimitados
@@ -233,7 +290,8 @@ function getLimitLabel(resourceType: LimitType): string {
     examAnalysis: 'análises de exame',
     aiConsultationMinutes: 'minutos de consulta IA',
     doctorConsultationMinutes: 'minutos de consulta com médico',
-    therapistChat: 'mensagens de chat',
+    therapistChatDays: 'dias de chat com terapeuta',
+    podcastMinutes: 'minutos de podcast',
   };
   return labels[resourceType];
 }
@@ -264,11 +322,15 @@ export async function getUsageSummary(patientId: string) {
   const examLimit = patient?.customQuotas?.examAnalysis ?? limits.examAnalysis;
   const aiMinLimit = patient?.customQuotas?.aiConsultationMinutes ?? limits.aiConsultationMinutes;
   const doctorMinLimit = patient?.customQuotas?.doctorConsultationMinutes ?? limits.doctorConsultationMinutes;
+  const chatDaysLimit = patient?.customQuotas?.therapistChatDays ?? limits.therapistChatDays;
+  const podcastMinLimit = patient?.customQuotas?.podcastMinutes ?? limits.podcastMinutes;
 
-  const [examAnalysis, aiMinutes, doctorMinutes] = await Promise.all([
+  const [examAnalysis, aiMinutes, doctorMinutes, chatDays, podcastMinutes] = await Promise.all([
     getCurrentMonthUsage(patientId, 'exam_analysis'),
     getCurrentMonthUsage(patientId, 'ai_call'),
     getCurrentMonthUsage(patientId, 'doctor_call'),
+    getCurrentMonthUsage(patientId, 'chat_days'),
+    getCurrentMonthUsage(patientId, 'podcast_minutes'),
   ]);
 
   return {
@@ -289,6 +351,16 @@ export async function getUsageSummary(patientId: string) {
       current: doctorMinutes,
       limit: doctorMinLimit,
       percentage: doctorMinLimit === Infinity ? 0 : (doctorMinutes / doctorMinLimit) * 100,
+    },
+    therapistChat: {
+      current: chatDays,
+      limit: chatDaysLimit,
+      percentage: chatDaysLimit === Infinity ? 0 : (chatDays / chatDaysLimit) * 100,
+    },
+    podcast: {
+      current: podcastMinutes,
+      limit: podcastMinLimit,
+      percentage: podcastMinLimit === Infinity ? 0 : (podcastMinutes / podcastMinLimit) * 100,
     },
   };
 }

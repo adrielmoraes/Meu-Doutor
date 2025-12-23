@@ -9,14 +9,10 @@ import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
-
-const specialistPrompt = ai.definePrompt({
-    name: 'neurologistAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dr. Daniel Costa, MD, PhD** - Board-Certified Neurologist specializing in cerebrovascular disease, movement disorders, epilepsy, and neurodegenerative conditions.
+const NEUROLOGIST_PROMPT_TEMPLATE = `You are **Dr. Daniel Costa, MD, PhD** - Board-Certified Neurologist specializing in cerebrovascular disease, movement disorders, epilepsy, and neurodegenerative conditions.
 
 **YOUR EXPERTISE:** Central and peripheral nervous system disorders including stroke, seizures, Parkinson's, Alzheimer's, multiple sclerosis, neuropathies, and neuromuscular diseases.
 
@@ -65,7 +61,14 @@ Analyze neurological indicators if present:
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
-{"findings": "Text here in Portuguese", "clinicalAssessment": "severe", "recommendations": "Text here in Portuguese"}`,
+{"findings": "Text here in Portuguese", "clinicalAssessment": "severe", "recommendations": "Text here in Portuguese"}`;
+
+const specialistPrompt = ai.definePrompt({
+    name: 'neurologistAgentPrompt',
+    input: {schema: SpecialistAgentInputSchema},
+    output: {schema: SpecialistAgentOutputSchema},
+    tools: [medicalKnowledgeBaseTool],
+    prompt: NEUROLOGIST_PROMPT_TEMPLATE,
 });
 
 const neurologistAgentFlow = ai.defineFlow(
@@ -75,11 +78,28 @@ const neurologistAgentFlow = ai.defineFlow(
       outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        const patientId = input.patientId || 'anonymous';
+        
+        const inputText = NEUROLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+        const inputTokens = countTextTokens(inputText);
+        
         const {output} = await specialistPrompt(input);
         if (!output) {
             console.error('[Neurologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
             return createFallbackResponse('Neurologista');
         }
+        
+        const outputTokens = countTextTokens(JSON.stringify(output));
+        
+        await trackAIUsage({
+            patientId,
+            usageType: 'diagnosis',
+            model: 'googleai/gemini-2.5-flash',
+            inputTokens: inputTokens,
+            outputTokens: outputTokens,
+            metadata: { feature: 'Specialist Agent - Neurologist', specialist: 'neurologist' },
+        });
+        
         return output;
     }
 );

@@ -87,10 +87,10 @@ export default async function AdminPatientDetailPage({ params }: { params: { id:
             </div>
           </div>
           
-          {patient.medicalHistory && (
+          {patient.doctorNotes && (
             <div className="mt-4 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
-              <p className="text-xs text-blue-400 font-semibold mb-2">Histórico Médico</p>
-              <p className="text-sm text-gray-300">{patient.medicalHistory}</p>
+              <p className="text-xs text-blue-400 font-semibold mb-2">Observações</p>
+              <p className="text-sm text-gray-300">{patient.doctorNotes}</p>
             </div>
           )}
         </CardContent>

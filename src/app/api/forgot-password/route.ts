@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPatientByEmail, getDoctorByEmail, updatePatient, updateDoctor } from '@/lib/db-adapter';
 import { generateVerificationToken, getTokenExpiry } from '@/lib/email-service';
 import { getUncachableResendClient } from '@/lib/resend-client';
+import type { Doctor, Patient } from '@/types';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar se é paciente ou médico
-    let user = await getPatientByEmail(email);
+    let user: Patient | Doctor | null = await getPatientByEmail(email);
     let userType: 'patient' | 'doctor' = 'patient';
     
     if (!user) {
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
       from: fromEmail || 'MediAI <noreply@appmediai.com>',
       to: [email],
       subject: 'Recuperação de Senha - MediAI',
-      html: getPasswordResetTemplate(user.fullName, resetUrl),
+      html: getPasswordResetTemplate(user.name, resetUrl),
     });
 
     return NextResponse.json({ 

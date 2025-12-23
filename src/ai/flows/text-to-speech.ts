@@ -16,15 +16,14 @@ import { trackTTS } from "@/lib/usage-tracker";
 const TextToSpeechInputSchema = z.object({
   text: z.string().describe("The text to be converted to speech."),
   patientId: z.string().optional().describe("The patient ID for cost tracking."),
+  voiceName: z.string().optional().describe("Voice name to use (e.g. Aoede, Charon, Fenrir, Kore, Puck)."),
+  returnBuffer: z.boolean().optional().describe("If true, returns the audio buffer instead of data URI."),
 });
 export type TextToSpeechInput = z.infer<typeof TextToSpeechInputSchema>;
 
 const TextToSpeechOutputSchema = z.object({
-  audioDataUri: z
-    .string()
-    .describe(
-      "The generated audio as a data URI. Expected format: 'data:audio/wav;base64,<encoded_data>'.",
-    ),
+  audioDataUri: z.string().optional().describe("The generated audio as a data URI."),
+  audioBuffer: z.any().optional().describe("The raw audio buffer if requested."),
 });
 export type TextToSpeechOutput = z.infer<typeof TextToSpeechOutputSchema>;
 
@@ -62,7 +61,7 @@ export async function textToSpeech(
         speechConfig: {
           voiceConfig: {
             prebuiltVoiceConfig: {
-              voiceName: "Despina",
+              voiceName: input.voiceName || "Kore",
             },
           },
         },
@@ -85,6 +84,10 @@ export async function textToSpeech(
     // Convert PCM audio to WAV format
     const audioBuffer = Buffer.from(audioPart.inlineData.data, "base64");
 
+    // Calculate duration for cost tracking
+    const bytesPerSecond = 24000 * 1 * (16 / 8); // 48000 bytes/sec
+    const durationSeconds = audioBuffer.length / bytesPerSecond;
+
     const wavBase64 = await new Promise<string>((resolve, reject) => {
       const writer = new wav.Writer({
         channels: 1,
@@ -99,9 +102,23 @@ export async function textToSpeech(
     });
 
     if (input.patientId) {
-      trackTTS(input.patientId, input.text, 'gemini-2.5-flash-preview-tts').catch((err) => {
+      trackTTS(input.patientId, input.text, durationSeconds, 'gemini-2.5-flash-preview-tts').catch((err) => {
         console.error('[TTS Flow] Cost Tracking Error:', err);
       });
+    }
+
+    if (input.returnBuffer) {
+      // Return the WAV buffer directly (useful for concatenation)
+      // Note: wav.Writer output is a stream, we already collected it into 'bufs'. 
+      // We need to re-run the wav writer logic if we want a pure WAV buffer or just return the content.
+      // Actually, 'wavBase64' is the full WAV file in base64. Let's convert it back to buffer if needed, 
+      // OR better, since we have the PCM 'audioBuffer', we can return that if the caller wants to do their own WAV wrapping.
+      // For simplicity in this project, returning the FULL WAV BUFFER (header + data) is safest for single files,
+      // but for concatenation, we might want raw PCM.
+      // Let's return the full WAV buffer constructed from wavBase64.
+      return {
+        audioBuffer: Buffer.from(wavBase64, 'base64')
+      };
     }
 
     return {

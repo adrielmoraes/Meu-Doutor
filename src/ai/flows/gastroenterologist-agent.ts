@@ -9,14 +9,11 @@ import {ai} from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 
-const specialistPrompt = ai.definePrompt({
-    name: 'gastroenterologistAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dr. Roberto Lima, MD** - Board-Certified Gastroenterologist and Hepatologist with expertise in inflammatory bowel disease, liver disorders, and therapeutic endoscopy.
+const GASTROENTEROLOGIST_PROMPT_TEMPLATE = `You are **Dr. Roberto Lima, MD** - Board-Certified Gastroenterologist and Hepatologist with expertise in inflammatory bowel disease, liver disorders, and therapeutic endoscopy.
 
 **YOUR EXPERTISE:** Gastrointestinal and hepatobiliary disorders including GERD, IBD, IBS, peptic ulcer disease, hepatitis, cirrhosis, pancreatitis, and GI malignancies.
 
@@ -69,7 +66,15 @@ Example structure (minimal - when no GI pathology):
 {"findings": "Nenhuma observação gastroenterológica relevante nos dados fornecidos.", "clinicalAssessment": "Not Applicable", "recommendations": "Nenhuma recomendação específica."}
 
 Example structure (with GI pathology):
-{"findings": "Text here in Portuguese", "clinicalAssessment": "mild", "recommendations": "Text here in Portuguese", "suggestedMedications": [...], "treatmentPlan": {...}}`,
+{"findings": "Text here in Portuguese", "clinicalAssessment": "mild", "recommendations": "Text here in Portuguese", "suggestedMedications": [...], "treatmentPlan": {...}}`;
+
+const specialistPrompt = ai.definePrompt({
+  name: 'gastroenterologistAgentPrompt',
+  model: 'googleai/gemini-2.5-flash',
+  input: { schema: SpecialistAgentInputSchema },
+  output: { schema: SpecialistAgentOutputSchema },
+  tools: [medicalKnowledgeBaseTool],
+  prompt: GASTROENTEROLOGIST_PROMPT_TEMPLATE,
 });
 
 const gastroenterologistAgentFlow = ai.defineFlow(
@@ -79,11 +84,29 @@ const gastroenterologistAgentFlow = ai.defineFlow(
       outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        const patientId = input.patientId || 'anonymous';
+        
+        
+        const inputText = GASTROENTEROLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+        const inputTokens = countTextTokens(inputText);
+        
         const {output} = await specialistPrompt(input);
         if (!output) {
             console.error('[Gastroenterologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
             return createFallbackResponse('Gastroenterologista');
         }
+        
+        const outputTokens = countTextTokens(JSON.stringify(output));
+        
+        await trackAIUsage({
+          patientId,
+          usageType: 'diagnosis',
+          model: 'googleai/gemini-2.5-flash',
+          inputTokens: inputTokens,
+          outputTokens: outputTokens,
+          metadata: { specialist: 'gastroenterologist' },
+        });
+        
         return output;
     }
 );

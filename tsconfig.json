@@ -28,17 +28,26 @@
       ],
       "@/shared/*": [
         "./shared/*"
+      ],
+      "@/server/*": [
+        "./server/*"
       ]
     }
   },
   "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    "next-env.d.ts",
+    "server/**/*.ts",
+    "server/**/*.tsx",
+    "shared/**/*.ts",
+    "shared/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".next-dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next",
+    ".next-dev/types/validator.ts"
   ]
 }

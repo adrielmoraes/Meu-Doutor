@@ -74,6 +74,7 @@ export function TalkingAvatar3D({
         });
 
         headRef.current = head;
+        (avatarRef.current as any).avatarInstance = head;
 
         // Carregar avatar
         await head.showAvatar({
@@ -122,13 +123,6 @@ export function TalkingAvatar3D({
       }
     };
   }, [avatarUrl, mood, onReady]);
-
-  // Expor instância do avatar para controle externo
-  useEffect(() => {
-    if (headRef.current && avatarRef.current) {
-      (avatarRef.current as any).avatarInstance = headRef.current;
-    }
-  }, [headRef.current]);
 
   return (
     <div className={`relative ${className}`}>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import SimplePeer from 'simple-peer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,17 +33,151 @@ export const VideoCall: React.FC<VideoCallProps> = ({
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
+  const peerRef = useRef<SimplePeer.Instance | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
-  useEffect(() => {
-    initializeCall();
-    return () => {
-      cleanup();
-    };
+  const sendSignalToFirebase = useCallback(async (data: any) => {
+    try {
+      const response = await fetch('/api/webrtc/signal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          roomId,
+          from: userId,
+          to: targetId,
+          signal: data,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao enviar sinal');
+      }
+    } catch (error) {
+      console.error('Erro ao enviar sinal:', error);
+    }
+  }, [roomId, targetId, userId]);
+
+  const listenForSignals = useCallback(async (peerInstance: SimplePeer.Instance) => {
+    try {
+      const response = await fetch(`/api/webrtc/listen/${roomId}/${userId}`);
+      const reader = response.body?.getReader();
+      
+      if (reader) {
+        const decoder = new TextDecoder();
+        const processChunk = async ({ done, value }: any) => {
+          if (done) return;
+          
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+          
+          for (const line of lines) {
+            if (line.trim()) {
+              try {
+                const signal = JSON.parse(line);
+                if (signal.from === targetId) {
+                  peerInstance.signal(signal.data);
+                }
+              } catch (e) {
+                console.error('Erro ao processar sinal:', e);
+              }
+            }
+          }
+          
+          reader.read().then(processChunk);
+        };
+        
+        reader.read().then(processChunk);
+      }
+    } catch (error) {
+      console.error('Erro ao escutar sinais:', error);
+    }
+  }, [roomId, targetId, userId]);
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      console.log('Gravação de áudio finalizada');
+    }
   }, []);
 
-  const initializeCall = async () => {
+  const sendRecordingToServer = useCallback(async (audioBlob: Blob) => {
+    try {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'call-recording.webm');
+      formData.append('roomId', roomId);
+      formData.append('patientId', isInitiator ? userId : targetId);
+      formData.append('doctorId', isInitiator ? targetId : userId);
+      
+      const response = await fetch('/api/webrtc/process-recording', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Gravação processada com sucesso:', result);
+      } else {
+        console.error('Erro ao processar gravação');
+      }
+    } catch (error) {
+      console.error('Erro ao enviar gravação:', error);
+    }
+  }, [isInitiator, roomId, targetId, userId]);
+
+  const startRecording = useCallback(async () => {
+    if (!localStreamRef.current || !remoteStreamRef.current) return;
+    
+    try {
+      const audioContext = new AudioContext();
+      const localAudioSource = audioContext.createMediaStreamSource(localStreamRef.current);
+      const remoteAudioSource = audioContext.createMediaStreamSource(remoteStreamRef.current);
+      const destination = audioContext.createMediaStreamDestination();
+      
+      localAudioSource.connect(destination);
+      remoteAudioSource.connect(destination);
+      
+      const mixedStream = destination.stream;
+      const mediaRecorder = new MediaRecorder(mixedStream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await sendRecordingToServer(audioBlob);
+        audioChunksRef.current = [];
+      };
+      
+      mediaRecorder.start(1000);
+      mediaRecorderRef.current = mediaRecorder;
+      setIsRecording(true);
+      
+      console.log('Gravação de áudio iniciada');
+    } catch (error) {
+      console.error('Erro ao iniciar gravação:', error);
+    }
+  }, [sendRecordingToServer]);
+
+  const cleanup = useCallback(() => {
+    stopRecording();
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(track => track.stop());
+    }
+    if (peerRef.current) {
+      peerRef.current.destroy();
+      peerRef.current = null;
+    }
+    setPeer(null);
+  }, [stopRecording]);
+
+  const initializeCall = useCallback(async () => {
     try {
       setIsConnecting(true);
       setError(null);
@@ -66,8 +200,9 @@ export const VideoCall: React.FC<VideoCallProps> = ({
         stream,
       });
 
+      peerRef.current = newPeer;
+
       newPeer.on('signal', (data) => {
-        // Enviar sinalização para o Firebase
         sendSignalToFirebase(data);
       });
 
@@ -105,64 +240,14 @@ export const VideoCall: React.FC<VideoCallProps> = ({
       setError('Não foi possível acessar câmera ou microfone.');
       setIsConnecting(false);
     }
-  };
+  }, [isInitiator, listenForSignals, onCallEnd, sendSignalToFirebase, startRecording]);
 
-  const sendSignalToFirebase = async (data: any) => {
-    try {
-      const response = await fetch('/api/webrtc/signal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          roomId,
-          from: userId,
-          to: targetId,
-          signal: data,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao enviar sinal');
-      }
-    } catch (error) {
-      console.error('Erro ao enviar sinal:', error);
-    }
-  };
-
-  const listenForSignals = async (peerInstance: SimplePeer.Instance) => {
-    try {
-      const response = await fetch(`/api/webrtc/listen/${roomId}/${userId}`);
-      const reader = response.body?.getReader();
-      
-      if (reader) {
-        const decoder = new TextDecoder();
-        const processChunk = async ({ done, value }: any) => {
-          if (done) return;
-          
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-          
-          for (const line of lines) {
-            if (line.trim()) {
-              try {
-                const signal = JSON.parse(line);
-                if (signal.from === targetId) {
-                  peerInstance.signal(signal.data);
-                }
-              } catch (e) {
-                console.error('Erro ao processar sinal:', e);
-              }
-            }
-          }
-          
-          reader.read().then(processChunk);
-        };
-        
-        reader.read().then(processChunk);
-      }
-    } catch (error) {
-      console.error('Erro ao escutar sinais:', error);
-    }
-  };
+  useEffect(() => {
+    initializeCall();
+    return () => {
+      cleanup();
+    };
+  }, [cleanup, initializeCall]);
 
   const toggleVideo = () => {
     if (localStreamRef.current) {
@@ -185,92 +270,8 @@ export const VideoCall: React.FC<VideoCallProps> = ({
   };
 
   const endCall = () => {
-    if (peer) {
-      peer.destroy();
-    }
     cleanup();
     onCallEnd();
-  };
-
-  const startRecording = async () => {
-    if (!localStreamRef.current || !remoteStreamRef.current) return;
-    
-    try {
-      const audioContext = new AudioContext();
-      const localAudioSource = audioContext.createMediaStreamSource(localStreamRef.current);
-      const remoteAudioSource = audioContext.createMediaStreamSource(remoteStreamRef.current);
-      const destination = audioContext.createMediaStreamDestination();
-      
-      localAudioSource.connect(destination);
-      remoteAudioSource.connect(destination);
-      
-      const mixedStream = destination.stream;
-      const mediaRecorder = new MediaRecorder(mixedStream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
-      
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-      
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        await sendRecordingToServer(audioBlob);
-        audioChunksRef.current = [];
-      };
-      
-      mediaRecorder.start(1000);
-      mediaRecorderRef.current = mediaRecorder;
-      setIsRecording(true);
-      
-      console.log('Gravação de áudio iniciada');
-    } catch (error) {
-      console.error('Erro ao iniciar gravação:', error);
-    }
-  };
-  
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      console.log('Gravação de áudio finalizada');
-    }
-  };
-  
-  const sendRecordingToServer = async (audioBlob: Blob) => {
-    try {
-      const formData = new FormData();
-      formData.append('audio', audioBlob, 'call-recording.webm');
-      formData.append('roomId', roomId);
-      formData.append('patientId', isInitiator ? userId : targetId);
-      formData.append('doctorId', isInitiator ? targetId : userId);
-      
-      const response = await fetch('/api/webrtc/process-recording', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Gravação processada com sucesso:', result);
-      } else {
-        console.error('Erro ao processar gravação');
-      }
-    } catch (error) {
-      console.error('Erro ao enviar gravação:', error);
-    }
-  };
-
-  const cleanup = () => {
-    stopRecording();
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => track.stop());
-    }
-    if (peer) {
-      peer.destroy();
-    }
   };
 
   if (error) {

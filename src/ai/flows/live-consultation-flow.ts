@@ -11,7 +11,6 @@ import { textToSpeech } from './text-to-speech';
 import { patientDataAccessTool } from '../tools/patient-data-access';
 import { consultationHistoryAccessTool } from '../tools/consultation-history-access';
 import { doctorsListAccessTool } from '../tools/doctors-list-access';
-import { gemini15Pro } from '@genkit-ai/googleai';
 import { trackLiveConsultation, trackSTT } from '@/lib/usage-tracker';
 import { countTextTokens } from '@/lib/token-counter';
 
@@ -93,24 +92,27 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
   // The user's message is the audio/video chunk.
   const userMessage = { role: 'user', content: mediaParts };
 
-  const messages = [
+  type GenkitMessage = { role: 'system' | 'user' | 'model' | 'tool'; content: any[] };
+  const messages: GenkitMessage[] = [
     { role: 'system', content: [{ text: SYSTEM_PROMPT }] },
-    ...(input.history || []),
-    userMessage
+    ...((input.history || []) as unknown as GenkitMessage[]),
+    userMessage as unknown as GenkitMessage,
   ];
 
   // Step 1: Call the multimodal model (Gemini 1.5 Pro) with the audio and video.
   const initialResponse = await ai.generate({
-    model: gemini15Pro,
-    messages: messages,
+    model: 'googleai/gemini-2.5-flash-native-audio-preview-12-2025',
+    messages,
     tools: [patientDataAccessTool, consultationHistoryAccessTool, doctorsListAccessTool],
     toolRequest: 'auto'
-  });
+  } as any);
 
   const initialMessage = initialResponse.message;
   let textResponse = initialResponse.text || '';
-  const toolRequests = initialMessage?.toolRequests;
-  const toolRequest = toolRequests?.[0];
+  const toolRequestPart = (initialMessage?.content as any[] | undefined)?.find(
+    (p) => p && typeof p === 'object' && 'toolRequest' in p
+  );
+  const toolRequest = toolRequestPart?.toolRequest as { name: string; input?: unknown } | undefined;
 
   // Step 2: If the model requests a tool, execute it and get a follow-up response.
   if (toolRequest) {
@@ -118,11 +120,11 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
     
     let toolResult;
     if (toolRequest.name === 'consultationHistoryAccessTool') {
-      toolResult = await consultationHistoryAccessTool(toolRequest.input);
+      toolResult = await consultationHistoryAccessTool(toolRequest.input as any);
     } else if (toolRequest.name === 'doctorsListAccessTool') {
-      toolResult = await doctorsListAccessTool(toolRequest.input);
+      toolResult = await doctorsListAccessTool(toolRequest.input as any);
     } else {
-      toolResult = await patientDataAccessTool(toolRequest.input);
+      toolResult = await patientDataAccessTool(toolRequest.input as any);
     }
 
     // Capture tool request and output for tracking
@@ -130,14 +132,14 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
     toolOutputText = JSON.stringify(toolResult || {});
 
     const toolFollowUpResponse = await ai.generate({
-      model: gemini15Pro,
+      model: 'googleai/gemini-2.5-flash',
       messages: [
         ...messages,
         initialMessage,
         { role: 'tool', content: [{ toolResponse: { name: toolRequest.name, output: toolResult } }] }
       ],
       tools: [patientDataAccessTool, consultationHistoryAccessTool, doctorsListAccessTool],
-    });
+    } as any);
 
     const followUpText = toolFollowUpResponse.text || '';
     textResponse = (textResponse + ' ' + followUpText).trim();
@@ -177,7 +179,7 @@ export async function liveConsultationFlow(input: LiveConsultationInput): Promis
     inputTokens,
     outputTokens,
     'beyondpresence',
-    'gemini-1.5-pro'
+    'gemini-2.5-flash-native-audio-preview-12-2025'
   ).catch(err => console.error('[Live Consultation] Usage tracking error:', err));
 
   // Step 6: Return the final transcript and audio.

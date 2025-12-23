@@ -108,7 +108,7 @@ export default function TermosPage() {
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">1. Aceitação dos Termos</h2>
                     <p className="text-blue-100/80 leading-relaxed">
                       Ao acessar e utilizar a plataforma <strong className="text-cyan-300">MediAI</strong>, você 
-                      ("Usuário", "você") concorda em ficar vinculado a estes Termos de Uso e à nossa Política de Privacidade.
+                      (&quot;Usuário&quot;, &quot;você&quot;) concorda em ficar vinculado a estes Termos de Uso e à nossa Política de Privacidade.
                     </p>
                     <p className="text-blue-100/80 leading-relaxed">
                       Se você não concordar com qualquer parte destes termos, não utilize nossa plataforma.
@@ -498,7 +498,7 @@ export default function TermosPage() {
                     <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6 mb-6">
                       <p className="text-orange-300 font-semibold mb-2">⚠️ IMPORTANTE</p>
                       <p className="text-blue-200/70">
-                        Os serviços são fornecidos "como estão" e "conforme disponíveis", sem garantias de qualquer tipo.
+                        Os serviços são fornecidos &quot;como estão&quot; e &quot;conforme disponíveis&quot;, sem garantias de qualquer tipo.
                       </p>
                     </div>
 

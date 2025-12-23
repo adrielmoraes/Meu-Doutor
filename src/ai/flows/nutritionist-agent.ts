@@ -73,8 +73,8 @@ Example structure:
 
 const FALLBACK_MODELS = [
     "googleai/gemini-2.5-flash",
-    "googleai/gemini-2.5-flash-lite",
-    "googleai/gemini-flash-lite-latest",
+    "models/gemini-3-flash-preview",
+    "googleai/gemini-2.0-flash",
 ];
 
 async function executeWithRetry(
@@ -126,6 +126,8 @@ const nutritionistAgentFlow = ai.defineFlow(
         outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
+        const patientId = input.patientId || 'anonymous';
+        
         return await executeWithRetry(input);
     },
 );

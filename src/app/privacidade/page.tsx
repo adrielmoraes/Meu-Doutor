@@ -104,7 +104,7 @@ export default function PrivacidadePage() {
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">1. Introdução e Escopo</h2>
                     <p className="text-blue-100/80 leading-relaxed">
-                      A <strong className="text-cyan-300">MediAI Tecnologia em Saúde Ltda.</strong> ("MediAI", "nós", "nosso") 
+                      A <strong className="text-cyan-300">MediAI Tecnologia em Saúde Ltda.</strong> (&quot;MediAI&quot;, &quot;nós&quot;, &quot;nosso&quot;) 
                       está comprometida com a proteção da privacidade e dos dados pessoais de todos os usuários de nossa plataforma.
                     </p>
                     <p className="text-blue-100/80 leading-relaxed">

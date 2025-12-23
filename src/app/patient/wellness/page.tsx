@@ -26,7 +26,7 @@ function CoachMessage({ message }: { message: string }) {
                 </div>
                 <span className="font-bold text-indigo-700 dark:text-indigo-300">Insight do Dr. Health</span>
             </div>
-            <p className="text-indigo-900 dark:text-indigo-100 italic text-lg leading-relaxed">"{message}"</p>
+            <p className="text-indigo-900 dark:text-indigo-100 italic text-lg leading-relaxed">&ldquo;{message}&rdquo;</p>
         </div>
     );
 }

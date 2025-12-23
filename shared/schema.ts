@@ -21,6 +21,8 @@ export const patients = pgTable('patients', {
   emailVerified: boolean('email_verified').notNull().default(false),
   verificationToken: text('verification_token'),
   tokenExpiry: timestamp('token_expiry'),
+  resetPasswordToken: text('reset_password_token'),
+  resetPasswordExpiry: timestamp('reset_password_expiry'),
   city: text('city').notNull(),
   state: text('state').notNull(),
   lastVisit: text('last_visit'),
@@ -44,6 +46,38 @@ export const patients = pgTable('patients', {
     dietaryPlanAudioUri?: string;
     exercisePlanAudioUri?: string;
     mentalWellnessPlanAudioUri?: string;
+    weeklyMealPlan?: Array<{
+      day: string;
+      breakfast: string;
+      breakfastRecipe?: {
+        title: string;
+        ingredients: string[];
+        instructions: string;
+        prepTime: string;
+      };
+      lunch: string;
+      lunchRecipe?: {
+        title: string;
+        ingredients: string[];
+        instructions: string;
+        prepTime: string;
+      };
+      dinner: string;
+      dinnerRecipe?: {
+        title: string;
+        ingredients: string[];
+        instructions: string;
+        prepTime: string;
+      };
+      snacks?: string;
+    }>;
+    hydrationPlan?: string;
+    sleepPlan?: string;
+    goals?: {
+      shortTerm: string[];
+      mediumTerm: string[];
+      longTerm: string[];
+    };
     dailyReminders: Array<{
       icon: 'Droplet' | 'Clock' | 'Coffee' | 'Bed' | 'Dumbbell' | 'Apple' | 'Heart' | 'Sun' | 'Moon' | 'Activity' | 'Utensils' | 'Brain' | 'Smile' | 'Wind' | 'Leaf';
       title: string;
@@ -58,13 +92,27 @@ export const patients = pgTable('patients', {
       completed: boolean;
       completedAt?: string;
     }>;
+    coachComment?: string;
+    healthGoals?: Array<{
+      title: string;
+      description: string;
+      category: 'exercise' | 'nutrition' | 'mindfulness' | 'medical' | 'lifestyle';
+      progress: number;
+      targetDate: string;
+    }>;
+    preventiveAlerts?: Array<{
+      alert: string;
+      severity: 'high' | 'medium' | 'low';
+      category: 'cardiovascular' | 'metabolic' | 'respiratory' | 'general';
+    }>;
     lastUpdated: string;
   }>(),
   customQuotas: json('custom_quotas').$type<{
     examAnalysis?: number;
     aiConsultationMinutes?: number;
     doctorConsultationMinutes?: number;
-    therapistChat?: number;
+    therapistChatDays?: number;
+    podcastMinutes?: number;
     trialDurationDays?: number;
   }>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -91,6 +139,10 @@ export const doctors = pgTable('doctors', {
   emailVerified: boolean('email_verified').notNull().default(false),
   verificationToken: text('verification_token'),
   tokenExpiry: timestamp('token_expiry'),
+  resetPasswordToken: text('reset_password_token'),
+  resetPasswordExpiry: timestamp('reset_password_expiry'),
+  isApproved: boolean('is_approved').default(false).notNull(),
+  verificationDocument: text('verification_document'),
   level: integer('level').notNull().default(1),
   xp: integer('xp').notNull().default(0),
   xpToNextLevel: integer('xp_to_next_level').default(100).notNull(),
@@ -530,3 +582,23 @@ export const platformSettings = pgTable('platform_settings', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+// Health Podcasts - Podcasts de saúde gerados por IA
+export const healthPodcasts = pgTable('health_podcasts', {
+  id: text('id').primaryKey(),
+  patientId: text('patient_id').notNull().references(() => patients.id, { onDelete: 'cascade' }),
+  audioUrl: text('audio_url').notNull(), // Base64 data URI ou URL do áudio
+  transcript: text('transcript'), // Transcrição interna (não exibida ao paciente)
+  lastExamId: text('last_exam_id'), // ID do último exame considerado na geração
+  lastExamDate: text('last_exam_date'), // Data do último exame considerado
+  generatedAt: timestamp('generated_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const healthPodcastsRelations = relations(healthPodcasts, ({ one }) => ({
+  patient: one(patients, {
+    fields: [healthPodcasts.patientId],
+    references: [patients.id],
+  }),
+}));

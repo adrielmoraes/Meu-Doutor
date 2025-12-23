@@ -465,27 +465,28 @@ export default function PatientLiveKitCall({
   const [patientName, setPatientName] = useState<string>('Paciente');
   const router = useRouter();
 
-  useEffect(() => {
-    fetchDataAndToken();
-  }, []);
-
-  const fetchDataAndToken = async () => {
+  const fetchDataAndToken = useCallback(async () => {
     try {
+      let resolvedDoctorName = 'Médico';
+      let resolvedPatientName = 'Paciente';
+
       // Fetch doctor info
       const doctorResponse = await fetch(`/api/doctors/${doctorId}`);
       if (doctorResponse.ok) {
         const doctor = await doctorResponse.json();
-        setDoctorName(doctor.name || 'Médico');
+        resolvedDoctorName = doctor.name || resolvedDoctorName;
       }
+      setDoctorName(resolvedDoctorName);
 
       // Fetch patient info from session
       const sessionResponse = await fetch('/api/auth/session');
       if (sessionResponse.ok) {
         const sessionData = await sessionResponse.json();
         if (sessionData.user?.name) {
-          setPatientName(sessionData.user.name);
+          resolvedPatientName = sessionData.user.name;
         }
       }
+      setPatientName(resolvedPatientName);
 
       // Fetch LiveKit token
       const tokenResponse = await fetch('/api/livekit/token', {
@@ -493,10 +494,10 @@ export default function PatientLiveKitCall({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           roomName,
-          participantName: `patient-${patientName}`,
+          participantName: `patient-${resolvedPatientName}`,
           metadata: {
             role: 'patient',
-            name: patientName,
+            name: resolvedPatientName,
           }
         }),
       });
@@ -521,7 +522,11 @@ export default function PatientLiveKitCall({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [doctorId, roomName]);
+
+  useEffect(() => {
+    fetchDataAndToken();
+  }, [fetchDataAndToken]);
 
   const endCall = async () => {
     try {

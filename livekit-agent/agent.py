@@ -375,7 +375,7 @@ class MetricsCollector:
         
         avatar_minutes = self.avatar_seconds / 60.0
         if self.avatar_provider == 'bey':
-            avatar_cost_usd = avatar_minutes * 0.17  # BeyondPresence (fixo)
+            avatar_cost_usd = avatar_minutes * 0.176  # BeyondPresence (fixo)
         elif self.avatar_provider == 'tavus':
             avatar_cost_usd = avatar_minutes * 0.10   # Tavus (estimado)
         else:
@@ -438,7 +438,7 @@ class MetricsCollector:
         # Tavus CVI: $0.10/minuto (estimado)
         delta_avatar_minutes = delta_avatar_seconds / 60.0
         if self.avatar_provider == 'bey':
-            delta_avatar_cost_usd = delta_avatar_minutes * 0.17  # BeyondPresence (fixo)
+            delta_avatar_cost_usd = delta_avatar_minutes * 0.176  # BeyondPresence (fixo)
         elif self.avatar_provider == 'tavus':
             delta_avatar_cost_usd = delta_avatar_minutes * 0.10
         else:
@@ -734,6 +734,14 @@ async def _search_doctors_impl(specialty: str = None, limit: int = 5) -> dict:
                 f"[AI Tools] ✅ Encontrados {data.get('count', 0)} médicos")
             return data
 
+    except httpx.ConnectError as e:
+        logger.error(f"[AI Tools] ❌ Erro de conexão com API: {e}")
+        logger.error(f"[AI Tools] Verifique se NEXT_PUBLIC_BASE_URL ({NEXT_PUBLIC_URL}) está correto e acessível.")
+        return {
+            "success": False,
+            "error": "Erro de conexão com o servidor. Verifique a configuração.",
+            "doctors": []
+        }
     except httpx.HTTPStatusError as e:
         logger.error(
             f"[AI Tools] ❌ HTTP Error {e.response.status_code}: {e.response.text}"
@@ -909,6 +917,11 @@ async def _get_available_slots_impl(doctor_id: str, date: str) -> dict:
             )
             return data
 
+    except httpx.ConnectError as e:
+        logger.error(f"[AI Tools] ❌ Erro de conexão com API: {e}")
+        logger.error(f"[AI Tools] Verifique se NEXT_PUBLIC_BASE_URL ({NEXT_PUBLIC_URL}) está correto e acessível.")
+        return {"success": False, "error": "Erro de conexão com o servidor.", "availableSlots": []}
+
     except Exception as e:
         logger.error(f"[AI Tools] ❌ Erro ao buscar horários: {e}")
         return {"success": False, "error": str(e), "availableSlots": []}
@@ -1024,6 +1037,11 @@ async def _schedule_appointment_impl(doctor_id: str,
             logger.info(
                 f"[AI Tools] ✅ Consulta agendada: {data.get('appointmentId')}")
             return data
+
+    except httpx.ConnectError as e:
+        logger.error(f"[AI Tools] ❌ Erro de conexão com API: {e}")
+        logger.error(f"[AI Tools] Verifique se NEXT_PUBLIC_BASE_URL ({NEXT_PUBLIC_URL}) está correto e acessível.")
+        return {"success": False, "error": "Erro de conexão com o servidor."}
 
     except Exception as e:
         logger.error(f"[AI Tools] ❌ Erro ao agendar consulta: {e}")
@@ -1168,6 +1186,8 @@ async def get_visual_observation(context: RunContext) -> dict:
     try:
         observation = getattr(agent, '_latest_vision_observation', None)
         obs_time = getattr(agent, '_vision_observation_time', 0)
+        last_focus = getattr(agent, '_last_observation_focus', 'geral')
+        last_question = getattr(agent, '_last_specific_question', '')
         
         if not observation:
             return {
@@ -1181,8 +1201,10 @@ async def get_visual_observation(context: RunContext) -> dict:
         return {
             "success": True,
             "observation": observation,
+            "observation_focus": last_focus,
+            "specific_question": last_question,
             "age_seconds": round(age_seconds, 1),
-            "message": f"Observação de {round(age_seconds)}s atrás: {observation}"
+            "message": f"Observação de {round(age_seconds)}s atrás (Foco: {last_focus}): {observation}"
         }
         
     except Exception as e:
@@ -1195,20 +1217,22 @@ async def get_visual_observation(context: RunContext) -> dict:
 
 
 @function_tool()
-async def look_at_patient(context: RunContext, observation_focus: str = "geral") -> dict:
-    """Olha para o paciente através da câmera para fazer observações visuais.
+async def look_at_patient(context: RunContext, observation_focus: str = "geral", specific_question: str = "") -> dict:
+    """Olha para o paciente através da câmera para fazer observações visuais detalhadas.
     
     Use quando precisar:
     - Observar a aparência física do paciente
     - Ver sinais visíveis de desconforto ou dor
     - Verificar postura, coloração da pele, ou sinais vitais visíveis
-    - Avaliar visualmente ferimentos ou condições descritas pelo paciente
+    - Avaliar visualmente ferimentos, hematomas, manchas ou condições específicas
+    - Responder perguntas específicas sobre o que você pode ver
     
-    IMPORTANTE: Use de forma profissional e respeitosa. Não faça comentários sobre
-    aparência que não sejam relevantes para a saúde do paciente.
+    IMPORTANTE: Use de forma profissional e respeitosa. Forneça descrições detalhadas
+    e específicas baseadas exatamente no que está visível na imagem.
     
     Args:
-        observation_focus: O que você quer observar (ex: "geral", "face", "postura", "pele", "olhos")
+        observation_focus: Área específica para focar (ex: "geral", "face", "braço", "pele", "hematoma", "mancha", "ferimento")
+        specific_question: Pergunta específica do paciente que precisa ser respondida com base na observação visual
     """
     global _current_agent_instance
     
@@ -1303,9 +1327,9 @@ async def look_at_patient(context: RunContext, observation_focus: str = "geral")
                     "observation": None
                 }
             
-            # Send to Gemini session for analysis
+            # Send to Gemini session for analysis with specific context
             if agent._agent_session:
-                await agent._send_frame_to_session(frame_bytes)
+                await agent._send_frame_to_session_with_context(frame_bytes, observation_focus, specific_question)
                 logger.info(f"[Vision] ✅ Frame sent to Gemini ({len(frame_bytes)} bytes)")
             
             # Track metrics
@@ -1319,7 +1343,8 @@ async def look_at_patient(context: RunContext, observation_focus: str = "geral")
             return {
                 "success": True,
                 "observation_focus": observation_focus,
-                "message": f"Imagem do paciente capturada com sucesso. Foco: {observation_focus}"
+                "specific_question": specific_question,
+                "message": f"Imagem do paciente capturada e analisada com sucesso. Foco: {observation_focus}"
             }
             
         except asyncio.TimeoutError:
@@ -1393,6 +1418,8 @@ class MediAIAgent(Agent):
         # Vision observation storage (for streaming mode)
         self._latest_vision_observation: Optional[str] = None
         self._vision_observation_time: float = 0
+        self._last_observation_focus: str = "geral"
+        self._last_specific_question: str = ""
 
         _current_agent_instance = self
         logger.info("[MediAI] Agent instance registered")
@@ -1601,15 +1628,15 @@ class MediAIAgent(Agent):
             logger.info(f"[Vision] Image created: {img.size}")
             
             # Resize to target resolution for better vision analysis
-            # Target 640x480 for good quality analysis while keeping token costs reasonable
-            target_width = 640
-            target_height = 480
+            # Target 800x600 for better detail in medical observations (skin spots, bruises)
+            target_width = 800
+            target_height = 600
             
             # Only resize if image is significantly different from target
             current_w, current_h = img.size
-            if current_w < target_width or current_h < target_height:
-                # Upscale small images to minimum size for analysis
-                scale = max(target_width / current_w, target_height / current_h)
+            if current_w < 320 or current_h < 240:
+                # Upscale very small images to minimum usable size
+                scale = max(320 / current_w, 240 / current_h)
                 new_w = int(current_w * scale)
                 new_h = int(current_h * scale)
                 try:
@@ -1617,17 +1644,22 @@ class MediAIAgent(Agent):
                     logger.info(f"[Vision] Upscaled from {current_w}x{current_h} to {new_w}x{new_h}")
                 except Exception as resize_err:
                     logger.warning(f"[Vision] Upscale failed: {resize_err}")
-            elif current_w > target_width * 2 or current_h > target_height * 2:
-                # Downscale very large images to save tokens
+            elif current_w > 1280 or current_h > 960:
+                # Downscale very large images to save tokens but keep good quality
+                # Maintain aspect ratio
+                scale = min(1280 / current_w, 960 / current_h)
+                new_w = int(current_w * scale)
+                new_h = int(current_h * scale)
                 try:
-                    img = img.resize((target_width, target_height), Image.NEAREST)
-                    logger.info(f"[Vision] Downscaled from {current_w}x{current_h} to {target_width}x{target_height}")
+                    img = img.resize((new_w, new_h), Image.LANCZOS)
+                    logger.info(f"[Vision] Downscaled from {current_w}x{current_h} to {new_w}x{new_h}")
                 except Exception as resize_err:
                     logger.warning(f"[Vision] Downscale failed: {resize_err}, keeping original")
 
-            # Encode to JPEG with better quality for accurate vision analysis
+            # Encode to JPEG with high quality for accurate medical vision analysis
             img_buffer = io.BytesIO()
-            img.save(img_buffer, format='JPEG', quality=75)
+            # Quality 85 ensures details like skin texture and discoloration are preserved
+            img.save(img_buffer, format='JPEG', quality=85)
             frame_bytes = img_buffer.getvalue()
             
             img_buffer.close()
@@ -1815,35 +1847,39 @@ class MediAIAgent(Agent):
 
     async def _send_frame_to_session(self, frame_bytes: bytes):
         """Analyze a video frame using Gemini Vision API.
-        
-        NOTE: The LiveKit RealtimeModel (Gemini Live API) is audio-only and does not
-        support direct video frame injection. Instead, we use the Gemini Vision API
-        separately to analyze frames and store observations for the agent to reference.
-        
-        This is the correct architecture:
-        1. Capture frame from patient's camera
-        2. Analyze with Gemini Vision API (gemini-2.0-flash) 
-        3. Store observation in self._latest_vision_observation
-        4. Agent accesses observation via get_visual_observation tool
-        
-        THROTTLING: To reduce costs and API load, we only analyze frames every 30 seconds
-        even though we receive frames every 4 seconds. The latest frame is stored
-        and analyzed periodically.
+        Legacy wrapper for backward compatibility.
         """
-        # Additional throttling: Only analyze 1 frame every 30 seconds (on top of 4s capture rate)
-        ANALYSIS_INTERVAL = 30.0
-        current_time = time.time()
+        await self._send_frame_to_session_with_context(frame_bytes, "geral", "")
+
+    async def _send_frame_to_session_with_context(self, frame_bytes: bytes, observation_focus: str = "geral", specific_question: str = ""):
+        """Analyze a video frame using Gemini Vision API with specific context and focus.
         
-        if hasattr(self, '_last_vision_analysis_time'):
-            time_since_last = current_time - self._last_vision_analysis_time
-            if time_since_last < ANALYSIS_INTERVAL:
-                logger.debug(f"[Vision] Skipping analysis - {ANALYSIS_INTERVAL - time_since_last:.1f}s until next")
-                return
+        This enhanced version provides detailed, contextual analysis based on:
+        - The specific area of focus requested
+        - The specific question asked by the patient
+        - Medical relevance and detail level needed
         
-        try:
+        Args:
+            frame_bytes: JPEG image data
+            observation_focus: Specific area to focus on (e.g., "hematoma", "mancha", "ferimento")
+            specific_question: Exact question from patient that needs visual answer
+        """
+        # Throttling logic - separate for streaming vs on-demand
+        # If specific question is present, bypass standard throttling
+        is_on_demand = bool(specific_question) or observation_focus != "geral"
+        
+        if not is_on_demand:
+            ANALYSIS_INTERVAL = 30.0
+            current_time = time.time()
+            if hasattr(self, '_last_vision_analysis_time'):
+                time_since_last = current_time - self._last_vision_analysis_time
+                if time_since_last < ANALYSIS_INTERVAL:
+                    logger.debug(f"[Vision] Skipping analysis - {ANALYSIS_INTERVAL - time_since_last:.1f}s until next")
+                    return
             self._last_vision_analysis_time = current_time
-            
-            # Use Gemini Vision API (not LiveKit RealtimeModel)
+
+        try:
+            # Use Gemini Vision API for detailed analysis
             vision_model = genai.GenerativeModel('gemini-2.0-flash')
             
             # Prepare image for Gemini
@@ -1854,27 +1890,31 @@ class MediAIAgent(Agent):
                 }
             }
             
-            # Analyze frame with medical focus
-            prompt = """Você é uma assistente médica observando o paciente por vídeo durante uma consulta.
-Descreva objetivamente o que você vê em 2-3 frases curtas, focando em:
-- Aparência geral (expressão facial, postura, sinais de desconforto)
-- Qualquer característica visível relevante para saúde
-- Ambiente do paciente se relevante
-
-Seja profissional e não faça diagnósticos, apenas observações visuais."""
+            # Create contextual prompt based on focus and question
+            prompt = self._create_contextual_vision_prompt(observation_focus, specific_question)
 
             # Call Gemini Vision API in a thread to avoid blocking
             def analyze_sync():
-                response = vision_model.generate_content([prompt, image_part])
-                return response.text if response and response.text else None
+                try:
+                    response = vision_model.generate_content([prompt, image_part])
+                    return response.text if response and response.text else None
+                except Exception as e:
+                    logger.error(f"[Vision] Error in analyze_sync: {e}")
+                    raise e  # Re-raise to trigger circuit breaker
             
-            observation = await asyncio.to_thread(analyze_sync)
+            async def run_vision_analysis():
+                return await asyncio.to_thread(analyze_sync)
+
+            # Use circuit breaker to prevent cascading failures
+            observation = await gemini_circuit_breaker.call(run_vision_analysis)
             
             if observation:
                 # Store the latest observation for the agent to reference
                 self._latest_vision_observation = observation
                 self._vision_observation_time = time.time()
-                logger.info(f"[Vision] ✅ Frame analyzed: {observation[:100]}...")
+                self._last_observation_focus = observation_focus
+                self._last_specific_question = specific_question
+                logger.info(f"[Vision] ✅ Contextual frame analyzed: {observation[:150]}...")
                 
                 # Track vision tokens
                 if self.metrics_collector:
@@ -1884,9 +1924,102 @@ Seja profissional e não faça diagnósticos, apenas observações visuais."""
                 logger.warning("[Vision] No observation returned from Gemini Vision")
                 
         except Exception as e:
-            logger.error(f"[Vision] Error analyzing frame: {e}")
+            logger.error(f"[Vision] Error analyzing frame with context: {e}")
             import traceback
             logger.error(f"[Vision] Traceback: {traceback.format_exc()}")
+
+    def _create_contextual_vision_prompt(self, observation_focus: str, specific_question: str) -> str:
+        """Create a detailed, contextual prompt for vision analysis based on focus and question."""
+        
+        base_prompt = """Você é uma assistente médica especializada observando o paciente por vídeo durante uma consulta médica.
+Analise a imagem de forma DETALHADA e ESPECÍFICA, fornecendo informações precisas sobre o que você vê."""
+        
+        # Add specific focus instructions
+        focus_instructions = {
+            "hematoma": """
+FOCO ESPECÍFICO: HEMATOMAS/CONTUSÕES
+- Descreva EXATAMENTE a localização, tamanho, cor e aparência de qualquer hematoma visível
+- Mencione a coloração específica (roxo, azul, amarelo, verde, marrom)
+- Estime o tamanho aproximado se possível
+- Descreva a forma e bordas do hematoma
+- Observe se há inchaço associado""",
+            
+            "mancha": """
+FOCO ESPECÍFICO: MANCHAS NA PELE
+- Descreva PRECISAMENTE a localização, tamanho, cor e formato de qualquer mancha visível
+- Mencione se a mancha é elevada ou plana
+- Descreva a textura e bordas (regulares/irregulares)
+- Observe a coloração exata (marrom, preta, vermelha, etc.)
+- Mencione se há múltiplas manchas ou apenas uma""",
+            
+            "ferimento": """
+FOCO ESPECÍFICO: FERIMENTOS/LESÕES
+- Descreva DETALHADAMENTE qualquer ferimento, corte, arranhão ou lesão visível
+- Mencione a localização exata e extensão
+- Observe se há sangramento, crostas ou sinais de cicatrização
+- Descreva a profundidade aparente e bordas do ferimento
+- Mencione qualquer sinal de infecção ou inflamação""",
+            
+            "face": """
+FOCO ESPECÍFICO: REGIÃO FACIAL
+- Observe expressão facial e sinais de desconforto
+- Descreva coloração da pele, palidez ou vermelhidão
+- Mencione qualquer assimetria ou inchaço
+- Observe os olhos (coloração, inchaço, lacrimejamento)
+- Descreva lábios e mucosas visíveis""",
+            
+            "pele": """
+FOCO ESPECÍFICO: CONDIÇÕES DA PELE
+- Analise a textura, cor e aparência geral da pele visível
+- Mencione qualquer alteração de coloração
+- Observe ressecamento, oleosidade ou outras características
+- Descreva qualquer erupção, descamação ou irritação
+- Mencione uniformidade da pigmentação""",
+            
+            "postura": """
+FOCO ESPECÍFICO: POSTURA E MOVIMENTO
+- Descreva a posição do corpo e postura geral
+- Observe se há sinais de desconforto ou dor na postura
+- Mencione qualquer assimetria ou compensação postural
+- Descreva a posição dos membros e cabeça
+- Observe sinais de tensão ou relaxamento muscular"""
+        }
+        
+        # Get specific focus instruction or use general
+        focus_instruction = focus_instructions.get(observation_focus.lower(), """
+FOCO GERAL: OBSERVAÇÃO MÉDICA COMPLETA
+- Descreva a aparência geral do paciente
+- Observe expressão facial e sinais de desconforto
+- Mencione postura e posição do corpo
+- Descreva qualquer característica visível relevante para saúde
+- Observe o ambiente se relevante para a consulta""")
+        
+        # Add specific question context if provided
+        question_context = ""
+        if specific_question.strip():
+            question_context = f"""
+
+PERGUNTA ESPECÍFICA DO PACIENTE: "{specific_question}"
+- Responda DIRETAMENTE a esta pergunta com base no que você vê na imagem
+- Seja específico e detalhado na resposta
+- Se não conseguir ver claramente o que foi perguntado, mencione isso explicitamente"""
+        
+        # Combine all parts
+        full_prompt = f"""{base_prompt}
+
+{focus_instruction}
+
+{question_context}
+
+INSTRUÇÕES IMPORTANTES:
+- Seja EXTREMAMENTE específico e detalhado
+- Use linguagem médica apropriada mas compreensível
+- NÃO faça diagnósticos, apenas descreva o que vê
+- Se algo não estiver claramente visível, mencione isso
+- Forneça informações suficientes para que o médico possa entender exatamente o que está sendo observado
+- Responda em português brasileiro de forma profissional"""
+
+        return full_prompt
 
     async def on_enter(self):
         """Called when agent enters the session - generates initial greeting using session.say()"""
@@ -1934,7 +2067,17 @@ Seja profissional e não faça diagnósticos, apenas observações visuais."""
 
 async def entrypoint(ctx: JobContext):
     """Main entrypoint for the LiveKit agent with Tavus avatar."""
+    try:
+        await _entrypoint_impl(ctx)
+    except Exception as e:
+        logger.critical(f"[MediAI] 💥 CRITICAL ERROR in entrypoint: {e}")
+        import traceback
+        logger.critical(traceback.format_exc())
+        # Allow clean exit/restart
+        raise e
 
+async def _entrypoint_impl(ctx: JobContext):
+    """Implementation of the main entrypoint logic."""
     await ctx.connect()
 
     room_metadata = ctx.room.metadata
@@ -2003,14 +2146,17 @@ async def entrypoint(ctx: JobContext):
 - NÃO faça comentários sobre aparência que não sejam relevantes para saúde
 - Use get_visual_observation periodicamente para acompanhar o estado do paciente"""
         else:
-            vision_instructions = """VISÃO SOB DEMANDA:
+            vision_instructions = """VISÃO SOB DEMANDA (PREFERENCIAL):
 ✅ VOCÊ PODE VER O PACIENTE usando a ferramenta look_at_patient
-- Use look_at_patient quando precisar observar visualmente o paciente
-- Exemplo: se o paciente mencionar uma ferida, lesão, ou sintoma visível, use look_at_patient para observar
-- Combine o que você VÊ com o que você OUVE para fazer uma avaliação mais completa
-- Seja profissional e respeitosa nas observações visuais
-- NÃO faça comentários sobre aparência que não sejam relevantes para saúde
-- Use a visão estrategicamente, não a cada frase do paciente"""
+- Use look_at_patient(observation_focus="...", specific_question="...") para examinar visualmente
+- PARÂMETROS IMPORTANTES:
+  * observation_focus: Defina o foco: "face", "hematoma", "mancha", "ferimento", "pele", "postura" ou "geral"
+  * specific_question: Formule uma pergunta específica para a visão responder (ex: "Qual a cor desta mancha?", "Há sinais de infecção?")
+- EXEMPLO: Se o paciente diz "olha essa mancha", chame:
+  look_at_patient(observation_focus="mancha", specific_question="Descreva detalhadamente a aparência, bordas e cor desta mancha")
+- Use a visão sempre que o paciente mostrar algo ou pedir sua opinião visual
+- Combine o que você VÊ com o que você OUVE para uma avaliação completa
+- Seja profissional e detalhista nas descrições visuais"""
     else:
         vision_instructions = """VISÃO:
 - Nesta consulta, você NÃO tem acesso visual ao paciente
@@ -2091,7 +2237,7 @@ CONTEXTO DO PACIENTE:
         llm=google.beta.realtime.RealtimeModel(
             model=
             gemini_model,  # Using selected model (native audio or standard realtime)
-            voice="Despina",  # Female voice optimized for Portuguese (pt-BR)
+            voice="Kore",  # Female voice optimized for Portuguese (pt-BR)
             temperature=
             0.5,  # Lower for more consistent responses and pronunciation
             instructions=system_prompt,

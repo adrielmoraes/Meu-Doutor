@@ -5,7 +5,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2025-09-30.clover',
   typescript: true,
 });
 
@@ -25,9 +25,9 @@ export async function createCheckoutSession(params: {
     ? ['pix']
     : ['card'];
 
-  const session = await stripe.checkout.sessions.create({
+  const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: 'subscription',
-    payment_method_types: paymentMethodTypes,
+    payment_method_types: paymentMethodTypes as Stripe.Checkout.SessionCreateParams.PaymentMethodType[],
     line_items: [
       {
         price: params.priceId,
@@ -40,7 +40,9 @@ export async function createCheckoutSession(params: {
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
     locale: 'pt-BR',
-  });
+  };
+
+  const session = await stripe.checkout.sessions.create(sessionParams);
 
   return session;
 }

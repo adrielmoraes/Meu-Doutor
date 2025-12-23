@@ -208,7 +208,7 @@ export default async function AdminSubscriptionsPage() {
                       <div>
                         <p className="text-xs text-gray-400">Stripe ID</p>
                         <p className="text-xs font-mono text-gray-500 truncate">
-                          {subscription.stripeSubscriptionId.substring(0, 20)}...
+                          {subscription.stripeSubscriptionId ? `${subscription.stripeSubscriptionId.substring(0, 20)}...` : '—'}
                         </p>
                       </div>
                     </div>

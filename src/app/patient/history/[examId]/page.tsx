@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import type { Exam, Patient } from "@/types";
 import { getSession } from "@/lib/session";
 import SpecialistFindingsDisplay from "@/components/patient/specialist-findings-display";
+import { consolidateSavedExamsAction } from "@/components/patient/actions";
 
 // Component to parse and render suggestions with proper formatting
 const RenderSuggestions = ({ suggestions }: { suggestions: string }) => {
@@ -98,13 +99,20 @@ async function getExamPageData(patientId: string, examId: string): Promise<{ pat
 }
 
 
-export default async function ExamDetailPage({ params }: { params: Promise<{ examId: string }> }) {
+export default async function ExamDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ examId: string }>;
+  searchParams?: Promise<{ retry?: string }>;
+}) {
   const session = await getSession();
   if (!session || session.role !== 'patient') {
     redirect('/login');
   }
 
   const { examId } = await params;
+  const { retry } = (await searchParams) || {};
   const { patient, examData, error, fixUrl } = await getExamPageData(session.userId, examId);
 
   if (error || !examData || !patient) {
@@ -117,7 +125,7 @@ export default async function ExamDetailPage({ params }: { params: Promise<{ exa
             {error || "Os dados do exame ou do paciente não puderam ser carregados."}
             {fixUrl && (
               <p className="mt-2">
-                Por favor, habilite a API manualmente visitando o seguinte link e clicando em "Habilitar":
+                Por favor, habilite a API manualmente visitando o seguinte link e clicando em &quot;Habilitar&quot;:
                 <br />
                 <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
                   Habilitar API do Firestore
@@ -133,9 +141,28 @@ export default async function ExamDetailPage({ params }: { params: Promise<{ exa
   }
 
   const isExamValidated = examData.status === 'Validado';
+  const needsConsolidation =
+    examData.preliminaryDiagnosis === 'Aguardando consolidação...' ||
+    examData.suggestions === 'A ser gerado após análise completa.';
   const examDate = new Date(examData.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
   const textForMainAudio = `${examData.preliminaryDiagnosis}. ${examData.explanation}`;
 
+  async function retryConsolidation(formData: FormData) {
+    'use server';
+    const currentExamId = String(formData.get('examId') || '');
+    const currentSession = await getSession();
+    if (!currentSession || currentSession.role !== 'patient') {
+      redirect('/login');
+    }
+
+    const result = await consolidateSavedExamsAction(currentSession.userId);
+
+    if (result.success && result.primaryExamId) {
+      redirect(`/patient/history/${result.primaryExamId}`);
+    }
+
+    redirect(`/patient/history/${currentExamId}?retry=failed`);
+  }
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -157,6 +184,31 @@ export default async function ExamDetailPage({ params }: { params: Promise<{ exa
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
+              {retry === 'failed' && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Não foi possível consolidar agora</AlertTitle>
+                  <AlertDescription>
+                    Houve um erro ao tentar gerar a análise completa. Os dados extraídos continuam salvos; tente novamente em instantes.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {needsConsolidation && !isExamValidated && (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Análise completa pendente</AlertTitle>
+                  <AlertDescription className="flex flex-col gap-3">
+                    A extração dos exames já foi salva. Se a consolidação falhou, você pode tentar novamente sem reenviar os arquivos.
+                    <form action={retryConsolidation} className="flex">
+                      <input type="hidden" name="examId" value={examId} />
+                      <Button type="submit" variant="secondary" className="w-full sm:w-auto">
+                        Tentar consolidar novamente
+                      </Button>
+                    </form>
+                  </AlertDescription>
+                </Alert>
+              )}
 
               {isExamValidated ? (
                 // Show Doctor's validated diagnosis

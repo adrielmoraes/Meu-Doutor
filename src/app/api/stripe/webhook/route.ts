@@ -10,14 +10,16 @@ import {
 import { headers } from 'next/headers';
 import { getPlanIdFromStripePrice } from '@/lib/plan-mapping';
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-if (!webhookSecret) {
-  throw new Error('STRIPE_WEBHOOK_SECRET não está configurado');
-}
-
 export async function POST(req: NextRequest) {
   try {
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      return NextResponse.json(
+        { error: 'STRIPE_WEBHOOK_SECRET não está configurado' },
+        { status: 500 }
+      );
+    }
+
     const body = await req.text();
     const headersList = await headers();
     const signature = headersList.get('stripe-signature');

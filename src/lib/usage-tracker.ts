@@ -28,7 +28,8 @@ export type UsageType =
   | 'avatar'            // Avatar usage (BEY/Tavus)
   | 'livekit'           // LiveKit video/audio
   | 'vision'            // Vision API usage
-  | 'wellness_plan';    // Wellness plan generation
+  | 'wellness_plan'     // Wellness plan generation
+  | 'podcast_script';   // Podcast script generation
 
 interface TrackUsageParams {
   patientId: string;
@@ -74,6 +75,7 @@ export async function trackAIUsage({
       case 'consultation_flow':
       case 'diagnosis':
       case 'wellness_plan':
+      case 'podcast_script':
       case 'vision':
         const llmCost = calculateLLMCost(model, estimatedInputTokens, estimatedOutputTokens, { contextLength });
         costUSD = llmCost.totalCost;
@@ -81,7 +83,7 @@ export async function trackAIUsage({
         break;
 
       case 'tts':
-        costUSD = calculateTTSCost(model, estimatedOutputTokens);
+        costUSD = calculateTTSCost(model, estimatedOutputTokens, estimatedInputTokens);
         resourceName = AI_PRICING.audioModels[model as keyof typeof AI_PRICING.audioModels]?.name || 'Gemini TTS';
         break;
 
@@ -121,12 +123,17 @@ export async function trackAIUsage({
     // Generate unique ID
     const id = `usage_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+    if (!usageType) {
+      console.error('[Usage Tracker] ❌ Missing usageType in trackAIUsage', { patientId, model });
+      // throw new Error('usageType is required');
+    }
+
     // Store in database
     await db.insert(usageTracking).values({
       id,
       patientId,
-      usageType,
-      resourceName,
+      usageType: usageType || 'exam_analysis', // Fallback to prevent crash
+      resourceName: resourceName || usageType || 'Unknown Resource',
       tokensUsed: estimatedInputTokens + estimatedOutputTokens,
       durationSeconds,
       cost: costCents,
@@ -195,14 +202,23 @@ export async function trackExamAnalysis(
 export async function trackTTS(
   patientId: string,
   text: string,
+  durationSeconds: number,
   model: string = 'gemini-2.5-flash-preview-tts'
 ): Promise<string> {
+  // Estimate output tokens from duration (180 tokens/sec for Gemini)
+  const estimatedOutputTokens = Math.ceil(durationSeconds * 180);
+  const estimatedInputTokens = countTextTokens(text);
+
   return trackAIUsage({
     patientId,
     usageType: 'tts',
     model,
-    outputText: text,
-    metadata: { textLength: text.length },
+    inputTokens: estimatedInputTokens,
+    outputTokens: estimatedOutputTokens,
+    metadata: { 
+      textLength: text.length,
+      durationSeconds
+    },
   });
 }
 
@@ -376,12 +392,6 @@ export async function trackConsultationFlow(
     metadata: { includesTTS },
   });
   ids.push(llmId);
-
-  // Track TTS if included
-  if (includesTTS && outputText) {
-    const ttsId = await trackTTS(patientId, outputText);
-    ids.push(ttsId);
-  }
 
   return ids;
 }

@@ -9,6 +9,9 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { generatePreliminaryDiagnosis } from './generate-preliminary-diagnosis';
 import type { SingleDocumentOutput } from './analyze-single-exam';
+import { generateWithFallback } from '@/lib/ai-resilience';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 export type IndividualExamResult = {
   fileName: string;
@@ -79,7 +82,8 @@ export type ConsolidatedAnalysisOutput = {
 };
 
 export async function consolidateExamsAnalysis(
-  examResults: IndividualExamResult[]
+  examResults: IndividualExamResult[],
+  patientId: string
 ): Promise<ConsolidatedAnalysisOutput> {
   console.log(`[🔗 Consolidation] Consolidating ${examResults.length} exam analyses...`);
   
@@ -96,9 +100,10 @@ export async function consolidateExamsAnalysis(
     const specialistAnalysis = await generatePreliminaryDiagnosis({
       examResults: singleResult.analysis.examResultsSummary,
       patientHistory: "Histórico não disponível nesta análise inicial.",
+      patientId,
     });
     
-    return {
+    const singleExamResult = {
       preliminaryDiagnosis: specialistAnalysis.synthesis,
       explanation: singleResult.analysis.patientExplanation,
       suggestions: specialistAnalysis.suggestions,
@@ -106,18 +111,42 @@ export async function consolidateExamsAnalysis(
       specialistFindings: specialistAnalysis.structuredFindings,
       examIds,
     };
+
+    // Track token usage for admin dashboard
+    const inputText = singleResult.analysis.examResultsSummary;
+    const outputText = singleExamResult.preliminaryDiagnosis + singleExamResult.explanation + singleExamResult.suggestions;
+    const inputTokens = countTextTokens(inputText);
+    const outputTokens = countTextTokens(outputText);
+
+    await trackAIUsage({
+      patientId,
+      usageType: 'diagnosis',
+      inputTokens,
+      outputTokens,
+      metadata: {
+        flowName: 'consolidateExamsAnalysis',
+        totalTokens: inputTokens + outputTokens,
+      },
+    });
+
+    console.log(`[📊 Token Accounting] Single exam - Input: ${inputTokens}, Output: ${outputTokens}, Total: ${inputTokens + outputTokens}`);
+
+    return singleExamResult;
   }
   
   console.log('[🔗 Consolidation] Multiple exams - combining analyses first...');
   
-  const { output: consolidatedSummary } = await combineAnalysesPrompt({
-    examResults: examResults.map(r => ({
-      fileName: r.fileName,
-      examId: r.examId,
-      examResultsSummary: r.analysis.examResultsSummary,
-      patientExplanation: r.analysis.patientExplanation,
-      documentType: r.analysis.documentType || 'Exame médico',
-    })),
+  const { output: consolidatedSummary } = await generateWithFallback({
+    prompt: combineAnalysesPrompt,
+    input: {
+      examResults: examResults.map(r => ({
+        fileName: r.fileName,
+        examId: r.examId,
+        examResultsSummary: r.analysis.examResultsSummary,
+        patientExplanation: r.analysis.patientExplanation,
+        documentType: r.analysis.documentType || 'Exame médico',
+      })),
+    },
   });
   
   if (!consolidatedSummary) {
@@ -130,6 +159,7 @@ export async function consolidateExamsAnalysis(
   const specialistAnalysis = await generatePreliminaryDiagnosis({
     examResults: consolidatedSummary.unifiedSummary,
     patientHistory: "Histórico não disponível nesta análise inicial.",
+    patientId,
   });
   
   console.log(`[🩺 Specialist Team] ✅ Consulted ${specialistAnalysis.structuredFindings.length} specialist(s)`);
@@ -137,7 +167,7 @@ export async function consolidateExamsAnalysis(
   const allStructuredResults = examResults
     .flatMap(r => r.analysis.structuredResults || []);
   
-  return {
+  const finalResult = {
     preliminaryDiagnosis: specialistAnalysis.synthesis,
     explanation: consolidatedSummary.unifiedPatientExplanation,
     suggestions: specialistAnalysis.suggestions,
@@ -145,4 +175,26 @@ export async function consolidateExamsAnalysis(
     specialistFindings: specialistAnalysis.structuredFindings,
     examIds,
   };
+
+  // Track token usage for admin dashboard
+  const inputText = examResults.map(r => r.analysis.examResultsSummary).join('\n');
+  const outputText = finalResult.preliminaryDiagnosis + finalResult.explanation + finalResult.suggestions;
+  const inputTokens = countTextTokens(inputText);
+  const outputTokens = countTextTokens(outputText);
+
+  await trackAIUsage({
+    patientId,
+    usageType: 'diagnosis',
+    model: 'googleai/gemini-2.5-flash',
+    inputTokens,
+    outputTokens,
+    metadata: {
+      flowName: 'consolidateExamsAnalysis',
+      totalTokens: inputTokens + outputTokens,
+    },
+  });
+
+  console.log(`[📊 Token Accounting] Input: ${inputTokens}, Output: ${outputTokens}, Total: ${inputTokens + outputTokens}`);
+
+  return finalResult;
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { getPatientById, updatePatientWellnessPlan } from '@/lib/db-adapter';
+import { saveFileBuffer } from '@/lib/file-storage';
 
 type AudioSection = 'dietary' | 'exercise' | 'mental';
 
@@ -27,6 +28,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Paciente ou plano de bem-estar não encontrado' }, { status: 404 });
     }
 
+    // Converter e salvar áudio no Storage
+    // Evitar regex em string muito grande para evitar RangeError: Maximum call stack size exceeded
+    if (!audioDataUri.startsWith('data:')) {
+        return NextResponse.json({ error: 'Formato de áudio inválido' }, { status: 400 });
+    }
+
+    const commaIndex = audioDataUri.indexOf(',');
+    if (commaIndex === -1) {
+        return NextResponse.json({ error: 'Formato de áudio inválido' }, { status: 400 });
+    }
+
+    const meta = audioDataUri.substring(5, commaIndex);
+    const base64Data = audioDataUri.substring(commaIndex + 1);
+    const mimeType = meta.split(';')[0];
+
+    const buffer = Buffer.from(base64Data, 'base64');
+    let extension = 'wav';
+    if (mimeType.includes('mpeg')) extension = 'mp3';
+    else if (mimeType.includes('ogg')) extension = 'ogg';
+    
+    const storedUrl = await saveFileBuffer(buffer, `wellness-${section}.${extension}`, 'wellness-audio');
+
     const audioFieldMap: Record<AudioSection, keyof typeof patient.wellnessPlan> = {
       dietary: 'dietaryPlanAudioUri',
       exercise: 'exercisePlanAudioUri',
@@ -37,14 +60,14 @@ export async function POST(request: NextRequest) {
     
     const updatedPlan = {
       ...patient.wellnessPlan,
-      [audioField]: audioDataUri,
+      [audioField]: storedUrl,
     };
 
     await updatePatientWellnessPlan(session.userId, updatedPlan);
 
-    console.log(`[Wellness Audio] ✅ Audio saved for section "${section}" - patient ${session.userId}`);
+    console.log(`[Wellness Audio] ✅ Audio saved for section "${section}" - patient ${session.userId} at ${storedUrl}`);
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, url: storedUrl });
   } catch (error: any) {
     console.error('[Wellness Audio] Error saving audio:', error);
     return NextResponse.json(

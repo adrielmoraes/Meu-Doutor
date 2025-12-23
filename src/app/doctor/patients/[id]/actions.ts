@@ -7,6 +7,8 @@ import { generateHealthInsights } from '@/ai/flows/generate-health-insights';
 import { summarizePatientHistory } from '@/ai/flows/summarize-patient-history';
 import { explainDiagnosisToPatient } from '@/ai/flows/explain-diagnosis-flow';
 
+import { saveFileBuffer } from '@/lib/file-storage';
+
 export async function validateExamDiagnosisAction(patientId: string, examId: string, doctorNotes: string) {
   try {
     const patient = await getPatientById(patientId);
@@ -17,14 +19,29 @@ export async function validateExamDiagnosisAction(patientId: string, examId: str
     // Generate the patient-friendly explanation and audio narration
     const finalExplanation = await explainDiagnosisToPatient({
         diagnosisAndNotes: doctorNotes,
+        patientId,
     });
     
+    let audioUrl = "";
+    if (finalExplanation.audioDataUri) {
+        try {
+            // Convert Data URI to Buffer
+            const audioBuffer = Buffer.from(finalExplanation.audioDataUri.split(',')[1], 'base64');
+            // Upload to Vercel Blob
+            audioUrl = await saveFileBuffer(audioBuffer, `diagnosis-explanation-${examId}.mp3`, 'diagnosis-audio');
+        } catch (uploadError) {
+            console.error("Error uploading diagnosis audio:", uploadError);
+            // Fallback: keep empty or handle error. 
+            // If upload fails, we might still want to save the explanation text.
+        }
+    }
+
     // Update the specific exam with the validated status and doctor's notes
     await updateExam(patientId, examId, {
       status: 'Validado',
       doctorNotes: doctorNotes,
       finalExplanation: finalExplanation.explanation,
-      finalExplanationAudioUri: finalExplanation.audioDataUri || "", // Ensure it's a string
+      finalExplanationAudioUri: audioUrl, 
     });
 
     // After validating an exam, check if there are any other exams pending validation

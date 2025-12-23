@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       throw new Error('Nenhum áudio gerado pelo Gemini');
     }
 
-    trackTTS(session.userId, text, 'gemini-2.5-flash-preview-tts').catch((err) => {
+    trackTTS(session.userId, text, 0, 'gemini-2.5-flash-preview-tts').catch((err) => {
       console.error('[TTS Cost Tracking] Error:', err);
     });
 

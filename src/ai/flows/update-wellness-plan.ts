@@ -36,7 +36,9 @@ const GenerateWellnessPlanFromExamsOutputSchema = z.object({
   exercisePlan: z.string().describe("Safe exercise plan suitable for patient's condition"),
   mentalWellnessPlan: z.string().describe("Stress management and mental well-being recommendations"),
   dailyReminders: z.array(z.object({
-    icon: z.enum(['Droplet', 'Clock', 'Coffee', 'Bed', 'Dumbbell']),
+    icon: z.enum(['Droplet', 'Clock', 'Coffee', 'Bed', 'Dumbbell', 
+                  'Apple', 'Heart', 'Sun', 'Moon', 'Activity', 
+                  'Utensils', 'Brain', 'Smile', 'Wind', 'Leaf']),
     title: z.string(),
     description: z.string(),
   })).describe("3-4 actionable daily reminders"),
@@ -54,7 +56,7 @@ const GenerateWellnessPlanFromExamsOutputSchema = z.object({
 
 const wellnessPlanSynthesisPrompt = ai.definePrompt({
   name: 'wellnessPlanSynthesisPrompt',
-  model: 'googleai/gemini-2.5-flash-lite',
+  model: 'googleai/gemini-3-flash-preview',
   input: {
     schema: z.object({
       nutritionistReport: z.string(),
@@ -99,12 +101,21 @@ You received a detailed nutritionist's analysis of the patient's exam results.
 
 4. **Lembretes Diários (dailyReminders):**
    - 3-4 simple, actionable daily reminders
-   - **CRITICAL**: icon MUST be one of these exact values: 'Droplet', 'Clock', 'Coffee', 'Bed', 'Dumbbell'
+   - **CRITICAL**: icon MUST be one of these exact values: 
+     * 'Droplet', 'Clock', 'Coffee', 'Bed', 'Dumbbell'
+     * 'Apple', 'Heart', 'Sun', 'Moon', 'Activity'
+     * 'Utensils', 'Brain', 'Smile', 'Wind', 'Leaf'
      * Use 'Droplet' for hydration reminders
      * Use 'Clock' for timing/schedule reminders
-     * Use 'Coffee' for meal/nutrition reminders
+     * Use 'Coffee' or 'Utensils' for meal/nutrition reminders
      * Use 'Bed' for sleep/rest reminders
-     * Use 'Dumbbell' for exercise/movement reminders
+     * Use 'Dumbbell' or 'Activity' for exercise/movement reminders
+     * Use 'Apple' or 'Leaf' for healthy eating/nature
+     * Use 'Heart' for cardiac/health
+     * Use 'Sun'/'Moon' for day/night routines
+     * Use 'Brain' for mental/cognitive focus
+     * Use 'Smile' for mood/happiness
+     * Use 'Wind' for breathing/relaxation
    - Make them specific and encouraging
 
 5. **Plano Semanal de Refeições (weeklyMealPlan):**
@@ -289,7 +300,7 @@ ${nutritionistAnalysis.recommendations}
     const synthesisInputText = [nutritionistReport, patientHistory].filter(Boolean).join('\n\n');
     const synthesisInputTokens = countTextTokens(synthesisInputText);
     const synthesisOutputTokens = countTextTokens(JSON.stringify(output || {}));
-    trackWellnessPlan(patientId, synthesisInputTokens, synthesisOutputTokens, 'gemini-2.5-flash-lite')
+    trackWellnessPlan(patientId, synthesisInputTokens, synthesisOutputTokens, 'gemini-3-flash-preview')
       .catch(err => console.error('[Wellness Plan Update] Synthesis tracking error:', err));
 
     if (!output) {

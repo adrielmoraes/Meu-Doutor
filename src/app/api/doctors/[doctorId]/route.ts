@@ -3,10 +3,10 @@ import { getDoctorById } from '@/lib/db-adapter';
 
 export async function GET(
   request: NextRequest,
-  context: { params: { doctorId: string } }
+  context: { params: Promise<{ doctorId: string }> }
 ) {
   try {
-    const doctorId = context.params.doctorId;
+    const { doctorId } = await context.params;
 
     if (!doctorId) {
       return NextResponse.json({ error: 'doctorId é obrigatório' }, { status: 400 });

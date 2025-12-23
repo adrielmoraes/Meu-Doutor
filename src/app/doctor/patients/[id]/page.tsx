@@ -19,6 +19,7 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
   const historySummary = await summarizePatientHistory({
     conversationHistory: patientData.conversationHistory || "Nenhum histórico de conversa.",
     reportedSymptoms: patientData.reportedSymptoms || "Nenhum sintoma reportado.",
+    patientId: id,
   });
 
 

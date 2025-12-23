@@ -1,7 +1,7 @@
 
 'use server';
 
-import { addExamToPatient, updatePatient, addAppointment, deleteExam, trackUsage, updateExam } from "@/lib/db-adapter";
+import { addExamToPatient, updatePatient, addAppointment, deleteExam, trackUsage, updateExam, getExamsByPatientId } from "@/lib/db-adapter";
 import { revalidatePath } from "next/cache";
 import type { Appointment, Exam } from "@/types";
 import { regeneratePatientWellnessPlan } from "@/ai/flows/update-wellness-plan";
@@ -184,11 +184,11 @@ export async function analyzeSingleExamAction(
     try {
         console.log(`[Analyze Single Exam] Starting analysis for: ${document.fileName}`);
 
-        const analysis = await analyzeSingleExam(document);
+        const analysis = await analyzeSingleExam(document, patientId);
 
         const examId = await addExamToPatient(patientId, {
             type: document.fileName,
-            result: analysis.examResultsSummary.substring(0, 200) + '...',
+            result: analysis.examResultsSummary,
             icon: 'FileText',
             preliminaryDiagnosis: 'Aguardando consolidação...',
             explanation: analysis.patientExplanation,
@@ -260,7 +260,7 @@ export async function consolidateExamsAction(
     try {
         console.log(`[Consolidate Exams] Consolidating ${examResults.length} exam(s)...`);
 
-        const consolidatedAnalysis = await consolidateExamsAnalysis(examResults);
+        const consolidatedAnalysis = await consolidateExamsWithRetry(patientId, examResults);
 
         const primaryExamId = consolidatedAnalysis.examIds[0];
 
@@ -326,6 +326,160 @@ export async function consolidateExamsAction(
         };
     } catch (error: any) {
         console.error('[Consolidate Exams] ❌ Failed:', error);
+        return { success: false, message: error.message };
+    }
+}
+
+export async function consolidateSavedExamsAction(
+    patientId: string,
+    examIds?: string[]
+): Promise<ConsolidationResult> {
+    try {
+        const exams = await getExamsByPatientId(patientId);
+        const targetExams = exams.filter(exam => {
+            if (examIds && examIds.length > 0) return examIds.includes(exam.id);
+            return (
+                exam.preliminaryDiagnosis === 'Aguardando consolidação...' ||
+                exam.suggestions === 'A ser gerado após análise completa.'
+            );
+        });
+
+        if (targetExams.length === 0) {
+            return { success: false, message: 'Nenhum exame pendente de consolidação encontrado.' };
+        }
+
+        const examResults: IndividualExamResult[] = targetExams.map(exam => ({
+            fileName: exam.type,
+            examId: exam.id,
+            analysis: {
+                examResultsSummary: exam.result,
+                patientExplanation: exam.explanation,
+                structuredResults: exam.results || undefined,
+                examDate: exam.date,
+            },
+        }));
+
+        const consolidatedAnalysis = await consolidateExamsWithRetry(patientId, examResults);
+
+        const primaryExamId = consolidatedAnalysis.examIds[0];
+
+        for (const examId of consolidatedAnalysis.examIds) {
+            await updateExam(patientId, examId, {
+                preliminaryDiagnosis: consolidatedAnalysis.preliminaryDiagnosis,
+                explanation: consolidatedAnalysis.explanation,
+                suggestions: consolidatedAnalysis.suggestions,
+                specialistFindings: consolidatedAnalysis.specialistFindings || [],
+            });
+        }
+
+        regeneratePatientWellnessPlan(patientId).catch(error => {
+            console.error('[consolidateSavedExamsAction] Failed to update wellness plan:', error);
+        });
+
+        revalidatePath('/patient/history');
+        revalidatePath('/patient/wellness');
+
+        return {
+            success: true,
+            message: 'Análise consolidada com sucesso!',
+            primaryExamId
+        };
+    } catch (error: any) {
+        console.error('[consolidateSavedExamsAction] ❌ Failed:', error);
+        return { success: false, message: error.message };
+    }
+}
+
+async function consolidateExamsWithRetry(
+    patientId: string,
+    examResults: IndividualExamResult[],
+    options?: { maxAttempts?: number }
+) {
+    const maxAttempts = options?.maxAttempts ?? 3;
+    let lastError: any;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            if (attempt > 1) {
+                console.log(`[Consolidate Exams] Retry attempt ${attempt}/${maxAttempts}...`);
+            }
+            return await consolidateExamsAnalysis(examResults, patientId);
+        } catch (error: any) {
+            lastError = error;
+            console.error(`[Consolidate Exams] Attempt ${attempt} failed:`, error?.message || error);
+            if (attempt < maxAttempts) {
+                const delayMs = 1000 * Math.pow(2, attempt - 1);
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+            }
+        }
+    }
+
+    throw lastError;
+}
+
+export async function generatePodcastAction(patientId: string): Promise<{ success: boolean; audioUrl?: string; message?: string }> {
+    try {
+        const { generateHealthPodcast } = await import('@/ai/flows/generate-health-podcast');
+        const result = await generateHealthPodcast({ patientId });
+        return { success: true, audioUrl: result.audioUrl };
+    } catch (error: any) {
+        console.error('Failed to generate podcast:', error);
+        return { success: false, message: error.message };
+    }
+}
+
+export async function getPodcastAction(patientId: string): Promise<{
+    success: boolean;
+    audioUrl?: string;
+    generatedAt?: string;
+    hasNewExams?: boolean;
+    message?: string
+}> {
+    try {
+        const { db } = await import('../../../server/storage');
+        const { healthPodcasts, exams } = await import('../../../shared/schema');
+        const { eq, desc } = await import('drizzle-orm');
+
+        // Get latest podcast
+        const podcasts = await db
+            .select()
+            .from(healthPodcasts)
+            .where(eq(healthPodcasts.patientId, patientId))
+            .orderBy(desc(healthPodcasts.generatedAt))
+            .limit(1);
+
+        const existingPodcast = podcasts[0];
+
+        // Get latest exam
+        const latestExams = await db
+            .select()
+            .from(exams)
+            .where(eq(exams.patientId, patientId))
+            .orderBy(desc(exams.createdAt))
+            .limit(1);
+
+        const latestExam = latestExams[0];
+
+        if (!existingPodcast) {
+            // No podcast exists, allow generation if there are exams
+            return {
+                success: true,
+                hasNewExams: !!latestExam
+            };
+        }
+
+        // Check if there are new exams since last podcast
+        const hasNewExams = latestExam &&
+            new Date(latestExam.createdAt) > new Date(existingPodcast.generatedAt);
+
+        return {
+            success: true,
+            audioUrl: existingPodcast.audioUrl,
+            generatedAt: existingPodcast.generatedAt.toISOString(),
+            hasNewExams: hasNewExams || false,
+        };
+    } catch (error: any) {
+        console.error('Failed to get podcast:', error);
         return { success: false, message: error.message };
     }
 }

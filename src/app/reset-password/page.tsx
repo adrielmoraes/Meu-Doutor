@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import MediAILogo from '@/components/layout/mediai-logo';
 
 function ResetPasswordContent() {
   const searchParams = useSearchParams();
@@ -97,7 +98,7 @@ function ResetPasswordContent() {
 
   if (isValidToken === false) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900">
         <Card className="max-w-md w-full bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-red-500/20">
           <CardHeader className="text-center">
             <XCircle className="h-14 w-14 text-red-400 mx-auto mb-4" />
@@ -110,9 +111,13 @@ function ResetPasswordContent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
       
+      <div className="mb-8 relative z-10 flex justify-center">
+        <MediAILogo size="lg" />
+      </div>
+
       <Card className="mx-auto max-w-md w-full shadow-2xl bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-cyan-500/20 relative z-10">
         <CardHeader className="space-y-4">
           <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center">

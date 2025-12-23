@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Stethoscope, User, Sparkles } from "lucide-react";
 import Link from "next/link";
+import MediAILogo from "@/components/layout/mediai-logo";
 
 export default function RegisterPage() {
   return (
@@ -14,6 +15,10 @@ export default function RegisterPage() {
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
       
       <div className="w-full max-w-5xl px-4 py-8 relative z-10">
+        <div className="flex justify-center mb-8">
+          <MediAILogo size="lg" />
+        </div>
+
         <div className="text-center mb-12 space-y-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-sm">
             <Sparkles className="h-4 w-4 text-cyan-400" />

@@ -58,7 +58,7 @@ export default async function AdminExamsPage() {
       <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-green-500/20">
         <CardHeader>
           <CardTitle className="text-white">Lista de Exames</CardTitle>
-          <CardDescription>Visualize todos os exames e resultados de IA</CardDescription>
+          <CardDescription className="text-white">Visualize todos os exames e resultados de IA</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">

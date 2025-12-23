@@ -3,9 +3,9 @@ import { getSignalsForRoom } from '@/lib/db-adapter';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { roomId: string; userId: string } }
+  context: { params: Promise<{ roomId: string; userId: string }> }
 ) {
-  const { roomId, userId } = params;
+  const { roomId, userId } = await context.params;
 
   const stream = new ReadableStream({
     async start(controller) {

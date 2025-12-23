@@ -1,4 +1,5 @@
 import { db, collection, doc, getDocs, getDoc, updateDoc, addDoc, query, where, onSnapshot } from './firebase-client';
+import type { DocumentData, QuerySnapshot } from 'firebase/firestore';
 import type { CallRoom, CallSignal } from './webrtc-server-service';
 
 export class WebRTCClientService {
@@ -51,7 +52,7 @@ export class WebRTCClientService {
       where('to', '==', userId)
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribe = onSnapshot(q, (snapshot: QuerySnapshot<DocumentData>) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === 'added') {
           callback(change.doc.data() as CallSignal);

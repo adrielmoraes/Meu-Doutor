@@ -63,6 +63,11 @@
     --sidebar-accent-foreground: 0 0% 0%; /* Texto preto */
     --sidebar-border: 325 40% 88%;
     --sidebar-ring: 325 89% 71%;
+
+    /* Logo Gradient Colors - Light (Pink) */
+    --logo-gradient-start: #f774c0;
+    --logo-gradient-middle: #e85fb8;
+    --logo-gradient-end: #d94aaf;
   }
 
   .dark { /* Enhanced dark theme with better colors and contrast */
@@ -100,13 +105,18 @@
     --sidebar-accent: 217 33% 17%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217 33% 24%;
-    --sidebar-ring: 190 95% 55%;
+    --sidebar-ring: 217 91% 60%;
+
+    /* Logo Gradient Colors - Enforce Pink for Dark Mode too as requested */
+    --logo-gradient-start: #f774c0;
+    --logo-gradient-middle: #e85fb8;
+    --logo-gradient-end: #d94aaf;
   }
+}
 
 /* Tavus CVI - Mirror effect for local video */
 .mirror {
   transform: scaleX(-1);
-}
 }
 
 @layer base {

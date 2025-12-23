@@ -30,7 +30,6 @@ import {
   Pill,
   Microscope,
   Scan,
-  Waves,
 } from "lucide-react";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -232,16 +231,6 @@ export default function LandingPage() {
                 <Button
                   asChild
                   size="lg"
-                  className="h-14 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-lg px-8 rounded-2xl shadow-2xl shadow-cyan-500/30 transition-all duration-300 transform hover:scale-105 hover:shadow-cyan-500/50 group"
-                >
-                  <Link href="/register" className="flex items-center gap-3">
-                    Começar Gratuitamente
-                    <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  size="lg"
                   className="h-14 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-lg px-8 rounded-2xl shadow-2xl shadow-purple-500/30 transition-all duration-300 transform hover:scale-105 hover:shadow-purple-500/50 group"
                 >
                   <Link href="/register" className="flex items-center gap-3">
@@ -266,14 +255,164 @@ export default function LandingPage() {
                   <div className="text-sm text-blue-200/70">Precisão</div>
                 </div>
               </div>
+
+              {/* Scroll Indicator - Moved to flow to avoid overlapping */}
+              <div className="flex flex-col items-center gap-2 text-cyan-400/50 pt-12 hidden xl:flex">
+                <span className="text-xs uppercase tracking-wider">Role para explorar</span>
+                <div className="w-6 h-10 rounded-full border-2 border-cyan-400/30 flex items-start justify-center p-1">
+                  <div className="w-1.5 h-3 bg-cyan-400/50 rounded-full animate-bounce"></div>
+                </div>
+              </div>
             </div>
           </div>
+        </section>
 
-          {/* Scroll Indicator - hidden on smaller screens to avoid overlapping stats */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 text-cyan-400/50 z-0 hidden xl:flex">
-            <span className="text-xs uppercase tracking-wider">Role para explorar</span>
-            <div className="w-6 h-10 rounded-full border-2 border-cyan-400/30 flex items-start justify-center p-1">
-              <div className="w-1.5 h-3 bg-cyan-400/50 rounded-full animate-bounce"></div>
+        {/* Human Validation Section */}
+        <section className="relative w-full py-24 md:py-32 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/50 via-slate-950 to-blue-950/50"></div>
+          <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:60px_60px]"></div>
+
+          <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] animate-pulse"></div>
+          <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[150px] animate-pulse delay-1000"></div>
+
+          <div className="container px-4 md:px-6 relative z-10">
+            <div className="text-center mb-16 space-y-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 backdrop-blur-sm">
+                <Users className="h-4 w-4 text-emerald-400" />
+                <span className="text-sm font-medium text-emerald-300">Validação Médica Profissional</span>
+              </div>
+
+              <h2 className="text-4xl md:text-6xl font-bold">
+                <span className="bg-gradient-to-r from-emerald-300 via-teal-300 to-cyan-300 bg-clip-text text-transparent">
+                  IA + Médicos Reais
+                </span>
+                <br />
+                <span className="text-white">O Melhor dos Dois Mundos</span>
+              </h2>
+
+              <p className="text-xl text-blue-200/70 max-w-3xl mx-auto leading-relaxed">
+                Nossa IA oferece análises instantâneas, mas todos os exames são validados por médicos humanos certificados. Você também pode agendar consultas com médicos reais.
+              </p>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
+              <div className="group relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-3xl p-10 border border-emerald-500/30 hover:border-emerald-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-500/20 hover:-translate-y-2 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-colors"></div>
+
+                <div className="relative space-y-6">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500/30 to-teal-500/30 flex items-center justify-center transform group-hover:scale-110 transition-transform">
+                    <ShieldCheck className="h-10 w-10 text-emerald-400" />
+                  </div>
+
+                  <h3 className="text-3xl font-bold text-white">Validação por Médicos Humanos</h3>
+
+                  <p className="text-blue-200/80 text-lg leading-relaxed">
+                    Todos os exames analisados pela IA passam por revisão de médicos especialistas certificados. Você recebe a velocidade da tecnologia com a segurança da validação humana.
+                  </p>
+
+                  <div className="space-y-4 pt-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                        <Check className="h-4 w-4 text-emerald-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-emerald-300 mb-1">Análise Dupla</h4>
+                        <p className="text-blue-200/70 text-sm">IA analisa primeiro, médico valida depois</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                        <Check className="h-4 w-4 text-emerald-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-emerald-300 mb-1">Especialistas Certificados</h4>
+                        <p className="text-blue-200/70 text-sm">Médicos com CRM ativo e especialização</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                        <Check className="h-4 w-4 text-emerald-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-emerald-300 mb-1">Laudo Médico Oficial</h4>
+                        <p className="text-blue-200/70 text-sm">Documento assinado digitalmente pelo médico</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="group relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-3xl p-10 border border-cyan-500/30 hover:border-cyan-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-cyan-500/20 hover:-translate-y-2 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="absolute top-0 right-0 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-colors"></div>
+
+                <div className="relative space-y-6">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500/30 to-blue-500/30 flex items-center justify-center transform group-hover:scale-110 transition-transform">
+                    <Stethoscope className="h-10 w-10 text-cyan-400" />
+                  </div>
+
+                  <h3 className="text-3xl font-bold text-white">Consultas com Médicos Reais</h3>
+
+                  <p className="text-blue-200/80 text-lg leading-relaxed">
+                    Além da IA, você pode agendar consultas por vídeo com médicos humanos especializados. Tire dúvidas, discuta tratamentos e receba prescrições válidas.
+                  </p>
+
+                  <div className="space-y-4 pt-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                        <Check className="h-4 w-4 text-cyan-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-cyan-300 mb-1">Videochamada HD</h4>
+                        <p className="text-blue-200/70 text-sm">Consultas por vídeo em alta qualidade</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                        <Check className="h-4 w-4 text-cyan-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-cyan-300 mb-1">Prescrição Digital</h4>
+                        <p className="text-blue-200/70 text-sm">Receitas médicas válidas em todo Brasil</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                        <Check className="h-4 w-4 text-cyan-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-cyan-300 mb-1">Agendamento Flexível</h4>
+                        <p className="text-blue-200/70 text-sm">Escolha horário e especialidade</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-16 max-w-4xl mx-auto">
+              <div className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl rounded-3xl p-8 border border-emerald-500/20">
+                <div className="flex flex-col md:flex-row items-center gap-6">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/30 to-cyan-500/30 flex items-center justify-center flex-shrink-0">
+                    <Lock className="h-8 w-8 text-emerald-400" />
+                  </div>
+                  <div className="flex-1 text-center md:text-left">
+                    <h4 className="text-xl font-bold text-white mb-2">Segurança e Conformidade Total</h4>
+                    <p className="text-blue-200/70">
+                      Todos os médicos possuem CRM ativo. Plataforma em conformidade com LGPD, CFM e ANS. Seus dados médicos são criptografados e protegidos.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex-shrink-0">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                    <span className="text-sm font-semibold text-emerald-300">Certificado</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -468,16 +607,16 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="group relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-3xl p-8 border border-orange-500/20 hover:border-orange-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-orange-500/20 hover:-translate-y-2 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl group-hover:bg-orange-500/20 transition-colors"></div>
+              <div className="group relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-3xl p-8 border border-emerald-500/20 hover:border-emerald-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-500/20 hover:-translate-y-2 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-colors"></div>
                 <div className="relative space-y-4">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500/30 to-red-500/30 flex items-center justify-center transform group-hover:scale-110 transition-transform">
-                    <Pill className="h-8 w-8 text-orange-400" />
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500/30 to-teal-500/30 flex items-center justify-center transform group-hover:scale-110 transition-transform">
+                    <Video className="h-8 w-8 text-emerald-400" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white">Medicamentos</h3>
+                  <h3 className="text-2xl font-bold text-white">Chamadas com Médicos</h3>
                   <p className="text-blue-200/70 leading-relaxed">
-                    Recomendações de tratamento com dosagens e interações.
+                    Consultas por videochamada em tempo real com médicos especialistas certificados.
                   </p>
                 </div>
               </div>
@@ -492,6 +631,23 @@ export default function LandingPage() {
                   <h3 className="text-2xl font-bold text-white">Bem-Estar Total</h3>
                   <p className="text-blue-200/70 leading-relaxed">
                     Alta performance esportiva, recuperação muscular e longevidade.
+                  </p>
+                </div>
+              </div>
+
+              <div className="group relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-3xl p-8 border border-amber-500/20 hover:border-amber-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-amber-500/20 hover:-translate-y-2 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl group-hover:bg-amber-500/20 transition-colors"></div>
+                <div className="relative space-y-4">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/30 to-orange-500/30 flex items-center justify-center transform group-hover:scale-110 transition-transform">
+                    <div className="relative w-9 h-9">
+                      <Mic className="absolute left-0 top-1 h-7 w-7 text-amber-400" />
+                      <Mic className="absolute right-0 bottom-0 h-7 w-7 text-amber-300" />
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white">Podcast Exclusivo</h3>
+                  <p className="text-blue-200/70 leading-relaxed">
+                    Um podcast personalizado com insights sobre a sua saúde e próximos passos.
                   </p>
                 </div>
               </div>
@@ -585,7 +741,7 @@ export default function LandingPage() {
                       </div>
                       <div className="flex-1 bg-cyan-500/10 rounded-2xl rounded-tl-none p-4 border border-cyan-500/20">
                         <p className="text-blue-100">
-                          "Olá! Sou a Dra. Sofia, sua assistente médica IA. Analisei seus exames e identifiquei alguns pontos importantes para discutirmos..."
+                          &quot;Olá! Sou a Dra. Sofia, sua assistente médica IA. Analisei seus exames e identifiquei alguns pontos importantes para discutirmos...&quot;
                         </p>
                       </div>
                     </div>
@@ -629,7 +785,7 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <p className="text-blue-100 mb-6 leading-relaxed text-lg">
-                  "Incrível! Recebi meu diagnóstico preliminar em minutos. A análise foi tão detalhada que meu médico ficou impressionado."
+                  &quot;Incrível! Recebi meu diagnóstico preliminar em minutos. A análise foi tão detalhada que meu médico ficou impressionado.&quot;
                 </p>
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-xl font-bold shadow-lg shadow-cyan-500/30">
@@ -649,7 +805,7 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <p className="text-blue-100 mb-6 leading-relaxed text-lg">
-                  "A consulta por vídeo com a IA é surpreendentemente natural. Tirei todas minhas dúvidas e recebi um plano personalizado."
+                  &quot;A consulta por vídeo com a IA é surpreendentemente natural. Tirei todas minhas dúvidas e recebi um plano personalizado.&quot;
                 </p>
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-xl font-bold shadow-lg shadow-purple-500/30">
@@ -669,7 +825,7 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <p className="text-blue-100 mb-6 leading-relaxed text-lg">
-                  "Como médica, fiquei impressionada com a profundidade da análise. Ferramenta poderosa para triagem."
+                  &quot;Como médica, fiquei impressionada com a profundidade da análise. Ferramenta poderosa para triagem.&quot;
                 </p>
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-xl font-bold shadow-lg shadow-emerald-500/30">
@@ -763,9 +919,8 @@ export default function LandingPage() {
                 </Button>
                 <Button
                   asChild
-                  variant="outline"
                   size="lg"
-                  className="h-16 border-2 border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/10 hover:border-cyan-400 font-semibold text-xl px-12 rounded-2xl backdrop-blur-sm"
+                  className="h-16 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xl px-12 rounded-2xl shadow-2xl shadow-purple-500/30 transition-all duration-300 transform hover:scale-105 hover:shadow-purple-500/50"
                 >
                   <Link href="/pricing">Ver Planos e Preços</Link>
                 </Button>

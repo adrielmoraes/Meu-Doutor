@@ -22,7 +22,7 @@ export function DatabaseSettings({ stats }: DatabaseSettingsProps) {
           <Database className="h-5 w-5 text-purple-400" />
           Banco de Dados
         </CardTitle>
-        <CardDescription>Estatísticas e informações do banco de dados</CardDescription>
+        <CardDescription className="text-white">Estatísticas e informações do banco de dados</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Database Info */}

@@ -11,8 +11,11 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 const SummarizePatientHistoryInputSchema = z.object({
+  patientId: z.string().optional().describe("Optional patient ID for usage tracking."),
   conversationHistory: z
     .string()
     .describe("The patient's conversation history with the AI assistant."),
@@ -143,7 +146,27 @@ const summarizePatientHistoryFlow = ai.defineFlow(
     outputSchema: SummarizePatientHistoryOutputSchema,
   },
   async input => {
+    const inputText = input.conversationHistory + input.reportedSymptoms;
+    const inputTokens = countTextTokens(inputText);
+    const promptTokens = countTextTokens(`You are Dr. Sofia Mendes, MD - an AI Clinical Documentation Specialist`);
+
     const {output} = await prompt(input);
+
+    const outputTokens = countTextTokens(output?.summary || '');
+
+    if (input.patientId) {
+      await trackAIUsage({
+        patientId: input.patientId,
+        usageType: 'consultation_flow',
+        inputTokens: inputTokens + promptTokens,
+        outputTokens,
+        metadata: {
+          flowName: 'summarizePatientHistory',
+          totalTokens: inputTokens + promptTokens + outputTokens,
+        },
+      });
+    }
+
     return output!;
   }
 );

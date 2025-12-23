@@ -26,10 +26,12 @@ export default async function UsagePage() {
   // Calcular totais gerais
   const totals = usageStats.reduce((acc, stat) => ({
     tokens: acc.tokens + stat.totalTokens,
+    inputTokens: acc.inputTokens + stat.totalInputTokens,
+    outputTokens: acc.outputTokens + stat.totalOutputTokens,
     callDuration: acc.callDuration + stat.totalCallDuration,
     cost: acc.cost + stat.totalCost,
     exams: acc.exams + stat.examAnalysisCount,
-  }), { tokens: 0, callDuration: 0, cost: 0, exams: 0 });
+  }), { tokens: 0, inputTokens: 0, outputTokens: 0, callDuration: 0, cost: 0, exams: 0 });
 
   return (
     <div className="p-8 space-y-8">
@@ -52,7 +54,7 @@ export default async function UsagePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{totals.tokens.toLocaleString()}</div>
-            <p className="text-xs text-gray-500 mt-1">Tokens de IA usados</p>
+            <p className="text-xs text-gray-500 mt-1">Entrada: {totals.inputTokens.toLocaleString()} • Saída: {totals.outputTokens.toLocaleString()}</p>
           </CardContent>
         </Card>
 
@@ -114,6 +116,9 @@ export default async function UsagePage() {
                     <div>
                       <h3 className="font-semibold text-white">{stat.patientName}</h3>
                       <p className="text-sm text-gray-400">{stat.patientEmail}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Entrada: {stat.totalInputTokens.toLocaleString()} • Saída: {stat.totalOutputTokens.toLocaleString()}
+                      </p>
                     </div>
                     <Badge variant="outline" className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20">
                       {stat.totalTokens.toLocaleString()} tokens
@@ -180,6 +185,13 @@ export default async function UsagePage() {
                           <span className="text-xs">LLM</span>
                         </div>
                         <p className="font-medium text-white">{stat.breakdown.llm.toLocaleString()} tokens</p>
+                      </div>
+                      <div className="p-2 rounded bg-slate-950/50">
+                        <div className="flex items-center gap-1 text-gray-400 mb-1">
+                          <Mic className="h-3 w-3" />
+                          <span className="text-xs">Podcast</span>
+                        </div>
+                        <p className="font-medium text-white">{stat.breakdown.podcastScript.toLocaleString()} tokens</p>
                       </div>
                       <div className="p-2 rounded bg-slate-950/50">
                         <div className="flex items-center gap-1 text-gray-400 mb-1">

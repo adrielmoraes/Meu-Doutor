@@ -97,7 +97,7 @@ export function NotificationSettings({ adminId }: NotificationSettingsProps) {
             <Bell className="h-5 w-5 text-green-400" />
             Notificações
           </CardTitle>
-          <CardDescription>Configure alertas e notificações do sistema</CardDescription>
+          <CardDescription className="text-white">Configure alertas e notificações do sistema</CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-green-400" />
@@ -113,7 +113,7 @@ export function NotificationSettings({ adminId }: NotificationSettingsProps) {
           <Bell className="h-5 w-5 text-green-400" />
           Notificações
         </CardTitle>
-        <CardDescription>Configure alertas e notificações do sistema</CardDescription>
+        <CardDescription className="text-white">Configure alertas e notificações do sistema</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Email Notifications */}

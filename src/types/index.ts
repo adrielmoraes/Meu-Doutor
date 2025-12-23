@@ -9,6 +9,8 @@ export type Patient = {
   emailVerified: boolean;
   verificationToken?: string | null;
   tokenExpiry?: Date | null;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiry?: Date | null;
   city: string;
   state: string;
   lastVisit: string;
@@ -70,6 +72,19 @@ export type Patient = {
       completed: boolean;
       completedAt?: string;
     }>;
+    coachComment?: string;
+    healthGoals?: Array<{
+      title: string;
+      description: string;
+      category: 'exercise' | 'nutrition' | 'mindfulness' | 'medical' | 'lifestyle';
+      progress: number;
+      targetDate: string;
+    }>;
+    preventiveAlerts?: Array<{
+      alert: string;
+      severity: 'high' | 'medium' | 'low';
+      category: 'cardiovascular' | 'metabolic' | 'respiratory' | 'general';
+    }>;
     lastUpdated: string;
   };
   customQuotas?: {
@@ -77,8 +92,11 @@ export type Patient = {
     aiConsultationMinutes?: number;
     doctorConsultationMinutes?: number;
     therapistChat?: number;
+    therapistChatDays?: number;
+    podcastMinutes?: number;
     trialDurationDays?: number;
   };
+  createdAt?: Date;
 };
 
 // Type for authentication that includes the hashed password
@@ -98,6 +116,10 @@ export type Doctor = {
   emailVerified: boolean;
   verificationToken?: string | null;
   tokenExpiry?: Date | null;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiry?: Date | null;
+  isApproved: boolean;
+  verificationDocument?: string | null;
   level: number;
   xp: number;
   xpToNextLevel: number;
@@ -217,7 +239,7 @@ export type AuditLog = {
 export type UsageTracking = {
     id: string;
     patientId: string;
-    usageType: 'exam_analysis' | 'stt' | 'llm' | 'tts' | 'ai_call' | 'doctor_call' | 'chat' | 'diagnosis' | 'wellness_plan' | 'consultation_flow' | 'live_consultation' | 'vision';
+    usageType: 'exam_analysis' | 'stt' | 'llm' | 'tts' | 'ai_call' | 'doctor_call' | 'chat' | 'diagnosis' | 'wellness_plan' | 'consultation_flow' | 'live_consultation' | 'vision' | 'podcast_script';
     resourceName?: string | null;
     tokensUsed: number;
     durationSeconds: number;
@@ -239,6 +261,8 @@ export type PatientUsageStats = {
     patientName: string;
     patientEmail: string;
     totalTokens: number;
+    totalInputTokens: number;
+    totalOutputTokens: number;
     totalCallDuration: number; // em segundos
     totalCost: number; // em centavos
     examAnalysisCount: number;
@@ -249,6 +273,7 @@ export type PatientUsageStats = {
         stt: number; // tokens
         llm: number; // tokens
         tts: number; // tokens
+        podcastScript: number; // tokens
         aiCall: number; // segundos
         doctorCall: number; // segundos
         chat: number; // tokens

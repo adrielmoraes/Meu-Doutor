@@ -133,7 +133,7 @@ export function Conversation({ conversationUrl, onLeave }: ConversationProps) {
                 hasJoinedRef.current = false;
             }
         };
-    }, [daily, conversationUrl]);
+    }, [daily, conversationUrl, onLeave]);
 
     const toggleMic = useCallback(() => {
         if (!daily) return;

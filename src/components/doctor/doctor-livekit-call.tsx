@@ -575,11 +575,7 @@ export default function DoctorLiveKitCall({
   const [error, setError] = useState<string>('');
   const router = useRouter();
 
-  useEffect(() => {
-    fetchToken();
-  }, []);
-
-  const fetchToken = async () => {
+  const fetchToken = useCallback(async () => {
     try {
       const response = await fetch('/api/livekit/token', {
         method: 'POST',
@@ -607,7 +603,11 @@ export default function DoctorLiveKitCall({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [doctorName, roomName]);
+
+  useEffect(() => {
+    fetchToken();
+  }, [fetchToken]);
 
   const endCall = () => {
     router.push('/doctor/schedule');
