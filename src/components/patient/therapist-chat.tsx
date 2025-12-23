@@ -267,8 +267,21 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
         throw new Error(data.error || 'Erro ao processar mensagem de voz');
       }
 
-      // Use the new human-like simulation
-      await simulateTypingAndSend(data.response, data.audioDataUri);
+      // Se for resposta de áudio (input foi áudio), não mostrar texto simulado, apenas tocar o áudio e mostrar o player
+      if (data.audioDataUri) {
+         const assistantMessage: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: 'Mensagem de voz', // Placeholder content
+          isAudio: true,
+          audioDataUri: data.audioDataUri,
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
+        // Fallback para comportamento antigo se não vier áudio (não deve acontecer com a mudança na API)
+        await simulateTypingAndSend(data.response, data.audioDataUri);
+      }
 
     } catch (error: any) {
       console.error('Erro ao processar mensagem de voz:', error);

@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
         });
         
         return NextResponse.json({
-          response: chatResponse.response,
+          response: chatResponse.response, // Still return text for logging/debugging but client will ignore for display
           audioDataUri: audioResponse.audioDataUri,
         });
       }
