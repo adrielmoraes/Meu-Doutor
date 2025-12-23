@@ -430,8 +430,16 @@ export async function generatePodcastAction(patientId: string): Promise<{ succes
 
 export async function getPodcastAction(patientId: string): Promise<{
     success: boolean;
-    audioUrl?: string;
-    generatedAt?: string;
+    latestPodcast?: {
+        id: string;
+        audioUrl: string;
+        generatedAt: string;
+    };
+    history?: Array<{
+        id: string;
+        audioUrl: string;
+        generatedAt: string;
+    }>;
     hasNewExams?: boolean;
     message?: string
 }> {
@@ -440,15 +448,15 @@ export async function getPodcastAction(patientId: string): Promise<{
         const { healthPodcasts, exams } = await import('../../../shared/schema');
         const { eq, desc } = await import('drizzle-orm');
 
-        // Get latest podcast
+        // Get podcasts ordered by date desc
         const podcasts = await db
             .select()
             .from(healthPodcasts)
             .where(eq(healthPodcasts.patientId, patientId))
-            .orderBy(desc(healthPodcasts.generatedAt))
-            .limit(1);
+            .orderBy(desc(healthPodcasts.generatedAt));
 
-        const existingPodcast = podcasts[0];
+        const latestPodcastRecord = podcasts[0];
+        const history = podcasts; // Include all podcasts in history, including the latest one
 
         // Get latest exam
         const latestExams = await db
@@ -460,22 +468,31 @@ export async function getPodcastAction(patientId: string): Promise<{
 
         const latestExam = latestExams[0];
 
-        if (!existingPodcast) {
+        if (!latestPodcastRecord) {
             // No podcast exists, allow generation if there are exams
             return {
                 success: true,
-                hasNewExams: !!latestExam
+                hasNewExams: !!latestExam,
+                history: []
             };
         }
 
         // Check if there are new exams since last podcast
         const hasNewExams = latestExam &&
-            new Date(latestExam.createdAt) > new Date(existingPodcast.generatedAt);
+            new Date(latestExam.createdAt) > new Date(latestPodcastRecord.generatedAt);
 
         return {
             success: true,
-            audioUrl: existingPodcast.audioUrl,
-            generatedAt: existingPodcast.generatedAt.toISOString(),
+            latestPodcast: {
+                id: latestPodcastRecord.id,
+                audioUrl: latestPodcastRecord.audioUrl,
+                generatedAt: latestPodcastRecord.generatedAt.toISOString()
+            },
+            history: history.map(p => ({
+                id: p.id,
+                audioUrl: p.audioUrl,
+                generatedAt: p.generatedAt.toISOString()
+            })),
             hasNewExams: hasNewExams || false,
         };
     } catch (error: any) {

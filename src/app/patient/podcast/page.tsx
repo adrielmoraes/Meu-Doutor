@@ -17,6 +17,7 @@ export default function HealthPodcastPage() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [hasNewExams, setHasNewExams] = useState(false);
     const [podcastDate, setPodcastDate] = useState<string | null>(null);
+    const [podcastHistory, setPodcastHistory] = useState<Array<{ id: string; audioUrl: string; generatedAt: string }>>([]);
     const [loadingHintIndex, setLoadingHintIndex] = useState(0);
     const LOADING_HINTS = [
         "Preparando roteiro personalizado...",
@@ -29,39 +30,43 @@ export default function HealthPodcastPage() {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const { toast } = useToast();
 
-    // Carregar podcast existente
-    useEffect(() => {
-        const loadExistingPodcast = async () => {
-            try {
-                // Obter sessão atual
-                const session = await getSessionOnClient();
+    // Função para carregar podcasts
+    const loadPodcasts = async () => {
+        try {
+            // Obter sessão atual
+            const session = await getSessionOnClient();
 
-                if (!session?.userId) {
-                    setIsLoadingExisting(false);
-                    return;
-                }
-
-                // Buscar podcast salvo
-                const result = await getPodcastAction(session.userId);
-
-                if (result.success && result.audioUrl) {
-                    setAudioUrl(result.audioUrl);
-                    setPodcastDate(result.generatedAt || null);
-                    // Lógica para verificar se há novos exames desde o último podcast
-                    // Se o backend retorna essa flag:
-                    setHasNewExams(!!result.hasNewExams);
-                } else {
-                    // Sem podcast, habilitar geração
-                    setHasNewExams(true);
-                }
-            } catch (error) {
-                console.error('Failed to load existing podcast:', error);
-            } finally {
+            if (!session?.userId) {
                 setIsLoadingExisting(false);
+                return;
             }
-        };
 
-        loadExistingPodcast();
+            // Buscar podcast salvo
+            const result = await getPodcastAction(session.userId);
+
+            if (result.success && result.latestPodcast) {
+                setAudioUrl(result.latestPodcast.audioUrl);
+                setPodcastDate(result.latestPodcast.generatedAt || null);
+                // Lógica para verificar se há novos exames desde o último podcast
+                // Se o backend retorna essa flag:
+                setHasNewExams(!!result.hasNewExams);
+                if (result.history) {
+                    setPodcastHistory(result.history);
+                }
+            } else {
+                // Sem podcast, habilitar geração
+                setHasNewExams(true);
+            }
+        } catch (error) {
+            console.error('Failed to load existing podcast:', error);
+        } finally {
+            setIsLoadingExisting(false);
+        }
+    };
+
+    // Carregar podcast existente ao montar
+    useEffect(() => {
+        loadPodcasts();
     }, []);
 
     // Gerar novo podcast
@@ -80,9 +85,9 @@ export default function HealthPodcastPage() {
             const result = await generatePodcastAction(userId);
 
             if (result.success && result.audioUrl) {
-                setAudioUrl(result.audioUrl);
-                setPodcastDate(new Date().toISOString());
-                setHasNewExams(false);
+                // Atualiza a lista completa de podcasts após gerar um novo
+                await loadPodcasts();
+                
                 setIsPlaying(false); // Reseta o player
 
                 toast({
@@ -129,6 +134,18 @@ export default function HealthPodcastPage() {
             audioRef.current.play().catch(e => console.error("Play error:", e));
         }
         setIsPlaying(!isPlaying);
+    };
+
+    const handlePlayHistory = (historyUrl: string, historyDate: string) => {
+        setAudioUrl(historyUrl);
+        setPodcastDate(historyDate);
+        setIsPlaying(true);
+        // Pequeno delay para garantir que o src mudou antes de dar play
+        setTimeout(() => {
+             if(audioRef.current) {
+                 audioRef.current.play().catch(console.error);
+             }
+        }, 100);
     };
 
     if (isLoadingExisting) {
@@ -326,6 +343,46 @@ export default function HealthPodcastPage() {
                             Este episódio é gerado com base no seu histórico recente e plano de bem-estar. Conteúdo educativo; não substitui avaliação médica presencial.
                         </AlertDescription>
                     </Alert>
+
+                    {/* Histórico de Episódios */}
+                    {podcastHistory.length > 0 && (
+                        <div className="space-y-4">
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <span className="p-1.5 rounded-lg bg-purple-100 text-purple-600 dark:bg-cyan-500/20 dark:text-cyan-300">
+                                    <Headphones className="h-5 w-5" />
+                                </span>
+                                Histórico de Episódios
+                            </h2>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                {podcastHistory.map((podcast) => (
+                                    <Card key={podcast.id} className="bg-white/60 hover:bg-white/80 border-purple-100 transition-all cursor-pointer group dark:bg-slate-900/40 dark:border-cyan-500/10 dark:hover:bg-slate-900/60">
+                                        <CardContent className="p-4 flex items-center justify-between gap-4">
+                                            <div className="space-y-1">
+                                                <p className="font-semibold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-cyan-400 transition-colors">
+                                                    MediAI Daily
+                                                </p>
+                                                <p className="text-sm text-slate-500 dark:text-blue-200/60">
+                                                    {new Date(podcast.generatedAt).toLocaleDateString('pt-BR', {
+                                                        day: 'numeric',
+                                                        month: 'long',
+                                                        year: 'numeric'
+                                                    })}
+                                                </p>
+                                            </div>
+                                            <Button
+                                                onClick={() => handlePlayHistory(podcast.audioUrl, podcast.generatedAt)}
+                                                variant="ghost"
+                                                size="icon"
+                                                className="rounded-full h-10 w-10 bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all dark:bg-cyan-500/10 dark:text-cyan-400 dark:group-hover:bg-cyan-500 dark:group-hover:text-white"
+                                            >
+                                                <Play className="h-5 w-5 fill-current" />
+                                            </Button>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </main>
 
