@@ -114,6 +114,7 @@ export default function PatientDetailView({
       if (!examToAnalyze) throw new Error("Exam not found");
 
       const result = await generatePreliminaryDiagnosis({
+        patientId: patient.id, // Adicionado patientId para corrigir o erro
         patientHistory: summary,
         examResults: examToAnalyze.preliminaryDiagnosis + "\n\n" + examToAnalyze.explanation
       });
