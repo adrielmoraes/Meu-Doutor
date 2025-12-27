@@ -578,8 +578,21 @@ export default function LiveKitConsultation({
       
       // Reset all timer state
       setRemainingSeconds(newRemainingSeconds);
-      setShowTimeWarning(alreadyExpired); // Show warning if already expired
-      setTimeExpired(alreadyExpired); // Mark expired immediately if 0
+      setShowTimeWarning(alreadyExpired && newRemainingSeconds === 0); // Only show warning if expired at 0
+      
+      // IMPORTANT: Only set timeExpired to true if remaining is EXACTLY 0 or negative
+      // AND we are not transitioning from expired to valid
+      if (alreadyExpired) {
+         setTimeExpired(true);
+      } else {
+         // If we have time now, ensure we clear the expired flag!
+         setTimeExpired(false);
+         // Also clear any pending disconnect timeout
+         if (disconnectTimeoutRef.current) {
+            clearTimeout(disconnectTimeoutRef.current);
+            disconnectTimeoutRef.current = null;
+         }
+      }
       
       logEvent('Time limit reset due to prop change', { 
         availableMinutes, 
@@ -587,7 +600,8 @@ export default function LiveKitConsultation({
         totalMinutes,
         newRemainingSeconds,
         isUnlimited: newRemainingSeconds === null,
-        alreadyExpired
+        alreadyExpired,
+        clearedExpired: !alreadyExpired
       });
     }
   }, [availableMinutes, usedMinutes, totalMinutes, logEvent]);
