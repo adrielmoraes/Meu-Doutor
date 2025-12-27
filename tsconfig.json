@@ -42,12 +42,11 @@
     "shared/**/*.ts",
     "shared/**/*.tsx",
     "src/**/*.ts",
-    "src/**/*.tsx",
-    ".next-dev/types/**/*.ts"
+    "src/**/*.tsx"
   ],
   "exclude": [
     "node_modules",
     ".next",
-    ".next-dev/types/validator.ts"
+    ".next-dev"
   ]
 }

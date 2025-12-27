@@ -66,17 +66,43 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = agentUsageSchema.parse(body);
 
-    // Validar que o paciente existe
-    const patient = await getPatientById(validatedData.patientId);
-    if (!patient) {
-      console.warn(`[Agent Usage] Paciente não encontrado: ${validatedData.patientId}`);
-      return NextResponse.json(
-        { success: false, error: 'Paciente não encontrado' },
-        { status: 404 }
-      );
+    const persistErrors: Array<{ usageType: string; message: string }> = [];
+
+    const safeTrackUsage = async (
+      usageType: string,
+      payload: Parameters<typeof trackUsage>[0]
+    ) => {
+      try {
+        await trackUsage(payload);
+        return true;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        persistErrors.push({ usageType, message });
+        console.error(`[Agent Usage] Falha ao salvar métrica (${usageType}):`, err);
+        return false;
+      }
+    };
+
+    let patientName: string | null = null;
+    try {
+      const patient = await getPatientById(validatedData.patientId);
+      if (!patient) {
+        console.warn(`[Agent Usage] Paciente não encontrado: ${validatedData.patientId}`);
+        return NextResponse.json(
+          { success: false, error: 'Paciente não encontrado' },
+          { status: 404 }
+        );
+      }
+      patientName = patient.name;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      persistErrors.push({ usageType: 'patient_lookup', message });
+      console.error('[Agent Usage] Falha ao validar paciente no banco:', err);
     }
 
-    console.log(`[Agent Usage] Recebendo métricas para paciente ${patient.name} (${validatedData.patientId})`);
+    console.log(
+      `[Agent Usage] Recebendo métricas para paciente ${patientName || 'desconhecido'} (${validatedData.patientId})`
+    );
     console.log(`[Agent Usage] Session: ${validatedData.sessionId}`);
     console.log(`[Agent Usage] Tokens - STT: ${validatedData.sttTokens}, LLM In: ${validatedData.llmInputTokens}, LLM Out: ${validatedData.llmOutputTokens}, TTS: ${validatedData.ttsTokens}, Vision: ${validatedData.visionTokens}`);
     console.log(`[Agent Usage] Tempo ativo: ${validatedData.activeSeconds}s, Custo: R$ ${(validatedData.costCents / 100).toFixed(2)}`);
@@ -123,7 +149,7 @@ export async function POST(request: NextRequest) {
     
     // Salvar métricas STT (durationSeconds=0 to avoid double counting)
     if (validatedData.sttTokens > 0) {
-      await trackUsage({
+      await safeTrackUsage('stt', {
         patientId: validatedData.patientId,
         usageType: 'stt',
         resourceName: 'Gemini 2.5 Flash Native Audio (STT)',
@@ -142,7 +168,7 @@ export async function POST(request: NextRequest) {
     // Salvar métricas LLM (durationSeconds=0 to avoid double counting)
     const totalLlmTokens = validatedData.llmInputTokens + validatedData.llmOutputTokens;
     if (totalLlmTokens > 0) {
-      await trackUsage({
+      await safeTrackUsage('llm', {
         patientId: validatedData.patientId,
         usageType: 'llm',
         resourceName: 'Gemini 2.5 Flash',
@@ -162,7 +188,7 @@ export async function POST(request: NextRequest) {
 
     // Salvar métricas TTS (durationSeconds=0 to avoid double counting)
     if (validatedData.ttsTokens > 0) {
-      await trackUsage({
+      await safeTrackUsage('tts', {
         patientId: validatedData.patientId,
         usageType: 'tts',
         resourceName: 'Gemini 2.5 Flash Native Audio (TTS)',
@@ -180,7 +206,7 @@ export async function POST(request: NextRequest) {
 
     // Salvar métricas de Visão (durationSeconds=0 to avoid double counting)
     if (totalVisionTokens > 0 || validatedData.visionTokens > 0) {
-      await trackUsage({
+      await safeTrackUsage('vision', {
         patientId: validatedData.patientId,
         usageType: 'vision',
         resourceName: 'Gemini 2.5 Flash Vision',
@@ -202,7 +228,7 @@ export async function POST(request: NextRequest) {
     // Salvar métricas do Avatar (durationSeconds=0, cost tracked separately)
     // Only save if there's actual avatar time
     if (avatarSecondsValue > 0) {
-      await trackUsage({
+      await safeTrackUsage('avatar', {
         patientId: validatedData.patientId,
         usageType: 'avatar',
         resourceName: AI_PRICING.avatars[validatedData.avatarProvider].name,
@@ -228,7 +254,7 @@ export async function POST(request: NextRequest) {
       const totalTokensUsed = validatedData.sttTokens + validatedData.llmInputTokens + 
                               validatedData.llmOutputTokens + validatedData.ttsTokens + totalVisionTokens;
       
-      await trackUsage({
+      await safeTrackUsage('ai_call', {
         patientId: validatedData.patientId,
         usageType: 'ai_call',
         resourceName: 'Consulta IA ao Vivo',
@@ -261,9 +287,19 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(`[Agent Usage] ✅ Métricas salvas com sucesso para ${patient.name}`);
+    if (persistErrors.length > 0) {
+      console.warn(
+        `[Agent Usage] ⚠️ Métricas processadas com falhas (${persistErrors.length}).`
+      );
+    } else {
+      console.log(`[Agent Usage] ✅ Métricas salvas com sucesso para ${patientName || validatedData.patientId}`);
+    }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      persisted: persistErrors.length === 0,
+      errors: persistErrors.length > 0 ? persistErrors : undefined,
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error('[Agent Usage] Erro de validação:', error.errors);
