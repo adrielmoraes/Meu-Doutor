@@ -90,24 +90,49 @@ export default function ScheduleCalendarManager({ appointments, doctor }: Schedu
                                 </Badge>
                             </div>
                         </CardHeader>
-                        <CardContent className="p-2 sm:p-4">
+                        <CardContent className="p-4 sm:p-6">
                             <Calendar
                                 mode="single"
                                 selected={selectedCalendarDate}
                                 onSelect={setSelectedCalendarDate}
-                                className="rounded-lg w-full [&_.rdp-day]:h-10 [&_.rdp-day]:w-10 [&_.rdp-day]:text-white [&_.rdp-caption_label]:text-white [&_.rdp-nav_button]:text-white [&_.rdp-head_cell]:text-slate-400"
+                                className="w-full"
+                                classNames={{
+                                    month: "space-y-4 w-full",
+                                    caption: "flex justify-center pt-1 relative items-center mb-4",
+                                    caption_label: "text-lg font-bold text-cyan-100",
+                                    nav: "space-x-1 flex items-center",
+                                    nav_button: "h-8 w-8 bg-transparent p-0 opacity-70 hover:opacity-100 hover:bg-slate-700/50 rounded-full text-cyan-400 transition-all",
+                                    nav_button_previous: "absolute left-1",
+                                    nav_button_next: "absolute right-1",
+                                    table: "w-full border-collapse space-y-1",
+                                    head_row: "flex w-full justify-between mb-2",
+                                    head_cell: "text-slate-400 rounded-md w-10 font-medium text-sm",
+                                    row: "flex w-full mt-2 justify-between",
+                                    cell: "h-10 w-10 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-transparent focus-within:relative focus-within:z-20",
+                                    day: "h-10 w-10 p-0 font-medium text-slate-200 aria-selected:opacity-100 hover:bg-slate-700/50 hover:text-white rounded-full transition-all duration-200",
+                                    day_selected: "bg-cyan-600 text-white hover:bg-cyan-500 hover:text-white shadow-lg shadow-cyan-500/20",
+                                    day_today: "border border-cyan-500/50 text-cyan-300 font-bold",
+                                    day_outside: "text-slate-600 opacity-40",
+                                    day_disabled: "text-slate-700 opacity-30",
+                                    day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                                    day_hidden: "invisible",
+                                }}
                                 disabled={(day) => day < new Date(new Date().setDate(new Date().getDate() - 1))} 
                                 modifiers={modifiers}
                                 modifiersClassNames={modifiersClassNames}
                             />
-                            <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t border-slate-700/50">
+                            <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-slate-700/50">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-emerald-500/50"></div>
-                                    <span className="text-xs text-slate-400">Disponível</span>
+                                    <div className="w-3 h-3 rounded-full bg-emerald-500/50 ring-2 ring-emerald-500/20"></div>
+                                    <span className="text-xs text-slate-300 font-medium">Disponível</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-cyan-500/50"></div>
-                                    <span className="text-xs text-slate-400">Agendado</span>
+                                    <div className="w-3 h-3 rounded-full bg-cyan-500/50 ring-2 ring-cyan-500/20"></div>
+                                    <span className="text-xs text-slate-300 font-medium">Agendado</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full border border-cyan-500/50"></div>
+                                    <span className="text-xs text-slate-300 font-medium">Hoje</span>
                                 </div>
                             </div>
                         </CardContent>
