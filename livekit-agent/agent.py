@@ -1056,7 +1056,7 @@ async def _schedule_appointment_impl(doctor_id: str,
 
 
 @function_tool()
-async def search_doctors(context: Optional[RunContext] = None,
+async def search_doctors(context: Optional[object] = None,
                          specialty: str = None,
                          limit: int = 5) -> dict:
     """Busca médicos disponíveis no sistema MediAI.
@@ -1078,7 +1078,7 @@ async def search_doctors(context: Optional[RunContext] = None,
 
 
 @function_tool()
-async def get_available_slots(context: Optional[RunContext] = None,
+async def get_available_slots(context: Optional[object] = None,
                               doctor_id: str = "",
                               date: str = "") -> dict:
     """Busca horários disponíveis de um médico para uma data específica.
@@ -1100,7 +1100,7 @@ async def get_available_slots(context: Optional[RunContext] = None,
 
 
 @function_tool()
-async def schedule_appointment(context: Optional[RunContext] = None,
+async def schedule_appointment(context: Optional[object] = None,
                                doctor_id: str = "",
                                patient_name: str = "",
                                date: str = "",
@@ -1181,7 +1181,7 @@ async def schedule_appointment(context: Optional[RunContext] = None,
 
 
 @function_tool()
-async def get_visual_observation(context: Optional[RunContext] = None) -> dict:
+async def get_visual_observation(context: Optional[object] = None) -> dict:
     """Obtém a observação visual mais recente do paciente (modo streaming).
     
     Use quando o modo de visão contínua está habilitado para acessar as observações
@@ -1235,7 +1235,7 @@ async def get_visual_observation(context: Optional[RunContext] = None) -> dict:
 
 
 @function_tool()
-async def look_at_patient(context: Optional[RunContext] = None, observation_focus: str = "geral", specific_question: str = "") -> dict:
+async def look_at_patient(context: Optional[object] = None, observation_focus: str = "geral", specific_question: str = "") -> dict:
     """Olha para o paciente através da câmera para fazer observações visuais detalhadas.
     
     Use quando precisar:
