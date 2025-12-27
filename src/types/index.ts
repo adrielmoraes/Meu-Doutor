@@ -167,6 +167,7 @@ export type Exam = {
   doctorNotes?: string;
   finalExplanation?: string;
   finalExplanationAudioUri?: string;
+  fileUrl?: string;
 };
 
 export type Appointment = {

@@ -82,3 +82,32 @@ export async function saveDraftNotesAction(patientId: string, examId: string, do
         return { success: false, message: 'Erro ao salvar o rascunho.' };
     }
 }
+
+export async function validateMultipleExamsAction(patientId: string, examIds: string[]) {
+    try {
+        const patient = await getPatientById(patientId);
+        if (!patient) throw new Error("Patient not found");
+
+        for (const examId of examIds) {
+             await updateExam(patientId, examId, {
+                status: 'Validado',
+                doctorNotes: 'Exame revisado. Resultados dentro dos parâmetros aceitáveis.',
+                finalExplanation: 'Seu médico revisou este exame e confirmou que está tudo certo.',
+             });
+        }
+        
+        const allExams = await getExamsByPatientId(patientId);
+        const hasPendingExams = allExams.some(exam => exam.status === 'Requer Validação');
+
+        if (!hasPendingExams) {
+            await updatePatient(patientId, { status: 'Validado' });
+        }
+
+        revalidatePath(`/doctor/patients/${patientId}`);
+        return { success: true, message: `${examIds.length} exames validados com sucesso.` };
+
+    } catch (error) {
+        console.error("Bulk validation error:", error);
+        return { success: false, message: "Erro na validação em lote." };
+    }
+}

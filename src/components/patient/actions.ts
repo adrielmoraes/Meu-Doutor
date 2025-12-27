@@ -10,6 +10,7 @@ import { calculateLLMCost, usdToBRLCents } from "@/lib/ai-pricing";
 import { countTextTokens } from "@/lib/token-counter";
 import { analyzeSingleExam, type SingleDocumentOutput } from "@/ai/flows/analyze-single-exam";
 import { consolidateExamsAnalysis, type IndividualExamResult } from "@/ai/flows/consolidate-exams-analysis";
+import { saveFileBuffer } from "@/lib/file-storage";
 
 interface ExamAnalysisData {
     preliminaryDiagnosis: string;
@@ -184,6 +185,17 @@ export async function analyzeSingleExamAction(
     try {
         console.log(`[Analyze Single Exam] Starting analysis for: ${document.fileName}`);
 
+        let fileUrl: string | undefined;
+        try {
+            const matches = document.examDataUri.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+            if (matches && matches.length === 3) {
+                const buffer = Buffer.from(matches[2], 'base64');
+                fileUrl = await saveFileBuffer(buffer, document.fileName, 'exams');
+            }
+        } catch (err) {
+            console.error("Error saving exam file:", err);
+        }
+
         const analysis = await analyzeSingleExam(document, patientId);
 
         const examId = await addExamToPatient(patientId, {
@@ -196,6 +208,7 @@ export async function analyzeSingleExamAction(
             results: analysis.structuredResults || [],
             specialistFindings: [],
             date: analysis.examDate ? new Date(analysis.examDate) : undefined, // Use extracted date if available
+            fileUrl: fileUrl,
         });
 
         const outputText = [

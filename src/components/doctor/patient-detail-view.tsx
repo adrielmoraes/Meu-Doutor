@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bot, FileText, User, Pen, CheckCircle, Send, Loader2, FileWarning, Files, Sparkles, Save } from "lucide-react";
+import { Bot, FileText, User, Pen, CheckCircle, Send, Loader2, FileWarning, Files, Sparkles, Save, AlertTriangle, ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Patient, Exam } from "@/types";
-import { validateExamDiagnosisAction, saveDraftNotesAction } from "@/app/doctor/patients/[id]/actions";
+import { validateExamDiagnosisAction, saveDraftNotesAction, validateMultipleExamsAction } from "@/app/doctor/patients/[id]/actions";
 import { Badge } from "../ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
@@ -19,11 +19,26 @@ import type { GeneratePreliminaryDiagnosisOutput } from "@/ai/flows/generate-pre
 import { Textarea } from "../ui/textarea";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import PatientSafetyBar from "./patient-safety-bar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import PatientTimeline from "./patient-timeline";
+import DiagnosisMacros from "./diagnosis-macros";
+import PrescriptionHelper from "./prescription-helper";
+import { Filter, ExternalLink, CheckSquare } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type PatientDetailViewProps = {
   patient: Patient;
   summary: string;
   exams: Exam[];
+};
+
+const getExamCategory = (type: string) => {
+  const t = type.toLowerCase();
+  if (t.includes('sangue') || t.includes('hemograma') || t.includes('colesterol') || t.includes('glicose') || t.includes('urina') || t.includes('creatinina') || t.includes('tgo') || t.includes('tgp')) return 'Laboratório';
+  if (t.includes('raio') || t.includes('x') || t.includes('tomografia') || t.includes('ressonancia') || t.includes('ultrassom') || t.includes('usg')) return 'Imagem';
+  if (t.includes('cardio') || t.includes('ecg') || t.includes('eletro') || t.includes('holter') || t.includes('mapa')) return 'Cardiologia';
+  return 'Outros';
 };
 
 function AIAnalysisCollapsible({ exam }: { exam: Exam }) {
@@ -99,6 +114,9 @@ export default function PatientDetailView({
   }, {} as ExamValidationState);
 
   const [validationState, setValidationState] = useState(initialValidationState);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedExams, setSelectedExams] = useState<string[]>([]);
+  const [isBulkValidating, setIsBulkValidating] = useState(false);
 
   const handleNotesChange = (examId: string, newNotes: string) => {
     setValidationState(prev => ({
@@ -173,9 +191,36 @@ export default function PatientDetailView({
     setValidationState(prev => ({ ...prev, [examId]: { ...prev[examId], isValidating: false } }));
   };
 
-  const pendingExams = exams.filter(e => e.status === 'Requer Validação');
-  const validatedExams = exams.filter(e => e.status === 'Validado');
+  const handleBulkValidation = async () => {
+    if (selectedExams.length === 0) return;
 
+    setIsBulkValidating(true);
+    const result = await validateMultipleExamsAction(patient.id, selectedExams);
+    
+    toast({
+      title: result.success ? "Validação em Lote Concluída" : "Erro na Validação",
+      description: result.message,
+      variant: result.success ? "default" : "destructive",
+    });
+
+    if (result.success) {
+      setSelectedExams([]);
+    }
+    setIsBulkValidating(false);
+  };
+
+  const toggleExamSelection = (examId: string) => {
+    setSelectedExams(prev => 
+      prev.includes(examId) 
+        ? prev.filter(id => id !== examId)
+        : [...prev, examId]
+    );
+  };
+
+  const pendingExams = exams.filter(e => e.status === 'Requer Validação' && (!selectedCategory || getExamCategory(e.type) === selectedCategory));
+  const validatedExams = exams.filter(e => e.status === 'Validado' && (!selectedCategory || getExamCategory(e.type) === selectedCategory));
+
+  const categories = Array.from(new Set(exams.map(e => getExamCategory(e.type))));
 
   return (
     <div className="space-y-6">
@@ -204,14 +249,57 @@ export default function PatientDetailView({
         </CardHeader>
       </Card>
 
+      <PatientSafetyBar 
+        preventiveAlerts={patient.preventiveAlerts || []} 
+        // Mock data for now until we have dedicated fields in DB
+        allergies={patient.reportedSymptoms?.toLowerCase().includes("alergia") ? ["Verificar Histórico"] : []}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column for exams */}
         <div className="lg:col-span-2 space-y-6">
+          
+          {/* Filters */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+             <Button 
+               variant={selectedCategory === null ? "default" : "outline"}
+               size="sm"
+               onClick={() => setSelectedCategory(null)}
+               className={`rounded-full h-8 text-xs ${selectedCategory === null ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-slate-800 text-slate-300 border-slate-700'}`}
+             >
+               Todos
+             </Button>
+             {categories.map(cat => (
+               <Button
+                 key={cat}
+                 variant={selectedCategory === cat ? "default" : "outline"}
+                 size="sm"
+                 onClick={() => setSelectedCategory(cat)}
+                 className={`rounded-full h-8 text-xs ${selectedCategory === cat ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-slate-800 text-slate-300 border-slate-700'}`}
+               >
+                 {cat}
+               </Button>
+             ))}
+          </div>
+
           <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-slate-700/50">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <FileWarning className="h-6 w-6 text-yellow-500" />
-                Exames Pendentes de Validação ({pendingExams.length})
+              <CardTitle className="flex items-center gap-2 text-white justify-between w-full">
+                <div className="flex items-center gap-2">
+                  <FileWarning className="h-6 w-6 text-yellow-500" />
+                  Exames Pendentes de Validação ({pendingExams.length})
+                </div>
+                {selectedExams.length > 0 && (
+                  <Button 
+                    onClick={handleBulkValidation} 
+                    disabled={isBulkValidating}
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 text-white animate-in fade-in zoom-in"
+                  >
+                    {isBulkValidating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckSquare className="h-4 w-4 mr-2" />}
+                    Validar ({selectedExams.length}) Selecionados
+                  </Button>
+                )}
               </CardTitle>
               <CardDescription className="text-slate-400">Revise a análise da IA e forneça seu diagnóstico final para cada exame.</CardDescription>
             </CardHeader>
@@ -223,9 +311,28 @@ export default function PatientDetailView({
                     return (
                       <AccordionItem value={exam.id} key={exam.id} className="border-slate-700">
                         <AccordionTrigger className="text-base font-medium hover:no-underline text-slate-200 hover:text-white">
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-4 w-full">
+                            <div onClick={(e) => e.stopPropagation()} className="flex items-center">
+                              <Checkbox 
+                                checked={selectedExams.includes(exam.id)}
+                                onCheckedChange={() => toggleExamSelection(exam.id)}
+                                className="border-slate-500 data-[state=checked]:bg-cyan-500 data-[state=checked]:border-cyan-500"
+                              />
+                            </div>
                             <Files className="h-5 w-5 text-cyan-400" />
                             <span>{exam.type}</span>
+                            {exam.fileUrl && (
+                               <a 
+                                 href={exam.fileUrl} 
+                                 target="_blank" 
+                                 rel="noopener noreferrer"
+                                 className="ml-auto text-xs flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors bg-blue-500/10 px-2 py-1 rounded-full border border-blue-500/20 hover:bg-blue-500/20"
+                                 onClick={(e) => e.stopPropagation()}
+                               >
+                                 <ExternalLink className="h-3 w-3" />
+                                 Ver Original
+                               </a>
+                            )}
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="space-y-4 pt-4">
@@ -237,22 +344,49 @@ export default function PatientDetailView({
                                 Valores do Exame
                               </h4>
                               <div className="space-y-2">
-                                {exam.results.map((result, idx) => (
-                                  <div key={idx} className="grid grid-cols-3 gap-2 p-2 bg-slate-800 rounded border border-slate-700">
-                                    <div>
-                                      <p className="text-xs font-medium text-slate-400">Parâmetro</p>
-                                      <p className="text-sm font-semibold text-slate-200">{result.name}</p>
-                                    </div>
-                                    <div>
-                                      <p className="text-xs font-medium text-slate-400">Valor</p>
-                                      <p className="text-sm font-bold text-cyan-400">{result.value}</p>
-                                    </div>
-                                    <div>
-                                      <p className="text-xs font-medium text-slate-400">Referência</p>
-                                      <p className="text-sm font-medium text-slate-300">{result.reference}</p>
-                                    </div>
-                                  </div>
-                                ))}
+                                {exam.results.map((result, idx) => {
+                                  // Simple logic to detect abnormalities
+                                  // In a real app, this would need robust parsing of reference ranges
+                                  // Here we'll simulate based on string matching or if the value is explicitly marked
+                                  const isAbnormal = result.value.includes('*') || 
+                                                      result.value.toLowerCase().includes('alto') || 
+                                                      result.value.toLowerCase().includes('baixo') ||
+                                                      result.name.includes('Colesterol Total') && parseInt(result.value) > 200 ||
+                                                      result.name.includes('Glicose') && parseInt(result.value) > 100;
+                                   
+                                   // Mock trend logic (in real app, compare with previous exam)
+                                   // Randomly assign trend for demonstration if abnormal
+                                   const trend = isAbnormal ? (Math.random() > 0.5 ? 'up' : 'down') : 'stable';
+
+                                   return (
+                                     <div key={idx} className={`grid grid-cols-4 gap-2 p-2 rounded border ${isAbnormal ? 'bg-red-900/20 border-red-800/50' : 'bg-slate-800 border-slate-700'}`}>
+                                       <div className="col-span-1">
+                                         <p className="text-xs font-medium text-slate-400">Parâmetro</p>
+                                         <p className={`text-sm font-semibold ${isAbnormal ? 'text-red-300' : 'text-slate-200'}`}>{result.name}</p>
+                                       </div>
+                                       <div className="col-span-1">
+                                         <p className="text-xs font-medium text-slate-400">Valor</p>
+                                         <div className="flex items-center gap-1">
+                                           <p className={`text-sm font-bold ${isAbnormal ? 'text-red-400' : 'text-cyan-400'}`}>{result.value}</p>
+                                           {isAbnormal && <AlertTriangle className="h-3 w-3 text-red-500" />}
+                                         </div>
+                                       </div>
+                                       <div className="col-span-1">
+                                          <p className="text-xs font-medium text-slate-400">Tendência</p>
+                                          <div className="flex items-center gap-1">
+                                            {trend === 'up' && <ArrowUpRight className="h-3 w-3 text-red-400" />}
+                                            {trend === 'down' && <ArrowDownRight className="h-3 w-3 text-green-400" />}
+                                            {trend === 'stable' && <Minus className="h-3 w-3 text-slate-500" />}
+                                            <span className="text-xs text-slate-300">{trend === 'up' ? 'Subiu' : trend === 'down' ? 'Desceu' : 'Estável'}</span>
+                                          </div>
+                                       </div>
+                                       <div className="col-span-1">
+                                         <p className="text-xs font-medium text-slate-400">Referência</p>
+                                         <p className="text-sm font-medium text-slate-300">{result.reference}</p>
+                                       </div>
+                                     </div>
+                                   );
+                                })}
                               </div>
                             </div>
                           )}
@@ -297,6 +431,18 @@ export default function PatientDetailView({
                               </div>
                             )}
 
+                            <div className="flex flex-wrap gap-2 mb-2 items-center">
+                              <DiagnosisMacros onInsert={(text) => {
+                                const currentNotes = state?.notes || "";
+                                const newNotes = currentNotes ? `${currentNotes}\n${text}` : text;
+                                handleNotesChange(exam.id, newNotes);
+                              }} />
+                              <PrescriptionHelper onAdd={(text) => {
+                                const currentNotes = state?.notes || "";
+                                const newNotes = currentNotes ? `${currentNotes}\n${text}` : text;
+                                handleNotesChange(exam.id, newNotes);
+                              }} />
+                            </div>
                             <Textarea
                               placeholder="Clique em 'Gerar Parecer' para que a IA crie um rascunho. Edite o diagnóstico e adicione sua prescrição oficial aqui..."
                               rows={8}
@@ -349,6 +495,18 @@ export default function PatientDetailView({
                             <p className="font-semibold">{exam.type}</p>
                             <p className="text-xs text-slate-400">{new Date(exam.date).toLocaleDateString('pt-BR')}</p>
                           </div>
+                          {exam.fileUrl && (
+                               <a 
+                                 href={exam.fileUrl} 
+                                 target="_blank" 
+                                 rel="noopener noreferrer"
+                                 className="ml-auto text-xs flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors bg-blue-500/10 px-2 py-1 rounded-full border border-blue-500/20 hover:bg-blue-500/20"
+                                 onClick={(e) => e.stopPropagation()}
+                               >
+                                 <ExternalLink className="h-3 w-3" />
+                                 Ver Original
+                               </a>
+                            )}
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="space-y-3 pt-3">
@@ -393,38 +551,51 @@ export default function PatientDetailView({
 
         {/* Right column for patient summary */}
         <div className="lg:col-span-1">
-          <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-slate-700/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl text-cyan-300"><User className="h-6 w-6" />Resumo do Paciente</CardTitle>
-              <CardDescription className="text-base text-blue-200/70">
-                Gerado pela IA a partir das interações do paciente.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="max-h-[300px] overflow-y-auto pr-3"
-                style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(6, 182, 212, 0.5) rgba(51, 65, 85, 0.3)' }}>
-                <div className="prose prose-invert prose-sm max-w-none
-                          prose-headings:text-cyan-300 prose-headings:font-bold prose-headings:mt-3 prose-headings:mb-1
-                          prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
-                          prose-p:text-white prose-p:leading-relaxed prose-p:my-1.5
-                          prose-strong:text-cyan-200 prose-strong:font-semibold
-                          prose-ul:my-1 prose-ul:pl-4 prose-li:text-white prose-li:my-0.5
-                          prose-ol:my-1 prose-ol:pl-4">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {summary || "Nenhum resumo disponível."}
-                  </ReactMarkdown>
-                </div>
-              </div>
-              <Separator className="my-4 bg-slate-600/50" />
-              <h4 className="font-bold mb-3 text-base text-cyan-300">Dados Brutos Combinados</h4>
-              <div className="max-h-[200px] overflow-y-auto"
-                style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(6, 182, 212, 0.5) rgba(51, 65, 85, 0.3)' }}>
-                <pre className="p-3 bg-slate-900/50 rounded-md text-sm text-white overflow-x-auto pr-4 leading-relaxed border border-slate-700/30">
-                  <code>{patient.examResults || "Nenhum dado bruto registrado."}</code>
-                </pre>
-              </div>
-            </CardContent>
-          </Card>
+          <Tabs defaultValue="summary" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 bg-slate-800/50">
+              <TabsTrigger value="summary">Resumo Clínico</TabsTrigger>
+              <TabsTrigger value="timeline">Linha do Tempo</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="summary">
+              <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-slate-700/50 mt-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-xl text-cyan-300"><User className="h-6 w-6" />Resumo do Paciente</CardTitle>
+                  <CardDescription className="text-base text-blue-200/70">
+                    Gerado pela IA a partir das interações do paciente.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="max-h-[300px] overflow-y-auto pr-3"
+                    style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(6, 182, 212, 0.5) rgba(51, 65, 85, 0.3)' }}>
+                    <div className="prose prose-invert prose-sm max-w-none
+                              prose-headings:text-cyan-300 prose-headings:font-bold prose-headings:mt-3 prose-headings:mb-1
+                              prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
+                              prose-p:text-white prose-p:leading-relaxed prose-p:my-1.5
+                              prose-strong:text-cyan-200 prose-strong:font-semibold
+                              prose-ul:my-1 prose-ul:pl-4 prose-li:text-white prose-li:my-0.5
+                              prose-ol:my-1 prose-ol:pl-4">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {summary || "Nenhum resumo disponível."}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                  <Separator className="my-4 bg-slate-600/50" />
+                  <h4 className="font-bold mb-3 text-base text-cyan-300">Dados Brutos Combinados</h4>
+                  <div className="max-h-[200px] overflow-y-auto"
+                    style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(6, 182, 212, 0.5) rgba(51, 65, 85, 0.3)' }}>
+                    <pre className="p-3 bg-slate-900/50 rounded-md text-sm text-white overflow-x-auto pr-4 leading-relaxed border border-slate-700/30">
+                      <code>{patient.examResults || "Nenhum dado bruto registrado."}</code>
+                    </pre>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="timeline" className="mt-2 h-[600px] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(6, 182, 212, 0.5) rgba(51, 65, 85, 0.3)' }}>
+               <PatientTimeline exams={exams} patient={patient} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

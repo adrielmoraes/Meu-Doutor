@@ -18,9 +18,9 @@ export const SpecialistAgentInputSchema = z.object({
 export type SpecialistAgentInput = z.infer<typeof SpecialistAgentInputSchema>;
 
 export const SpecialistAgentOutputSchema = z.object({
-  findings: z.string().describe("The specialist's detailed clinical findings based on the provided data. Must include comprehensive analysis of EVERY abnormal value found in exams with clinical significance explained."),
-  clinicalAssessment: z.string().describe("Professional assessment of the severity and urgency of findings (normal, mild, moderate, severe, critical, or not applicable)."),
-  recommendations: z.string().describe("Specific recommendations for follow-up, additional tests, or immediate actions within this specialty."),
+  findings: z.string().describe("CONCISE clinical findings. Use bullet points. Focus strictly on abnormalities and relevant negatives."),
+  clinicalAssessment: z.string().describe("Brief professional assessment of severity and urgency (1-2 sentences)."),
+  recommendations: z.string().describe("Specific, actionable recommendations. Use bullet points. Be brief."),
   suggestedMedications: z.array(z.object({
     medication: z.string().describe("Nome do medicamento (princípio ativo e nome comercial quando aplicável)"),
     dosage: z.string().describe("Dosagem específica recomendada (ex: '50mg', '10mg/kg')"),

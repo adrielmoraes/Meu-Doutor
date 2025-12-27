@@ -36,6 +36,7 @@ export type SingleDocumentOutput = z.infer<typeof SingleDocumentOutputSchema>;
 const SINGLE_EXAM_PROMPT_TEMPLATE = `Você é um assistente médico de IA analisando um documento de exame médico. Sua tarefa é:
 
 1. **Extrair e Resumir**: Revise o documento médico e crie um resumo médico abrangente das descobertas.
+2. **Estruturar Resultados**: Se houver resultados laboratoriais, extraia-os para o formato estruturado.
 3. **Explicação para o Paciente**: Escreva uma explicação simples e empática das descobertas para um paciente leigo em português brasileiro.
 4. **Identificar Tipo**: Identifique o tipo de exame (hemograma, raio-X, ECG, ultrassom, etc.)
 5. **Extrair Data**: Encontre a data de realização/coleta do exame (não a data de impressão, se possível).

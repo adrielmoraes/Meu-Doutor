@@ -206,6 +206,7 @@ export const exams = pgTable('exams', {
   doctorNotes: text('doctor_notes'),
   finalExplanation: text('final_explanation'),
   finalExplanationAudioUri: text('final_explanation_audio_uri'),
+  fileUrl: text('file_url'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
