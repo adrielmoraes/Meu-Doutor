@@ -484,7 +484,8 @@ class MetricsCollector:
         }
 
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with httpx.AsyncClient(timeout=10.0,
+                                         follow_redirects=True) as client:
                 response = await client.post(url,
                                              json=payload,
                                              headers=headers)
@@ -704,7 +705,7 @@ async def _search_doctors_impl(specialty: str = None, limit: int = 5) -> dict:
         }
 
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(follow_redirects=True) as client:
             url = f"{NEXT_PUBLIC_URL}/api/ai-agent/doctors"
             params = {"limit": str(limit)}
             if specialty:
@@ -893,7 +894,7 @@ async def _get_available_slots_impl(doctor_id: str, date: str) -> dict:
     actual_doctor_id = resolved_id
 
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(follow_redirects=True) as client:
             url = f"{NEXT_PUBLIC_URL}/api/ai-agent/schedule"
             params = {"doctorId": actual_doctor_id, "date": date}
             headers = {"x-agent-secret": AGENT_SECRET}
@@ -1006,7 +1007,7 @@ async def _schedule_appointment_impl(doctor_id: str,
         return {"success": False, "error": "Configuração ausente"}
 
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(follow_redirects=True) as client:
             url = f"{NEXT_PUBLIC_URL}/api/ai-agent/schedule"
             headers = {
                 "x-agent-secret": AGENT_SECRET,
@@ -1055,7 +1056,7 @@ async def _schedule_appointment_impl(doctor_id: str,
 
 
 @function_tool()
-async def search_doctors(context: RunContext,
+async def search_doctors(context: Optional[RunContext] = None,
                          specialty: str = None,
                          limit: int = 5) -> dict:
     """Busca médicos disponíveis no sistema MediAI.
@@ -1072,12 +1073,14 @@ async def search_doctors(context: RunContext,
                   Psiquiatria, Ortopedia, Ginecologia, Neurologia, Oftalmologia, Clínico Geral.
         limit: Número máximo de médicos a retornar (padrão: 5, máximo: 20)
     """
-    return await _search_doctors_impl(specialty=specialty, limit=limit)
+    safe_limit = max(1, min(int(limit or 5), 20))
+    return await _search_doctors_impl(specialty=specialty, limit=safe_limit)
 
 
 @function_tool()
-async def get_available_slots(context: RunContext, doctor_id: str,
-                              date: str) -> dict:
+async def get_available_slots(context: Optional[RunContext] = None,
+                              doctor_id: str = "",
+                              date: str = "") -> dict:
     """Busca horários disponíveis de um médico para uma data específica.
     
     Use após o paciente escolher um médico e antes de agendar, para mostrar os horários livres.
@@ -1086,16 +1089,23 @@ async def get_available_slots(context: RunContext, doctor_id: str,
         doctor_id: ID do médico escolhido
         date: Data desejada no formato YYYY-MM-DD (ex: 2025-11-20)
     """
+    if not doctor_id or not date:
+        return {
+            "success": False,
+            "error": "doctor_id e date são obrigatórios (YYYY-MM-DD).",
+            "availableSlots": []
+        }
+
     return await _get_available_slots_impl(doctor_id=doctor_id, date=date)
 
 
 @function_tool()
-async def schedule_appointment(context: RunContext,
-                               doctor_id: str,
-                               patient_name: str,
-                               date: str,
-                               start_time: str,
-                               end_time: str,
+async def schedule_appointment(context: Optional[RunContext] = None,
+                               doctor_id: str = "",
+                               patient_name: str = "",
+                               date: str = "",
+                               start_time: str = "",
+                               end_time: str = "",
                                notes: str = "") -> dict:
     """Agenda uma consulta com um médico específico.
     
@@ -1121,6 +1131,14 @@ async def schedule_appointment(context: RunContext,
     """
     global _current_agent_instance
     
+    if (not doctor_id or not patient_name or not date or not start_time
+            or not end_time):
+        return {
+            "success": False,
+            "error":
+            "doctor_id, patient_name, date, start_time e end_time são obrigatórios."
+        }
+
     patient_id = None
     
     try:
@@ -1163,7 +1181,7 @@ async def schedule_appointment(context: RunContext,
 
 
 @function_tool()
-async def get_visual_observation(context: RunContext) -> dict:
+async def get_visual_observation(context: Optional[RunContext] = None) -> dict:
     """Obtém a observação visual mais recente do paciente (modo streaming).
     
     Use quando o modo de visão contínua está habilitado para acessar as observações
@@ -1217,7 +1235,7 @@ async def get_visual_observation(context: RunContext) -> dict:
 
 
 @function_tool()
-async def look_at_patient(context: RunContext, observation_focus: str = "geral", specific_question: str = "") -> dict:
+async def look_at_patient(context: Optional[RunContext] = None, observation_focus: str = "geral", specific_question: str = "") -> dict:
     """Olha para o paciente através da câmera para fazer observações visuais detalhadas.
     
     Use quando precisar:
