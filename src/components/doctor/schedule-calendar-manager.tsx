@@ -95,7 +95,7 @@ export default function ScheduleCalendarManager({ appointments, doctor }: Schedu
                                 mode="single"
                                 selected={selectedCalendarDate}
                                 onSelect={setSelectedCalendarDate}
-                                className="rounded-lg w-full [&_.rdp-day]:h-10 [&_.rdp-day]:w-10"
+                                className="rounded-lg w-full [&_.rdp-day]:h-10 [&_.rdp-day]:w-10 [&_.rdp-day]:text-white [&_.rdp-caption_label]:text-white [&_.rdp-nav_button]:text-white [&_.rdp-head_cell]:text-slate-400"
                                 disabled={(day) => day < new Date(new Date().setDate(new Date().getDate() - 1))} 
                                 modifiers={modifiers}
                                 modifiersClassNames={modifiersClassNames}
