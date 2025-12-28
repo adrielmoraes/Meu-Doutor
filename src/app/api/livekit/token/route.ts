@@ -26,9 +26,8 @@ export async function POST(request: NextRequest) {
 
     // Create or update room with metadata (THIS IS THE KEY!)
     if (metadata) {
+      const roomService = new RoomServiceClient(livekitUrl, apiKey, apiSecret);
       try {
-        const roomService = new RoomServiceClient(livekitUrl, apiKey, apiSecret);
-        
         // Create room with patient metadata so agent can access it
         await roomService.createRoom({
           name: roomName,
@@ -37,8 +36,17 @@ export async function POST(request: NextRequest) {
         
         console.log(`[LiveKit] Sala criada com metadata:`, metadata);
       } catch (roomError: any) {
-        // Room might already exist, try to update it
         console.log(`[LiveKit] Sala já existe, atualizando metadata`);
+        try {
+          const updateRoomMetadata = (roomService as any).updateRoomMetadata;
+          if (typeof updateRoomMetadata === 'function') {
+            await updateRoomMetadata.call(
+              roomService,
+              roomName,
+              JSON.stringify(metadata),
+            );
+          }
+        } catch {}
       }
     }
 

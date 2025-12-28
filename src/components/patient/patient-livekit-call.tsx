@@ -469,6 +469,7 @@ export default function PatientLiveKitCall({
     try {
       let resolvedDoctorName = 'Médico';
       let resolvedPatientName = 'Paciente';
+      let resolvedPatientId: string | undefined;
 
       // Fetch doctor info
       const doctorResponse = await fetch(`/api/doctors/${doctorId}`);
@@ -485,6 +486,9 @@ export default function PatientLiveKitCall({
         if (sessionData.user?.name) {
           resolvedPatientName = sessionData.user.name;
         }
+        if (sessionData.user?.id) {
+          resolvedPatientId = sessionData.user.id;
+        }
       }
       setPatientName(resolvedPatientName);
 
@@ -498,6 +502,8 @@ export default function PatientLiveKitCall({
           metadata: {
             role: 'patient',
             name: resolvedPatientName,
+            patient_id: resolvedPatientId,
+            patient_name: resolvedPatientName,
           }
         }),
       });

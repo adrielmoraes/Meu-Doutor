@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       console.error('[Agent Usage] AGENT_SECRET não configurado no ambiente - configure a variável de ambiente');
       return NextResponse.json(
         { success: false, error: 'AGENT_SECRET não configurado no servidor' },
-        { status: 500 }
+        { status: 503 }
       );
     }
 
@@ -63,8 +63,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Validação do body
-    const body = await request.json();
-    const validatedData = agentUsageSchema.parse(body);
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'JSON inválido' },
+        { status: 400 }
+      );
+    }
+
+    const validatedResult = agentUsageSchema.safeParse(body);
+    if (!validatedResult.success) {
+      console.error('[Agent Usage] Erro de validação:', validatedResult.error.errors);
+      return NextResponse.json(
+        { success: false, error: 'Dados inválidos', details: validatedResult.error.errors },
+        { status: 400 }
+      );
+    }
+    const validatedData = validatedResult.data;
 
     const persistErrors: Array<{ usageType: string; message: string }> = [];
 
@@ -136,9 +153,11 @@ export async function POST(request: NextRequest) {
       outputCost: visionOutputCostUSD,
       totalCost: visionInputCostUSD + visionOutputCostUSD,
     };
-    // Use avatarSeconds if provided, otherwise fall back to avatarSeconds from metadata
-    const avatarSecondsValue = validatedData.avatarSeconds || 
-      (validatedData.metadata?.avatarSeconds as number) || 0;
+    const avatarSecondsFromMetadata =
+      typeof validatedData.metadata?.avatarSeconds === 'number'
+        ? validatedData.metadata.avatarSeconds
+        : 0;
+    const avatarSecondsValue = validatedData.avatarSeconds || avatarSecondsFromMetadata || 0;
     const avatarCostUSD = calculateAvatarCost(
       validatedData.avatarProvider,
       avatarSecondsValue / 60
@@ -301,14 +320,6 @@ export async function POST(request: NextRequest) {
       errors: persistErrors.length > 0 ? persistErrors : undefined,
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error('[Agent Usage] Erro de validação:', error.errors);
-      return NextResponse.json(
-        { success: false, error: 'Dados inválidos', details: error.errors },
-        { status: 400 }
-      );
-    }
-
     console.error('[Agent Usage] Erro ao processar métricas:', error);
     console.error('[Agent Usage] Stack trace:', error instanceof Error ? error.stack : 'Unknown error');
     return NextResponse.json(
@@ -321,3 +332,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const runtime = 'nodejs';

@@ -9,6 +9,7 @@ import logging
 import json
 import os
 import asyncio
+
 import base64
 import time
 import io
@@ -1274,12 +1275,34 @@ async def look_at_patient(context: Optional[object] = None, observation_focus: s
     
     try:
         logger.info(f"[Vision] 👁️ Looking at patient (focus: {observation_focus})")
-        
+
+        async def _ensure_subscribed_video_track(track_pub, timeout_s: float = 5.0):
+            try:
+                if not getattr(track_pub, "subscribed", False):
+                    try:
+                        track_pub.set_subscribed(True)
+                    except Exception as subscribe_err:
+                        logger.warning(f"[Vision] Could not subscribe to video track: {subscribe_err}")
+            except Exception:
+                pass
+
+            start = time.time()
+            while time.time() - start < timeout_s:
+                try:
+                    track = getattr(track_pub, "track", None)
+                    if track is not None:
+                        return track
+                except Exception:
+                    pass
+                await asyncio.sleep(0.1)
+
+            return None
+
         # Find patient video track
         video_track = None
         patient_identity = None
         avatar_identities = ['bey-avatar-agent', 'tavus-avatar', 'avatar-agent']
-        
+
         for participant in agent.room.remote_participants.values():
             # Skip avatar agents
             if participant.identity.lower() in avatar_identities or 'avatar' in participant.identity.lower():
@@ -1287,8 +1310,12 @@ async def look_at_patient(context: Optional[object] = None, observation_focus: s
             
             # Find video track
             for track_pub in participant.track_publications.values():
-                if track_pub.kind == rtc.TrackKind.KIND_VIDEO and track_pub.subscribed:
-                    video_track = track_pub.track
+                if track_pub.kind != rtc.TrackKind.KIND_VIDEO:
+                    continue
+
+                maybe_track = await _ensure_subscribed_video_track(track_pub)
+                if maybe_track is not None:
+                    video_track = maybe_track
                     patient_identity = participant.identity
                     logger.info(f"[Vision] Found video track from: {patient_identity}")
                     break
@@ -1346,9 +1373,13 @@ async def look_at_patient(context: Optional[object] = None, observation_focus: s
                 }
             
             # Send to Gemini session for analysis with specific context
+            observation = None
             if agent._agent_session:
-                await agent._send_frame_to_session_with_context(frame_bytes, observation_focus, specific_question)
-                logger.info(f"[Vision] ✅ Frame sent to Gemini ({len(frame_bytes)} bytes)")
+                observation = await agent._send_frame_to_session_with_context(frame_bytes, observation_focus, specific_question)
+                if observation:
+                    logger.info(f"[Vision] ✅ Frame analyzed by Gemini ({len(frame_bytes)} bytes)")
+                else:
+                    logger.warning(f"[Vision] Frame analysis returned no observation ({len(frame_bytes)} bytes)")
             
             # Track metrics
             if agent.metrics_collector:
@@ -1362,6 +1393,7 @@ async def look_at_patient(context: Optional[object] = None, observation_focus: s
                 "success": True,
                 "observation_focus": observation_focus,
                 "specific_question": specific_question,
+                "observation": observation,
                 "message": f"Imagem do paciente capturada e analisada com sucesso. Foco: {observation_focus}"
             }
             
@@ -1753,9 +1785,30 @@ class MediAIAgent(Agent):
         # Find video track
         video_track = None
         for track_pub in participant.track_publications.values():
-            if track_pub.kind == rtc.TrackKind.KIND_VIDEO and track_pub.subscribed:
-                video_track = track_pub.track
-                logger.info(f"[Vision] Found video track: {track_pub.sid}")
+            if track_pub.kind != rtc.TrackKind.KIND_VIDEO:
+                continue
+
+            try:
+                if not track_pub.subscribed:
+                    try:
+                        track_pub.set_subscribed(True)
+                    except Exception as subscribe_err:
+                        logger.warning(f"[Vision] Could not subscribe to video track: {subscribe_err}")
+            except Exception:
+                pass
+
+            start = time.time()
+            while time.time() - start < 5.0:
+                try:
+                    if track_pub.track is not None:
+                        video_track = track_pub.track
+                        logger.info(f"[Vision] Found video track: {track_pub.sid}")
+                        break
+                except Exception:
+                    pass
+                await asyncio.sleep(0.1)
+
+            if video_track:
                 break
         
         if not video_track:
@@ -1867,7 +1920,7 @@ class MediAIAgent(Agent):
         """Analyze a video frame using Gemini Vision API.
         Legacy wrapper for backward compatibility.
         """
-        await self._send_frame_to_session_with_context(frame_bytes, "geral", "")
+        return await self._send_frame_to_session_with_context(frame_bytes, "geral", "")
 
     async def _send_frame_to_session_with_context(self, frame_bytes: bytes, observation_focus: str = "geral", specific_question: str = ""):
         """Analyze a video frame using Gemini Vision API with specific context and focus.
@@ -1897,8 +1950,10 @@ class MediAIAgent(Agent):
             self._last_vision_analysis_time = current_time
 
         try:
-            # Use Gemini Vision API for detailed analysis
-            vision_model = genai.GenerativeModel('gemini-2.0-flash')
+            model_name = os.getenv('GEMINI_VISION_MODEL') or os.getenv('GEMINI_LLM_MODEL') or 'gemini-2.5-flash'
+            if 'native-audio' in model_name:
+                model_name = 'gemini-2.5-flash'
+            vision_model = genai.GenerativeModel(model_name)
             
             # Prepare image for Gemini
             image_part = {
@@ -1938,13 +1993,16 @@ class MediAIAgent(Agent):
                 if self.metrics_collector:
                     self.metrics_collector.vision_input_tokens += 258
                     self.metrics_collector.vision_output_tokens += len(observation) // 4
+                return observation
             else:
                 logger.warning("[Vision] No observation returned from Gemini Vision")
+                return None
                 
         except Exception as e:
             logger.error(f"[Vision] Error analyzing frame with context: {e}")
             import traceback
             logger.error(f"[Vision] Traceback: {traceback.format_exc()}")
+            return None
 
     def _create_contextual_vision_prompt(self, observation_focus: str, specific_question: str) -> str:
         """Create a detailed, contextual prompt for vision analysis based on focus and question."""
@@ -2098,15 +2156,33 @@ async def _entrypoint_impl(ctx: JobContext):
     """Implementation of the main entrypoint logic."""
     await ctx.connect()
 
-    room_metadata = ctx.room.metadata
-    try:
-        metadata = json.loads(room_metadata) if room_metadata else {}
-        patient_id = metadata.get('patient_id')
-    except:
-        patient_id = None
+    def _extract_patient_id(raw_metadata: Optional[str]) -> Optional[str]:
+        if not raw_metadata:
+            return None
+        try:
+            parsed = json.loads(raw_metadata)
+        except Exception:
+            return None
+        if not isinstance(parsed, dict):
+            return None
+        for key in ('patient_id', 'patientId'):
+            value = parsed.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+        return None
+
+    patient_id = _extract_patient_id(ctx.room.metadata)
+    if not patient_id:
+        try:
+            for participant in ctx.room.remote_participants.values():
+                patient_id = _extract_patient_id(getattr(participant, 'metadata', None))
+                if patient_id:
+                    break
+        except Exception:
+            patient_id = None
 
     if not patient_id:
-        logger.error("No patient_id in room metadata")
+        logger.error("No patient_id in room or participant metadata")
         return
 
     logger.info(f"[MediAI] 🎯 Starting agent for patient: {patient_id}")
@@ -2167,11 +2243,13 @@ async def _entrypoint_impl(ctx: JobContext):
             vision_instructions = """VISÃO SOB DEMANDA (PREFERENCIAL):
 ✅ VOCÊ PODE VER O PACIENTE usando a ferramenta look_at_patient
 - Use look_at_patient(observation_focus="...", specific_question="...") para examinar visualmente
+- A ferramenta retorna o campo observation com a descrição visual; use isso na sua resposta
 - PARÂMETROS IMPORTANTES:
   * observation_focus: Defina o foco: "face", "hematoma", "mancha", "ferimento", "pele", "postura" ou "geral"
   * specific_question: Formule uma pergunta específica para a visão responder (ex: "Qual a cor desta mancha?", "Há sinais de infecção?")
 - EXEMPLO: Se o paciente diz "olha essa mancha", chame:
   look_at_patient(observation_focus="mancha", specific_question="Descreva detalhadamente a aparência, bordas e cor desta mancha")
+- Quando o paciente disser que está mostrando algo na câmera, chame look_at_patient imediatamente antes de responder
 - Use a visão sempre que o paciente mostrar algo ou pedir sua opinião visual
 - Combine o que você VÊ com o que você OUVE para uma avaliação completa
 - Seja profissional e detalhista nas descrições visuais"""
