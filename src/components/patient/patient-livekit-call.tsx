@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   LiveKitRoom,
   useLocalParticipant,
+  useRemoteParticipants,
   useTracks,
   VideoTrack,
   RoomAudioRenderer,
@@ -378,6 +379,10 @@ function CallControls({
 
 function CallInterface({ doctorName, onEndCall }: { doctorName: string; onEndCall: () => void }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const remoteParticipants = useRemoteParticipants();
+  const connectionState = useConnectionState();
+  const hadRemoteParticipantRef = useRef(false);
+  const isEndingRef = useRef(false);
 
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -396,6 +401,21 @@ function CallInterface({ doctorName, onEndCall }: { doctorName: string; onEndCal
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
+
+  useEffect(() => {
+    if (connectionState !== ConnectionState.Connected) return;
+
+    if (remoteParticipants.length > 0) {
+      hadRemoteParticipantRef.current = true;
+      return;
+    }
+
+    if (!hadRemoteParticipantRef.current) return;
+    if (isEndingRef.current) return;
+
+    isEndingRef.current = true;
+    onEndCall();
+  }, [connectionState, remoteParticipants.length, onEndCall]);
 
   return (
     <div className="relative w-full h-screen bg-slate-950 overflow-hidden">
