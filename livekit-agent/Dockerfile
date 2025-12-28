@@ -24,6 +24,4 @@ COPY . .
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-EXPOSE 8080
-
-CMD ["python", "agent.py", "start"]
+CMD ["python", "run-agent.py"]

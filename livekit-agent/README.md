@@ -31,8 +31,10 @@ Agente de IA médica em tempo real usando LiveKit + Google Gemini para consultas
 ## Indice
 
 - [Modos de Visao](#modos-de-visao)
-- [Desenvolvimento Local Windows](#desenvolvimento-local-windows--docker)
-- [Producao em VPS Linux](#producao-em-vps-linux)
+- [Como Rodar](#como-rodar)
+- [Deploy em VPS Linux (Docker)](#deploy-em-vps-linux-docker)
+- [Deploy Hostinger KVM2 (Systemd)](#deploy-hostinger-kvm2-systemd)
+- [Deploy na Railway (Docker)](#deploy-na-railway-docker)
 - [Variaveis de Ambiente](#variaveis-de-ambiente)
 - [Troubleshooting](#troubleshooting)
 - [Instalacao Manual sem Docker](#instalacao-manual-sem-docker)
@@ -51,7 +53,18 @@ Agente de IA médica em tempo real usando LiveKit + Google Gemini para consultas
 
 ---
 
-## Desenvolvimento Local Windows + Docker
+## Como Rodar
+
+Você pode executar o agente de 4 formas:
+
+1. `start-agent.sh` (recomendado para dev rápido com Bash)
+2. Python direto (manual, sem Docker)
+3. Docker (`Dockerfile`)
+4. Docker Compose (`docker-compose.yml`)
+
+---
+
+## Desenvolvimento Local (Windows / Mac / Linux)
 
 ### Pre-requisitos
 
@@ -93,7 +106,7 @@ LIVEKIT_API_KEY=APIxxxxxxxx
 LIVEKIT_API_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 # Google Gemini API (obtenha em https://aistudio.google.com/app/apikey)
-GOOGLE_API_KEY=AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxx
+GEMINI_API_KEY=AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxx
 
 # Avatar Provider - Beyond Presence (obtenha em beyondpresence.ai)
 BEY_API_KEY=sua_chave_bey
@@ -107,6 +120,7 @@ BEY_AVATAR_ID=seu_avatar_id
 DATABASE_URL=postgresql://user:password@host:5432/mediai?sslmode=require
 
 # Backend MediAI (URL onde o Next.js roda)
+NEXT_PUBLIC_BASE_URL=http://localhost:5000
 NEXT_PUBLIC_URL=http://localhost:5000
 AGENT_SECRET=seu_secret_para_metricas
 
@@ -118,7 +132,22 @@ ENABLE_VISION_STREAMING=false
 # GEMINI_LLM_MODEL=gemini-2.5-flash-native-audio-preview-09-2025
 ```
 
-### Passo 3: Build da Imagem Docker
+### Rodar com `start-agent.sh` (Bash)
+
+Esse script:
+- cria `.env` a partir do ambiente se o arquivo não existir
+- cria `venv` e instala dependências
+- valida as variáveis essenciais
+- executa `python agent.py start`
+
+No Windows, rode via **Git Bash** ou **WSL**:
+
+```bash
+cd livekit-agent
+bash start-agent.sh
+```
+
+### Rodar com Docker (`Dockerfile`)
 
 ```powershell
 # Build da imagem (primeira vez demora alguns minutos)
@@ -128,7 +157,7 @@ docker build -t mediai-agent .
 docker images | findstr mediai-agent
 ```
 
-### Passo 4: Executar o Container
+Executar:
 
 ```powershell
 # Modo interativo (ver logs em tempo real) - RECOMENDADO para debug
@@ -141,7 +170,16 @@ docker run -d --name mediai-agent --env-file .env mediai-agent
 docker logs -f mediai-agent
 ```
 
-### Passo 5: Verificar Conexao
+### Rodar com Docker Compose (`docker-compose.yml`)
+
+O arquivo `docker-compose.yml` já está incluído no diretório `livekit-agent/`.
+
+```powershell
+docker compose -f docker-compose.yml up -d --build
+docker compose -f docker-compose.yml logs -f
+```
+
+### Verificar Conexao
 
 Quando o agente iniciar corretamente, voce vera:
 
@@ -183,7 +221,7 @@ docker system prune -f
 
 ---
 
-## Producao em VPS Linux
+## Deploy em VPS Linux (Docker)
 
 ### Requisitos do Servidor
 
@@ -230,65 +268,28 @@ cd /opt/mediai-agent
 # Clonar repositorio
 git clone <seu-repositorio> .
 
+cd livekit-agent
+
 # Criar arquivo de ambiente
 nano .env
 ```
 
 Cole as mesmas variaveis da secao anterior (adaptando URLs para producao).
 
-### Passo 3: Criar docker-compose.yml
-
-```bash
-nano docker-compose.yml
-```
-
-Cole o seguinte conteudo:
-
-```yaml
-version: '3.8'
-
-services:
-  mediai-agent:
-    build: .
-    container_name: mediai-agent
-    restart: unless-stopped
-    env_file:
-      - .env
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "5"
-    deploy:
-      resources:
-        limits:
-          cpus: '3'
-          memory: 6G
-        reservations:
-          cpus: '1'
-          memory: 2G
-    healthcheck:
-      test: ["CMD", "python", "-c", "print('ok')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 120s
-```
-
-### Passo 4: Deploy
+### Passo 3: Deploy com Compose (arquivo já incluso)
 
 ```bash
 # Build e iniciar
-docker compose up -d --build
+docker compose -f docker-compose.yml up -d --build
 
 # Ver logs em tempo real
-docker compose logs -f
+docker compose -f docker-compose.yml logs -f
 
 # Verificar status
-docker compose ps
+docker compose -f docker-compose.yml ps
 ```
 
-### Passo 5: Configurar Reinicio Automatico
+### Passo 4: Configurar Reinicio Automatico
 
 O `restart: unless-stopped` ja garante que o container reinicia automaticamente.
 Para garantir que Docker inicia no boot:
@@ -297,7 +298,70 @@ Para garantir que Docker inicia no boot:
 sudo systemctl enable docker
 ```
 
-### Script de Deploy Automatizado
+---
+
+## Deploy Hostinger KVM2 (Systemd)
+
+O arquivo `deploy-hostinger.sh` prepara o servidor e cria um serviço `systemd` para rodar `run-agent.py`.
+
+Resumo do fluxo:
+1. fazer upload do conteúdo de `livekit-agent/` para `/opt/mediai-agent/`
+2. executar `deploy-hostinger.sh` como root
+3. editar `/opt/mediai-agent/.env`
+4. iniciar o serviço
+
+Exemplo:
+
+```bash
+sudo bash deploy-hostinger.sh
+sudo nano /opt/mediai-agent/.env
+sudo systemctl start mediai-agent
+sudo journalctl -u mediai-agent -f
+```
+
+---
+
+## Deploy na Railway (Docker)
+
+Esse serviço **não expõe HTTP**; ele fica conectado no LiveKit aguardando pacientes. Na Railway, rode como **Worker/Background service** (sem domínio público).
+
+### Passo 1: Criar o serviço apontando para `livekit-agent/`
+
+1. Crie um projeto na Railway e conecte o repositório.
+2. Configure o deploy para usar **Dockerfile** com o diretório raiz em `livekit-agent/`.
+
+### Passo 2: Variáveis de ambiente
+
+Adicione as variáveis no painel da Railway (Variables):
+
+Obrigatórias:
+- `LIVEKIT_URL`
+- `LIVEKIT_API_KEY`
+- `LIVEKIT_API_SECRET`
+- `GEMINI_API_KEY`
+
+Recomendadas:
+- `NEXT_PUBLIC_BASE_URL` (URL do seu Next.js em produção)
+- `AGENT_SECRET`
+- `DATABASE_URL`
+
+Avatar (opcional, pelo menos um):
+- `BEY_API_KEY`, `BEY_AVATAR_ID`
+- `TAVUS_API_KEY`, `TAVUS_REPLICA_ID`, `TAVUS_PERSONA_ID`
+
+Visão (opcional):
+- `ENABLE_VISION=true`
+- `ENABLE_VISION_STREAMING=false`
+
+### Passo 3: Deploy
+
+O `Dockerfile` já define o comando de execução (`python run-agent.py`), então basta fazer o deploy e acompanhar logs.
+
+Se a Railway solicitar uma porta, mantenha o serviço como **Worker** (sem domínio) e use logs como health signal.
+
+---
+
+## Script de Deploy Automatizado (Linux + Docker)
 
 Crie o arquivo `/opt/mediai-agent/deploy.sh`:
 
@@ -394,10 +458,7 @@ Adicione ao `docker-compose.yml`:
 | `LIVEKIT_URL` | URL WebSocket do LiveKit | cloud.livekit.io > Settings > Keys |
 | `LIVEKIT_API_KEY` | API Key do LiveKit | cloud.livekit.io > Settings > Keys |
 | `LIVEKIT_API_SECRET` | API Secret do LiveKit | cloud.livekit.io > Settings > Keys |
-| `GOOGLE_API_KEY` | Chave API do Gemini | aistudio.google.com/app/apikey |
-| `DATABASE_URL` | Connection string PostgreSQL | neon.tech ou seu provedor |
-| `NEXT_PUBLIC_URL` | URL do backend MediAI | Seu dominio |
-| `AGENT_SECRET` | Secret para API de metricas | Gere com `openssl rand -hex 32` |
+| `GEMINI_API_KEY` | Chave API do Gemini | aistudio.google.com/app/apikey |
 
 ### Avatar (pelo menos um)
 
@@ -412,6 +473,10 @@ Adicione ao `docker-compose.yml`:
 
 | Variavel | Padrao | Descricao |
 |----------|--------|-----------|
+| `DATABASE_URL` | - | Connection string PostgreSQL (tools/metrics) |
+| `NEXT_PUBLIC_BASE_URL` | `http://localhost:5000` | Base URL do Next.js (tools HTTP) |
+| `NEXT_PUBLIC_URL` | - | Fallback para `NEXT_PUBLIC_BASE_URL` |
+| `AGENT_SECRET` | - | Secret para autenticar chamadas das tools |
 | `ENABLE_VISION` | `true` | Habilitar visao da camera |
 | `ENABLE_VISION_STREAMING` | `false` | Streaming continuo (experimental) |
 | `GEMINI_LLM_MODEL` | `gemini-2.5-flash` | Modelo Gemini a usar |

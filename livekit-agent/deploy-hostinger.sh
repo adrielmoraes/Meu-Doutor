@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # =============================================================================
@@ -28,7 +27,8 @@ apt update && apt upgrade -y
 
 # 2. Instalar dependências do sistema
 echo -e "${YELLOW}📦 Instalando dependências do sistema...${NC}"
-apt install -y python3.11 python3.11-venv python3-pip git curl wget nginx
+apt install -y python3 python3-venv python3-pip python3-dev git curl wget nginx \
+  build-essential libpq-dev libffi-dev libjpeg-dev zlib1g-dev libpng-dev pkg-config
 
 # 3. Criar diretório da aplicação
 APP_DIR="/opt/mediai-agent"
@@ -38,7 +38,7 @@ cd $APP_DIR
 
 # 4. Configurar ambiente virtual Python
 echo -e "${YELLOW}🐍 Configurando ambiente virtual Python...${NC}"
-python3.11 -m venv venv
+python3 -m venv venv
 source venv/bin/activate
 
 # 5. Copiar arquivos (assumindo que você fez upload via SFTP/Git)
@@ -81,6 +81,7 @@ DATABASE_URL=seu_database_url_aqui
 # Agent Secret (para APIs)
 AGENT_SECRET=seu_agent_secret_aqui
 NEXT_PUBLIC_URL=https://seu-dominio.vercel.app
+NEXT_PUBLIC_BASE_URL=https://seu-dominio.vercel.app
 EOF
 
 echo -e "${YELLOW}⚠️  IMPORTANTE: Edite o arquivo .env com suas credenciais:${NC}"
@@ -97,6 +98,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=$APP_DIR
+EnvironmentFile=$APP_DIR/.env
 Environment="PATH=$APP_DIR/venv/bin"
 ExecStart=$APP_DIR/venv/bin/python run-agent.py
 Restart=always
