@@ -349,6 +349,7 @@ export default function LiveKitConsultation({
   const [audioOnlyMode, setAudioOnlyMode] = useState(false);
   const consultationStartTime = useRef<number | null>(null);
   const hasAttemptedTokenFetch = useRef(false);
+  const isEndingRef = useRef(false);
   
   // Time limit state - convert available minutes to seconds
   // Compute initial remaining time based on props (uses totalMinutes as fallback)
@@ -415,7 +416,6 @@ export default function LiveKitConsultation({
           tokenManager.setToken(cached.token, cached.url);
           connectionSupervisor.connect();
           setCurrentState('ready');
-          consultationStartTime.current = Date.now();
           return;
         }
 
@@ -474,7 +474,6 @@ export default function LiveKitConsultation({
         connectionSupervisor.connect();
         
         setCurrentState('ready');
-        consultationStartTime.current = Date.now();
 
       } catch (err: any) {
         logEvent('Initialization error', { error: err.message });
@@ -494,6 +493,9 @@ export default function LiveKitConsultation({
       
       const handleConnected = () => {
         logEvent('Room connected event');
+        if (!consultationStartTime.current) {
+          consultationStartTime.current = Date.now();
+        }
         connectionSupervisor.markConnected();
         startHeartbeat();
       };
@@ -693,6 +695,8 @@ export default function LiveKitConsultation({
   }, [room, connectionSupervisor.state, availableMinutes, totalMinutes, timeExpired, logEvent]);
 
   const endConsultation = useCallback(async () => {
+    if (isEndingRef.current) return;
+    isEndingRef.current = true;
     logEvent('Ending consultation');
     
     if (consultationStartTime.current) {
@@ -731,8 +735,12 @@ export default function LiveKitConsultation({
   // Handle time expired - end consultation (only if room was connected)
   useEffect(() => {
     if (timeExpired && room && connectionSupervisor.state === 'connected') {
-      // Only auto-disconnect if we're actually connected
-      // This allows showing upgrade CTAs without forced redirect
+      try {
+        room.disconnect();
+      } catch (error) {
+        logEvent('Failed to disconnect room on time expiry', { error });
+      }
+
       disconnectTimeoutRef.current = setTimeout(() => {
         endConsultation();
       }, 5000); // 5 seconds to show "time expired" message
@@ -744,7 +752,7 @@ export default function LiveKitConsultation({
         }
       };
     }
-  }, [timeExpired, room, connectionSupervisor.state, endConsultation]);
+  }, [timeExpired, room, connectionSupervisor.state, endConsultation, logEvent]);
 
   // Helper to format remaining time
   const formatTime = (seconds: number) => {
@@ -886,6 +894,8 @@ export default function LiveKitConsultation({
         }}
         onDisconnected={() => {
           logEvent('LiveKitRoom onDisconnected callback');
+          if (timeExpiredRef.current) return;
+          if (isEndingRef.current) return;
           endConsultation();
         }}
         onError={(error) => {
