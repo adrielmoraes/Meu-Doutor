@@ -3,6 +3,17 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import { put } from '@vercel/blob';
 
+function getContentTypeFromExtension(ext: string): string | undefined {
+  const normalized = (ext || '').toLowerCase();
+  if (normalized === '.mp3') return 'audio/mpeg';
+  if (normalized === '.wav') return 'audio/wav';
+  if (normalized === '.ogg') return 'audio/ogg';
+  if (normalized === '.jpg' || normalized === '.jpeg') return 'image/jpeg';
+  if (normalized === '.png') return 'image/png';
+  if (normalized === '.pdf') return 'application/pdf';
+  return undefined;
+}
+
 export async function saveUploadedFile(file: File, folder: string): Promise<string> {
   // Tentar usar Vercel Blob se o token estiver configurado
   const token = process.env.STORAGE_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN;
@@ -26,6 +37,7 @@ export async function saveUploadedFile(file: File, folder: string): Promise<stri
       const blob = await put(fileName, file, {
         access: 'public',
         token: token,
+        contentType: file.type || getContentTypeFromExtension(ext || '') || undefined,
       });
       
       console.log(`[Storage] File uploaded successfully: ${blob.url}`);
@@ -81,7 +93,8 @@ export async function saveFileBuffer(buffer: Buffer, originalName: string, folde
       const blob = await put(fileName, buffer, {
         access: 'public',
         token: token,
-      });
+        contentType: getContentTypeFromExtension(ext) || undefined,
+      } as any);
       
       console.log(`[Storage] Buffer uploaded successfully: ${blob.url}`);
       return blob.url;

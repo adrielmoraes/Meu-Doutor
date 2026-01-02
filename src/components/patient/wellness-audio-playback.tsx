@@ -86,6 +86,9 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
     const audio = audioRef.current;
     if (!audio) return;
 
+    audio.preload = 'auto';
+    audio.crossOrigin = 'anonymous';
+
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => {
       setIsPlaying(false);
@@ -104,6 +107,7 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
 
     if (resolvedAudioUri) {
       audio.src = resolvedAudioUri;
+      audio.load();
       setHasSavedAudio(true);
       setAudioLoaded(true);
       setIsPaused(false);
@@ -127,7 +131,11 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
   }, [resolvedAudioUri, section, textToSpeak]);
 
   const toggleAudio = async () => {
-    if (!audioRef.current) return;
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+      audioRef.current.preload = 'auto';
+      audioRef.current.crossOrigin = 'anonymous';
+    }
 
     if (isPlaying) {
       audioRef.current.pause();
@@ -150,10 +158,11 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
       const existingUri = resolvedAudioUri || await fetchSavedAudio();
       if (existingUri) {
         audioRef.current.src = existingUri;
+        audioRef.current.load();
         setAudioLoaded(true);
         setIsPaused(false);
         audioRef.current.currentTime = 0;
-        audioRef.current.play().catch(e => console.error("Audio play failed after load:", e));
+        await audioRef.current.play();
         return;
       }
 
@@ -173,18 +182,19 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
       setResolvedAudioUri(url);
       setHasSavedAudio(true);
       audioRef.current.src = url;
+      audioRef.current.load();
       setAudioLoaded(true);
       setIsPaused(false);
       audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(e => console.error("Audio play failed after generation:", e));
+      await audioRef.current.play();
       console.log(`[Wellness Audio] Audio ready for section "${section}"`);
       return;
     } catch (error) {
       console.error("Failed to generate audio:", error);
-      const errorMessage = error instanceof Error ? error.message : "Não foi possível gerar a narração. Tente novamente.";
+      const errorMessage = error instanceof Error ? error.message : "Não foi possível reproduzir o áudio. Tente novamente.";
       toast({
         variant: "destructive",
-        title: "Erro ao Gerar Áudio",
+        title: "Erro no Áudio",
         description: errorMessage,
       });
     } finally {
