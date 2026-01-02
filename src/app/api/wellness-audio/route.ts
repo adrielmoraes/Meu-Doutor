@@ -87,8 +87,13 @@ export async function POST(request: NextRequest) {
     const storedUrl = await saveFileBuffer(buffer, `wellness-${section}.${extension}`, 'wellness-audio');
 
     // Use atomic update to prevent race conditions and data loss
-    await updatePatientWellnessPlanAudio(session.userId, section, storedUrl);
-    revalidatePath('/patient/wellness');
+    try {
+      await updatePatientWellnessPlanAudio(session.userId, section, storedUrl);
+      revalidatePath('/patient/wellness');
+    } catch (dbError) {
+      console.error('[Wellness Audio] Warning: Failed to update DB with audio URL, but file was saved:', dbError);
+      // We continue because the audio file was successfully created and can be played
+    }
 
     console.log(`[Wellness Audio] ✅ Audio saved for section "${section}" - patient ${session.userId} at ${storedUrl}`);
 
