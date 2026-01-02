@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { PlayCircle, PauseCircle, Loader2, Volume2, XCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { textToSpeech } from "@/ai/flows/text-to-speech";
 
 interface WellnessAudioPlaybackProps {
   textToSpeak: string;
@@ -26,10 +25,59 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
   const [isPaused, setIsPaused] = useState(false);
   const [audioLoaded, setAudioLoaded] = useState(false);
   const [hasSavedAudio, setHasSavedAudio] = useState(!!preGeneratedAudioUri);
+  const [resolvedAudioUri, setResolvedAudioUri] = useState<string | null>(preGeneratedAudioUri || null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
   const isTextTooLong = textToSpeak.length > MAX_TTS_CHARS;
+
+  const fetchSavedAudio = useCallback(async (signal?: AbortSignal) => {
+    try {
+      const response = await fetch(`/api/wellness-audio?section=${section}`, {
+        method: 'GET',
+        signal,
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const data = await response.json();
+      const uri = data?.audioDataUri as string | null | undefined;
+      if (uri) {
+        setResolvedAudioUri(uri);
+        setHasSavedAudio(true);
+        return uri;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }, [section]);
+
+  useEffect(() => {
+    if (preGeneratedAudioUri) {
+      setResolvedAudioUri(preGeneratedAudioUri);
+      setHasSavedAudio(true);
+    }
+  }, [preGeneratedAudioUri]);
+
+  useEffect(() => {
+    if (preGeneratedAudioUri) return;
+    setResolvedAudioUri(null);
+    setHasSavedAudio(false);
+  }, [section, textToSpeak, preGeneratedAudioUri]);
+
+  useEffect(() => {
+    if (preGeneratedAudioUri) return;
+    if (resolvedAudioUri) return;
+    if (isTextTooLong) return;
+
+    const controller = new AbortController();
+    fetchSavedAudio(controller.signal);
+    return () => controller.abort();
+  }, [fetchSavedAudio, isTextTooLong, preGeneratedAudioUri, resolvedAudioUri]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !audioRef.current) {
@@ -54,8 +102,8 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
     audio.addEventListener('ended', handleEnded);
     audio.addEventListener('canplay', handleCanPlay);
 
-    if (preGeneratedAudioUri) {
-      audio.src = preGeneratedAudioUri;
+    if (resolvedAudioUri) {
+      audio.src = resolvedAudioUri;
       setHasSavedAudio(true);
       setAudioLoaded(true);
       setIsPaused(false);
@@ -76,26 +124,7 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
       audio.removeEventListener('canplay', handleCanPlay);
       audio.pause();
     };
-  }, [preGeneratedAudioUri, section, textToSpeak]);
-
-  const saveAudioToServer = useCallback(async (audioDataUri: string) => {
-    try {
-      const response = await fetch('/api/wellness-audio', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ section, audioDataUri }),
-      });
-
-      if (response.ok) {
-        setHasSavedAudio(true);
-        console.log(`[Wellness Audio] Audio saved for section "${section}"`);
-      } else {
-        console.error('[Wellness Audio] Failed to save audio:', await response.text());
-      }
-    } catch (error) {
-      console.error('[Wellness Audio] Error saving audio:', error);
-    }
-  }, [section]);
+  }, [resolvedAudioUri, section, textToSpeak]);
 
   const toggleAudio = async () => {
     if (!audioRef.current) return;
@@ -118,16 +147,38 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
 
     setIsGenerating(true);
     try {
-      const response = await textToSpeech({ text: textToSpeak, patientId });
-      if (response?.audioDataUri) {
-        audioRef.current.src = response.audioDataUri;
+      const existingUri = resolvedAudioUri || await fetchSavedAudio();
+      if (existingUri) {
+        audioRef.current.src = existingUri;
         setAudioLoaded(true);
-        audioRef.current.play().catch(e => console.error("Audio play failed after generation:", e));
-
-        saveAudioToServer(response.audioDataUri);
-      } else {
-        throw new Error("A API de áudio não retornou dados.");
+        setIsPaused(false);
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(e => console.error("Audio play failed after load:", e));
+        return;
       }
+
+      const saveResponse = await fetch('/api/wellness-audio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section, text: textToSpeak, patientId }),
+      });
+
+      const saveData = await saveResponse.json().catch(() => ({}));
+      if (!saveResponse.ok || !saveData?.url) {
+        const details = typeof saveData?.error === 'string' ? saveData.error : '';
+        throw new Error(details || "Não foi possível gerar/salvar o áudio.");
+      }
+
+      const url = saveData.url as string;
+      setResolvedAudioUri(url);
+      setHasSavedAudio(true);
+      audioRef.current.src = url;
+      setAudioLoaded(true);
+      setIsPaused(false);
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(e => console.error("Audio play failed after generation:", e));
+      console.log(`[Wellness Audio] Audio ready for section "${section}"`);
+      return;
     } catch (error) {
       console.error("Failed to generate audio:", error);
       const errorMessage = error instanceof Error ? error.message : "Não foi possível gerar a narração. Tente novamente.";

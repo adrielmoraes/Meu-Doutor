@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { getPatientById, updatePatientWellnessPlanAudio } from '@/lib/db-adapter';
 import { saveFileBuffer } from '@/lib/file-storage';
+import { revalidatePath } from 'next/cache';
+import { textToSpeech } from '@/ai/flows/text-to-speech';
 
 type AudioSection = 'dietary' | 'exercise' | 'mental';
 
@@ -13,9 +15,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { section, audioDataUri } = body as { section: AudioSection; audioDataUri: string };
+    const { section, audioDataUri, text } = body as { section: AudioSection; audioDataUri?: string; text?: string };
 
-    if (!section || !audioDataUri) {
+    if (!section || (!audioDataUri && !text)) {
       return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
     }
 
@@ -28,34 +30,69 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Paciente ou plano de bem-estar não encontrado' }, { status: 404 });
     }
 
-    // Converter e salvar áudio no Storage
-    // Evitar regex em string muito grande para evitar RangeError: Maximum call stack size exceeded
-    if (!audioDataUri.startsWith('data:')) {
-        return NextResponse.json({ error: 'Formato de áudio inválido' }, { status: 400 });
+    const existingAudioUriMap: Record<AudioSection, string | undefined> = {
+      dietary: patient.wellnessPlan.dietaryPlanAudioUri,
+      exercise: patient.wellnessPlan.exercisePlanAudioUri,
+      mental: patient.wellnessPlan.mentalWellnessPlanAudioUri,
+    };
+
+    const existingAudioUri = existingAudioUriMap[section];
+    if (existingAudioUri && !audioDataUri) {
+      return NextResponse.json({ success: true, url: existingAudioUri, reused: true });
     }
 
-    const commaIndex = audioDataUri.indexOf(',');
-    if (commaIndex === -1) {
-        return NextResponse.json({ error: 'Formato de áudio inválido' }, { status: 400 });
-    }
-
-    const meta = audioDataUri.substring(5, commaIndex);
-    const base64Data = audioDataUri.substring(commaIndex + 1);
-    const mimeType = meta.split(';')[0];
-
-    const buffer = Buffer.from(base64Data, 'base64');
+    let buffer: Buffer;
     let extension = 'wav';
-    if (mimeType.includes('mpeg')) extension = 'mp3';
-    else if (mimeType.includes('ogg')) extension = 'ogg';
+
+    if (audioDataUri) {
+      if (!audioDataUri.startsWith('data:')) {
+        return NextResponse.json({ error: 'Formato de áudio inválido' }, { status: 400 });
+      }
+
+      const commaIndex = audioDataUri.indexOf(',');
+      if (commaIndex === -1) {
+        return NextResponse.json({ error: 'Formato de áudio inválido' }, { status: 400 });
+      }
+
+      const meta = audioDataUri.substring(5, commaIndex);
+      const base64Data = audioDataUri.substring(commaIndex + 1);
+      const mimeType = meta.split(';')[0];
+
+      buffer = Buffer.from(base64Data, 'base64');
+      if (mimeType.includes('mpeg')) extension = 'mp3';
+      else if (mimeType.includes('ogg')) extension = 'ogg';
+    } else {
+      const trimmedText = (text || '').trim();
+      if (!trimmedText) {
+        return NextResponse.json({ error: 'Texto inválido' }, { status: 400 });
+      }
+      if (trimmedText.length > 6000) {
+        return NextResponse.json({ error: 'Texto muito longo para gerar áudio' }, { status: 413 });
+      }
+
+      const tts = await textToSpeech({
+        text: trimmedText,
+        patientId: session.userId,
+        returnBuffer: true,
+      });
+
+      if (!tts?.audioBuffer || !(tts.audioBuffer instanceof Buffer)) {
+        return NextResponse.json({ error: 'Falha ao gerar áudio' }, { status: 500 });
+      }
+
+      buffer = tts.audioBuffer;
+      extension = 'wav';
+    }
     
     const storedUrl = await saveFileBuffer(buffer, `wellness-${section}.${extension}`, 'wellness-audio');
 
     // Use atomic update to prevent race conditions and data loss
     await updatePatientWellnessPlanAudio(session.userId, section, storedUrl);
+    revalidatePath('/patient/wellness');
 
     console.log(`[Wellness Audio] ✅ Audio saved for section "${section}" - patient ${session.userId} at ${storedUrl}`);
 
-    return NextResponse.json({ success: true, url: storedUrl });
+    return NextResponse.json({ success: true, url: storedUrl, reused: false });
   } catch (error: any) {
     console.error('[Wellness Audio] Error saving audio:', error);
     return NextResponse.json(
