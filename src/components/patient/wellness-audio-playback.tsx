@@ -189,8 +189,14 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
       await audioRef.current.play();
       console.log(`[Wellness Audio] Audio ready for section "${section}"`);
       return;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to generate audio:", error);
+
+      // Ignore AbortError which happens when pausing while loading/playing
+      if (error.name === 'AbortError' || error.message?.includes('interrupted by a call to pause')) {
+        return;
+      }
+
       const errorMessage = error instanceof Error ? error.message : "Não foi possível reproduzir o áudio. Tente novamente.";
       toast({
         variant: "destructive",
