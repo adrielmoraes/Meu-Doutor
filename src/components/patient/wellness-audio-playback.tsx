@@ -58,6 +58,15 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
       audio.src = preGeneratedAudioUri;
       setHasSavedAudio(true);
       setAudioLoaded(true);
+      setIsPaused(false);
+    } else {
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+      setIsPlaying(false);
+      setIsPaused(false);
+      setAudioLoaded(false);
+      setHasSavedAudio(false);
     }
 
     return () => {
@@ -67,7 +76,7 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
       audio.removeEventListener('canplay', handleCanPlay);
       audio.pause();
     };
-  }, [preGeneratedAudioUri]);
+  }, [preGeneratedAudioUri, section, textToSpeak]);
 
   const saveAudioToServer = useCallback(async (audioDataUri: string) => {
     try {

@@ -14,7 +14,7 @@ import {
   signals,
   consultations,
 } from '../../shared/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import type { Doctor, DoctorWithPassword, Patient, PatientWithPassword, Admin, AdminWithPassword, Exam, Appointment, Consultation, AdminSettings, AuditLog, UsageTracking, PatientUsageStats } from '@/types';
 import { randomUUID } from 'crypto';
 
@@ -398,6 +398,27 @@ export async function updatePatientWellnessPlan(
     wellnessPlan,
     updatedAt: new Date()
   }).where(eq(patients.id, patientId));
+}
+
+export async function updatePatientWellnessPlanAudio(
+  patientId: string,
+  section: 'dietary' | 'exercise' | 'mental',
+  audioUri: string
+): Promise<void> {
+  const fieldMap = {
+    dietary: 'dietaryPlanAudioUri',
+    exercise: 'exercisePlanAudioUri',
+    mental: 'mentalWellnessPlanAudioUri',
+  };
+  const field = fieldMap[section];
+
+  // Use SQL to update specific field in JSONB column to avoid race conditions
+  await db.execute(sql`
+    UPDATE patients 
+    SET wellness_plan = jsonb_set(wellness_plan, ${sql.raw(`'{${field}}'`)}, ${JSON.stringify(audioUri)}::jsonb),
+        updated_at = NOW()
+    WHERE id = ${patientId}
+  `);
 }
 
 export async function getAppointmentsForPatient(patientId: string): Promise<Appointment[]> {

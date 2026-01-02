@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
-import { getPatientById, updatePatientWellnessPlan } from '@/lib/db-adapter';
+import { getPatientById, updatePatientWellnessPlanAudio } from '@/lib/db-adapter';
 import { saveFileBuffer } from '@/lib/file-storage';
 
 type AudioSection = 'dietary' | 'exercise' | 'mental';
@@ -50,20 +50,8 @@ export async function POST(request: NextRequest) {
     
     const storedUrl = await saveFileBuffer(buffer, `wellness-${section}.${extension}`, 'wellness-audio');
 
-    const audioFieldMap: Record<AudioSection, keyof typeof patient.wellnessPlan> = {
-      dietary: 'dietaryPlanAudioUri',
-      exercise: 'exercisePlanAudioUri',
-      mental: 'mentalWellnessPlanAudioUri',
-    };
-
-    const audioField = audioFieldMap[section];
-    
-    const updatedPlan = {
-      ...patient.wellnessPlan,
-      [audioField]: storedUrl,
-    };
-
-    await updatePatientWellnessPlan(session.userId, updatedPlan);
+    // Use atomic update to prevent race conditions and data loss
+    await updatePatientWellnessPlanAudio(session.userId, section, storedUrl);
 
     console.log(`[Wellness Audio] ✅ Audio saved for section "${section}" - patient ${session.userId} at ${storedUrl}`);
 

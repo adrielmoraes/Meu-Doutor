@@ -162,7 +162,12 @@ export async function addExamAction(patientId: string, examData: Omit<Exam, 'id'
             resourceName: examData.type,
         });
 
+        regeneratePatientWellnessPlan(patientId).catch(error => {
+            console.error('[addExamAction] Failed to update wellness plan:', error);
+        });
+
         revalidatePath('/patient/history');
+        revalidatePath('/patient/wellness');
         return { success: true, examId };
     } catch (error: any) {
         console.error('Erro ao adicionar exame:', error);
@@ -244,9 +249,12 @@ export async function analyzeSingleExamAction(
 
         // Automatically update wellness plan unless explicitly skipped
         if (!options?.skipWellnessUpdate) {
-            regeneratePatientWellnessPlan(patientId).catch(error => {
+            try {
+                await regeneratePatientWellnessPlan(patientId);
+                revalidatePath('/patient/wellness');
+            } catch (error) {
                 console.error('[Analyze Single Exam] Failed to update wellness plan:', error);
-            });
+            }
         }
 
         return { success: true, examId, analysis };
@@ -325,9 +333,11 @@ export async function consolidateExamsAction(
 
         console.log(`[Consolidate Exams] ✅ Consolidation complete`);
 
-        regeneratePatientWellnessPlan(patientId).catch(error => {
+        try {
+            await regeneratePatientWellnessPlan(patientId);
+        } catch (error) {
             console.error('[Consolidate Exams] Failed to update wellness plan:', error);
-        });
+        }
 
         revalidatePath('/patient/history');
         revalidatePath('/patient/wellness');
@@ -385,9 +395,11 @@ export async function consolidateSavedExamsAction(
             });
         }
 
-        regeneratePatientWellnessPlan(patientId).catch(error => {
+        try {
+            await regeneratePatientWellnessPlan(patientId);
+        } catch (error) {
             console.error('[consolidateSavedExamsAction] Failed to update wellness plan:', error);
-        });
+        }
 
         revalidatePath('/patient/history');
         revalidatePath('/patient/wellness');

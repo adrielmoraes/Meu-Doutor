@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { generateHealthInsights } from '@/ai/flows/generate-health-insights';
 import { summarizePatientHistory } from '@/ai/flows/summarize-patient-history';
 import { explainDiagnosisToPatient } from '@/ai/flows/explain-diagnosis-flow';
+import { regeneratePatientWellnessPlan } from '@/ai/flows/update-wellness-plan';
 
 import { saveFileBuffer } from '@/lib/file-storage';
 
@@ -54,12 +55,19 @@ export async function validateExamDiagnosisAction(patientId: string, examId: str
             status: 'Validado',
         });
     }
+
+    try {
+      await regeneratePatientWellnessPlan(patientId);
+    } catch (error) {
+      console.error('[validateExamDiagnosisAction] Failed to update wellness plan:', error);
+    }
     
     // Revalidate paths to reflect changes immediately across the app
     revalidatePath(`/doctor/patients/${patientId}`);
     revalidatePath('/doctor/patients');
     revalidatePath(`/patient/history/${examId}`);
     revalidatePath('/patient/dashboard'); // Revalidate patient dashboard
+    revalidatePath('/patient/wellness');
     
     return { success: true, message: 'Exame validado com sucesso!' };
   } catch (error) {
@@ -103,7 +111,14 @@ export async function validateMultipleExamsAction(patientId: string, examIds: st
             await updatePatient(patientId, { status: 'Validado' });
         }
 
+        try {
+            await regeneratePatientWellnessPlan(patientId);
+        } catch (error) {
+            console.error('[validateMultipleExamsAction] Failed to update wellness plan:', error);
+        }
+
         revalidatePath(`/doctor/patients/${patientId}`);
+        revalidatePath('/patient/wellness');
         return { success: true, message: `${examIds.length} exames validados com sucesso.` };
 
     } catch (error) {

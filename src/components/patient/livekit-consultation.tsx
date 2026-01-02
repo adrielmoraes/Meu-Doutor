@@ -619,7 +619,11 @@ export default function LiveKitConsultation({
     };
 
     // Check if we should have a timer running
-    const isConnected = room && connectionSupervisor.state === 'connected';
+    // Use room.state as source of truth, fallback to connectionSupervisor
+    const isRoomConnected = room?.state === 'connected';
+    const isSupervisorConnected = connectionSupervisor.state === 'connected';
+    const isConnected = room && (isRoomConnected || isSupervisorConnected);
+    
     // Use availableMinutes if defined, otherwise fall back to totalMinutes
     const effectiveMinutes = availableMinutes !== undefined ? availableMinutes : totalMinutes;
     const hasTimeLimit = effectiveMinutes !== undefined && effectiveMinutes !== Infinity;
@@ -642,7 +646,7 @@ export default function LiveKitConsultation({
       effectiveMinutes
     });
 
-    // Timer tick function - extracted for reuse
+    // Timer tick function
     const timerTick = () => {
       // Check if plan changed to unlimited during interval (instant halt)
       const currentAvail = availableMinutesRef.current;
@@ -732,10 +736,12 @@ export default function LiveKitConsultation({
     window.location.href = '/patient/dashboard';
   }, [connectionSupervisor, logEvent, patientId, tokenManager]);
 
-  // Handle time expired - end consultation (only if room was connected)
+  // Handle time expired - end consultation
   useEffect(() => {
-    if (timeExpired && room && connectionSupervisor.state === 'connected') {
+    // If time expired and we have a room, disconnect regardless of supervisor state
+    if (timeExpired && room) {
       try {
+        logEvent('Time expired - forcing disconnection');
         room.disconnect();
       } catch (error) {
         logEvent('Failed to disconnect room on time expiry', { error });
@@ -752,7 +758,7 @@ export default function LiveKitConsultation({
         }
       };
     }
-  }, [timeExpired, room, connectionSupervisor.state, endConsultation, logEvent]);
+  }, [timeExpired, room, endConsultation, logEvent]);
 
   // Helper to format remaining time
   const formatTime = (seconds: number) => {
