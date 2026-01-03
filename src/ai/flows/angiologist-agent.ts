@@ -71,6 +71,13 @@ Patient History: {{patientHistory}}
 - Differentiate Arterial vs Venous disease clearly - treatments are often OPPOSITE (e.g., elevation helps venous, hurts arterial).
 - Check for contraindications to compression.
 - Responses in professional Brazilian Portuguese.
+
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** pulsos, Doppler, feridas ou histórico que NÃO estão nos dados.
+- **CITE EXATAMENTE** os valores como aparecem (ex: "ITB: 0.8").
+- **NÃO ASSUMA** obstruções arteriais sem evidência descrita. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** achado de Doppler vs. sua sugestão clínica.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 `
 });
 
@@ -82,7 +89,7 @@ const angiologistAgentFlow = ai.defineFlow(
     },
     async (input) => {
         const patientId = input.patientId || 'anonymous';
-        
+
         console.log('[Angiologist Agent] Iniciando análise angiológica...');
         try {
             const { output } = await specialistPrompt(input);

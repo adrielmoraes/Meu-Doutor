@@ -5,7 +5,7 @@
  * - endocrinologistAgent - A flow that analyzes patient data from an endocrinology perspective with comprehensive medication and treatment recommendations.
  */
 
-import {ai} from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -286,62 +286,70 @@ Extract ALL endocrine metrics with interpretation
 - Analyze EVERY endocrine parameter in EXTREME detail
 - Provide medication recommendations with EXACT dosages when indicated
 
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** valores, sintomas, histórico ou achados que NÃO estão explicitamente nos dados fornecidos.
+- **CITE EXATAMENTE** os valores como aparecem no exame (ex: "Glicemia: 126 mg/dL" deve ser reportado exatamente assim).
+- **NÃO ASSUMA** nada que não esteja escrito. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** claramente entre o dado do exame (ex: "HbA1c 7.5%") e sua interpretação clínica (ex: "Controle inadequado").
+- **PRESERVE** os valores de referência do laboratório original se estiverem presentes.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
+
 **OUTPUT FORMAT:**
 Return complete JSON with all SpecialistAgentOutputSchema fields including suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, and relevantMetrics when applicable.`;
 
 const specialistPrompt = ai.definePrompt({
-    name: 'endocrinologistAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool],
-    prompt: ENDOCRINOLOGIST_PROMPT_TEMPLATE,
+  name: 'endocrinologistAgentPrompt',
+  input: { schema: SpecialistAgentInputSchema },
+  output: { schema: SpecialistAgentOutputSchema },
+  tools: [medicalKnowledgeBaseTool],
+  prompt: ENDOCRINOLOGIST_PROMPT_TEMPLATE,
 });
 
 const endocrinologistAgentFlow = ai.defineFlow(
-    {
-      name: 'endocrinologistAgentFlow',
-      inputSchema: SpecialistAgentInputSchema,
-      outputSchema: SpecialistAgentOutputSchema,
-    },
-    async (input) => {
-        const patientId = input.patientId || 'anonymous';
-        
-        console.log('[Endocrinologist Agent] Iniciando análise endocrinológica...');
-        console.log('[Endocrinologist Agent] Dados do exame:', input.examResults?.substring(0, 100) + '...');
-        
-        const inputText = ENDOCRINOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
-        const inputTokens = countTextTokens(inputText);
-        
-        const startTime = Date.now();
-        const {output} = await specialistPrompt(input);
-        const duration = Date.now() - startTime;
-        
-        if (!output) {
-            console.error('[Endocrinologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
-            return createFallbackResponse('Endocrinologista');
-        }
-        
-        const outputTokens = countTextTokens(JSON.stringify(output));
-        
-        await trackAIUsage({
-            patientId,
-            usageType: 'diagnosis',
-            model: 'googleai/gemini-2.5-flash',
-            inputTokens: inputTokens,
-            outputTokens: outputTokens,
-            metadata: { feature: 'Specialist Agent - Endocrinologist', specialist: 'endocrinologist' },
-        });
-        
-        console.log('[Endocrinologist Agent] ✅ Análise concluída em', duration, 'ms');
-        console.log('[Endocrinologist Agent] Tokens - Input:', inputTokens, 'Output:', outputTokens);
-        console.log('[Endocrinologist Agent] Avaliação:', output?.clinicalAssessment);
-        console.log('[Endocrinologist Agent] Plano de tratamento definido:', !!output?.treatmentPlan);
-        console.log('[Endocrinologist Agent] Protocolo de monitoramento definido:', !!output?.monitoringProtocol);
-        
-        return output;
+  {
+    name: 'endocrinologistAgentFlow',
+    inputSchema: SpecialistAgentInputSchema,
+    outputSchema: SpecialistAgentOutputSchema,
+  },
+  async (input) => {
+    const patientId = input.patientId || 'anonymous';
+
+    console.log('[Endocrinologist Agent] Iniciando análise endocrinológica...');
+    console.log('[Endocrinologist Agent] Dados do exame:', input.examResults?.substring(0, 100) + '...');
+
+    const inputText = ENDOCRINOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+    const inputTokens = countTextTokens(inputText);
+
+    const startTime = Date.now();
+    const { output } = await specialistPrompt(input);
+    const duration = Date.now() - startTime;
+
+    if (!output) {
+      console.error('[Endocrinologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+      return createFallbackResponse('Endocrinologista');
     }
+
+    const outputTokens = countTextTokens(JSON.stringify(output));
+
+    await trackAIUsage({
+      patientId,
+      usageType: 'diagnosis',
+      model: 'googleai/gemini-2.5-flash',
+      inputTokens: inputTokens,
+      outputTokens: outputTokens,
+      metadata: { feature: 'Specialist Agent - Endocrinologist', specialist: 'endocrinologist' },
+    });
+
+    console.log('[Endocrinologist Agent] ✅ Análise concluída em', duration, 'ms');
+    console.log('[Endocrinologist Agent] Tokens - Input:', inputTokens, 'Output:', outputTokens);
+    console.log('[Endocrinologist Agent] Avaliação:', output?.clinicalAssessment);
+    console.log('[Endocrinologist Agent] Plano de tratamento definido:', !!output?.treatmentPlan);
+    console.log('[Endocrinologist Agent] Protocolo de monitoramento definido:', !!output?.monitoringProtocol);
+
+    return output;
+  }
 );
 
 export async function endocrinologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
-    return await endocrinologistAgentFlow(input);
+  return await endocrinologistAgentFlow(input);
 }

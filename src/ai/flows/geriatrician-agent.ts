@@ -76,6 +76,13 @@ Patient History: {{patientHistory}}
 - Always check renal function (CrCl or eGFR) before suggesting meds.
 - Focus on Quality of Life (QoL) over aggressive cure in frail patients.
 - Responses in professional Brazilian Portuguese.
+
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** medicações, estados de fragilidade ou histórico que NÃO estão nos dados.
+- **CITE EXATAMENTE** os dados como aparecem (ex: "eGFR: 45 mL/min/1.73m²").
+- **NÃO ASSUMA** declínios cognitivos não descritos. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** fisiologia do envelhecimento vs. achados patológicos.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 `
 });
 
@@ -87,7 +94,7 @@ const geriatricianAgentFlow = ai.defineFlow(
     },
     async (input) => {
         const patientId = input.patientId || 'anonymous';
-        
+
         console.log('[Geriatrician Agent] Iniciando análise geriátrica...');
         try {
             const { output } = await specialistPrompt(input);

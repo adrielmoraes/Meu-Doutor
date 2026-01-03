@@ -6,7 +6,7 @@
  * - rheumatologistAgent - A flow that analyzes patient data from a rheumatology perspective.
  */
 
-import {ai} from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -71,6 +71,13 @@ Analyze rheumatologic indicators if present:
 - Use medicalKnowledgeBaseTool for rheumatologic terminology clarification
 - All responses in Brazilian Portuguese
 
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** achados articulares, marcadores inflamatórios ou histórico que NÃO estão nos dados.
+- **CITE EXATAMENTE** os valores como aparecem (ex: "VHS: 50 mm/h", "PCR: 15 mg/L").
+- **NÃO ASSUMA** doenças autoimunes sem critérios descritos. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** marcador laboratorial vs. sua interpretação clínica.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
+
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
@@ -86,48 +93,48 @@ const specialistPrompt = ai.definePrompt({
 });
 
 const rheumatologistAgentFlow = ai.defineFlow(
-    {
-      name: 'rheumatologistAgentFlow',
-      inputSchema: SpecialistAgentInputSchema,
-      outputSchema: SpecialistAgentOutputSchema,
-    },
-    async (input) => {
-        const patientId = input.patientId || 'anonymous';
-        
-        console.log('[Rheumatologist Agent] Iniciando análise reumatológica...');
-        console.log('[Rheumatologist Agent] Tamanho dos dados recebidos:', input.examResults?.length || 0);
-        
-        const startTime = Date.now();
-        const {output} = await specialistPrompt(input);
-        const duration = Date.now() - startTime;
-        
-        if (!output) {
-            console.error('[Rheumatologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
-            return createFallbackResponse('Reumatologista');
-        }
-        
-        console.log('[Rheumatologist Agent] ✅ Análise concluída em', duration, 'ms');
-        console.log('[Rheumatologist Agent] Avaliação clínica:', output?.clinicalAssessment);
-        console.log('[Rheumatologist Agent] Achados identificados:', output?.findings?.substring(0, 150));
-        console.log('[Rheumatologist Agent] Recomendações geradas:', !!output?.recommendations);
+  {
+    name: 'rheumatologistAgentFlow',
+    inputSchema: SpecialistAgentInputSchema,
+    outputSchema: SpecialistAgentOutputSchema,
+  },
+  async (input) => {
+    const patientId = input.patientId || 'anonymous';
 
-        const inputText = RHEUMATOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
-        const inputTokens = countTextTokens(inputText);
-        const outputTokens = countTextTokens(JSON.stringify(output));
-        await trackAIUsage({
-          patientId,
-          usageType: 'diagnosis',
-          model: 'googleai/gemini-2.5-flash',
-          inputTokens,
-          outputTokens,
-          metadata: { specialist: 'rheumatologist' },
-        });
+    console.log('[Rheumatologist Agent] Iniciando análise reumatológica...');
+    console.log('[Rheumatologist Agent] Tamanho dos dados recebidos:', input.examResults?.length || 0);
 
-        return output;
+    const startTime = Date.now();
+    const { output } = await specialistPrompt(input);
+    const duration = Date.now() - startTime;
+
+    if (!output) {
+      console.error('[Rheumatologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+      return createFallbackResponse('Reumatologista');
     }
+
+    console.log('[Rheumatologist Agent] ✅ Análise concluída em', duration, 'ms');
+    console.log('[Rheumatologist Agent] Avaliação clínica:', output?.clinicalAssessment);
+    console.log('[Rheumatologist Agent] Achados identificados:', output?.findings?.substring(0, 150));
+    console.log('[Rheumatologist Agent] Recomendações geradas:', !!output?.recommendations);
+
+    const inputText = RHEUMATOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+    const inputTokens = countTextTokens(inputText);
+    const outputTokens = countTextTokens(JSON.stringify(output));
+    await trackAIUsage({
+      patientId,
+      usageType: 'diagnosis',
+      model: 'googleai/gemini-2.5-flash',
+      inputTokens,
+      outputTokens,
+      metadata: { specialist: 'rheumatologist' },
+    });
+
+    return output;
+  }
 );
 
 
 export async function rheumatologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
-    return await rheumatologistAgentFlow(input);
+  return await rheumatologistAgentFlow(input);
 }

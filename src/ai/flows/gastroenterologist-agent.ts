@@ -5,7 +5,7 @@
  * - gastroenterologistAgent - A flow that analyzes patient data from a gastroenterology perspective.
  */
 
-import {ai} from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -56,6 +56,13 @@ Analyze GI indicators if present:
 - If NO GI data present: "Nenhuma observação gastroenterológica relevante nos dados fornecidos." / "Not Applicable" / "Nenhuma recomendação específica."
 - Use medicalKnowledgeBaseTool for GI terminology clarification
 - All responses in Brazilian Portuguese
+
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** valores, achados ou histórico que NÃO estão nos dados.
+- **CITE EXATAMENTE** os valores como aparecem no exame.
+- **NÃO ASSUMA** nada que não esteja escrito. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** dado do exame vs. sua interpretação.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 - For optional fields (suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, relevantMetrics): 
   * If not applicable, OMIT the field entirely from the response (do not include empty objects or arrays)
   * Only include these fields when you have actual content to provide
@@ -78,39 +85,39 @@ const specialistPrompt = ai.definePrompt({
 });
 
 const gastroenterologistAgentFlow = ai.defineFlow(
-    {
-      name: 'gastroenterologistAgentFlow',
-      inputSchema: SpecialistAgentInputSchema,
-      outputSchema: SpecialistAgentOutputSchema,
-    },
-    async (input) => {
-        const patientId = input.patientId || 'anonymous';
-        
-        
-        const inputText = GASTROENTEROLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
-        const inputTokens = countTextTokens(inputText);
-        
-        const {output} = await specialistPrompt(input);
-        if (!output) {
-            console.error('[Gastroenterologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
-            return createFallbackResponse('Gastroenterologista');
-        }
-        
-        const outputTokens = countTextTokens(JSON.stringify(output));
-        
-        await trackAIUsage({
-          patientId,
-          usageType: 'diagnosis',
-          model: 'googleai/gemini-2.5-flash',
-          inputTokens: inputTokens,
-          outputTokens: outputTokens,
-          metadata: { specialist: 'gastroenterologist' },
-        });
-        
-        return output;
+  {
+    name: 'gastroenterologistAgentFlow',
+    inputSchema: SpecialistAgentInputSchema,
+    outputSchema: SpecialistAgentOutputSchema,
+  },
+  async (input) => {
+    const patientId = input.patientId || 'anonymous';
+
+
+    const inputText = GASTROENTEROLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+    const inputTokens = countTextTokens(inputText);
+
+    const { output } = await specialistPrompt(input);
+    if (!output) {
+      console.error('[Gastroenterologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+      return createFallbackResponse('Gastroenterologista');
     }
+
+    const outputTokens = countTextTokens(JSON.stringify(output));
+
+    await trackAIUsage({
+      patientId,
+      usageType: 'diagnosis',
+      model: 'googleai/gemini-2.5-flash',
+      inputTokens: inputTokens,
+      outputTokens: outputTokens,
+      metadata: { specialist: 'gastroenterologist' },
+    });
+
+    return output;
+  }
 );
 
 export async function gastroenterologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
-    return await gastroenterologistAgentFlow(input);
+  return await gastroenterologistAgentFlow(input);
 }

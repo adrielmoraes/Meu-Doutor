@@ -10,10 +10,10 @@
  * - As recomendações sejam específicas e acionáveis
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-import {medicalKnowledgeBaseTool} from '@/ai/tools/medical-knowledge-base';
-import type {SpecialistAgentInput, SpecialistAgentOutput} from './specialist-agent-types';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
+import { medicalKnowledgeBaseTool } from '@/ai/tools/medical-knowledge-base';
+import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 
 const ValidationResultSchema = z.object({
   isValid: z.boolean().describe("Se a resposta do especialista está válida e completa"),
@@ -51,7 +51,7 @@ const validatorPrompt = ai.definePrompt({
       }),
     }),
   },
-  output: {schema: ValidationResultSchema},
+  output: { schema: ValidationResultSchema },
   tools: [medicalKnowledgeBaseTool],
   prompt: `Você é **Dr. Márcio Silva - Validador Médico Sênior**, um médico auditor com 30+ anos de experiência em controle de qualidade clínica e revisão por pares. Sua missão é garantir a EXCELÊNCIA e PRECISÃO de todas as análises médicas antes que cheguem ao orquestrador.
 
@@ -111,6 +111,9 @@ Cuidados de Suporte: {{specialistResponse.treatmentPlan.supportiveCare}}
 - Resposta genérica sem dados específicos (ex: "paciente apresenta alterações" sem citar quais)
 - Valores numéricos ausentes (ex: "pressão elevada" em vez de "PA 150/95 mmHg")
 - "Não aplicável" quando CLARAMENTE há dados da especialidade
+- **VIOLAÇÃO DE INTEGRIDADE**: Se a IA mencionou um valor que não existe nos exames originais.
+
+**⚠️ AGORA MAIS RIGOROSO**: Se o especialista inventar QUALQUER dado (valor de laboratório, sintoma não relatado, achado de imagem não descrito), a análise deve ser **REPROVADA IMEDIATAMENTE** independente do score.
 
 **2. FUNDAMENTAÇÃO BASEADA EM EVIDÊNCIAS (25 pontos)**
 
@@ -125,6 +128,7 @@ Cuidados de Suporte: {{specialistResponse.treatmentPlan.supportiveCare}}
 - Afirmações vagas sem suporte (ex: "risco cardiovascular alto" sem justificar com dados)
 - Inventa sintomas não relatados no histórico
 - Contradições entre achados e dados fornecidos
+- **VIOLAÇÃO DAS REGRAS DE INTEGRIDADE**: O especialista falhou em citar valores exatos ou criou dados fictícios.
 
 **3. ESPECIFICIDADE DAS RECOMENDAÇÕES (20 pontos)**
 
@@ -265,12 +269,12 @@ export async function validateSpecialistResponse(
   specialistResponse: SpecialistAgentOutput,
   specialistAgent: (input: SpecialistAgentInput) => Promise<SpecialistAgentOutput>,
   attemptNumber = 1
-): Promise<{validated: true; response: SpecialistAgentOutput} | {validated: false; error: string}> {
-  
+): Promise<{ validated: true; response: SpecialistAgentOutput } | { validated: false; error: string }> {
+
   console.log(`[Validator Agent] 🔍 Validando resposta do ${specialistName} (tentativa ${attemptNumber}/${MAX_RETRY_ATTEMPTS + 1})...`);
-  
+
   const startTime = Date.now();
-  
+
   try {
     const validationResult = await validatorPrompt({
       specialistName,
@@ -283,7 +287,7 @@ export async function validateSpecialistResponse(
 
     console.log(`[Validator Agent] Score: ${validation.validationScore}/100`);
     console.log(`[Validator Agent] Status: ${validation.approvedResponse ? '✅ APROVADO' : '❌ REPROVADO'}`);
-    
+
     if (validation.issues.length > 0) {
       console.log(`[Validator Agent] Problemas encontrados: ${validation.issues.length}`);
       validation.issues.forEach((issue, idx) => {
@@ -294,17 +298,17 @@ export async function validateSpecialistResponse(
     // Se aprovado, retorna a resposta validada
     if (validation.approvedResponse) {
       console.log(`[Validator Agent] ✅ Validação concluída em ${duration}ms - APROVADO`);
-      return {validated: true, response: specialistResponse};
+      return { validated: true, response: specialistResponse };
     }
 
     // Se reprovado e ainda há tentativas, solicita reanálise
     if (attemptNumber <= MAX_RETRY_ATTEMPTS) {
       console.log(`[Validator Agent] ⚠️ Solicitando reanálise ao ${specialistName}...`);
       console.log(`[Validator Agent] Feedback: ${validation.feedback}`);
-      
+
       // Chama o especialista novamente com contexto do feedback
       const improvedResponse = await specialistAgent(originalInput);
-      
+
       // Valida recursivamente a nova resposta
       return validateSpecialistResponse(
         specialistName,
@@ -326,6 +330,6 @@ export async function validateSpecialistResponse(
     console.error(`[Validator Agent] ❌ Erro na validação:`, error);
     // Em caso de erro no validador, aceita a resposta original (fail-safe)
     console.log(`[Validator Agent] ⚠️ Aceitando resposta original devido a erro no validador (fail-safe)`);
-    return {validated: true, response: specialistResponse};
+    return { validated: true, response: specialistResponse };
   }
 }

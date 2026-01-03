@@ -71,6 +71,13 @@ Patient History: {{patientHistory}}
 - Differentiate Sensitization (positive test) from Allergy (symptoms).
 - Check C4 levels if angioedema without urticaria (HAE concern).
 - Responses in professional Brazilian Portuguese.
+
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** níveis de IgE, eosinófilos ou reações alérgicas que NÃO estão nos dados.
+- **CITE EXATAMENTE** os valores como aparecem (ex: "IgE Total: 250 IU/mL").
+- **NÃO ASSUMA** alergias alimentares sem relato explícito. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** sensibilização (teste positivo) vs. alergia clínica (sintomas).
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 `
 });
 
@@ -82,7 +89,7 @@ const allergistAgentFlow = ai.defineFlow(
     },
     async (input) => {
         const patientId = input.patientId || 'anonymous';
-        
+
         console.log('[Allergist Agent] Iniciando análise imunológica...');
         try {
             const { output } = await specialistPrompt(input);

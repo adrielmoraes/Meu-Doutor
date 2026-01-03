@@ -5,7 +5,7 @@
  * - cardiologistAgent - A flow that analyzes patient data from a cardiology perspective with comprehensive medication and treatment recommendations.
  */
 
-import {ai} from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import { countTextTokens } from '@/lib/token-counter';
 import { trackAIUsage } from '@/lib/usage-tracker';
@@ -173,6 +173,14 @@ Extract ALL cardiovascular metrics with interpretation:
 - Analyze EVERY single cardiovascular parameter in extreme detail
 - Provide specific medication recommendations with exact dosages when clinically indicated
 
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** valores, sintomas, histórico ou achados que NÃO estão explicitamente nos dados fornecidos.
+- **CITE EXATAMENTE** os valores como aparecem no exame (ex: "LDL: 160 mg/dL" deve ser reportado exatamente assim).
+- **NÃO ASSUMA** nada que não esteja escrito. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** claramente entre o dado do exame (ex: "Glicemia 126") e sua interpretação clínica (ex: "Compatível com critério de diabetes").
+- **PRESERVE** os valores de referência do laboratório original se estiverem presentes.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
+
 **OUTPUT FORMAT:**
 Return a JSON object with ALL fields from SpecialistAgentOutputSchema:
 - findings (string - ultra-detailed)
@@ -185,58 +193,58 @@ Return a JSON object with ALL fields from SpecialistAgentOutputSchema:
 - relevantMetrics (array - with metric, value, status, interpretation)`;
 
 const specialistPrompt = ai.definePrompt({
-    name: 'cardiologistAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
-    tools: [medicalKnowledgeBaseTool],
-    prompt: CARDIOLOGIST_PROMPT_TEMPLATE,
+  name: 'cardiologistAgentPrompt',
+  input: { schema: SpecialistAgentInputSchema },
+  output: { schema: SpecialistAgentOutputSchema },
+  tools: [medicalKnowledgeBaseTool],
+  prompt: CARDIOLOGIST_PROMPT_TEMPLATE,
 });
 
 const cardiologistAgentFlow = ai.defineFlow(
-    {
-      name: 'cardiologistAgentFlow',
-      inputSchema: SpecialistAgentInputSchema,
-      outputSchema: SpecialistAgentOutputSchema,
-    },
-    async (input) => {
-        const patientId = input.patientId || 'anonymous';
-        console.log('[Cardiologist Agent] Iniciando análise cardiológica...');
-        console.log('[Cardiologist Agent] Tamanho dos dados do exame:', input.examResults?.length || 0);
-        console.log('[Cardiologist Agent] Tamanho do histórico do paciente:', input.patientHistory?.length || 0);
-        
-        const inputText = CARDIOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
-        const inputTokens = countTextTokens(inputText);
+  {
+    name: 'cardiologistAgentFlow',
+    inputSchema: SpecialistAgentInputSchema,
+    outputSchema: SpecialistAgentOutputSchema,
+  },
+  async (input) => {
+    const patientId = input.patientId || 'anonymous';
+    console.log('[Cardiologist Agent] Iniciando análise cardiológica...');
+    console.log('[Cardiologist Agent] Tamanho dos dados do exame:', input.examResults?.length || 0);
+    console.log('[Cardiologist Agent] Tamanho do histórico do paciente:', input.patientHistory?.length || 0);
 
-        const startTime = Date.now();
-        const {output} = await specialistPrompt(input);
-        const duration = Date.now() - startTime;
-        
-        if (!output) {
-            console.error('[Cardiologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
-            return createFallbackResponse('Cardiologista');
-        }
+    const inputText = CARDIOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+    const inputTokens = countTextTokens(inputText);
 
-        const outputTokens = countTextTokens(JSON.stringify(output));
+    const startTime = Date.now();
+    const { output } = await specialistPrompt(input);
+    const duration = Date.now() - startTime;
 
-        await trackAIUsage({
-            patientId,
-            usageType: 'diagnosis',
-            model: 'googleai/gemini-2.5-flash',
-            inputTokens: inputTokens,
-            outputTokens: outputTokens,
-            metadata: { feature: 'Specialist Agent - Cardiologist', specialist: 'cardiologist' },
-        });
-        
-        console.log('[Cardiologist Agent] ✅ Análise concluída em', duration, 'ms');
-        console.log('[Cardiologist Agent] Avaliação clínica:', output?.clinicalAssessment);
-        console.log('[Cardiologist Agent] Número de métricas relevantes:', output?.relevantMetrics?.length || 0);
-        console.log('[Cardiologist Agent] Medicamentos sugeridos:', output?.suggestedMedications?.length || 0);
-        
-        return output;
+    if (!output) {
+      console.error('[Cardiologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+      return createFallbackResponse('Cardiologista');
     }
+
+    const outputTokens = countTextTokens(JSON.stringify(output));
+
+    await trackAIUsage({
+      patientId,
+      usageType: 'diagnosis',
+      model: 'googleai/gemini-2.5-flash',
+      inputTokens: inputTokens,
+      outputTokens: outputTokens,
+      metadata: { feature: 'Specialist Agent - Cardiologist', specialist: 'cardiologist' },
+    });
+
+    console.log('[Cardiologist Agent] ✅ Análise concluída em', duration, 'ms');
+    console.log('[Cardiologist Agent] Avaliação clínica:', output?.clinicalAssessment);
+    console.log('[Cardiologist Agent] Número de métricas relevantes:', output?.relevantMetrics?.length || 0);
+    console.log('[Cardiologist Agent] Medicamentos sugeridos:', output?.suggestedMedications?.length || 0);
+
+    return output;
+  }
 );
 
 
 export async function cardiologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
-    return await cardiologistAgentFlow(input);
+  return await cardiologistAgentFlow(input);
 }

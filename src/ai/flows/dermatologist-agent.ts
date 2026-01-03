@@ -5,7 +5,7 @@
  * - dermatologistAgent - A flow that analyzes patient data from a dermatology perspective.
  */
 
-import {ai} from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -59,6 +59,13 @@ Analyze dermatologic indicators if present:
 - Use medicalKnowledgeBaseTool for dermatologic terminology clarification
 - All responses in Brazilian Portuguese
 
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** lesões, sintomas, histórico ou achados que NÃO estão explicitamente nos dados.
+- **CITE EXATAMENTE** as descrições e medidas como aparecem (ex: "lesão de 5mm em dorso").
+- **NÃO ASSUMA** nada que não esteja escrito. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** dado bruto vs. sua interpretação dermatológica.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
+
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
@@ -75,39 +82,39 @@ const specialistPrompt = ai.definePrompt({
 
 
 const dermatologistAgentFlow = ai.defineFlow(
-    {
-      name: 'dermatologistAgentFlow',
-      inputSchema: SpecialistAgentInputSchema,
-      outputSchema: SpecialistAgentOutputSchema,
-    },
-    async (input) => {
-        const patientId = input.patientId || 'anonymous';
-        
-        
-        const inputText = DERMATOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
-        const inputTokens = countTextTokens(inputText);
-        
-        const {output} = await specialistPrompt(input);
-        if (!output) {
-            console.error('[Dermatologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
-            return createFallbackResponse('Dermatologista');
-        }
-        
-        const outputTokens = countTextTokens(JSON.stringify(output));
-        
-        await trackAIUsage({
-          patientId,
-          usageType: 'diagnosis',
-          model: 'googleai/gemini-2.5-flash',
-          inputTokens: inputTokens,
-          outputTokens: outputTokens,
-          metadata: { specialist: 'dermatologist' },
-        });
-        
-        return output;
+  {
+    name: 'dermatologistAgentFlow',
+    inputSchema: SpecialistAgentInputSchema,
+    outputSchema: SpecialistAgentOutputSchema,
+  },
+  async (input) => {
+    const patientId = input.patientId || 'anonymous';
+
+
+    const inputText = DERMATOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+    const inputTokens = countTextTokens(inputText);
+
+    const { output } = await specialistPrompt(input);
+    if (!output) {
+      console.error('[Dermatologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+      return createFallbackResponse('Dermatologista');
     }
+
+    const outputTokens = countTextTokens(JSON.stringify(output));
+
+    await trackAIUsage({
+      patientId,
+      usageType: 'diagnosis',
+      model: 'googleai/gemini-2.5-flash',
+      inputTokens: inputTokens,
+      outputTokens: outputTokens,
+      metadata: { specialist: 'dermatologist' },
+    });
+
+    return output;
+  }
 );
 
 export async function dermatologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
-    return await dermatologistAgentFlow(input);
+  return await dermatologistAgentFlow(input);
 }

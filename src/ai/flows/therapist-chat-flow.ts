@@ -97,8 +97,8 @@ ${patient.conversationHistory.substring(0, 500)}...`;
 
     if (patient.wellnessPlan) {
       context += `\n\nPLANO DE BEM-ESTAR:`;
-      if (patient.wellnessPlan.dietaryPlan) {
-        context += `\nPlano Alimentar: ${patient.wellnessPlan.dietaryPlan.substring(0, 200)}...`;
+      if (patient.wellnessPlan.preliminaryAnalysis) {
+        context += `\nAnálise Preliminar: ${patient.wellnessPlan.preliminaryAnalysis.substring(0, 200)}...`;
       }
       if (patient.wellnessPlan.exercisePlan) {
         context += `\nPlano de Exercícios: ${patient.wellnessPlan.exercisePlan.substring(0, 200)}...`;
@@ -118,13 +118,13 @@ ${patient.conversationHistory.substring(0, 500)}...`;
 async function getDoctorsContext(): Promise<string> {
   try {
     const doctors = await getDoctors();
-    
+
     if (!doctors || doctors.length === 0) {
       return "Nenhum médico disponível no momento.";
     }
 
     let context = `\n\nMÉDICOS DISPONÍVEIS NA PLATAFORMA (${doctors.length} médicos):`;
-    
+
     for (const doctor of doctors.slice(0, 10)) {
       context += `\n\n- Dr(a). ${doctor.name}`;
       context += `\n  Especialidade: ${doctor.specialty || 'Clínico Geral'}`;
@@ -229,7 +229,7 @@ const therapistChatFlow = ai.defineFlow(
     });
 
     const response = output!;
-    
+
     trackChatMessage(
       input.patientId,
       input.message,

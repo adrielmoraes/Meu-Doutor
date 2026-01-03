@@ -6,7 +6,7 @@
  * - nephrologistAgent - A flow that analyzes patient data from a nephrology perspective.
  */
 
-import {ai} from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -86,6 +86,13 @@ Analyze nephrologic indicators if present:
 - Use medicalKnowledgeBaseTool for nephrologic terminology clarification
 - All responses in Brazilian Portuguese
 
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** valores (creatinina, TFG, etc) ou histórico que NÃO estão nos dados.
+- **CITE EXATAMENTE** os valores como aparecem no exame (ex: "Creatinina: 1.2 mg/dL").
+- **NÃO ASSUMA** nada que não esteja escrito. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** dado do exame vs. sua interpretação (ex: "TFG 45" vs "DRC Estágio 3b").
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
+
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
@@ -101,48 +108,48 @@ const specialistPrompt = ai.definePrompt({
 });
 
 const nephrologistAgentFlow = ai.defineFlow(
-    {
-      name: 'nephrologistAgentFlow',
-      inputSchema: SpecialistAgentInputSchema,
-      outputSchema: SpecialistAgentOutputSchema,
-    },
-    async (input) => {
-        const patientId = input.patientId || 'anonymous';
-        
-        console.log('[Nephrologist Agent] Iniciando análise nefrológica...');
-        console.log('[Nephrologist Agent] Verificando função renal nos dados fornecidos...');
-        
-        const startTime = Date.now();
-        const {output} = await specialistPrompt(input);
-        const duration = Date.now() - startTime;
-        
-        if (!output) {
-            console.error('[Nephrologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
-            return createFallbackResponse('Nefrologista');
-        }
-        
-        console.log('[Nephrologist Agent] ✅ Análise concluída em', duration, 'ms');
-        console.log('[Nephrologist Agent] Avaliação clínica:', output?.clinicalAssessment);
-        console.log('[Nephrologist Agent] Número de achados:', output?.findings ? 'Sim' : 'Não');
-        console.log('[Nephrologist Agent] Recomendações específicas:', output?.recommendations ? 'Geradas' : 'Nenhuma');
+  {
+    name: 'nephrologistAgentFlow',
+    inputSchema: SpecialistAgentInputSchema,
+    outputSchema: SpecialistAgentOutputSchema,
+  },
+  async (input) => {
+    const patientId = input.patientId || 'anonymous';
 
-        const inputText = NEPHROLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
-        const inputTokens = countTextTokens(inputText);
-        const outputTokens = countTextTokens(JSON.stringify(output));
-        await trackAIUsage({
-          patientId,
-          usageType: 'diagnosis',
-          model: 'googleai/gemini-2.5-flash',
-          inputTokens,
-          outputTokens,
-          metadata: { specialist: 'nephrologist' },
-        });
+    console.log('[Nephrologist Agent] Iniciando análise nefrológica...');
+    console.log('[Nephrologist Agent] Verificando função renal nos dados fornecidos...');
 
-        return output;
+    const startTime = Date.now();
+    const { output } = await specialistPrompt(input);
+    const duration = Date.now() - startTime;
+
+    if (!output) {
+      console.error('[Nephrologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+      return createFallbackResponse('Nefrologista');
     }
+
+    console.log('[Nephrologist Agent] ✅ Análise concluída em', duration, 'ms');
+    console.log('[Nephrologist Agent] Avaliação clínica:', output?.clinicalAssessment);
+    console.log('[Nephrologist Agent] Número de achados:', output?.findings ? 'Sim' : 'Não');
+    console.log('[Nephrologist Agent] Recomendações específicas:', output?.recommendations ? 'Geradas' : 'Nenhuma');
+
+    const inputText = NEPHROLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+    const inputTokens = countTextTokens(inputText);
+    const outputTokens = countTextTokens(JSON.stringify(output));
+    await trackAIUsage({
+      patientId,
+      usageType: 'diagnosis',
+      model: 'googleai/gemini-2.5-flash',
+      inputTokens,
+      outputTokens,
+      metadata: { specialist: 'nephrologist' },
+    });
+
+    return output;
+  }
 );
 
 
 export async function nephrologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
-    return await nephrologistAgentFlow(input);
+  return await nephrologistAgentFlow(input);
 }

@@ -5,7 +5,7 @@
  * - orthopedistAgent - A flow that analyzes patient data from an orthopedic perspective.
  */
 
-import {ai} from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -58,6 +58,13 @@ Analyze musculoskeletal indicators if present:
 - Use medicalKnowledgeBaseTool for orthopedic terminology clarification
 - All responses in Brazilian Portuguese
 
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** fraturas, lesões, histórico ou achados que NÃO estão explicitamente nos dados.
+- **CITE EXATAMENTE** as descrições de imagem e exames físicos como aparecem.
+- **NÃO ASSUMA** nada que não esteja escrito. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** dado bruto vs. sua interpretação ortopédica.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
+
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
@@ -73,40 +80,40 @@ const specialistPrompt = ai.definePrompt({
 });
 
 const orthopedistAgentFlow = ai.defineFlow(
-    {
-      name: 'orthopedistAgentFlow',
-      inputSchema: SpecialistAgentInputSchema,
-      outputSchema: SpecialistAgentOutputSchema,
-    },
-    async (input) => {
-        const patientId = input.patientId || 'anonymous';
-        
-        
-        const inputText = ORTHOPEDIST_PROMPT_TEMPLATE + JSON.stringify(input);
-        const inputTokens = countTextTokens(inputText);
-        
-        const {output} = await specialistPrompt(input);
-        if (!output) {
-            console.error('[Orthopedist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
-            return createFallbackResponse('Ortopedista');
-        }
-        
-        const outputTokens = countTextTokens(JSON.stringify(output));
-        
-        await trackAIUsage({
-          patientId,
-          usageType: 'diagnosis',
-          model: 'googleai/gemini-2.5-flash',
-          inputTokens: inputTokens,
-          outputTokens: outputTokens,
-          metadata: { specialist: 'orthopedist' },
-        });
-        
-        return output;
+  {
+    name: 'orthopedistAgentFlow',
+    inputSchema: SpecialistAgentInputSchema,
+    outputSchema: SpecialistAgentOutputSchema,
+  },
+  async (input) => {
+    const patientId = input.patientId || 'anonymous';
+
+
+    const inputText = ORTHOPEDIST_PROMPT_TEMPLATE + JSON.stringify(input);
+    const inputTokens = countTextTokens(inputText);
+
+    const { output } = await specialistPrompt(input);
+    if (!output) {
+      console.error('[Orthopedist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+      return createFallbackResponse('Ortopedista');
     }
+
+    const outputTokens = countTextTokens(JSON.stringify(output));
+
+    await trackAIUsage({
+      patientId,
+      usageType: 'diagnosis',
+      model: 'googleai/gemini-2.5-flash',
+      inputTokens: inputTokens,
+      outputTokens: outputTokens,
+      metadata: { specialist: 'orthopedist' },
+    });
+
+    return output;
+  }
 );
 
 
 export async function orthopedistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
-    return await orthopedistAgentFlow(input);
+  return await orthopedistAgentFlow(input);
 }

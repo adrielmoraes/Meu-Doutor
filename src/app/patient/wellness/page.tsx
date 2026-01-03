@@ -210,14 +210,14 @@ export default async function WellnessPlanPage() {
         titleColor: string;
     }> = [
             {
-                title: "Plano Alimentar",
-                icon: <Apple className="h-6 w-6 text-white" />,
-                content: wellnessPlan.dietaryPlan,
+                title: "Análise Preliminar",
+                icon: <FileText className="h-6 w-6 text-white" />,
+                content: wellnessPlan.preliminaryAnalysis,
                 section: 'dietary',
-                audioUri: wellnessPlan.dietaryPlanAudioUri,
-                border: "border-green-500/30",
-                iconBg: "bg-gradient-to-br from-green-500 to-emerald-600",
-                titleColor: "bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent"
+                audioUri: wellnessPlan.preliminaryAnalysisAudioUri,
+                border: "border-blue-500/30",
+                iconBg: "bg-gradient-to-br from-blue-500 to-cyan-600",
+                titleColor: "bg-gradient-to-r from-blue-500 to-cyan-600 bg-clip-text text-transparent"
             },
             {
                 title: "Plano de Exercícios",

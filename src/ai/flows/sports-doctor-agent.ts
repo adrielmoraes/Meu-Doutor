@@ -74,6 +74,13 @@ Patient History: {{patientHistory}}
 - Distinguish "Normal" (Medical reference) from "Optimal" (Performance reference).
 - Promote long-term health, not just short-term gains.
 - Responses in professional Brazilian Portuguese.
+
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** valores de CPK, testosterona ou histórico de lesões que NÃO estão nos dados.
+- **CITE EXATAMENTE** os valores como aparecem (ex: "CPK: 500 U/L").
+- **NÃO ASSUMA** estados de overtraining sem evidência bioquímica. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** valor de referência laboratorial vs. valor ótimo para performance.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 `
 });
 
@@ -85,7 +92,7 @@ const sportsDoctorAgentFlow = ai.defineFlow(
     },
     async (input) => {
         const patientId = input.patientId || 'anonymous';
-        
+
         console.log('[Sports Doctor Agent] Iniciando análise de performance...');
         try {
             const { output } = await specialistPrompt(input);

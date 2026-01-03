@@ -50,6 +50,13 @@ Sua tarefa é criar uma análise UNIFICADA e abrangente que combina todas as des
 - NÃO apenas concatene - sintetize e integre as informações
 - Destaque conexões importantes entre diferentes resultados de exames
 
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** valores ou resultados que não aparecem nas análises individuais.
+- **PRESERVE EXATAMENTE** todos os valores numéricos como foram reportados (ex: "126 mg/dL" permanece "126 mg/dL").
+- **NÃO ARREDONDE** nem aproxime valores - mantenha a precisão original.
+- **SE HOUVER CONFLITO** entre exames, reporte ambos os valores com suas respectivas datas.
+- Esta é informação de saúde do paciente - qualquer erro pode causar danos reais.
+
 **Análises Individuais dos Documentos:**
 {{#each examResults}}
 ---
@@ -86,23 +93,23 @@ export async function consolidateExamsAnalysis(
   patientId: string
 ): Promise<ConsolidatedAnalysisOutput> {
   console.log(`[🔗 Consolidation] Consolidating ${examResults.length} exam analyses...`);
-  
+
   if (examResults.length === 0) {
     throw new Error('No exam results to consolidate');
   }
-  
+
   const examIds = examResults.map(r => r.examId);
-  
+
   if (examResults.length === 1) {
     console.log('[🔗 Consolidation] Single exam - proceeding directly to specialist analysis...');
-    
+
     const singleResult = examResults[0];
     const specialistAnalysis = await generatePreliminaryDiagnosis({
       examResults: singleResult.analysis.examResultsSummary,
       patientHistory: "Histórico não disponível nesta análise inicial.",
       patientId,
     });
-    
+
     const singleExamResult = {
       preliminaryDiagnosis: specialistAnalysis.synthesis,
       explanation: singleResult.analysis.patientExplanation,
@@ -133,9 +140,9 @@ export async function consolidateExamsAnalysis(
 
     return singleExamResult;
   }
-  
+
   console.log('[🔗 Consolidation] Multiple exams - combining analyses first...');
-  
+
   const { output: consolidatedSummary } = await generateWithFallback({
     prompt: combineAnalysesPrompt,
     input: {
@@ -148,25 +155,25 @@ export async function consolidateExamsAnalysis(
       })),
     },
   });
-  
+
   if (!consolidatedSummary) {
     throw new Error('Failed to consolidate exam analyses');
   }
-  
+
   console.log('[🔗 Consolidation] ✅ Analyses combined successfully');
   console.log('[🩺 Specialist Team] Activating multi-specialist diagnostic system...');
-  
+
   const specialistAnalysis = await generatePreliminaryDiagnosis({
     examResults: consolidatedSummary.unifiedSummary,
     patientHistory: "Histórico não disponível nesta análise inicial.",
     patientId,
   });
-  
+
   console.log(`[🩺 Specialist Team] ✅ Consulted ${specialistAnalysis.structuredFindings.length} specialist(s)`);
-  
+
   const allStructuredResults = examResults
     .flatMap(r => r.analysis.structuredResults || []);
-  
+
   const finalResult = {
     preliminaryDiagnosis: specialistAnalysis.synthesis,
     explanation: consolidatedSummary.unifiedPatientExplanation,

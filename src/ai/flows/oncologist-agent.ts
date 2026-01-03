@@ -91,6 +91,13 @@ Patient History: {{patientHistory}}
 - Be ultra-vigilant with "red flags" (weight loss + anemia = cancer until proven otherwise).
 - Analyze every nodule, cyst, or mass mentioned.
 - Responses in professional Brazilian Portuguese.
+
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** achados, lesões ou histórico que NÃO estão explicitamente descritos nos dados.
+- **CITE EXATAMENTE** as medidas e localizações como aparecem nos dados originais.
+- **NÃO ASSUMA** nada que não esteja escrito. Se um detalhe é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** claramente entre o dado bruto vs. sua interpretação oncológica.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 `
 });
 
@@ -102,7 +109,7 @@ const oncologistAgentFlow = ai.defineFlow(
     },
     async (input) => {
         const patientId = input.patientId || 'anonymous';
-        
+
         console.log('[Oncologist Agent] Iniciando análise oncológica...');
         try {
             const { output } = await specialistPrompt(input);

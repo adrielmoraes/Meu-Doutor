@@ -66,6 +66,13 @@ IMPORTANT: Use internetSearchTool for evidence-based dietary recommendations and
 - Use tools to provide evidence-based, personalized dietary recommendations
 - All responses in Brazilian Portuguese
 
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** pesos, medidas, exames ou histórico que NÃO estão nos dados.
+- **CITE EXATAMENTE** os valores como aparecem (ex: "Peso: 75kg", "Glicemia: 90 mg/dL").
+- **NÃO ASSUMA** hábitos alimentares não relatados. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** dado bruto vs. sua interpretação nutricional.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
+
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
@@ -127,7 +134,7 @@ const nutritionistAgentFlow = ai.defineFlow(
     },
     async (input) => {
         const patientId = input.patientId || 'anonymous';
-        
+
         return await executeWithRetry(input);
     },
 );

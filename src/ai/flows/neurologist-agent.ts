@@ -5,7 +5,7 @@
  * - neurologistAgent - A flow that analyzes patient data from a neurology perspective.
  */
 
-import {ai} from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -58,6 +58,13 @@ Analyze neurological indicators if present:
 - Use medicalKnowledgeBaseTool for neurological terminology clarification
 - All responses in Brazilian Portuguese
 
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** achados neurológicos, escalas ou histórico que NÃO estão nos dados.
+- **CITE EXATAMENTE** os resultados como aparecem (ex: "Mini-Mental: 24/30").
+- **NÃO ASSUMA** nada que não esteja escrito. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** dado clínico vs. sua interpretação diagnóstica.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
+
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
@@ -65,32 +72,32 @@ Example structure:
 
 const specialistPrompt = ai.definePrompt({
     name: 'neurologistAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
+    input: { schema: SpecialistAgentInputSchema },
+    output: { schema: SpecialistAgentOutputSchema },
     tools: [medicalKnowledgeBaseTool],
     prompt: NEUROLOGIST_PROMPT_TEMPLATE,
 });
 
 const neurologistAgentFlow = ai.defineFlow(
     {
-      name: 'neurologistAgentFlow',
-      inputSchema: SpecialistAgentInputSchema,
-      outputSchema: SpecialistAgentOutputSchema,
+        name: 'neurologistAgentFlow',
+        inputSchema: SpecialistAgentInputSchema,
+        outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
         const patientId = input.patientId || 'anonymous';
-        
+
         const inputText = NEUROLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
         const inputTokens = countTextTokens(inputText);
-        
-        const {output} = await specialistPrompt(input);
+
+        const { output } = await specialistPrompt(input);
         if (!output) {
             console.error('[Neurologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
             return createFallbackResponse('Neurologista');
         }
-        
+
         const outputTokens = countTextTokens(JSON.stringify(output));
-        
+
         await trackAIUsage({
             patientId,
             usageType: 'diagnosis',
@@ -99,7 +106,7 @@ const neurologistAgentFlow = ai.defineFlow(
             outputTokens: outputTokens,
             metadata: { feature: 'Specialist Agent - Neurologist', specialist: 'neurologist' },
         });
-        
+
         return output;
     }
 );

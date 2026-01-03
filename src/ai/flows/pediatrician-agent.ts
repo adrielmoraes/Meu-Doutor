@@ -5,7 +5,7 @@
  * - pediatricianAgent - A flow that analyzes patient data from a pediatric perspective.
  */
 
-import {ai} from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -62,6 +62,13 @@ For pediatric patients, analyze:
 - Use medicalKnowledgeBaseTool for age-specific pediatric guidelines
 - All responses in Brazilian Portuguese
 
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** percentis, vacinas, sintomas ou histórico que NÃO estão nos dados.
+- **CITE EXATAMENTE** os valores como aparecem (ex: "Peso: 12kg").
+- **NÃO ASSUMA** marcos de desenvolvimento não descritos. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** dado bruto vs. sua interpretação pediátrica.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
+
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
@@ -77,40 +84,40 @@ const specialistPrompt = ai.definePrompt({
 });
 
 const pediatricianAgentFlow = ai.defineFlow(
-    {
-      name: 'pediatricianAgentFlow',
-      inputSchema: SpecialistAgentInputSchema,
-      outputSchema: SpecialistAgentOutputSchema,
-    },
-    async (input) => {
-        const patientId = input.patientId || 'anonymous';
-        
-        
-        const inputText = PEDIATRICIAN_PROMPT_TEMPLATE + JSON.stringify(input);
-        const inputTokens = countTextTokens(inputText);
-        
-        const {output} = await specialistPrompt(input);
-        if (!output) {
-            console.error('[Pediatrician Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
-            return createFallbackResponse('Pediatra');
-        }
-        
-        const outputTokens = countTextTokens(JSON.stringify(output));
-        
-        await trackAIUsage({
-          patientId,
-          usageType: 'diagnosis',
-          model: 'googleai/gemini-2.5-flash',
-          inputTokens: inputTokens,
-          outputTokens: outputTokens,
-          metadata: { specialist: 'pediatrician' },
-        });
-        
-        return output;
+  {
+    name: 'pediatricianAgentFlow',
+    inputSchema: SpecialistAgentInputSchema,
+    outputSchema: SpecialistAgentOutputSchema,
+  },
+  async (input) => {
+    const patientId = input.patientId || 'anonymous';
+
+
+    const inputText = PEDIATRICIAN_PROMPT_TEMPLATE + JSON.stringify(input);
+    const inputTokens = countTextTokens(inputText);
+
+    const { output } = await specialistPrompt(input);
+    if (!output) {
+      console.error('[Pediatrician Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+      return createFallbackResponse('Pediatra');
     }
+
+    const outputTokens = countTextTokens(JSON.stringify(output));
+
+    await trackAIUsage({
+      patientId,
+      usageType: 'diagnosis',
+      model: 'googleai/gemini-2.5-flash',
+      inputTokens: inputTokens,
+      outputTokens: outputTokens,
+      metadata: { specialist: 'pediatrician' },
+    });
+
+    return output;
+  }
 );
 
 
 export async function pediatricianAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
-    return await pediatricianAgentFlow(input);
+  return await pediatricianAgentFlow(input);
 }

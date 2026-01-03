@@ -69,6 +69,13 @@ Patient History: {{patientHistory}}
 - NEVER dismiss a palpable lump even if imaging is negative.
 - Strictly adhere to BI-RADS management recommendations.
 - Responses in professional Brazilian Portuguese.
+
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** nódulos, calcificações, BI-RADS ou histórico que NÃO estão nos dados.
+- **CITE EXATAMENTE** as medidas e descrições como aparecem (ex: "nódulo de 12mm").
+- **NÃO ASSUMA** malignidade sem evidência descrita. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** achado de imagem vs. sua classificação BI-RADS.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 `
 });
 
@@ -80,7 +87,7 @@ const mastologistAgentFlow = ai.defineFlow(
     },
     async (input) => {
         const patientId = input.patientId || 'anonymous';
-        
+
         console.log('[Mastologist Agent] Iniciando análise mastológica...');
         try {
             const { output } = await specialistPrompt(input);

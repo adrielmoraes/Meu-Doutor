@@ -5,7 +5,7 @@
  * - radiologistAgent - A flow that analyzes patient data from a radiology perspective.
  */
 
-import {ai} from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -58,6 +58,13 @@ IMPORTANT: Analyze ONLY written imaging reports or descriptions. Do NOT attempt 
 - Use medicalKnowledgeBaseTool for radiological terminology clarification
 - All responses in Brazilian Portuguese
 
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** achados, lesões ou histórico que NÃO estão explicitamente descritos no laudo.
+- **CITE EXATAMENTE** as medidas e localizações como aparecem no laudo (ex: "nódulo de 1.2 cm em segmento 6").
+- **NÃO ASSUMA** nada que não esteja escrito. Se um detalhe é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** claramente entre o achado descrito (ex: "opacidade em vidro fosco") e sua sugestão diagnóstica (ex: "sugestivo de processo inflamatório/infeccioso").
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
+
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
@@ -73,40 +80,40 @@ const specialistPrompt = ai.definePrompt({
 });
 
 const radiologistAgentFlow = ai.defineFlow(
-    {
-      name: 'radiologistAgentFlow',
-      inputSchema: SpecialistAgentInputSchema,
-      outputSchema: SpecialistAgentOutputSchema,
-    },
-    async (input) => {
-        const patientId = input.patientId || 'anonymous';
-        
-        
-        const inputText = RADIOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
-        const inputTokens = countTextTokens(inputText);
-        
-        const {output} = await specialistPrompt(input);
-        if (!output) {
-            console.error('[Radiologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
-            return createFallbackResponse('Radiologista');
-        }
-        
-        const outputTokens = countTextTokens(JSON.stringify(output));
-        
-        await trackAIUsage({
-          patientId,
-          usageType: 'diagnosis',
-          model: 'googleai/gemini-2.5-flash',
-          inputTokens: inputTokens,
-          outputTokens: outputTokens,
-          metadata: { specialist: 'radiologist' },
-        });
-        
-        return output;
+  {
+    name: 'radiologistAgentFlow',
+    inputSchema: SpecialistAgentInputSchema,
+    outputSchema: SpecialistAgentOutputSchema,
+  },
+  async (input) => {
+    const patientId = input.patientId || 'anonymous';
+
+
+    const inputText = RADIOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+    const inputTokens = countTextTokens(inputText);
+
+    const { output } = await specialistPrompt(input);
+    if (!output) {
+      console.error('[Radiologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+      return createFallbackResponse('Radiologista');
     }
+
+    const outputTokens = countTextTokens(JSON.stringify(output));
+
+    await trackAIUsage({
+      patientId,
+      usageType: 'diagnosis',
+      model: 'googleai/gemini-2.5-flash',
+      inputTokens: inputTokens,
+      outputTokens: outputTokens,
+      metadata: { specialist: 'radiologist' },
+    });
+
+    return output;
+  }
 );
 
 
 export async function radiologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
-    return await radiologistAgentFlow(input);
+  return await radiologistAgentFlow(input);
 }

@@ -5,7 +5,7 @@
  * - pulmonologistAgent - A flow that analyzes patient data from a pulmonology perspective.
  */
 
-import {ai} from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -55,6 +55,13 @@ Analyze respiratory indicators if present:
 - Use medicalKnowledgeBaseTool for respiratory terminology clarification
 - All responses in Brazilian Portuguese
 
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** valores (SpO2, frequência respiratória, etc) ou achados que NÃO estão nos dados.
+- **CITE EXATAMENTE** os valores como aparecem (ex: "SpO2: 92%").
+- **NÃO ASSUMA** nada que não esteja escrito. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** dado bruto vs. sua interpretação.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
+
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
@@ -62,32 +69,32 @@ Example structure:
 
 const specialistPrompt = ai.definePrompt({
     name: 'pulmonologistAgentPrompt',
-    input: {schema: SpecialistAgentInputSchema},
-    output: {schema: SpecialistAgentOutputSchema},
+    input: { schema: SpecialistAgentInputSchema },
+    output: { schema: SpecialistAgentOutputSchema },
     tools: [medicalKnowledgeBaseTool],
     prompt: PULMONOLOGIST_PROMPT_TEMPLATE,
 });
 
 const pulmonologistAgentFlow = ai.defineFlow(
     {
-      name: 'pulmonologistAgentFlow',
-      inputSchema: SpecialistAgentInputSchema,
-      outputSchema: SpecialistAgentOutputSchema,
+        name: 'pulmonologistAgentFlow',
+        inputSchema: SpecialistAgentInputSchema,
+        outputSchema: SpecialistAgentOutputSchema,
     },
     async (input) => {
         const patientId = input.patientId || 'anonymous';
-        
+
         const inputText = PULMONOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
         const inputTokens = countTextTokens(inputText);
-        
-        const {output} = await specialistPrompt(input);
+
+        const { output } = await specialistPrompt(input);
         if (!output) {
             console.error('[Pulmonologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
             return createFallbackResponse('Pneumologista');
         }
-        
+
         const outputTokens = countTextTokens(JSON.stringify(output));
-        
+
         await trackAIUsage({
             patientId,
             usageType: 'diagnosis',
@@ -96,7 +103,7 @@ const pulmonologistAgentFlow = ai.defineFlow(
             outputTokens: outputTokens,
             metadata: { feature: 'Specialist Agent - Pulmonologist', specialist: 'pulmonologist' },
         });
-        
+
         return output;
     }
 );

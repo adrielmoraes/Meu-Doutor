@@ -78,6 +78,13 @@ Patient History: {{patientHistory}}
 - Be mindful of **Antibiotic Resistance**. Do not suggest broad-spectrum if narrow works.
 - Interpret "Reactive" screening tests carefully (need confirmation?).
 - Responses in professional Brazilian Portuguese.
+
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** sorologias, culturas, febre ou histórico que NÃO estão nos dados.
+- **CITE EXATAMENTE** os resultados como aparecem (ex: "HIV: Não Reagente", "Cultura: E. coli").
+- **NÃO ASSUMA** infecções sem evidência laboratorial. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** resultado de exame vs. sua interpretação clínica.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 `
 });
 
@@ -89,7 +96,7 @@ const infectologistAgentFlow = ai.defineFlow(
     },
     async (input) => {
         const patientId = input.patientId || 'anonymous';
-        
+
         console.log('[Infectologist Agent] Iniciando análise infectológica...');
         try {
             const { output } = await specialistPrompt(input);

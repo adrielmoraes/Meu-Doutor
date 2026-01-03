@@ -32,13 +32,13 @@ const MealPrepSuggestionSchema = z.object({
 });
 
 const GenerateWellnessPlanFromExamsOutputSchema = z.object({
-  dietaryPlan: z.string().describe("Detailed, actionable dietary plan based on exam findings"),
+  preliminaryAnalysis: z.string().describe("Detailed explanation of exam findings in simple, non-technical language that patients can easily understand"),
   exercisePlan: z.string().describe("Safe exercise plan suitable for patient's condition"),
   mentalWellnessPlan: z.string().describe("Stress management and mental well-being recommendations"),
   dailyReminders: z.array(z.object({
-    icon: z.enum(['Droplet', 'Clock', 'Coffee', 'Bed', 'Dumbbell', 
-                  'Apple', 'Heart', 'Sun', 'Moon', 'Activity', 
-                  'Utensils', 'Brain', 'Smile', 'Wind', 'Leaf']),
+    icon: z.enum(['Droplet', 'Clock', 'Coffee', 'Bed', 'Dumbbell',
+      'Apple', 'Heart', 'Sun', 'Moon', 'Activity',
+      'Utensils', 'Brain', 'Smile', 'Wind', 'Leaf']),
     title: z.string(),
     description: z.string(),
   })).describe("3-4 actionable daily reminders"),
@@ -70,13 +70,17 @@ You received a detailed nutritionist's analysis of the patient's exam results.
 
 **Your task:** Create 6 sections:
 
-1. **Plano Alimentar (dietaryPlan):**
-   - **MANDATORY**: Cite specific values from the exams (e.g., "Seu colesterol total é X, então...").
-   - Specific meal suggestions and timing
-   - Foods to include/increase
-   - Foods to avoid/limit
-   - Portion guidance
-   - Hydration recommendations
+1. **Análise Preliminar (preliminaryAnalysis):**
+   - **OBJETIVO**: Explicar os achados dos exames de forma clara e acessível para o paciente.
+   - **LINGUAGEM**: Use linguagem POPULAR, evite termos técnicos médicos. Quando usar termos técnicos, explique-os.
+   - **CONTEÚDO**:
+     * Resuma os principais achados dos exames
+     * Explique o que cada resultado significa para a saúde do paciente
+     * Destaque pontos de atenção de forma tranquilizadora
+     * Compare valores com referências normais quando relevante
+   - **TOM**: Empático, educativo e encorajador. Não seja alarmista.
+   - **FORMATO**: Use Markdown com subtítulos claros para cada achado importante.
+   - **EXEMPLO**: "Seu colesterol total está em 220 mg/dL. Isso significa que está um pouquinho acima do ideal (até 200). Não é motivo para preocupação extrema, mas é um sinal de que podemos melhorar sua alimentação."
    - **FORMATTING RULES**: 
      - Use proper Markdown.
      - ALWAYS put a blank line before **Bold Headers**.
@@ -362,13 +366,16 @@ ${nutritionistAnalysis.recommendations}
         }
       }
 
+      // Preserve existing audio URIs - they're stored in Blob and remain valid
+      // Users can regenerate audio on-demand if the plan content changes significantly
+      const existingWellnessPlan = patient.wellnessPlan;
       const wellnessPlanData = {
-        dietaryPlan: output.dietaryPlan,
+        preliminaryAnalysis: output.preliminaryAnalysis,
         exercisePlan: output.exercisePlan,
         mentalWellnessPlan: output.mentalWellnessPlan,
-        dietaryPlanAudioUri: undefined,
-        exercisePlanAudioUri: undefined,
-        mentalWellnessPlanAudioUri: undefined,
+        preliminaryAnalysisAudioUri: existingWellnessPlan?.preliminaryAnalysisAudioUri,
+        exercisePlanAudioUri: existingWellnessPlan?.exercisePlanAudioUri,
+        mentalWellnessPlanAudioUri: existingWellnessPlan?.mentalWellnessPlanAudioUri,
         dailyReminders: output.dailyReminders,
         weeklyMealPlan: output.weeklyMealPlan,
         weeklyTasks: output.weeklyTasks,

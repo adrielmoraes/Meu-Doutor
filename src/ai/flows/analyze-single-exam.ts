@@ -49,6 +49,13 @@ const SINGLE_EXAM_PROMPT_TEMPLATE = `Você é um assistente médico de IA analis
 - Use analogias e evite jargões médicos na explicação do paciente
 - Todo o texto voltado ao paciente deve estar em português brasileiro
 
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** valores, resultados ou achados que NÃO estão explicitamente no documento.
+- **CITE EXATAMENTE** os valores como aparecem no exame (ex: "126 mg/dL" deve ser reportado como "126 mg/dL", não "aproximadamente 130").
+- **SE NÃO ENCONTRAR** um valor ou informação, diga claramente "Não informado no documento".
+- **PRESERVE** os valores de referência exatamente como aparecem no exame original.
+- Esta é informação de saúde do paciente - qualquer erro pode causar danos reais.
+
 **Analise o seguinte documento:**
 Nome do Documento: {{fileName}}
 Conteúdo do Documento:

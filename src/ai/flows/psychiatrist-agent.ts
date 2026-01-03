@@ -5,7 +5,7 @@
  * - psychiatristAgent - A flow that analyzes patient data from a mental health perspective.
  */
 
-import {ai} from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -64,6 +64,13 @@ IMPORTANT: This is a screening assessment, not a formal diagnosis. Highlight con
 - Use medicalKnowledgeBaseTool for psychiatric terminology and conditions
 - All responses in Brazilian Portuguese
 
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** sintomas, ideações, histórico ou comportamentos que NÃO estão explicitamente nos dados.
+- **CITE EXATAMENTE** descrições e escalas como aparecem (ex: "PHQ-9: 12").
+- **NÃO ASSUMA** diagnósticos prévios não relatados. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** relato do paciente vs. sua interpretação psiquiátrica.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
+
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
@@ -80,39 +87,39 @@ const specialistPrompt = ai.definePrompt({
 
 
 const psychiatristAgentFlow = ai.defineFlow(
-    {
-      name: 'psychiatristAgentFlow',
-      inputSchema: SpecialistAgentInputSchema,
-      outputSchema: SpecialistAgentOutputSchema,
-    },
-    async (input) => {
-        const patientId = input.patientId || 'anonymous';
-        
-        
-        const inputText = PSYCHIATRIST_PROMPT_TEMPLATE + JSON.stringify(input);
-        const inputTokens = countTextTokens(inputText);
-        
-        const {output} = await specialistPrompt(input);
-        if (!output) {
-            console.error('[Psychiatrist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
-            return createFallbackResponse('Psiquiatra');
-        }
-        
-        const outputTokens = countTextTokens(JSON.stringify(output));
-        
-        await trackAIUsage({
-          patientId,
-          usageType: 'diagnosis',
-          model: 'googleai/gemini-2.5-flash',
-          inputTokens: inputTokens,
-          outputTokens: outputTokens,
-          metadata: { specialist: 'psychiatrist' },
-        });
-        
-        return output;
+  {
+    name: 'psychiatristAgentFlow',
+    inputSchema: SpecialistAgentInputSchema,
+    outputSchema: SpecialistAgentOutputSchema,
+  },
+  async (input) => {
+    const patientId = input.patientId || 'anonymous';
+
+
+    const inputText = PSYCHIATRIST_PROMPT_TEMPLATE + JSON.stringify(input);
+    const inputTokens = countTextTokens(inputText);
+
+    const { output } = await specialistPrompt(input);
+    if (!output) {
+      console.error('[Psychiatrist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+      return createFallbackResponse('Psiquiatra');
     }
+
+    const outputTokens = countTextTokens(JSON.stringify(output));
+
+    await trackAIUsage({
+      patientId,
+      usageType: 'diagnosis',
+      model: 'googleai/gemini-2.5-flash',
+      inputTokens: inputTokens,
+      outputTokens: outputTokens,
+      metadata: { specialist: 'psychiatrist' },
+    });
+
+    return output;
+  }
 );
 
 export async function psychiatristAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
-    return await psychiatristAgentFlow(input);
+  return await psychiatristAgentFlow(input);
 }

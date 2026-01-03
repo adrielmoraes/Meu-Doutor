@@ -117,8 +117,8 @@ async function getPatientContext(patientId: string) {
             .join("\n\n")
         : "Nenhum exame registrado recentemente.";
 
-    const wellnessContext = patient.wellnessPlan?.dietaryPlan
-        ? `Plano de Bem-Estar: ${truncateText(patient.wellnessPlan.dietaryPlan, 450)}`
+    const wellnessContext = patient.wellnessPlan?.preliminaryAnalysis
+        ? `Análise de Saúde: ${truncateText(patient.wellnessPlan.preliminaryAnalysis, 450)}`
         : "Sem plano de bem-estar no momento.";
 
     return {
@@ -328,7 +328,7 @@ const healthPodcastFlow = ai.defineFlow(
             wellnessContext: context.wellnessContext,
         });
         const scriptOutputText = JSON.stringify(output?.script || []);
-        
+
         const promptTokens = countTextTokens(PODCAST_PROMPT_TEMPLATE);
         const contextTokens = countTextTokens(scriptInputText);
         const totalInputTokens = promptTokens + contextTokens;

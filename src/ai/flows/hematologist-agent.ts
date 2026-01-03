@@ -83,6 +83,13 @@ Patient History: {{patientHistory}}
 - Flag **BLASTS** as a medical emergency immediately.
 - Differentiate Iron Deficiency vs Thalassemia in microcytic anemia.
 - Responses in professional Brazilian Portuguese.
+
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** valores de hemograma, blastos ou histórico que NÃO estão nos dados.
+- **CITE EXATAMENTE** os valores como aparecem (ex: "Hb: 10.5 g/dL", "Plaquetas: 150.000").
+- **NÃO ASSUMA** deficiências ou leucemias sem evidência nos dados. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** dado do hemograma vs. sua interpretação hematológica.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 `
 });
 
@@ -94,7 +101,7 @@ const hematologistAgentFlow = ai.defineFlow(
     },
     async (input) => {
         const patientId = input.patientId || 'anonymous';
-        
+
         console.log('[Hematologist Agent] Iniciando análise hematológica...');
         try {
             const { output } = await specialistPrompt(input);

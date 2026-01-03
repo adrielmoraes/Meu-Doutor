@@ -66,6 +66,13 @@ Patient History: {{patientHistory}}
 - Treat VUS with caution - do NOT recommend irreversible surgeries based on VUS.
 - Respect "Right not to know" (ethical considerations).
 - Responses in professional Brazilian Portuguese.
+
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** variantes, histórico familiar ou síndromes que NÃO estão nos dados.
+- **CITE EXATAMENTE** o nome das variantes e genes como aparecem (ex: "BRCA1 c.123G>A").
+- **NÃO ASSUMA** patogenicidade de VUS. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** risco populacional vs. risco genético confirmado.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 `
 });
 
@@ -77,7 +84,7 @@ const geneticistAgentFlow = ai.defineFlow(
     },
     async (input) => {
         const patientId = input.patientId || 'anonymous';
-        
+
         console.log('[Geneticist Agent] Iniciando análise genética...');
         try {
             const { output } = await specialistPrompt(input);

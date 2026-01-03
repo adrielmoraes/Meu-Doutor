@@ -5,7 +5,7 @@
  * - urologistAgent - A flow that analyzes patient data from a urology perspective.
  */
 
-import {ai} from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -58,6 +58,13 @@ Analyze urologic indicators if present:
 - If NO urologic data present: "Nenhuma observação urológica relevante nos dados fornecidos." / "Not Applicable" / "Nenhuma recomendação específica."
 - Use medicalKnowledgeBaseTool for urologic terminology clarification
 - All responses in Brazilian Portuguese
+
+**⚠️ REGRAS DE INTEGRIDADE DOS DADOS (OBRIGATÓRIO):**
+- **NUNCA INVENTE** valores de PSA, sintomas urinários ou histórico que NÃO estão nos dados.
+- **CITE EXATAMENTE** os valores como aparecem (ex: "PSA: 2.5 ng/mL").
+- **NÃO ASSUMA** nada que não esteja escrito. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
+- **DIFERENCIE** dado bruto vs. sua interpretação urológica.
+- Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 - For optional fields (suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, relevantMetrics): 
   * If not applicable, OMIT the field entirely from the response (do not include empty objects or arrays)
   * Only include these fields when you have actual content to provide
@@ -81,39 +88,39 @@ const specialistPrompt = ai.definePrompt({
 
 
 const urologistAgentFlow = ai.defineFlow(
-    {
-      name: 'urologistAgentFlow',
-      inputSchema: SpecialistAgentInputSchema,
-      outputSchema: SpecialistAgentOutputSchema,
-    },
-    async (input) => {
-        const patientId = input.patientId || 'anonymous';
-        
-        
-        const inputText = UROLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
-        const inputTokens = countTextTokens(inputText);
-        
-        const {output} = await specialistPrompt(input);
-        if (!output) {
-            console.error('[Urologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
-            return createFallbackResponse('Urologista');
-        }
-        
-        const outputTokens = countTextTokens(JSON.stringify(output));
-        
-        await trackAIUsage({
-          patientId,
-          usageType: 'diagnosis',
-          model: 'googleai/gemini-2.5-flash',
-          inputTokens: inputTokens,
-          outputTokens: outputTokens,
-          metadata: { specialist: 'urologist' },
-        });
-        
-        return output;
+  {
+    name: 'urologistAgentFlow',
+    inputSchema: SpecialistAgentInputSchema,
+    outputSchema: SpecialistAgentOutputSchema,
+  },
+  async (input) => {
+    const patientId = input.patientId || 'anonymous';
+
+
+    const inputText = UROLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+    const inputTokens = countTextTokens(inputText);
+
+    const { output } = await specialistPrompt(input);
+    if (!output) {
+      console.error('[Urologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+      return createFallbackResponse('Urologista');
     }
+
+    const outputTokens = countTextTokens(JSON.stringify(output));
+
+    await trackAIUsage({
+      patientId,
+      usageType: 'diagnosis',
+      model: 'googleai/gemini-2.5-flash',
+      inputTokens: inputTokens,
+      outputTokens: outputTokens,
+      metadata: { specialist: 'urologist' },
+    });
+
+    return output;
+  }
 );
 
 export async function urologistAgent(input: SpecialistAgentInput): Promise<SpecialistAgentOutput> {
-    return await urologistAgentFlow(input);
+  return await urologistAgentFlow(input);
 }

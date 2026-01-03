@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     const existingAudioUriMap: Record<AudioSection, string | undefined> = {
-      dietary: patient.wellnessPlan.dietaryPlanAudioUri,
+      dietary: patient.wellnessPlan.preliminaryAnalysisAudioUri,
       exercise: patient.wellnessPlan.exercisePlanAudioUri,
       mental: patient.wellnessPlan.mentalWellnessPlanAudioUri,
     };
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       buffer = tts.audioBuffer;
       extension = 'wav';
     }
-    
+
     const storedUrl = await saveFileBuffer(buffer, `wellness-${section}.${extension}`, 'wellness-audio');
 
     // Use atomic update to prevent race conditions and data loss
@@ -127,14 +127,14 @@ export async function GET(request: NextRequest) {
     }
 
     const audioFieldMap: Record<AudioSection, string | undefined> = {
-      dietary: patient.wellnessPlan.dietaryPlanAudioUri,
+      dietary: patient.wellnessPlan.preliminaryAnalysisAudioUri,
       exercise: patient.wellnessPlan.exercisePlanAudioUri,
       mental: patient.wellnessPlan.mentalWellnessPlanAudioUri,
     };
 
     const audioUri = audioFieldMap[section];
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       hasAudio: !!audioUri,
       audioDataUri: audioUri || null,
       lastUpdated: patient.wellnessPlan.lastUpdated,

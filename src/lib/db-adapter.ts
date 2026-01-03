@@ -326,10 +326,10 @@ export async function getRecentExamsForPodcast(patientId: string, limit: number 
 export async function updatePatientWellnessPlan(
   patientId: string,
   wellnessPlan: {
-    dietaryPlan: string;
+    preliminaryAnalysis: string;
     exercisePlan: string;
     mentalWellnessPlan: string;
-    dietaryPlanAudioUri?: string;
+    preliminaryAnalysisAudioUri?: string;
     exercisePlanAudioUri?: string;
     mentalWellnessPlanAudioUri?: string;
     dailyReminders: Array<{
@@ -406,7 +406,7 @@ export async function updatePatientWellnessPlanAudio(
   audioUri: string
 ): Promise<void> {
   const fieldMap = {
-    dietary: 'dietaryPlanAudioUri',
+    dietary: 'preliminaryAnalysisAudioUri',
     exercise: 'exercisePlanAudioUri',
     mental: 'mentalWellnessPlanAudioUri',
   };

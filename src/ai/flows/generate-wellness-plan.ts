@@ -8,8 +8,8 @@
  * - GenerateWellnessPlanOutput - The return type for the function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 import { nutritionistAgent } from './nutritionist-agent';
 import { trackWellnessPlan } from '@/lib/usage-tracker';
 import { countTextTokens } from '@/lib/token-counter';
@@ -23,7 +23,7 @@ export type GenerateWellnessPlanInput = z.infer<typeof GenerateWellnessPlanInput
 
 const ReminderSchema = z.object({
     icon: z.enum([
-        'Droplet', 'Clock', 'Coffee', 'Bed', 'Dumbbell', 
+        'Droplet', 'Clock', 'Coffee', 'Bed', 'Dumbbell',
         'Apple', 'Heart', 'Sun', 'Moon', 'Activity',
         'Utensils', 'Brain', 'Smile', 'Wind', 'Leaf'
     ]).describe("The most appropriate icon for the reminder."),
@@ -46,26 +46,28 @@ const MealPrepSuggestionSchema = z.object({
 });
 
 const GenerateWellnessPlanOutputSchema = z.object({
-  dietaryPlan: z.string().describe("A detailed, actionable dietary plan. Include specific foods to eat and avoid, portion guidance, and eating patterns. Make it clear, encouraging, and easy to follow."),
-  exercisePlan: z.string().describe("A comprehensive yet safe exercise plan with specific activities, duration, frequency, and progression guidelines. Include warm-up and cool-down tips. Adapted to patient's condition."),
-  mentalWellnessPlan: z.string().describe("Detailed recommendations for mental well-being including stress management techniques, mindfulness practices, relaxation exercises, and emotional health strategies."),
-  weeklyMealPlan: z.array(MealPrepSuggestionSchema).describe("A 7-day meal plan with specific meal suggestions for breakfast, lunch, dinner, and optional snacks. Be specific and practical."),
-  hydrationPlan: z.string().describe("Specific hydration recommendations including daily water intake goals, timing suggestions, and tips to remember to drink water throughout the day."),
-  sleepPlan: z.string().describe("Comprehensive sleep and rest plan including ideal sleep duration, bedtime routine suggestions, sleep hygiene tips, and relaxation techniques for better sleep quality."),
-  goals: GoalSchema.describe("Measurable short-term, medium-term, and long-term wellness goals personalized to the patient's condition and needs."),
-  dailyReminders: z.array(ReminderSchema).describe("A list of 5-6 varied, personalized daily reminders covering different aspects of the wellness plan (hydration, meals, exercise, sleep, mindfulness)."),
+    preliminaryAnalysis: z.string().describe("Explicação detalhada dos achados dos exames em linguagem simples e acessível para o paciente entender. Evite termos técnicos."),
+    exercisePlan: z.string().describe("A comprehensive yet safe exercise plan with specific activities, duration, frequency, and progression guidelines. Include warm-up and cool-down tips. Adapted to patient's condition."),
+    mentalWellnessPlan: z.string().describe("Detailed recommendations for mental well-being including stress management techniques, mindfulness practices, relaxation exercises, and emotional health strategies."),
+    weeklyMealPlan: z.array(MealPrepSuggestionSchema).describe("A 7-day meal plan with specific meal suggestions for breakfast, lunch, dinner, and optional snacks. Be specific and practical."),
+    hydrationPlan: z.string().describe("Specific hydration recommendations including daily water intake goals, timing suggestions, and tips to remember to drink water throughout the day."),
+    sleepPlan: z.string().describe("Comprehensive sleep and rest plan including ideal sleep duration, bedtime routine suggestions, sleep hygiene tips, and relaxation techniques for better sleep quality."),
+    goals: GoalSchema.describe("Measurable short-term, medium-term, and long-term wellness goals personalized to the patient's condition and needs."),
+    dailyReminders: z.array(ReminderSchema).describe("A list of 5-6 varied, personalized daily reminders covering different aspects of the wellness plan (hydration, meals, exercise, sleep, mindfulness)."),
 });
 export type GenerateWellnessPlanOutput = z.infer<typeof GenerateWellnessPlanOutputSchema>;
 
 
 const wellnessPlanPrompt = ai.definePrompt({
     name: 'generateWellnessPlanPrompt',
-    input: { schema: z.object({
-        patientHistory: z.string(),
-        examResults: z.string(),
-        nutritionistReport: z.string(),
-        nutritionistRecommendations: z.string(),
-    }) },
+    input: {
+        schema: z.object({
+            patientHistory: z.string(),
+            examResults: z.string(),
+            nutritionistReport: z.string(),
+            nutritionistRecommendations: z.string(),
+        })
+    },
     output: { schema: GenerateWellnessPlanOutputSchema },
     prompt: `Você é um assistente de saúde holística altamente qualificado, especializado em criar planos de bem-estar personalizados, detalhados e motivacionais.
 
@@ -89,20 +91,20 @@ const wellnessPlanPrompt = ai.definePrompt({
 
 **INSTRUÇÕES DETALHADAS PARA CADA SEÇÃO:**
 
-**1. PLANO ALIMENTAR (dietaryPlan):**
-- Use as recomendações do nutricionista como base principal
-- Seja ESPECÍFICO: liste alimentos concretos, não apenas categorias genéricas
-- Inclua orientações sobre porções e frequência
-- Destaque alimentos a INCLUIR e alimentos a EVITAR/REDUZIR
-- Mencione padrões alimentares (ex: fazer 5-6 refeições pequenas, não pular café da manhã)
-- Seja encorajador e explique os BENEFÍCIOS de cada orientação
-- Use linguagem acessível e motivacional em Português Brasileiro
+**1. ANÁLISE PRELIMINAR (preliminaryAnalysis):**
+- Explique os achados dos exames de forma clara e acessível
+- Use linguagem POPULAR, evite termos técnicos médicos
+- Quando usar termos técnicos, explique-os imediatamente
+- Resuma os principais achados e o que significam para a saúde
+- Destaque pontos de atenção de forma tranquilizadora (sem alarmar)
+- Compare valores com referências normais quando relevante
+- Seja empático, educativo e encorajador
 
 **Exemplo de estrutura:**
-"🥗 **Alimentos para Priorizar:** [lista específica]
-🚫 **Alimentos para Reduzir/Evitar:** [lista específica]
-⏰ **Padrão de Refeições:** [frequência e timing]
-💪 **Por quê isso funciona:** [benefícios motivacionais]"
+"📊 **O que seus exames mostram:**
+✅ **Pontos positivos:** [o que está bem]
+⚠️ **Pontos de atenção:** [o que merece cuidado, explicado de forma simples]
+💡 **O que isso significa:** [explicação clara]"
 
 **2. PLANO DE EXERCÍCIOS (exercisePlan):**
 - Sugira atividades ESPECÍFICAS adequadas à condição do paciente
@@ -221,9 +223,9 @@ export async function generateWellnessPlan(
 
 const generateWellnessPlanFlow = ai.defineFlow(
     {
-      name: 'generateWellnessPlanFlow',
-      inputSchema: GenerateWellnessPlanInputSchema,
-      outputSchema: GenerateWellnessPlanOutputSchema,
+        name: 'generateWellnessPlanFlow',
+        inputSchema: GenerateWellnessPlanInputSchema,
+        outputSchema: GenerateWellnessPlanOutputSchema,
     },
     async (input) => {
         // 1. Consult the nutritionist to get expert dietary advice with enhanced context
