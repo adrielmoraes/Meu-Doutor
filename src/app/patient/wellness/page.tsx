@@ -212,7 +212,7 @@ export default async function WellnessPlanPage() {
             {
                 title: "Análise Preliminar",
                 icon: <FileText className="h-6 w-6 text-white" />,
-                content: wellnessPlan.preliminaryAnalysis,
+                content: wellnessPlan.preliminaryAnalysis || "",
                 section: 'dietary',
                 audioUri: wellnessPlan.preliminaryAnalysisAudioUri,
                 border: "border-blue-500/30",
@@ -279,10 +279,10 @@ export default async function WellnessPlanPage() {
 
                     {/* Existing Plan Sections */}
                     {planSections.map(section => (
-                        <div key={section.title} className={`rounded - lg border ${section.border} bg - card / 80 p - 6`}>
+                        <div key={section.title} className={`rounded-lg border ${section.border} bg-card/80 p-6 shadow-sm`}>
                             <div className="flex items-center gap-3 mb-4">
-                                <div className={`p - 2 rounded - lg ${section.iconBg} `}>{section.icon}</div>
-                                <h3 className={`font - semibold text - xl ${section.titleColor} `}>{section.title}</h3>
+                                <div className={`p-2 rounded-lg ${section.iconBg}`}>{section.icon}</div>
+                                <h3 className={`font-semibold text-xl ${section.titleColor}`}>{section.title}</h3>
                             </div>
                             <WellnessMarkdownContent content={section.content} variant={section.section} />
                             <WellnessAudioPlayback textToSpeak={section.content} section={section.section} preGeneratedAudioUri={section.audioUri} patientId={patient.id} />
@@ -294,7 +294,7 @@ export default async function WellnessPlanPage() {
                     {/* NEW: Preventive Alerts in Sidebar */}
                     {wellnessPlan.preventiveAlerts && <PreventiveAlertsList alerts={wellnessPlan.preventiveAlerts} />}
 
-                    <WellnessReminders reminders={wellnessPlan.dailyReminders} />
+                    <WellnessReminders reminders={wellnessPlan.dailyReminders || []} />
                 </div>
             </div>
 

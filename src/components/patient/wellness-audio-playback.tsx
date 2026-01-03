@@ -29,7 +29,7 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
-  const isTextTooLong = textToSpeak.length > MAX_TTS_CHARS;
+  const isTextTooLong = (textToSpeak || "").length > MAX_TTS_CHARS;
 
   const fetchSavedAudio = useCallback(async (signal?: AbortSignal) => {
     try {
