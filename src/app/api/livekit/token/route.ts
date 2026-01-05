@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
           name: roomName,
           metadata: JSON.stringify(metadata)
         });
-        
+
         console.log(`[LiveKit] Sala criada com metadata:`, metadata);
       } catch (roomError: any) {
         console.log(`[LiveKit] Sala já existe, atualizando metadata`);
@@ -46,14 +46,49 @@ export async function POST(request: NextRequest) {
               JSON.stringify(metadata),
             );
           }
-        } catch {}
+        } catch { }
+      }
+    }
+
+    // Check for subscription limits if patient_id is present
+    let tokenTTL = undefined; // Default TTL (usually 6 hours)
+
+    if (metadata?.patient_id) {
+      const { canUseResource } = await import('@/lib/subscription-limits');
+      const quota = await canUseResource(metadata.patient_id, 'aiConsultationMinutes');
+
+      // If strict limit reached, deny token
+      if (!quota.allowed) {
+        console.log(`[LiveKit] Limite atingido para ${metadata.patient_id}: ${quota.current}/${quota.limit}`);
+        return NextResponse.json(
+          { error: quota.message || 'Limite de minutos de consulta atingido.' },
+          { status: 403 }
+        );
+      }
+
+      // If finite limit, set TTL equal to remaining time
+      if (quota.limit !== Infinity) {
+        const remainingMinutes = Math.max(0, quota.limit - quota.current);
+
+        // Safety check
+        if (remainingMinutes <= 0) {
+          return NextResponse.json(
+            { error: 'Você não tem mais minutos disponíveis.' },
+            { status: 403 }
+          );
+        }
+
+        // Set TTL (seconds) = remaining minutes * 60 + 15s buffer
+        tokenTTL = (remainingMinutes * 60) + 15;
+        console.log(`[LiveKit] Definindo TTL do token para ${tokenTTL}s (${remainingMinutes} min restantes)`);
       }
     }
 
     // Create access token for participant
     const token = new AccessToken(apiKey, apiSecret, {
       identity: participantName,
-      metadata: metadata ? JSON.stringify(metadata) : undefined
+      metadata: metadata ? JSON.stringify(metadata) : undefined,
+      ttl: tokenTTL
     });
 
     // Grant permissions
