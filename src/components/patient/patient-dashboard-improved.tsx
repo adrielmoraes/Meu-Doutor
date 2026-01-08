@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useLiveKitWarmup } from '@/hooks/use-livekit-warmup';
-import { useLiveKitWarmup } from '@/hooks/use-livekit-warmup';
 import IncomingCallBanner from './incoming-call-banner';
 import PrivacyConsentManager from './privacy-consent-manager'; // Import component
 
