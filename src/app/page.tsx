@@ -40,6 +40,7 @@ export default function LandingPage() {
   const [videoStarted, setVideoStarted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const SHOW_VSL = false; // Toggle to show/hide VSL
 
   const handlePlayClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -149,82 +150,84 @@ export default function LandingPage() {
               </div>
 
               {/* Hero VSL Video - Centered */}
-              <div id="demo" className="relative w-full max-w-4xl mx-auto">
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 to-blue-500/30 rounded-3xl blur-3xl transform rotate-1"></div>
-                <div className="relative group">
-                  <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-3xl blur-2xl group-hover:opacity-80 transition-opacity"></div>
-                  <div className="relative rounded-2xl overflow-hidden border border-cyan-500/30 shadow-2xl shadow-cyan-500/20 bg-slate-900/50 backdrop-blur-sm">
-                    <div className="aspect-video relative">
-                      {/* Video Iframe - YouTube com autoplay */}
-                      <iframe
-                        ref={iframeRef}
-                        src={videoStarted
-                          ? "https://www.youtube.com/embed/8YTSeJI2_pc?autoplay=1&rel=0&modestbranding=1"
-                          : "https://www.youtube.com/embed/8YTSeJI2_pc?rel=0&modestbranding=1"
-                        }
-                        className="w-full h-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen
-                        title="MediAI - Inteligência Artificial a Serviço da Sua Saúde"
-                      ></iframe>
+              {SHOW_VSL && (
+                <div id="demo" className="relative w-full max-w-4xl mx-auto">
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 to-blue-500/30 rounded-3xl blur-3xl transform rotate-1"></div>
+                  <div className="relative group">
+                    <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-3xl blur-2xl group-hover:opacity-80 transition-opacity"></div>
+                    <div className="relative rounded-2xl overflow-hidden border border-cyan-500/30 shadow-2xl shadow-cyan-500/20 bg-slate-900/50 backdrop-blur-sm">
+                      <div className="aspect-video relative">
+                        {/* Video Iframe - YouTube com autoplay */}
+                        <iframe
+                          ref={iframeRef}
+                          src={videoStarted
+                            ? "https://www.youtube.com/embed/8YTSeJI2_pc?autoplay=1&rel=0&modestbranding=1"
+                            : "https://www.youtube.com/embed/8YTSeJI2_pc?rel=0&modestbranding=1"
+                          }
+                          className="w-full h-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                          title="MediAI - Inteligência Artificial a Serviço da Sua Saúde"
+                        ></iframe>
 
-                      {/* Animated Play Overlay */}
-                      {!videoStarted && (
-                        <div
-                          onClick={handlePlayClick}
-                          className={`absolute inset-0 bg-gradient-to-br from-slate-900/95 via-blue-950/90 to-slate-900/95 cursor-pointer flex flex-col items-center justify-center gap-6 transition-all duration-300 hover:from-slate-900/90 hover:via-blue-950/85 hover:to-slate-900/90 group/overlay ${isTransitioning ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-                        >
-                          {/* Animated Background Rings */}
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="absolute w-32 h-32 md:w-48 md:h-48 rounded-full border-2 border-cyan-500/20 animate-ping"></div>
-                            <div className="absolute w-40 h-40 md:w-56 md:h-56 rounded-full border border-purple-500/10 animate-pulse"></div>
-                            <div className="absolute w-48 h-48 md:w-64 md:h-64 rounded-full border border-blue-500/10 animate-pulse delay-300"></div>
-                          </div>
+                        {/* Animated Play Overlay */}
+                        {!videoStarted && (
+                          <div
+                            onClick={handlePlayClick}
+                            className={`absolute inset-0 bg-gradient-to-br from-slate-900/95 via-blue-950/90 to-slate-900/95 cursor-pointer flex flex-col items-center justify-center gap-6 transition-all duration-300 hover:from-slate-900/90 hover:via-blue-950/85 hover:to-slate-900/90 group/overlay ${isTransitioning ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                          >
+                            {/* Animated Background Rings */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="absolute w-32 h-32 md:w-48 md:h-48 rounded-full border-2 border-cyan-500/20 animate-ping"></div>
+                              <div className="absolute w-40 h-40 md:w-56 md:h-56 rounded-full border border-purple-500/10 animate-pulse"></div>
+                              <div className="absolute w-48 h-48 md:w-64 md:h-64 rounded-full border border-blue-500/10 animate-pulse delay-300"></div>
+                            </div>
 
-                          {/* Play Button */}
-                          <div className="relative z-10">
-                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full blur-xl opacity-60 animate-pulse"></div>
-                            <div className="relative w-20 h-20 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-cyan-500/50 transform group-hover/overlay:scale-110 transition-all duration-300">
-                              <div className="absolute inset-1 rounded-full bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-500 opacity-80"></div>
-                              <Play className="relative z-10 h-8 w-8 md:h-12 md:w-12 text-white fill-white ml-1" />
+                            {/* Play Button */}
+                            <div className="relative z-10">
+                              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full blur-xl opacity-60 animate-pulse"></div>
+                              <div className="relative w-20 h-20 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-cyan-500/50 transform group-hover/overlay:scale-110 transition-all duration-300">
+                                <div className="absolute inset-1 rounded-full bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-500 opacity-80"></div>
+                                <Play className="relative z-10 h-8 w-8 md:h-12 md:w-12 text-white fill-white ml-1" />
+                              </div>
+                            </div>
+
+                            {/* Text */}
+                            <div className="relative z-10 text-center space-y-2">
+                              <p className="text-lg md:text-2xl font-bold bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent animate-pulse">
+                                Clique para Assistir
+                              </p>
+                              <p className="text-sm md:text-base text-blue-200/70">
+                                Descubra como a IA pode transformar sua saúde
+                              </p>
+                            </div>
+
+                            {/* Floating Icons */}
+                            <div className="absolute top-8 left-8 text-cyan-400/40 animate-bounce">
+                              <Stethoscope className="h-6 w-6 md:h-8 md:w-8" />
+                            </div>
+                            <div className="absolute top-8 right-8 text-purple-400/40 animate-bounce delay-300">
+                              <Brain className="h-6 w-6 md:h-8 md:w-8" />
+                            </div>
+                            <div className="absolute bottom-8 left-8 text-blue-400/40 animate-bounce delay-500">
+                              <HeartPulse className="h-6 w-6 md:h-8 md:w-8" />
+                            </div>
+                            <div className="absolute bottom-8 right-8 text-emerald-400/40 animate-bounce delay-700">
+                              <Activity className="h-6 w-6 md:h-8 md:w-8" />
                             </div>
                           </div>
+                        )}
+                      </div>
 
-                          {/* Text */}
-                          <div className="relative z-10 text-center space-y-2">
-                            <p className="text-lg md:text-2xl font-bold bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent animate-pulse">
-                              Clique para Assistir
-                            </p>
-                            <p className="text-sm md:text-base text-blue-200/70">
-                              Descubra como a IA pode transformar sua saúde
-                            </p>
-                          </div>
-
-                          {/* Floating Icons */}
-                          <div className="absolute top-8 left-8 text-cyan-400/40 animate-bounce">
-                            <Stethoscope className="h-6 w-6 md:h-8 md:w-8" />
-                          </div>
-                          <div className="absolute top-8 right-8 text-purple-400/40 animate-bounce delay-300">
-                            <Brain className="h-6 w-6 md:h-8 md:w-8" />
-                          </div>
-                          <div className="absolute bottom-8 left-8 text-blue-400/40 animate-bounce delay-500">
-                            <HeartPulse className="h-6 w-6 md:h-8 md:w-8" />
-                          </div>
-                          <div className="absolute bottom-8 right-8 text-emerald-400/40 animate-bounce delay-700">
-                            <Activity className="h-6 w-6 md:h-8 md:w-8" />
-                          </div>
-                        </div>
-                      )}
+                      {/* Decorative Corner Elements */}
+                      <div className="absolute top-0 left-0 w-16 h-16 border-l-2 border-t-2 border-cyan-500/50 rounded-tl-2xl pointer-events-none"></div>
+                      <div className="absolute top-0 right-0 w-16 h-16 border-r-2 border-t-2 border-purple-500/50 rounded-tr-2xl pointer-events-none"></div>
+                      <div className="absolute bottom-0 left-0 w-16 h-16 border-l-2 border-b-2 border-purple-500/50 rounded-bl-2xl pointer-events-none"></div>
+                      <div className="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 border-cyan-500/50 rounded-br-2xl pointer-events-none"></div>
                     </div>
-
-                    {/* Decorative Corner Elements */}
-                    <div className="absolute top-0 left-0 w-16 h-16 border-l-2 border-t-2 border-cyan-500/50 rounded-tl-2xl pointer-events-none"></div>
-                    <div className="absolute top-0 right-0 w-16 h-16 border-r-2 border-t-2 border-purple-500/50 rounded-tr-2xl pointer-events-none"></div>
-                    <div className="absolute bottom-0 left-0 w-16 h-16 border-l-2 border-b-2 border-purple-500/50 rounded-bl-2xl pointer-events-none"></div>
-                    <div className="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 border-cyan-500/50 rounded-br-2xl pointer-events-none"></div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">

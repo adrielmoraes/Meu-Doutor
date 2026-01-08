@@ -5,6 +5,7 @@ export type Patient = {
   birthDate: string;
   cpf: string;
   phone: string;
+  mothersName: string;
   email: string;
   emailVerified: boolean;
   verificationToken?: string | null;

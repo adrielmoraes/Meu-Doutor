@@ -17,6 +17,7 @@ export const patients = pgTable('patients', {
   birthDate: text('birth_date').notNull(),
   cpf: text('cpf').notNull().unique(),
   phone: text('phone').notNull(),
+  mothersName: text('mothers_name').notNull().default(''),
   email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').notNull().default(false),
   verificationToken: text('verification_token'),

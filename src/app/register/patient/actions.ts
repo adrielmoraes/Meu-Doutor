@@ -18,6 +18,7 @@ const PatientSchema = z.object({
   birthDate: z.string().refine((date) => !isNaN(Date.parse(date)), { message: "Data de nascimento inválida." }),
   cpf: z.string().min(11, { message: "CPF inválido." }),
   phone: z.string().min(10, { message: "Telefone inválido." }),
+  mothersName: z.string().min(3, { message: "O nome da mãe é obrigatório." }),
   gender: z.string().min(1, { message: "Por favor, selecione um gênero." }),
   city: z.string().min(2, { message: "A cidade é obrigatória." }),
   state: z.string().length(2, { message: "O estado (UF) é obrigatório." }),
@@ -42,21 +43,21 @@ export async function createPatientAction(prevState: any, formData: FormData) {
     // Verificar se email já existe
     const existingEmail = await getPatientByEmail(email);
     if (existingEmail) {
-        return {
-            ...prevState,
-            errors: { email: ['Este e-mail já está em uso.'] },
-            message: 'Falha no cadastro. O e-mail fornecido já está cadastrado.',
-        };
+      return {
+        ...prevState,
+        errors: { email: ['Este e-mail já está em uso.'] },
+        message: 'Falha no cadastro. O e-mail fornecido já está cadastrado.',
+      };
     }
 
     // Verificar se CPF já existe
     const existingCpf = await getPatientByCpf(rest.cpf);
     if (existingCpf) {
-        return {
-            ...prevState,
-            errors: { cpf: ['Este CPF já está cadastrado.'] },
-            message: 'Falha no cadastro. Este CPF já está cadastrado no sistema.',
-        };
+      return {
+        ...prevState,
+        errors: { cpf: ['Este CPF já está cadastrado.'] },
+        message: 'Falha no cadastro. Este CPF já está cadastrado no sistema.',
+      };
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -76,7 +77,9 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       examResults: '',
       email: email,
       cpf: rest.cpf,
+      cpf: rest.cpf,
       phone: rest.phone,
+      mothersName: rest.mothersName,
       gender: rest.gender,
       city: rest.city,
       state: rest.state.toUpperCase(),
@@ -94,10 +97,10 @@ export async function createPatientAction(prevState: any, formData: FormData) {
     });
 
     // Enviar email de verificação
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
-                    (process.env.REPLIT_DOMAINS?.split(',')[0] 
-                      ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}` 
-                      : 'http://localhost:5000');
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ||
+      (process.env.REPLIT_DOMAINS?.split(',')[0]
+        ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
+        : 'http://localhost:5000');
 
     const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}&type=patient`;
 
@@ -119,7 +122,7 @@ export async function createPatientAction(prevState: any, formData: FormData) {
 
     // Ativar automaticamente o plano Trial de 7 dias grátis
     let trialActivated = false;
-    
+
     try {
       const stripe = (await import('@/lib/stripe')).stripe;
       const { upsertSubscription } = await import('@/lib/subscription-adapter');
@@ -163,7 +166,7 @@ export async function createPatientAction(prevState: any, formData: FormData) {
       console.log(`[Cadastro] ✅ Plano Trial via Stripe ativado para ${email}`);
     } catch (stripeError: any) {
       console.error('[Cadastro] ⚠️ Erro ao ativar Trial via Stripe:', stripeError.message);
-      
+
       // FALLBACK: Criar assinatura trial local se Stripe falhar
       try {
         const { createLocalTrialSubscription } = await import('@/lib/subscription-adapter');
@@ -174,7 +177,7 @@ export async function createPatientAction(prevState: any, formData: FormData) {
         console.error('[Cadastro] ❌ Erro ao criar Trial local:', localError.message);
       }
     }
-    
+
     if (!trialActivated) {
       console.warn(`[Cadastro] ⚠️ Paciente ${email} cadastrado SEM plano trial ativo`);
     }

@@ -22,23 +22,23 @@ import { useRouter } from 'next/navigation';
 import MediAILogo from '@/components/layout/mediai-logo';
 
 function SubmitButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button 
-            type="submit" 
-            className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold shadow-lg shadow-cyan-500/20 transition-all" 
-            disabled={pending}
-        >
-            {pending ? (
-                <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processando...
-                </>
-            ) : (
-                "Finalizar Cadastro"
-            )}
-        </Button>
-    );
+  const { pending } = useFormStatus();
+  return (
+    <Button
+      type="submit"
+      className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold shadow-lg shadow-cyan-500/20 transition-all"
+      disabled={pending}
+    >
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Processando...
+        </>
+      ) : (
+        "Finalizar Cadastro"
+      )}
+    </Button>
+  );
 }
 
 
@@ -47,29 +47,29 @@ export default function PatientRegisterPage() {
   const router = useRouter();
   const initialState = { message: null, errors: null, success: false };
   const [state, dispatch] = useActionState(createPatientAction, initialState);
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   useEffect(() => {
     if (!state) return;
-    
+
     if (state.success && state.message) {
-        toast({
-            title: 'Cadastro Realizado!',
-            description: state.message,
-            className: "bg-green-100 text-green-800 border-green-200",
-        });
-        setTimeout(() => {
-            router.push('/login');
-        }, 2000);
+      toast({
+        title: 'Cadastro Realizado!',
+        description: state.message,
+        className: "bg-green-100 text-green-800 border-green-200",
+      });
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
     } else if (state.message && !state.success) {
-         toast({
-            variant: "destructive",
-            title: 'Erro no Cadastro',
-            description: state.message,
-        });
+      toast({
+        variant: "destructive",
+        title: 'Erro no Cadastro',
+        description: state.message,
+      });
     }
   }, [state, toast, router]);
 
@@ -80,7 +80,7 @@ export default function PatientRegisterPage() {
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
       <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
-      
+
       <div className="mb-8 relative z-10 flex justify-center">
         <MediAILogo size="lg" />
       </div>
@@ -90,7 +90,7 @@ export default function PatientRegisterPage() {
           <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
             <User className="h-7 w-7 text-cyan-400" />
           </div>
-          
+
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
             Cadastro de Paciente
           </CardTitle>
@@ -98,7 +98,7 @@ export default function PatientRegisterPage() {
             Preencha os dados abaixo para criar sua conta
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           <form action={dispatch}>
             <div className="grid gap-4">
@@ -164,6 +164,19 @@ export default function PatientRegisterPage() {
                   className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white placeholder:text-slate-500"
                 />
                 {state?.errors?.phone && <p className="text-xs text-red-400">{state.errors.phone[0]}</p>}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="mothersName" className="text-blue-100">Nome da Mãe</Label>
+                <Input
+                  id="mothersName"
+                  name="mothersName"
+                  type="text"
+                  placeholder="Nome completo da mãe"
+                  required
+                  className="bg-slate-900/50 border-cyan-500/30 focus:border-cyan-500 text-white placeholder:text-slate-500"
+                />
+                {state?.errors?.mothersName && <p className="text-xs text-red-400">{state.errors.mothersName[0]}</p>}
               </div>
 
               <div className="grid gap-2">
@@ -280,16 +293,16 @@ export default function PatientRegisterPage() {
                 <p className="text-xs text-red-400">{state.errors.terms[0]}</p>
               )}
 
-              <Button 
-                type="submit" 
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold shadow-lg shadow-cyan-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold shadow-lg shadow-cyan-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!acceptedTerms}
               >
                 Finalizar Cadastro
               </Button>
             </div>
           </form>
-          
+
           <div className="mt-6 text-center text-sm text-blue-200/70">
             Já possui uma conta?{" "}
             <Link href="/login" className="underline text-cyan-400 hover:text-cyan-300 font-medium">

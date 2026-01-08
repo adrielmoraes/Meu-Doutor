@@ -1,5 +1,12 @@
 # MediAI LiveKit Agent
 
+Your total cost (December 30, 2025 - January 5, 2026)
+Custo
+R$9.95
+-
+Economia
+R$9.95
+
 Agente de IA médica em tempo real usando LiveKit + Google Gemini para consultas por voz/vídeo com avatar virtual.
 
 ## Arquitetura

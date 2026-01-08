@@ -10,7 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useLiveKitWarmup } from '@/hooks/use-livekit-warmup';
+import { useLiveKitWarmup } from '@/hooks/use-livekit-warmup';
 import IncomingCallBanner from './incoming-call-banner';
+import PrivacyConsentManager from './privacy-consent-manager'; // Import component
 
 
 
@@ -197,6 +199,10 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
             <TabsTrigger value="doctors" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Médicos</span>
+            </TabsTrigger>
+            <TabsTrigger value="privacy" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              <span className="hidden sm:inline">Privacidade</span>
             </TabsTrigger>
           </TabsList>
 
@@ -446,6 +452,19 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                 </Link>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="privacy" className="space-y-6 mt-6">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-bold tracking-tight flex items-center justify-center gap-2">
+                <Shield className="h-8 w-8 text-cyan-500" />
+                Sua Privacidade
+              </h2>
+              <p className="text-foreground/80 dark:text-muted-foreground mt-2 max-w-2xl mx-auto">
+                Na MediAI, seus dados são encriptados e você tem controle total. Gerencie seus consentimentos abaixo.
+              </p>
+            </div>
+            <PrivacyConsentManager patientId={patient.id} patientEmail={patient.email} />
           </TabsContent>
         </Tabs>
 
