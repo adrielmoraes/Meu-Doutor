@@ -33,7 +33,7 @@ export default async function ProfilePage() {
     if (error || !doctor) {
         return (
             <div className="container mx-auto p-4">
-                <Alert variant="destructive" className="bg-red-900/20 border-red-500/30 text-red-200">
+                <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-800">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Erro ao Carregar Perfil</AlertTitle>
                     <AlertDescription>{error || "Não foi possível encontrar os dados do médico."}</AlertDescription>
@@ -43,28 +43,25 @@ export default async function ProfilePage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden">
-            {/* Background Effects */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
-            <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
-            <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
-            
+        <div className="bg-slate-50 min-h-screen relative font-sans text-slate-900">
+            {/* Background Decor */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50 via-transparent to-transparent opacity-60"></div>
+
             <div className="relative z-10 container mx-auto p-4 sm:p-6 lg:p-8">
                 <div className="mb-12 space-y-4">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 backdrop-blur-sm">
-                        <Sparkles className="h-4 w-4 text-purple-400" />
-                        <span className="text-sm text-purple-300 font-medium">Perfil Profissional</span>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 border border-blue-200 backdrop-blur-sm">
+                        <Sparkles className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm text-blue-800 font-bold">Perfil Profissional</span>
                     </div>
-                    
-                    <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
-                        Meu Perfil e Progresso
+
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
+                        Meu Perfil e Controle
                     </h1>
-                    <p className="text-lg text-blue-200/70">
-                        Gerencie suas informações profissionais e foto de perfil.
+                    <p className="text-lg text-slate-500 font-medium max-w-2xl leading-relaxed">
+                        Gerencie suas informações profissionais, credenciais e sua presença na plataforma Dr.IA.
                     </p>
                 </div>
-                
+
                 <ProfileClientManager doctor={doctor} userId={userId} />
             </div>
         </div>

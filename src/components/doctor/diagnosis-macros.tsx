@@ -1,12 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { 
-  CheckCircle, 
-  Clock, 
-  FileCheck, 
-  AlertTriangle, 
-  Pill, 
+import {
+  CheckCircle,
+  Clock,
+  FileCheck,
+  AlertTriangle,
+  Pill,
   Stethoscope,
   Plus
 } from "lucide-react";
@@ -55,21 +55,21 @@ export default function DiagnosisMacros({ onInsert }: DiagnosisMacrosProps) {
     <div className="flex flex-wrap gap-2 mb-2">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="h-7 text-xs border-dashed border-slate-600 bg-slate-800/50 hover:bg-slate-800 text-slate-300">
+          <Button variant="outline" size="sm" className="h-7 text-xs border-dashed border-slate-300 bg-white hover:bg-slate-50 text-slate-600 shadow-sm">
             <Plus className="h-3 w-3 mr-1" />
-            Inserir Modelo Rápido
+            Modelos Rápidos
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56 bg-slate-900 border-slate-700 text-slate-200">
+        <DropdownMenuContent className="w-56 bg-white border-slate-200 text-slate-700 shadow-lg">
           {macros.map((category, idx) => (
             <div key={category.category}>
-              {idx > 0 && <DropdownMenuSeparator className="bg-slate-700" />}
-              <DropdownMenuLabel className="text-cyan-500 text-xs uppercase tracking-wider">{category.category}</DropdownMenuLabel>
+              {idx > 0 && <DropdownMenuSeparator className="bg-slate-100" />}
+              <DropdownMenuLabel className="text-blue-600 text-[10px] uppercase tracking-wider font-bold">{category.category}</DropdownMenuLabel>
               {category.items.map((item) => (
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   key={item.label}
                   onClick={() => onInsert(item.text)}
-                  className="cursor-pointer focus:bg-slate-800 focus:text-cyan-400"
+                  className="cursor-pointer focus:bg-blue-50 focus:text-blue-700 font-medium"
                 >
                   <span className="truncate">{item.label}</span>
                 </DropdownMenuItem>
@@ -80,30 +80,30 @@ export default function DiagnosisMacros({ onInsert }: DiagnosisMacrosProps) {
       </DropdownMenu>
 
       {/* Quick Access Buttons */}
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="h-7 text-xs text-green-400 hover:text-green-300 hover:bg-green-400/10"
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-7 text-xs text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 font-medium"
         onClick={() => onInsert("Exames normais. Manter orientações de estilo de vida.")}
       >
         <CheckCircle className="h-3 w-3 mr-1" />
         Normal
       </Button>
-      
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="h-7 text-xs text-yellow-400 hover:text-yellow-300 hover:bg-yellow-400/10"
+
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-7 text-xs text-amber-700 hover:text-amber-800 hover:bg-amber-50 font-medium"
         onClick={() => onInsert("Atenção aos valores alterados. Recomendado repetir exame em 30 dias.")}
       >
         <AlertTriangle className="h-3 w-3 mr-1" />
         Alerta
       </Button>
 
-       <Button 
-        variant="ghost" 
-        size="sm" 
-        className="h-7 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-400/10"
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-7 text-xs text-blue-700 hover:text-blue-800 hover:bg-blue-50 font-medium"
         onClick={() => onInsert("Manter medicação vigente.")}
       >
         <Pill className="h-3 w-3 mr-1" />

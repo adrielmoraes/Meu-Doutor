@@ -5,5 +5,5 @@ export default function DoctorLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="doctor-layout bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 min-h-screen">{children}</div>;
+  return <div className="doctor-layout bg-slate-50 min-h-screen">{children}</div>;
 }

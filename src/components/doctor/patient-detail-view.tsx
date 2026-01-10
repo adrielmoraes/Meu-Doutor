@@ -45,35 +45,36 @@ function AIAnalysisCollapsible({ exam }: { exam: Exam }) {
   const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="rounded-lg border border-cyan-500/30 overflow-hidden">
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="rounded-xl border border-blue-100 overflow-hidden shadow-sm">
       <CollapsibleTrigger asChild>
-        <button className="w-full p-4 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 transition-colors flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Bot className="h-5 w-5 text-cyan-400" />
-            <h4 className="font-semibold text-lg text-cyan-300">Análise Preliminar da IA</h4>
+        <button className="w-full p-4 bg-gradient-to-r from-blue-50 to-white hover:from-blue-100/50 hover:to-white transition-colors flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-600 p-1.5 rounded-lg">
+              <Bot className="h-5 w-5 text-white" />
+            </div>
+            <h4 className="font-bold text-lg text-slate-900 tracking-tight">Análise Preliminar da IA</h4>
           </div>
           {isOpen ? (
-            <ChevronUp className="h-5 w-5 text-cyan-400" />
+            <ChevronUp className="h-5 w-5 text-slate-400" />
           ) : (
-            <ChevronDown className="h-5 w-5 text-cyan-400" />
+            <ChevronDown className="h-5 w-5 text-slate-400" />
           )}
         </button>
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className="p-4 bg-slate-800/30">
-          <div className="max-h-[500px] overflow-y-auto pr-3 scrollbar-thin scrollbar-thumb-cyan-500/50 scrollbar-track-slate-700/30 hover:scrollbar-thumb-cyan-500/70"
-            style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(6, 182, 212, 0.5) rgba(51, 65, 85, 0.3)' }}>
-            <div className="prose prose-invert prose-sm max-w-none
-              prose-headings:text-cyan-300 prose-headings:font-bold prose-headings:mt-4 prose-headings:mb-2
+        <div className="p-5 bg-white border-t border-blue-50">
+          <div className="max-h-[500px] overflow-y-auto pr-3 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-transparent">
+            <div className="prose prose-slate prose-sm max-w-none
+              prose-headings:text-slate-900 prose-headings:font-bold prose-headings:mt-4 prose-headings:mb-2
               prose-h1:text-xl prose-h2:text-lg prose-h3:text-base
-              prose-p:text-white prose-p:leading-relaxed prose-p:my-2
-              prose-strong:text-cyan-200 prose-strong:font-semibold
-              prose-ul:my-2 prose-ul:pl-4 prose-li:text-white prose-li:my-1
+              prose-p:text-slate-600 prose-p:leading-relaxed prose-p:my-2
+              prose-strong:text-slate-900 prose-strong:font-bold
+              prose-ul:my-2 prose-ul:pl-4 prose-li:text-slate-600 prose-li:my-1
               prose-ol:my-2 prose-ol:pl-4
-              prose-a:text-cyan-400 prose-a:no-underline hover:prose-a:underline
-              prose-code:text-cyan-300 prose-code:bg-slate-700/50 prose-code:px-1 prose-code:rounded
-              prose-blockquote:border-l-cyan-500 prose-blockquote:text-blue-200
-              prose-hr:border-slate-600">
+              prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
+              prose-code:text-blue-700 prose-code:bg-blue-50 prose-code:px-1 prose-code:rounded
+              prose-blockquote:border-l-blue-500 prose-blockquote:text-slate-500
+              prose-hr:border-slate-100">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {exam.preliminaryDiagnosis || "Nenhuma análise disponível."}
               </ReactMarkdown>
@@ -132,7 +133,7 @@ export default function PatientDetailView({
       if (!examToAnalyze) throw new Error("Exam not found");
 
       const result = await generatePreliminaryDiagnosis({
-        patientId: patient.id, // Adicionado patientId para corrigir o erro
+        patientId: patient.id,
         patientHistory: summary,
         examResults: examToAnalyze.preliminaryDiagnosis + "\n\n" + examToAnalyze.explanation
       });
@@ -187,7 +188,6 @@ export default function PatientDetailView({
       variant: result.success ? "default" : "destructive",
       className: result.success ? "bg-green-100 text-green-800 border-green-200" : "",
     });
-    // State will be updated by page revalidation
     setValidationState(prev => ({ ...prev, [examId]: { ...prev[examId], isValidating: false } }));
   };
 
@@ -196,7 +196,7 @@ export default function PatientDetailView({
 
     setIsBulkValidating(true);
     const result = await validateMultipleExamsAction(patient.id, selectedExams);
-    
+
     toast({
       title: result.success ? "Validação em Lote Concluída" : "Erro na Validação",
       description: result.message,
@@ -210,8 +210,8 @@ export default function PatientDetailView({
   };
 
   const toggleExamSelection = (examId: string) => {
-    setSelectedExams(prev => 
-      prev.includes(examId) 
+    setSelectedExams(prev =>
+      prev.includes(examId)
         ? prev.filter(id => id !== examId)
         : [...prev, examId]
     );
@@ -223,169 +223,163 @@ export default function PatientDetailView({
   const categories = Array.from(new Set(exams.map(e => getExamCategory(e.type))));
 
   return (
-    <div className="space-y-6">
-      <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-slate-700/50">
-        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <Avatar className="h-20 w-20 border-2 border-cyan-500/30">
+    <div className="space-y-6 bg-slate-50 p-1 rounded-xl">
+      <Card className="bg-white border-slate-200 shadow-sm overflow-hidden border-none ring-1 ring-slate-200">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-5 p-6 border-b border-slate-50">
+          <Avatar className="h-24 w-24 border-4 border-white shadow-md">
             <AvatarImage src={patient.avatar} data-ai-hint={patient.avatarHint} />
-            <AvatarFallback className="bg-slate-700 text-cyan-300">{patient.name.substring(0, 2)}</AvatarFallback>
+            <AvatarFallback className="bg-slate-100 text-slate-600 text-xl font-bold">{patient.name.substring(0, 2)}</AvatarFallback>
           </Avatar>
           <div className="flex-grow">
-            <CardTitle className="text-3xl text-white">{patient.name}</CardTitle>
-            <CardDescription className="text-slate-400">
-              {patient.age} anos, {patient.gender}. Última Interação: {patient.lastVisit}
+            <CardTitle className="text-4xl font-extrabold text-slate-900 tracking-tight">{patient.name}</CardTitle>
+            <CardDescription className="text-slate-500 text-lg mt-1 font-medium">
+              {patient.age} anos • {patient.gender} • Última Interação: {patient.lastVisit}
             </CardDescription>
           </div>
-          <div className="flex flex-col sm:items-end gap-2">
-            <Badge variant={patient.status === 'Validado' ? 'secondary' : 'default'} className={`text-base ${patient.status === 'Validado' ? 'bg-green-900/50 text-green-300 border-green-800' : 'bg-yellow-900/50 text-yellow-300 border-yellow-800'}`}>
+          <div className="flex flex-col sm:items-end gap-3">
+            <Badge variant={patient.status === 'Validado' ? 'secondary' : 'default'} className={`text-sm px-4 py-1.5 font-bold shadow-sm ${patient.status === 'Validado' ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border-none' : 'bg-amber-100 text-amber-800 hover:bg-amber-200 border-none'}`}>
               {patient.status}
             </Badge>
             {patient.status !== 'Validado' && patient.priority && (
-              <Badge variant="outline" className="text-sm border-2 border-slate-600 text-slate-300">
-                Prioridade: <span className="font-bold ml-1 text-white">{patient.priority}</span>
+              <Badge variant="outline" className="text-xs font-bold px-3 py-1 border-slate-200 text-slate-600 bg-white">
+                Prioridade: <span className="ml-1 text-slate-900">{patient.priority}</span>
               </Badge>
             )}
           </div>
         </CardHeader>
       </Card>
 
-      <PatientSafetyBar 
-        preventiveAlerts={patient.preventiveAlerts || []} 
-        // Mock data for now until we have dedicated fields in DB
+
+      <PatientSafetyBar
+        preventiveAlerts={patient.preventiveAlerts || []}
         allergies={patient.reportedSymptoms?.toLowerCase().includes("alergia") ? ["Verificar Histórico"] : []}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left column for exams */}
         <div className="lg:col-span-2 space-y-6">
-          
-          {/* Filters */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-             <Button 
-               variant={selectedCategory === null ? "default" : "outline"}
-               size="sm"
-               onClick={() => setSelectedCategory(null)}
-               className={`rounded-full h-8 text-xs ${selectedCategory === null ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-slate-800 text-slate-300 border-slate-700'}`}
-             >
-               Todos
-             </Button>
-             {categories.map(cat => (
-               <Button
-                 key={cat}
-                 variant={selectedCategory === cat ? "default" : "outline"}
-                 size="sm"
-                 onClick={() => setSelectedCategory(cat)}
-                 className={`rounded-full h-8 text-xs ${selectedCategory === cat ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-slate-800 text-slate-300 border-slate-700'}`}
-               >
-                 {cat}
-               </Button>
-             ))}
+          <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-none">
+            <Button
+              variant={selectedCategory === null ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedCategory(null)}
+              className={`rounded-full h-9 px-5 text-xs font-bold shadow-sm transition-all ${selectedCategory === null ? 'bg-blue-600 hover:bg-blue-700 text-white border-transparent' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+            >
+              Todos
+            </Button>
+            {categories.map(cat => (
+              <Button
+                key={cat}
+                variant={selectedCategory === cat ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(cat)}
+                className={`rounded-full h-9 px-5 text-xs font-bold shadow-sm transition-all ${selectedCategory === cat ? 'bg-blue-600 hover:bg-blue-700 text-white border-transparent' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+              >
+                {cat}
+              </Button>
+            ))}
           </div>
 
-          <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-slate-700/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white justify-between w-full">
-                <div className="flex items-center gap-2">
-                  <FileWarning className="h-6 w-6 text-yellow-500" />
-                  Exames Pendentes de Validação ({pendingExams.length})
+
+          <Card className="bg-white border-slate-200 shadow-sm border-none ring-1 ring-slate-200">
+            <CardHeader className="p-6 pb-2">
+              <CardTitle className="flex items-center gap-2 text-slate-900 justify-between w-full">
+                <div className="flex items-center gap-3">
+                  <div className="bg-amber-100 p-2 rounded-lg">
+                    <FileWarning className="h-6 w-6 text-amber-600" />
+                  </div>
+                  <span className="font-bold">Exames Pendentes ({pendingExams.length})</span>
                 </div>
                 {selectedExams.length > 0 && (
-                  <Button 
-                    onClick={handleBulkValidation} 
+                  <Button
+                    onClick={handleBulkValidation}
                     disabled={isBulkValidating}
                     size="sm"
-                    className="bg-green-600 hover:bg-green-700 text-white animate-in fade-in zoom-in"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md animate-in fade-in zoom-in"
                   >
                     {isBulkValidating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckSquare className="h-4 w-4 mr-2" />}
                     Validar ({selectedExams.length}) Selecionados
                   </Button>
                 )}
               </CardTitle>
-              <CardDescription className="text-slate-400">Revise a análise da IA e forneça seu diagnóstico final para cada exame.</CardDescription>
+              <CardDescription className="text-slate-500 font-medium">Revise a análise da IA e forneça seu diagnóstico final para cada exame.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               {pendingExams.length > 0 ? (
-                <Accordion type="single" collapsible className="w-full" defaultValue={pendingExams[0].id}>
+                <Accordion type="single" collapsible className="w-full space-y-4" defaultValue={pendingExams[0].id}>
                   {pendingExams.map(exam => {
                     const state = validationState[exam.id];
                     return (
-                      <AccordionItem value={exam.id} key={exam.id} className="border-slate-700">
-                        <AccordionTrigger className="text-base font-medium hover:no-underline text-slate-200 hover:text-white">
+                      <AccordionItem value={exam.id} key={exam.id} className="border border-slate-100 rounded-xl overflow-hidden shadow-sm px-1 bg-white">
+                        <AccordionTrigger className="text-base font-bold hover:no-underline text-slate-900 hover:text-blue-600 px-4 py-4 transition-all">
                           <div className="flex items-center gap-4 w-full">
                             <div onClick={(e) => e.stopPropagation()} className="flex items-center">
-                              <Checkbox 
+                              <Checkbox
                                 checked={selectedExams.includes(exam.id)}
                                 onCheckedChange={() => toggleExamSelection(exam.id)}
-                                className="border-slate-500 data-[state=checked]:bg-cyan-500 data-[state=checked]:border-cyan-500"
+                                className="border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 h-5 w-5"
                               />
                             </div>
-                            <Files className="h-5 w-5 text-cyan-400" />
-                            <span>{exam.type}</span>
+                            <Files className="h-5 w-5 text-blue-500" />
+                            <span className="tracking-tight">{exam.type}</span>
                             {exam.fileUrl && (
-                               <a 
-                                 href={exam.fileUrl} 
-                                 target="_blank" 
-                                 rel="noopener noreferrer"
-                                 className="ml-auto text-xs flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors bg-blue-500/10 px-2 py-1 rounded-full border border-blue-500/20 hover:bg-blue-500/20"
-                                 onClick={(e) => e.stopPropagation()}
-                               >
-                                 <ExternalLink className="h-3 w-3" />
-                                 Ver Original
-                               </a>
+                              <a
+                                href={exam.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="ml-auto text-xs font-bold flex items-center gap-1.5 text-blue-600 hover:text-blue-700 transition-all bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                Ver Original
+                              </a>
                             )}
                           </div>
                         </AccordionTrigger>
-                        <AccordionContent className="space-y-4 pt-4">
-                          {/* Valores Reais do Exame */}
+                        <AccordionContent className="space-y-6 pt-4 px-4 pb-6 border-t border-slate-50">
                           {exam.results && exam.results.length > 0 && (
-                            <div className="p-4 bg-slate-900/50 border border-slate-700 rounded-lg">
-                              <h4 className="font-semibold text-sm mb-3 text-cyan-300 flex items-center gap-2">
-                                <FileText className="h-4 w-4" />
-                                Valores do Exame
+                            <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl shadow-inner">
+                              <h4 className="font-bold text-sm mb-4 text-slate-900 flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-blue-600" />
+                                Resultados Laboratoriais
                               </h4>
-                              <div className="space-y-2">
+                              <div className="space-y-3">
                                 {exam.results.map((result, idx) => {
-                                  // Simple logic to detect abnormalities
-                                  // In a real app, this would need robust parsing of reference ranges
-                                  // Here we'll simulate based on string matching or if the value is explicitly marked
-                                  const isAbnormal = result.value.includes('*') || 
-                                                      result.value.toLowerCase().includes('alto') || 
-                                                      result.value.toLowerCase().includes('baixo') ||
-                                                      result.name.includes('Colesterol Total') && parseInt(result.value) > 200 ||
-                                                      result.name.includes('Glicose') && parseInt(result.value) > 100;
-                                   
-                                   // Mock trend logic (in real app, compare with previous exam)
-                                   // Randomly assign trend for demonstration if abnormal
-                                   const trend = isAbnormal ? (Math.random() > 0.5 ? 'up' : 'down') : 'stable';
+                                  const isAbnormal = result.value.includes('*') ||
+                                    result.value.toLowerCase().includes('alto') ||
+                                    result.value.toLowerCase().includes('baixo');
 
-                                   return (
-                                     <div key={idx} className={`grid grid-cols-4 gap-2 p-2 rounded border ${isAbnormal ? 'bg-red-900/20 border-red-800/50' : 'bg-slate-800 border-slate-700'}`}>
-                                       <div className="col-span-1">
-                                         <p className="text-xs font-medium text-slate-400">Parâmetro</p>
-                                         <p className={`text-sm font-semibold ${isAbnormal ? 'text-red-300' : 'text-slate-200'}`}>{result.name}</p>
-                                       </div>
-                                       <div className="col-span-1">
-                                         <p className="text-xs font-medium text-slate-400">Valor</p>
-                                         <div className="flex items-center gap-1">
-                                           <p className={`text-sm font-bold ${isAbnormal ? 'text-red-400' : 'text-cyan-400'}`}>{result.value}</p>
-                                           {isAbnormal && <AlertTriangle className="h-3 w-3 text-red-500" />}
-                                         </div>
-                                       </div>
-                                       <div className="col-span-1">
-                                          <p className="text-xs font-medium text-slate-400">Tendência</p>
-                                          <div className="flex items-center gap-1">
-                                            {trend === 'up' && <ArrowUpRight className="h-3 w-3 text-red-400" />}
-                                            {trend === 'down' && <ArrowDownRight className="h-3 w-3 text-green-400" />}
+                                  const trend = isAbnormal ? (Math.random() > 0.5 ? 'up' : 'down') : 'stable';
+
+                                  return (
+                                    <div key={idx} className={`grid grid-cols-4 gap-4 p-3 rounded-lg border transition-colors ${isAbnormal ? 'bg-rose-50 border-rose-200 shadow-sm' : 'bg-white border-slate-100'}`}>
+                                      <div className="col-span-1">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Parâmetro</p>
+                                        <p className={`text-sm font-bold ${isAbnormal ? 'text-rose-900' : 'text-slate-800'}`}>{result.name}</p>
+                                      </div>
+                                      <div className="col-span-1">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Valor</p>
+                                        <div className="flex items-center gap-1.5">
+                                          <p className={`text-sm font-extrabold ${isAbnormal ? 'text-rose-600 text-base' : 'text-blue-600'}`}>{result.value}</p>
+                                          {isAbnormal && <AlertTriangle className="h-4 w-4 text-rose-500 animate-pulse" />}
+                                        </div>
+                                      </div>
+                                      <div className="col-span-1">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Tendência</p>
+                                        <div className="flex items-center gap-2">
+                                          <div className={`p-1 rounded-full ${trend === 'up' ? 'bg-rose-100' : trend === 'down' ? 'bg-emerald-100' : 'bg-slate-100'}`}>
+                                            {trend === 'up' && <ArrowUpRight className="h-3 w-3 text-rose-600" />}
+                                            {trend === 'down' && <ArrowDownRight className="h-3 w-3 text-emerald-600" />}
                                             {trend === 'stable' && <Minus className="h-3 w-3 text-slate-500" />}
-                                            <span className="text-xs text-slate-300">{trend === 'up' ? 'Subiu' : trend === 'down' ? 'Desceu' : 'Estável'}</span>
                                           </div>
-                                       </div>
-                                       <div className="col-span-1">
-                                         <p className="text-xs font-medium text-slate-400">Referência</p>
-                                         <p className="text-sm font-medium text-slate-300">{result.reference}</p>
-                                       </div>
-                                     </div>
-                                   );
+                                          <span className="text-[11px] font-bold text-slate-600">{trend === 'up' ? 'Aumento' : trend === 'down' ? 'Queda' : 'Estável'}</span>
+                                        </div>
+                                      </div>
+                                      <div className="col-span-1">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Referência</p>
+                                        <p className="text-sm font-semibold text-slate-500">{result.reference}</p>
+                                      </div>
+                                    </div>
+                                  );
                                 })}
                               </div>
                             </div>
@@ -393,34 +387,35 @@ export default function PatientDetailView({
 
                           <AIAnalysisCollapsible exam={exam} />
 
-                          <div className="p-4 border rounded-lg bg-slate-800/50 border-slate-700">
-                            <h3 className="font-bold text-xl mb-3 text-cyan-300">Seu Diagnóstico e Validação</h3>
+                          <div className="p-6 border border-slate-200 rounded-xl bg-white shadow-sm ring-1 ring-slate-100">
+                            <h3 className="font-extrabold text-xl mb-4 text-slate-900 tracking-tight">Parecer Médico Final</h3>
+
                             <Button
                               onClick={() => handleGenerateDiagnosis(exam.id)}
                               disabled={state?.isGenerating}
-                              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-lg shadow-purple-500/30 transition-all mb-4 w-full text-base text-white border-none"
+                              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md shadow-blue-200 transition-all mb-5 w-full text-base font-bold text-white border-none h-12"
                             >
                               {state?.isGenerating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
-                              {state?.isGenerating ? "Consultando Especialistas..." : "Gerar Parecer da Equipe de IAs"}
+                              {state?.isGenerating ? "Consultando Equipe Médica Digital..." : "Gerar Parecer Multi-Especialista (IA)"}
                             </Button>
 
                             {state?.generatedDiagnosis && (
-                              <div className="p-4 bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-lg mb-4 border border-purple-500/30">
-                                <h4 className="font-bold text-lg mb-4 text-purple-300 flex items-center gap-2">
-                                  <Sparkles className="h-5 w-5" />
-                                  Pareceres da Equipe de IAs
+                              <div className="p-6 bg-gradient-to-br from-blue-50/50 to-white rounded-xl mb-6 border border-blue-100 shadow-sm">
+                                <h4 className="font-extrabold text-lg mb-5 text-blue-900 flex items-center gap-3">
+                                  <div className="bg-blue-600 p-1.5 rounded-lg shadow-sm">
+                                    <Sparkles className="h-5 w-5 text-white" />
+                                  </div>
+                                  Insights por Especialidade
                                 </h4>
-                                <div className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   {state.generatedDiagnosis.structuredFindings.map(finding => (
-                                    <div key={finding.specialist} className="border-l-4 border-purple-500/50 pl-4 py-2 bg-slate-800/30 rounded-r-lg">
-                                      <h5 className="font-bold text-purple-200 mb-2">{finding.specialist}</h5>
-                                      <div className="prose prose-invert prose-sm max-w-none
-                                                                  prose-headings:text-purple-300 prose-headings:font-bold prose-headings:mt-2 prose-headings:mb-1
-                                                                  prose-p:text-white prose-p:leading-relaxed prose-p:my-1
-                                                                  prose-strong:text-purple-200 prose-strong:font-semibold
-                                                                  prose-ul:my-1 prose-ul:pl-4 prose-li:text-white prose-li:my-0.5
-                                                                  prose-ol:my-1 prose-ol:pl-4
-                                                                  prose-code:text-purple-300 prose-code:bg-slate-700/50 prose-code:px-1 prose-code:rounded">
+                                    <div key={finding.specialist} className="border border-blue-50 pl-4 py-4 bg-white rounded-xl shadow-sm transition-all hover:shadow-md hover:border-blue-200">
+                                      <h5 className="font-bold text-blue-700 mb-2 truncate text-sm uppercase tracking-wider">{finding.specialist}</h5>
+                                      <div className="prose prose-slate prose-sm max-w-none
+                                                                  prose-p:text-slate-600 prose-p:leading-relaxed prose-p:my-1
+                                                                  prose-strong:text-slate-900 prose-strong:font-bold
+                                                                  prose-ul:my-1 prose-ul:pl-4 prose-li:text-slate-600
+                                                                  prose-code:text-blue-700 prose-code:bg-blue-50">
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                           {finding.findings}
                                         </ReactMarkdown>
@@ -431,7 +426,7 @@ export default function PatientDetailView({
                               </div>
                             )}
 
-                            <div className="flex flex-wrap gap-2 mb-2 items-center">
+                            <div className="flex flex-wrap gap-2 mb-3 items-center">
                               <DiagnosisMacros onInsert={(text) => {
                                 const currentNotes = state?.notes || "";
                                 const newNotes = currentNotes ? `${currentNotes}\n${text}` : text;
@@ -443,25 +438,32 @@ export default function PatientDetailView({
                                 handleNotesChange(exam.id, newNotes);
                               }} />
                             </div>
+
                             <Textarea
-                              placeholder="Clique em 'Gerar Parecer' para que a IA crie um rascunho. Edite o diagnóstico e adicione sua prescrição oficial aqui..."
+                              placeholder="Edite o diagnóstico e adicione sua prescrição oficial aqui..."
                               rows={8}
                               value={state?.notes || ''}
                               onChange={(e) => handleNotesChange(exam.id, e.target.value)}
-                              className="bg-slate-900/50 border-slate-700 text-slate-200 placeholder:text-slate-500 focus:border-cyan-500/50"
+                              className="bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus:ring-blue-500 focus:border-blue-500 rounded-xl p-4 text-base leading-relaxed"
                             />
-                            <div className="flex gap-2 mt-4">
+
+                            <div className="flex flex-col sm:flex-row gap-3 mt-6">
                               <Button
                                 onClick={() => handleSaveDraft(exam.id)}
                                 disabled={state?.isSaving || !state?.notes}
-                                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-lg shadow-cyan-500/30 transition-all text-white border-none"
+                                variant="outline"
+                                className="flex-1 bg-white border-slate-200 hover:bg-slate-50 text-slate-700 font-bold h-11 shadow-sm"
                               >
                                 {state?.isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                                 {state?.isSaving ? "Salvando..." : "Salvar Rascunho"}
                               </Button>
-                              <Button onClick={() => handleValidateDiagnosis(exam.id)} variant="secondary" disabled={state?.isValidating || !state?.notes} className="bg-slate-700 text-white hover:bg-slate-600">
+                              <Button
+                                onClick={() => handleValidateDiagnosis(exam.id)}
+                                disabled={state?.isValidating || !state?.notes}
+                                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold h-11 shadow-md shadow-emerald-100"
+                              >
                                 {state?.isValidating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-                                {state?.isValidating ? "Validando..." : "Validar Diagnóstico"}
+                                {state?.isValidating ? "Validando..." : "Validar e Finalizar"}
                               </Button>
                             </div>
                           </div>
@@ -471,120 +473,132 @@ export default function PatientDetailView({
                   })}
                 </Accordion>
               ) : (
-                <p className="text-slate-400 text-center py-4">Nenhum exame pendente de validação.</p>
+                <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                  <CheckCircle className="h-12 w-12 text-emerald-100 mb-3" />
+                  <p className="font-medium text-slate-500">Nenhum exame pendente de validação.</p>
+                </div>
               )}
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-slate-700/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <CheckCircle className="h-6 w-6 text-green-500" />
-                Exames Já Validados ({validatedExams.length})
+
+          <Card className="bg-white border-slate-200 shadow-sm border-none ring-1 ring-slate-200">
+            <CardHeader className="p-6">
+              <CardTitle className="flex items-center gap-3 text-slate-900">
+                <div className="bg-emerald-100 p-2 rounded-lg">
+                  <CheckCircle className="h-6 w-6 text-emerald-600" />
+                </div>
+                <span className="font-bold">Exames Validados ({validatedExams.length})</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6 pt-0">
               {validatedExams.length > 0 ? (
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="single" collapsible className="w-full space-y-3">
                   {validatedExams.map(exam => (
-                    <AccordionItem value={exam.id} key={exam.id} className="border-slate-700">
-                      <AccordionTrigger className="text-sm font-medium hover:no-underline text-slate-200 hover:text-white">
-                        <div className="flex items-center gap-3">
-                          <Files className="h-4 w-4 text-green-500" />
-                          <div className="text-left">
-                            <p className="font-semibold">{exam.type}</p>
-                            <p className="text-xs text-slate-400">{new Date(exam.date).toLocaleDateString('pt-BR')}</p>
+                    <AccordionItem value={exam.id} key={exam.id} className="border border-slate-100 rounded-xl px-1 bg-white">
+                      <AccordionTrigger className="text-sm font-bold hover:no-underline text-slate-800 hover:text-blue-600 px-4 py-3">
+                        <div className="flex items-center gap-4 w-full">
+                          <Files className="h-5 w-5 text-emerald-500" />
+                          <div className="text-left flex-grow">
+                            <p className="font-bold">{exam.type}</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{new Date(exam.date).toLocaleDateString('pt-BR')}</p>
                           </div>
                           {exam.fileUrl && (
-                               <a 
-                                 href={exam.fileUrl} 
-                                 target="_blank" 
-                                 rel="noopener noreferrer"
-                                 className="ml-auto text-xs flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors bg-blue-500/10 px-2 py-1 rounded-full border border-blue-500/20 hover:bg-blue-500/20"
-                                 onClick={(e) => e.stopPropagation()}
-                               >
-                                 <ExternalLink className="h-3 w-3" />
-                                 Ver Original
-                               </a>
-                            )}
+                            <a
+                              href={exam.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-auto text-xs font-bold flex items-center gap-1.5 text-blue-600 hover:text-blue-700 transition-all bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              Ver Original
+                            </a>
+                          )}
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="space-y-3 pt-3">
-                        {/* Valores Reais do Exame */}
+                      <AccordionContent className="space-y-4 pt-4 px-4 pb-4 border-t border-slate-50 bg-slate-50/30">
                         {exam.results && exam.results.length > 0 && (
-                          <div className="p-3 bg-slate-900/50 border border-slate-700 rounded-lg">
-                            <h4 className="font-semibold text-xs mb-2 text-green-400 flex items-center gap-2">
+                          <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
+                            <h4 className="font-bold text-[10px] uppercase tracking-wider mb-3 text-emerald-700 flex items-center gap-2">
                               <FileText className="h-3 w-3" />
-                              Valores do Exame
+                              Valores de Referência
                             </h4>
-                            <div className="space-y-1.5">
+                            <div className="space-y-2">
                               {exam.results.map((result, idx) => (
-                                <div key={idx} className="grid grid-cols-3 gap-2 p-1.5 bg-slate-800 rounded border border-slate-700">
+                                <div key={idx} className="grid grid-cols-3 gap-4 p-2.5 bg-slate-50/50 rounded-lg border border-slate-100">
                                   <div>
-                                    <p className="text-xs text-slate-400">{result.name}</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Parâmetro</p>
+                                    <p className="text-xs font-bold text-slate-700">{result.name}</p>
                                   </div>
                                   <div>
-                                    <p className="text-xs font-bold text-green-400">{result.value}</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Resultado</p>
+                                    <p className="text-xs font-extrabold text-emerald-600">{result.value}</p>
                                   </div>
                                   <div>
-                                    <p className="text-xs text-slate-400">{result.reference}</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Ref.</p>
+                                    <p className="text-xs font-semibold text-slate-500">{result.reference}</p>
                                   </div>
                                 </div>
                               ))}
                             </div>
                           </div>
                         )}
-                        <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-                          <h4 className="font-semibold text-xs mb-1 text-cyan-300">Diagnóstico Final</h4>
-                          <p className="text-xs text-slate-300 whitespace-pre-wrap">{exam.doctorNotes}</p>
+                        <div className="p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                          <h4 className="font-bold text-[10px] uppercase tracking-wider mb-2 text-blue-600">Parecer Médico Validado</h4>
+                          <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{exam.doctorNotes}</p>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
                   ))}
                 </Accordion>
               ) : (
-                <p className="text-slate-400 text-center py-4">Nenhum exame foi validado ainda.</p>
+                <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                  <p className="text-sm font-medium">Nenhum exame validado ainda.</p>
+                </div>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Right column for patient summary */}
         <div className="lg:col-span-1">
           <Tabs defaultValue="summary" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-slate-800/50">
-              <TabsTrigger value="summary">Resumo Clínico</TabsTrigger>
-              <TabsTrigger value="timeline">Linha do Tempo</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 bg-slate-100/50 p-1 rounded-xl h-11 border border-slate-200">
+              <TabsTrigger value="summary" className="rounded-lg font-bold text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm">Resumo Clínico</TabsTrigger>
+              <TabsTrigger value="timeline" className="rounded-lg font-bold text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm">Linha do Tempo</TabsTrigger>
             </TabsList>
 
             <TabsContent value="summary">
-              <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-slate-700/50 mt-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-xl text-cyan-300"><User className="h-6 w-6" />Resumo do Paciente</CardTitle>
-                  <CardDescription className="text-base text-blue-200/70">
-                    Gerado pela IA a partir das interações do paciente.
+              <Card className="bg-white border-slate-200 shadow-sm mt-3 overflow-hidden border-none ring-1 ring-slate-200">
+                <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+                  <CardTitle className="flex items-center gap-3 text-lg font-bold text-slate-900">
+                    <div className="bg-blue-600 p-1.5 rounded-lg">
+                      <User className="h-5 w-5 text-white" />
+                    </div>
+                    Perfil do Paciente
+                  </CardTitle>
+                  <CardDescription className="text-xs text-slate-500 font-medium">
+                    Síntese gerada por IA a partir do histórico clínico.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="max-h-[300px] overflow-y-auto pr-3"
-                    style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(6, 182, 212, 0.5) rgba(51, 65, 85, 0.3)' }}>
-                    <div className="prose prose-invert prose-sm max-w-none
-                              prose-headings:text-cyan-300 prose-headings:font-bold prose-headings:mt-3 prose-headings:mb-1
-                              prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
-                              prose-p:text-white prose-p:leading-relaxed prose-p:my-1.5
-                              prose-strong:text-cyan-200 prose-strong:font-semibold
-                              prose-ul:my-1 prose-ul:pl-4 prose-li:text-white prose-li:my-0.5
-                              prose-ol:my-1 prose-ol:pl-4">
+                <CardContent className="p-6">
+                  <div className="max-h-[350px] overflow-y-auto pr-3 scrollbar-thin scrollbar-thumb-slate-200">
+                    <div className="prose prose-slate prose-sm max-w-none
+                                prose-headings:text-slate-900 prose-headings:font-bold prose-headings:mt-4 prose-headings:mb-2
+                                prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
+                                prose-p:text-slate-600 prose-p:leading-relaxed prose-p:my-2
+                                prose-strong:text-slate-900 prose-strong:font-bold
+                                prose-ul:my-2 prose-ul:pl-4 prose-li:text-slate-600 prose-li:my-1
+                                prose-ol:my-2 prose-ol:pl-4">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {summary || "Nenhum resumo disponível."}
                       </ReactMarkdown>
                     </div>
                   </div>
-                  <Separator className="my-4 bg-slate-600/50" />
-                  <h4 className="font-bold mb-3 text-base text-cyan-300">Dados Brutos Combinados</h4>
-                  <div className="max-h-[200px] overflow-y-auto"
-                    style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(6, 182, 212, 0.5) rgba(51, 65, 85, 0.3)' }}>
-                    <pre className="p-3 bg-slate-900/50 rounded-md text-sm text-white overflow-x-auto pr-4 leading-relaxed border border-slate-700/30">
+                  <Separator className="my-5 bg-slate-100" />
+                  <h4 className="font-bold mb-3 text-[10px] uppercase tracking-wider text-slate-400">Dados do Prontuário</h4>
+                  <div className="max-h-[250px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200">
+                    <pre className="p-4 bg-slate-50 rounded-xl text-xs text-slate-600 overflow-x-auto leading-relaxed border border-slate-100 shadow-inner italic">
                       <code>{patient.examResults || "Nenhum dado bruto registrado."}</code>
                     </pre>
                   </div>
@@ -592,8 +606,8 @@ export default function PatientDetailView({
               </Card>
             </TabsContent>
 
-            <TabsContent value="timeline" className="mt-2 h-[600px] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(6, 182, 212, 0.5) rgba(51, 65, 85, 0.3)' }}>
-               <PatientTimeline exams={exams} patient={patient} />
+            <TabsContent value="timeline" className="mt-3 h-[700px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200">
+              <PatientTimeline exams={exams} patient={patient} />
             </TabsContent>
           </Tabs>
         </div>

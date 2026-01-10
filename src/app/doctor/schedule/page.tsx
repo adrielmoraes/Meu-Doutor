@@ -52,12 +52,12 @@ async function getScheduleData(doctorId: string): Promise<{ appointments: Appoin
     } catch (e: any) {
         const errorMessage = e.message?.toLowerCase() || '';
         const errorCode = (typeof e.code === 'string' ? e.code.toLowerCase() : '') || '';
-        
+
         console.error('[SchedulePage Debug] Erro inesperado em getScheduleData:', e);
         console.error('[SchedulePage Debug] Tipo do erro:', typeof e, 'Erro completo:', e);
 
         if (errorMessage.includes('connection') || errorCode.includes('not-found')) {
-            return { 
+            return {
                 appointments: [], doctor: null,
                 error: "Não foi possível conectar ao banco de dados. Verifique se o banco de dados está configurado corretamente."
             };
@@ -69,120 +69,88 @@ async function getScheduleData(doctorId: string): Promise<{ appointments: Appoin
 
 
 export default async function SchedulePage() {
-  const session = await getSession();
-  console.log('[SchedulePage Debug] Sessão do Médico:', session ? `ID: ${session.userId}, Role: ${session.role}` : 'Nenhuma sessão');
+    const session = await getSession();
+    console.log('[SchedulePage Debug] Sessão do Médico:', session ? `ID: ${session.userId}, Role: ${session.role}` : 'Nenhuma sessão');
 
-  if (!session || session.role !== 'doctor') {
-      redirect('/login');
-  }
+    if (!session || session.role !== 'doctor') {
+        redirect('/login');
+    }
 
-  if (!session.userId) {
-      console.error('[SchedulePage Debug] Erro: session.userId é nulo ou indefinido.', session);
-      return (
-         <div className="container mx-auto">
-             <Alert variant="destructive">
-                 <AlertTriangle className="h-4 w-4" />
-                 <AlertTitle>Erro de Sessão</AlertTitle>
-                 <AlertDescription>Não foi possível obter o ID do médico logado para carregar a agenda.</AlertDescription>
-             </Alert>
-         </div>
-      );
-  }
-
-  const { appointments, doctor, error, fixUrl } = await getScheduleData(session.userId); // Passar o ID do doutor logado
-
-  // Filtrar agendamentos por Hoje, Esta Semana, Este Mês
-  const today = new Date();
-  const formattedToday = today.toISOString().split('T')[0]; // YYYY-MM-DD
-
-  const todaysAppointments = Array.isArray(appointments)
-    ? appointments.filter(appt => isToday(parseISO(appt.date)))
-    : [];
-
-  const thisWeekAppointments = Array.isArray(appointments)
-    ? appointments.filter(appt => isThisWeek(parseISO(appt.date)) && !isToday(parseISO(appt.date))) // Exclui os de hoje
-    : [];
-
-  const thisMonthAppointments = Array.isArray(appointments)
-    ? appointments.filter(appt => isThisMonth(parseISO(appt.date)) && !isThisWeek(parseISO(appt.date))) // Exclui os da semana
-    : [];
-
-
-  if (error || !doctor) {
-     return (
-        <div className="container mx-auto">
-            <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Erro de Configuração ou Conexão</AlertTitle>
-                <AlertDescription>
-                       {error || 'Não foi possível carregar os dados do médico.'}
-                       {fixUrl && (
-                           <p className="mt-2">
-                               Por favor, habilite a API manualmente visitando o seguinte link e clicando em &quot;Habilitar&quot;:
-                               <br />
-                               <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
-                                   Habilitar API do Firestore
-                               </Link>
-                               <br />
-                               <span className="text-xs">Após habilitar, aguarde alguns minutos e atualize esta página.</span>
-                           </p>
-                       )}
-                   </AlertDescription>
-               </Alert>
-           </div>
+    if (!session.userId) {
+        console.error('[SchedulePage Debug] Erro: session.userId é nulo ou indefinido.', session);
+        return (
+            <div className="container mx-auto">
+                <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Erro de Sessão</AlertTitle>
+                    <AlertDescription>Não foi possível obter o ID do médico logado para carregar a agenda.</AlertDescription>
+                </Alert>
+            </div>
         );
-  }
+    }
 
-  const renderAppointmentList = (apts: Appointment[]) => (
-    <ul className="space-y-4">
-        {apts.length > 0 ? (
-            apts.map(appt => (
-                <Card key={appt.id} className="p-4 flex items-center gap-4 transition-all hover:shadow-md">
-                    <Avatar>
-                        <AvatarImage src={appt.patientAvatar} />
-                        <AvatarFallback>{appt.patientName.substring(0, 1)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-grow">
-                        <p className="font-semibold text-lg">{appt.time} - {appt.patientName}</p>
-                        <p className="text-sm text-muted-foreground">{appt.type}</p>
-                        <p className="text-xs text-muted-foreground">{new Date(appt.date).toLocaleDateString('pt-BR')}</p>
-                    </div>
-                    {appt.status === 'Agendada' && appt.type.includes('Vídeo') && (
-                        <StartVideoCallButton 
-                            patientId={appt.patientId}
-                            appointmentId={appt.id}
-                            patientName={appt.patientName}
-                        />
-                    )}
-                    <CancelAppointmentButton appointment={appt} />
-                </Card>
-            ))
-        ) : (
-            <li className="text-center text-muted-foreground py-4">
-                Nenhuma consulta encontrada.
-            </li>
-        )}
-    </ul>
-  );
+    const { appointments, doctor, error, fixUrl } = await getScheduleData(session.userId); // Passar o ID do doutor logado
 
-  return (
-    <div className="bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 min-h-screen relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
-      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
-      <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
-      
-      <div className="relative z-10 p-4 sm:p-6 lg:p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
-            Agenda e Disponibilidade
-          </h1>
-          <p className="text-blue-200/70 mt-2">
-            Visualize suas consultas e gerencie seus horários de atendimento.
-          </p>
+    // Filtrar agendamentos por Hoje, Esta Semana, Este Mês
+    const today = new Date();
+    const formattedToday = today.toISOString().split('T')[0]; // YYYY-MM-DD
+
+    const todaysAppointments = Array.isArray(appointments)
+        ? appointments.filter(appt => isToday(parseISO(appt.date)))
+        : [];
+
+    const thisWeekAppointments = Array.isArray(appointments)
+        ? appointments.filter(appt => isThisWeek(parseISO(appt.date)) && !isToday(parseISO(appt.date))) // Exclui os de hoje
+        : [];
+
+    const thisMonthAppointments = Array.isArray(appointments)
+        ? appointments.filter(appt => isThisMonth(parseISO(appt.date)) && !isThisWeek(parseISO(appt.date))) // Exclui os da semana
+        : [];
+
+
+    if (error || !doctor) {
+        return (
+            <div className="container mx-auto">
+                <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Erro de Configuração ou Conexão</AlertTitle>
+                    <AlertDescription>
+                        {error || 'Não foi possível carregar os dados do médico.'}
+                        {fixUrl && (
+                            <p className="mt-2">
+                                Por favor, habilite a API manualmente visitando o seguinte link e clicando em &quot;Habilitar&quot;:
+                                <br />
+                                <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
+                                    Habilitar API do Firestore
+                                </Link>
+                                <br />
+                                <span className="text-xs">Após habilitar, aguarde alguns minutos e atualize esta página.</span>
+                            </p>
+                        )}
+                    </AlertDescription>
+                </Alert>
+            </div>
+        );
+    }
+
+
+
+    return (
+        <div className="bg-slate-50 min-h-screen relative font-sans text-slate-900">
+            {/* Background Decor - Subtle & Clean */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50 via-transparent to-transparent opacity-60"></div>
+
+            <div className="relative z-10 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+                <div className="mb-8">
+                    <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
+                        Agenda e Disponibilidade
+                    </h1>
+                    <p className="text-slate-500 mt-2">
+                        Visualize suas consultas e gerencie seus horários de atendimento.
+                    </p>
+                </div>
+                <ScheduleCalendarManager appointments={appointments} doctor={doctor} />
+            </div>
         </div>
-        <ScheduleCalendarManager appointments={appointments} doctor={doctor} />
-      </div>
-    </div>
-  );
+    );
 }

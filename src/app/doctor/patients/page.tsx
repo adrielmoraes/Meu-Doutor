@@ -86,19 +86,19 @@ function SpecialtyIcon({ specialty }: { specialty: string }) {
 function getSpecialtyStyle(specialty: string): { color: string; bgColor: string } {
   switch (specialty) {
     case 'Cardiologia':
-      return { color: 'text-red-400', bgColor: 'bg-red-500/20' };
+      return { color: 'text-red-700', bgColor: 'bg-red-50' };
     case 'Neurologia':
-      return { color: 'text-purple-400', bgColor: 'bg-purple-500/20' };
+      return { color: 'text-purple-700', bgColor: 'bg-purple-50' };
     case 'Ortopedia':
-      return { color: 'text-orange-400', bgColor: 'bg-orange-500/20' };
+      return { color: 'text-orange-700', bgColor: 'bg-orange-50' };
     case 'Clínico Geral':
-      return { color: 'text-blue-400', bgColor: 'bg-blue-500/20' };
+      return { color: 'text-blue-700', bgColor: 'bg-blue-50' };
     case 'Hematologia':
-      return { color: 'text-rose-400', bgColor: 'bg-rose-500/20' };
+      return { color: 'text-rose-700', bgColor: 'bg-rose-50' };
     case 'Patologia':
-      return { color: 'text-teal-400', bgColor: 'bg-teal-500/20' };
+      return { color: 'text-teal-700', bgColor: 'bg-teal-50' };
     default:
-      return { color: 'text-cyan-400', bgColor: 'bg-cyan-500/20' };
+      return { color: 'text-slate-700', bgColor: 'bg-slate-50' };
   }
 }
 
@@ -107,19 +107,19 @@ const priorityMap = {
     level: 1,
     icon: <ShieldAlert className="h-4 w-4" />,
     label: 'Urgente',
-    className: 'bg-red-500/20 text-red-300 border-red-500/30'
+    className: 'bg-red-50 text-red-700 border-red-200 shadow-sm shadow-red-100/50'
   },
   'Alta': {
     level: 2,
     icon: <ArrowUp className="h-4 w-4" />,
     label: 'Alta',
-    className: 'bg-orange-500/20 text-orange-300 border-orange-500/30'
+    className: 'bg-orange-50 text-orange-700 border-orange-200 shadow-sm shadow-orange-100/50'
   },
   'Normal': {
     level: 3,
     icon: <ArrowDown className="h-4 w-4" />,
     label: 'Normal',
-    className: 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+    className: 'bg-blue-50 text-blue-700 border-blue-200 shadow-sm shadow-blue-100/50'
   },
 };
 
@@ -180,182 +180,196 @@ export default async function PatientsPage() {
   } : { total: 0, pending: 0, validated: 0, urgent: 0 };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
-            Meus Pacientes
-          </h1>
-          <p className="text-blue-200/70 mt-1">
-            Gerencie e acompanhe seus pacientes por especialidade
-          </p>
+    <div className="bg-slate-50 min-h-screen relative font-sans text-slate-900">
+      {/* Background Decor - Subtle & Clean */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50 via-transparent to-transparent opacity-60"></div>
+
+      <div className="relative z-10 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
+              Meus Pacientes
+            </h1>
+            <p className="text-slate-500 mt-2">
+              Gerencie e acompanhe seus pacientes por especialidade
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-cyan-500/30">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-blue-200/70">Total</p>
-                <p className="text-2xl font-bold text-cyan-300">{stats.total}</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="bg-white border-slate-200 shadow-sm transition-all hover:shadow-md">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-slate-500 font-medium">Total</p>
+                  <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
+                </div>
+                <div className="bg-blue-50 p-2 rounded-lg">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
               </div>
-              <Users className="h-8 w-8 text-cyan-400/50" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-yellow-500/30">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-blue-200/70">Pendentes</p>
-                <p className="text-2xl font-bold text-yellow-300">{stats.pending}</p>
+          <Card className="bg-white border-slate-200 shadow-sm transition-all hover:shadow-md">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-slate-500 font-medium">Pendentes</p>
+                  <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
+                </div>
+                <div className="bg-amber-50 p-2 rounded-lg">
+                  <Clock className="h-6 w-6 text-amber-600" />
+                </div>
               </div>
-              <Clock className="h-8 w-8 text-yellow-400/50" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-green-500/30">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-blue-200/70">Validados</p>
-                <p className="text-2xl font-bold text-green-300">{stats.validated}</p>
+          <Card className="bg-white border-slate-200 shadow-sm transition-all hover:shadow-md">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-slate-500 font-medium">Validados</p>
+                  <p className="text-2xl font-bold text-emerald-600">{stats.validated}</p>
+                </div>
+                <div className="bg-emerald-50 p-2 rounded-lg">
+                  <CheckCircle className="h-6 w-6 text-emerald-600" />
+                </div>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-400/50" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-red-500/30">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-blue-200/70">Urgentes</p>
-                <p className="text-2xl font-bold text-red-300">{stats.urgent}</p>
+          <Card className="bg-white border-slate-200 shadow-sm transition-all hover:shadow-md">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-slate-500 font-medium">Urgentes</p>
+                  <p className="text-2xl font-bold text-rose-600">{stats.urgent}</p>
+                </div>
+                <div className="bg-rose-50 p-2 rounded-lg">
+                  <ShieldAlert className="h-6 w-6 text-rose-600" />
+                </div>
               </div>
-              <ShieldAlert className="h-8 w-8 text-red-400/50" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {error || !patients ? (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Erro</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      ) : (
-        <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-slate-700/50 overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-slate-700/50 hover:bg-slate-800/50">
-                <TableHead className="text-cyan-300">Paciente</TableHead>
-                <TableHead className="text-cyan-300">Especialidade</TableHead>
-                <TableHead className="hidden md:table-cell text-cyan-300">Idade</TableHead>
-                <TableHead className="text-cyan-300">Prioridade</TableHead>
-                <TableHead className="text-cyan-300">Status</TableHead>
-                <TableHead className="text-right text-cyan-300">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {patients.map(patient => {
-                const priorityInfo = priorityMap[patient.priority || 'Normal'];
-                const isInvalidated = patient.status !== 'Validado';
-                const specialtyStyle = getSpecialtyStyle(patient.specialty);
-
-                return (
-                  <TableRow
-                    key={patient.id}
-                    className={`border-slate-700/30 hover:bg-slate-800/50 transition-colors ${
-                      isInvalidated && priorityInfo.level === 1 ? 'bg-red-500/5' : ''
-                    }`}
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="border-2 border-slate-700">
-                          <AvatarImage src={patient.avatar} data-ai-hint={patient.avatarHint} />
-                          <AvatarFallback className="bg-slate-700 text-cyan-300">
-                            {patient.name.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <span className="font-medium text-white">{patient.name}</span>
-                          {patient.examTypes.length > 0 && (
-                            <p className="text-xs text-blue-200/50 mt-0.5">
-                              {patient.examTypes.slice(0, 2).join(', ')}
-                              {patient.examTypes.length > 2 && ` +${patient.examTypes.length - 2}`}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={`flex items-center gap-1.5 w-fit ${specialtyStyle.bgColor} ${specialtyStyle.color} border-transparent`}
-                      >
-                        <SpecialtyIcon specialty={patient.specialty} />
-                        {patient.specialty}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell text-blue-200/70">
-                      {patient.age} anos
-                    </TableCell>
-                    <TableCell>
-                      {isInvalidated ? (
-                        <Badge
-                          variant="outline"
-                          className={`flex items-center gap-1.5 w-fit ${priorityInfo.className}`}
-                        >
-                          {priorityInfo.icon}
-                          {priorityInfo.label}
-                        </Badge>
-                      ) : (
-                        <span className="text-blue-200/50">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={patient.status === 'Validado'
-                          ? 'bg-green-500/20 text-green-300 border-green-500/30'
-                          : 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
-                        }
-                      >
-                        {patient.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        asChild
-                        variant="ghost"
-                        size="sm"
-                        className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20"
-                      >
-                        <Link href={`/doctor/patients/${patient.id}`}>
-                          <Eye className="h-4 w-4 mr-1" />
-                          Ver
-                        </Link>
-                      </Button>
-                    </TableCell>
+        {error || !patients ? (
+          <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-800">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Erro</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : (
+          <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-slate-50/50">
+                  <TableRow className="border-slate-200">
+                    <TableHead className="text-slate-500 font-semibold py-4">Paciente</TableHead>
+                    <TableHead className="text-slate-500 font-semibold py-4">Especialidade</TableHead>
+                    <TableHead className="hidden md:table-cell text-slate-500 font-semibold py-4">Idade</TableHead>
+                    <TableHead className="text-slate-500 font-semibold py-4">Prioridade</TableHead>
+                    <TableHead className="text-slate-500 font-semibold py-4">Status</TableHead>
+                    <TableHead className="text-right text-slate-500 font-semibold py-4">Ações</TableHead>
                   </TableRow>
-                );
-              })}
-              {patients.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-blue-200/50 py-12">
-                    Nenhum paciente encontrado.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </Card>
-      )}
+                </TableHeader>
+                <TableBody>
+                  {patients.map(patient => {
+                    const priorityInfo = priorityMap[patient.priority || 'Normal'];
+                    const isInvalidated = patient.status !== 'Validado';
+                    const specialtyStyle = getSpecialtyStyle(patient.specialty);
+
+                    return (
+                      <TableRow
+                        key={patient.id}
+                        className={`border-slate-100 hover:bg-slate-50/80 transition-colors ${isInvalidated && priorityInfo.level === 1 ? 'bg-rose-50/30' : ''
+                          }`}
+                      >
+                        <TableCell className="py-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 border border-slate-200 shadow-sm">
+                              <AvatarImage src={patient.avatar} data-ai-hint={patient.avatarHint} />
+                              <AvatarFallback className="bg-slate-100 text-slate-600 font-medium">
+                                {patient.name.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <span className="font-semibold text-slate-900 block">{patient.name}</span>
+                              {patient.examTypes.length > 0 && (
+                                <p className="text-xs text-slate-500 mt-0.5">
+                                  {patient.examTypes.slice(0, 2).join(', ')}
+                                  {patient.examTypes.length > 2 && ` +${patient.examTypes.length - 2}`}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={`flex items-center gap-1.5 w-fit px-2.5 py-1 font-medium ${specialtyStyle.bgColor} ${specialtyStyle.color} border-transparent shadow-sm`}
+                          >
+                            <SpecialtyIcon specialty={patient.specialty} />
+                            {patient.specialty}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-slate-600">
+                          {patient.age} anos
+                        </TableCell>
+                        <TableCell>
+                          {isInvalidated ? (
+                            <Badge
+                              variant="outline"
+                              className={`flex items-center gap-1.5 w-fit px-2.5 py-1 ${priorityInfo.className}`}
+                            >
+                              {priorityInfo.icon}
+                              {priorityInfo.label}
+                            </Badge>
+                          ) : (
+                            <span className="text-slate-400 font-medium italic">Finalizado</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={patient.status === 'Validado'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 px-2.5 py-1 font-medium'
+                              : 'bg-amber-50 text-amber-700 border-amber-200 px-2.5 py-1 font-medium'
+                            }
+                          >
+                            {patient.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            asChild
+                            variant="ghost"
+                            size="sm"
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-medium"
+                          >
+                            <Link href={`/doctor/patients/${patient.id}`}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              Ver Prontuário
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  {patients.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-slate-400 py-12">
+                        Nenhum paciente encontrado.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

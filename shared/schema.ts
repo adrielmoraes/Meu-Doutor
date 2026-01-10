@@ -9,6 +9,8 @@ export const userRoleEnum = pgEnum('user_role', ['doctor', 'patient', 'admin']);
 export const subscriptionStatusEnum = pgEnum('subscription_status', ['active', 'canceled', 'past_due', 'trialing', 'incomplete']);
 export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'succeeded', 'failed', 'refunded']);
 export const avatarProviderEnum = pgEnum('avatar_provider', ['tavus', 'bey']);
+export const prescriptionStatusEnum = pgEnum('prescription_status', ['draft', 'pending_process', 'signed', 'error']);
+export const signatureMethodEnum = pgEnum('signature_method', ['a1_local', 'bry_cloud']);
 
 export const patients = pgTable('patients', {
   id: text('id').primaryKey(),
@@ -212,6 +214,26 @@ export const exams = pgTable('exams', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+export const prescriptions = pgTable('prescriptions', {
+  id: text('id').primaryKey(),
+  doctorId: text('doctor_id').notNull().references(() => doctors.id, { onDelete: 'cascade' }),
+  patientId: text('patient_id').notNull().references(() => patients.id, { onDelete: 'cascade' }),
+  medications: json('medications').$type<{
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+    instructions: string;
+  }[]>(),
+  instructions: text('instructions'),
+  signedPdfUrl: text('signed_pdf_url'),
+  signatureMethod: signatureMethodEnum('signature_method'),
+  bryTransactionId: text('bry_transaction_id'),
+  status: prescriptionStatusEnum('status').default('draft').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 export const appointments = pgTable('appointments', {
   id: text('id').primaryKey(),
   patientId: text('patient_id').notNull().references(() => patients.id, { onDelete: 'cascade' }),
@@ -267,6 +289,7 @@ export const patientsRelations = relations(patients, ({ many }) => ({
   consultations: many(consultations),
   callRooms: many(callRooms),
   auth: many(patientAuth),
+  prescriptions: many(prescriptions),
 }));
 
 export const doctorsRelations = relations(doctors, ({ many }) => ({
@@ -274,6 +297,18 @@ export const doctorsRelations = relations(doctors, ({ many }) => ({
   consultations: many(consultations),
   callRooms: many(callRooms),
   auth: many(doctorAuth),
+  prescriptions: many(prescriptions),
+}));
+
+export const prescriptionsRelations = relations(prescriptions, ({ one }) => ({
+  patient: one(patients, {
+    fields: [prescriptions.patientId],
+    references: [patients.id],
+  }),
+  doctor: one(doctors, {
+    fields: [prescriptions.doctorId],
+    references: [doctors.id],
+  }),
 }));
 
 export const examsRelations = relations(exams, ({ one }) => ({

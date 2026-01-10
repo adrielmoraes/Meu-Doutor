@@ -31,8 +31,8 @@ export default function ProfileClientManager({ doctor: initialDoctor, userId }: 
     const result = await updateDoctorProfile(formData);
 
     if (result.success) {
-      toast({ 
-        title: "Sucesso!", 
+      toast({
+        title: "Sucesso!",
         description: result.message,
         className: "bg-green-100 text-green-800 border-green-200"
       });
@@ -45,8 +45,8 @@ export default function ProfileClientManager({ doctor: initialDoctor, userId }: 
   const handleUploadComplete = (newUrl: string) => {
     setDoctor({ ...doctor, avatar: newUrl });
     router.refresh();
-    toast({ 
-      title: "Avatar Atualizado!", 
+    toast({
+      title: "Avatar Atualizado!",
       description: "Sua nova foto de perfil foi salva com sucesso.",
       className: "bg-green-100 text-green-800 border-green-200"
     });
@@ -56,8 +56,8 @@ export default function ProfileClientManager({ doctor: initialDoctor, userId }: 
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Coluna do Avatar */}
       <div className="lg:col-span-1 flex flex-col items-center">
-        <Card className="w-full max-w-sm bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-purple-500/20 shadow-2xl shadow-purple-500/10">
-          <CardHeader className="p-6 pb-4">
+        <Card className="w-full max-w-sm bg-white border-none shadow-sm ring-1 ring-slate-200 overflow-hidden">
+          <CardHeader className="p-8 pb-4 flex flex-col items-center bg-slate-50/50">
             <AvatarUpload
               userId={userId}
               currentAvatarUrl={doctor.avatar || ''}
@@ -66,85 +66,97 @@ export default function ProfileClientManager({ doctor: initialDoctor, userId }: 
               onUploadComplete={handleUploadComplete}
             />
           </CardHeader>
-          <CardContent className="p-6 pt-2 text-center">
-            <h2 className="text-2xl font-semibold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
+          <CardContent className="p-8 pt-6 text-center">
+            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
               Dr(a). {doctor.name}
             </h2>
-            <p className="text-blue-200/70 mt-1">{doctor.specialty || 'Especialidade não definida'}</p>
+            <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider">
+              {doctor.specialty || 'Clínico Geral'}
+            </div>
+            <p className="text-slate-500 mt-4 text-sm leading-relaxed italic">
+              "Dedicado à excelência no cuidado ao paciente através da inovação digital."
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Coluna de Informações e Formulário */}
       <div className="lg:col-span-2">
-        <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-purple-500/20 shadow-2xl shadow-purple-500/10">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-purple-300 flex items-center gap-2">
-              <User className="h-6 w-6" />
+        <Card className="bg-white border-none shadow-sm ring-1 ring-slate-200">
+          <CardHeader className="border-b border-slate-50 p-8">
+            <CardTitle className="text-2xl font-extrabold text-slate-900 flex items-center gap-3">
+              <div className="bg-blue-600 p-2 rounded-lg">
+                <User className="h-5 w-5 text-white" />
+              </div>
               Informações do Perfil
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleProfileUpdate} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-blue-100 flex items-center gap-2">
-                  <User className="h-4 w-4 text-purple-400" />
-                  Nome Completo
-                </Label>
-                <Input 
-                  id="name" 
-                  defaultValue={doctor.name} 
-                  disabled 
-                  className="bg-slate-900/50 border-purple-500/30 text-blue-100/50 cursor-not-allowed"
-                />
+          <CardContent className="p-8">
+            <form onSubmit={handleProfileUpdate} className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-slate-700 font-bold flex items-center gap-2">
+                    <User className="h-4 w-4 text-blue-500" />
+                    Nome Completo
+                  </Label>
+                  <Input
+                    id="name"
+                    defaultValue={doctor.name}
+                    disabled
+                    className="bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed font-medium"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-slate-700 font-bold flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-blue-500" />
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    defaultValue={doctor.email}
+                    disabled
+                    className="bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed font-medium"
+                  />
+                </div>
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-blue-100 flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-purple-400" />
-                  Email
-                </Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  defaultValue={doctor.email} 
-                  disabled 
-                  className="bg-slate-900/50 border-purple-500/30 text-blue-100/50 cursor-not-allowed"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="specialty" className="text-blue-100 flex items-center gap-2">
-                  <Stethoscope className="h-4 w-4 text-purple-400" />
+                <Label htmlFor="specialty" className="text-slate-700 font-bold flex items-center gap-2">
+                  <Stethoscope className="h-4 w-4 text-blue-500" />
                   Especialidade
                 </Label>
-                <Input 
-                  id="specialty" 
-                  name="specialty" 
+                <Input
+                  id="specialty"
+                  name="specialty"
                   defaultValue={doctor.specialty}
-                  className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white"
+                  className="bg-white border-slate-200 focus:border-blue-500 focus:ring-blue-500 text-slate-900 font-medium h-11"
+                  placeholder="Ex: Cardiologia"
                 />
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="bio" className="text-blue-100 flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-purple-400" />
+                <Label htmlFor="bio" className="text-slate-700 font-bold flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-blue-500" />
                   Biografia Profissional
                 </Label>
-                <Textarea
-                  id="bio"
-                  name="bio"
-                  defaultValue={(doctor as any).bio || ''}
-                  placeholder="Fale um pouco sobre sua experiência, formação e abordagem profissional."
-                  rows={5}
-                  className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-slate-500"
-                />
+                <div className="relative group">
+                  <Textarea
+                    id="bio"
+                    name="bio"
+                    defaultValue={(doctor as any).bio || ''}
+                    placeholder="Fale um pouco sobre sua experiência, formação e abordagem profissional."
+                    rows={5}
+                    className="bg-white border-slate-200 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder:text-slate-400 font-medium resize-none leading-relaxed p-4"
+                  />
+                </div>
               </div>
-              
-              <div className="flex justify-end pt-4">
-                <Button 
+
+              <div className="flex justify-end pt-4 border-t border-slate-50">
+                <Button
                   type="submit"
-                  className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold shadow-lg shadow-purple-500/20 transition-all"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-8 py-6 h-auto shadow-md shadow-blue-100 transition-all rounded-xl"
                 >
                   Salvar Alterações
                 </Button>
