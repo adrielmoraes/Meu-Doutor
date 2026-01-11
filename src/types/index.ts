@@ -194,11 +194,36 @@ export type Consultation = {
   id: string;
   doctorId: string;
   patientId: string;
-  roomId: string;
+  roomId?: string | null;
   transcription: string;
   summary: string;
   date: string;
-  type: 'video-call' | 'chat';
+  type: string;
+  createdAt?: Date;
+};
+
+export type Prescription = {
+  id: string;
+  doctorId: string;
+  patientId: string;
+  type: 'receita' | 'atestado' | 'laudo' | 'outro';
+  title?: string | null;
+  aiExplanation?: string | null;
+  aiExplanationAudioUri?: string | null;
+  medications: {
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+    instructions: string;
+  }[];
+  instructions?: string | null;
+  signedPdfUrl?: string | null;
+  signatureMethod?: 'a1_local' | 'bry_cloud' | null;
+  bryTransactionId?: string | null;
+  status: 'draft' | 'pending_process' | 'signed' | 'error';
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 export type AdminSettings = {

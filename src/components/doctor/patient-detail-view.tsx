@@ -24,13 +24,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PatientTimeline from "./patient-timeline";
 import DiagnosisMacros from "./diagnosis-macros";
 import PrescriptionHelper from "./prescription-helper";
-import { Filter, ExternalLink, CheckSquare } from "lucide-react";
+import { Filter, ExternalLink, CheckSquare, Stethoscope, FileSignature } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import SoapEvolutionModal from "./soap-evolution-modal";
+import PrescriptionModal from "./prescription-modal";
+import type { Consultation, Prescription } from "@/types";
 
 type PatientDetailViewProps = {
   patient: Patient;
   summary: string;
   exams: Exam[];
+  consultations: Consultation[];
+  prescriptions: Prescription[];
+  doctor: { id: string };
 };
 
 const getExamCategory = (type: string) => {
@@ -100,6 +106,9 @@ export default function PatientDetailView({
   patient,
   summary,
   exams,
+  consultations,
+  prescriptions,
+  doctor,
 }: PatientDetailViewProps) {
   const { toast } = useToast();
 
@@ -236,15 +245,23 @@ export default function PatientDetailView({
               {patient.age} anos • {patient.gender} • Última Interação: {patient.lastVisit}
             </CardDescription>
           </div>
-          <div className="flex flex-col sm:items-end gap-3">
-            <Badge variant={patient.status === 'Validado' ? 'secondary' : 'default'} className={`text-sm px-4 py-1.5 font-bold shadow-sm ${patient.status === 'Validado' ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border-none' : 'bg-amber-100 text-amber-800 hover:bg-amber-200 border-none'}`}>
-              {patient.status}
-            </Badge>
-            {patient.status !== 'Validado' && patient.priority && (
-              <Badge variant="outline" className="text-xs font-bold px-3 py-1 border-slate-200 text-slate-600 bg-white">
-                Prioridade: <span className="ml-1 text-slate-900">{patient.priority}</span>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <SoapEvolutionModal patientId={patient.id} patientName={patient.name} />
+            <PrescriptionModal
+              doctor={doctor}
+              patients={[patient]}
+              initialPatientId={patient.id}
+            />
+            <div className="flex flex-col sm:items-end gap-1.5 ml-2">
+              <Badge variant={patient.status === 'Validado' ? 'secondary' : 'default'} className={`text-sm px-4 py-1.5 font-bold shadow-sm ${patient.status === 'Validado' ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border-none' : 'bg-amber-100 text-amber-800 hover:bg-amber-200 border-none'}`}>
+                {patient.status}
               </Badge>
-            )}
+              {patient.priority && (
+                <Badge variant="outline" className="text-[10px] font-bold px-3 py-1 border-slate-200 text-slate-600 bg-white">
+                  Prioridade: <span className="ml-1 text-slate-900">{patient.priority}</span>
+                </Badge>
+              )}
+            </div>
           </div>
         </CardHeader>
       </Card>
@@ -607,7 +624,12 @@ export default function PatientDetailView({
             </TabsContent>
 
             <TabsContent value="timeline" className="mt-3 h-[700px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200">
-              <PatientTimeline exams={exams} patient={patient} />
+              <PatientTimeline
+                exams={exams}
+                consultations={consultations}
+                prescriptions={prescriptions}
+                patient={patient}
+              />
             </TabsContent>
           </Tabs>
         </div>

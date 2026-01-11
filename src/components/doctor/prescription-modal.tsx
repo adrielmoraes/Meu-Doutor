@@ -15,16 +15,17 @@ import { generateDocumentDraftAction } from "@/app/doctor/actions";
 interface PrescriptionModalProps {
     doctor: any;
     patients: any[]; // List of patients to select from
+    initialPatientId?: string;
 }
 
-export default function PrescriptionModal({ doctor, patients }: PrescriptionModalProps) {
+export default function PrescriptionModal({ doctor, patients, initialPatientId }: PrescriptionModalProps) {
     const { toast } = useToast();
     const [isOpen, setIsOpen] = useState(false);
     const [step, setStep] = useState<'form' | 'sign'>('form');
     const [loading, setLoading] = useState(false);
 
     // Form State
-    const [selectedPatientId, setSelectedPatientId] = useState('');
+    const [selectedPatientId, setSelectedPatientId] = useState(initialPatientId || '');
     const [docType, setDocType] = useState<'receita' | 'atestado' | 'laudo' | 'outro'>('receita');
     const [docTitle, setDocTitle] = useState('');
     const [medications, setMedications] = useState([
