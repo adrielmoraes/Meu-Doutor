@@ -4,6 +4,7 @@ import { getDoctorById, getPatientById } from '@/lib/db-adapter';
 import { generatePrescriptionPDF } from '@/services/prescription-pdf';
 import { finalizeBrySignature } from '@/services/signature-service';
 import { saveFileBuffer } from '@/lib/file-storage';
+import { regeneratePatientWellnessPlan } from '@/ai/flows/update-wellness-plan';
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
@@ -53,6 +54,13 @@ export async function GET(req: NextRequest) {
             'bry_cloud',
             transactionId
         );
+
+        // 5. Trigger Wellness Plan Update
+        try {
+            await regeneratePatientWellnessPlan(prescription.patientId);
+        } catch (planError) {
+            console.error('Error regenerating wellness plan after BRy signature:', planError);
+        }
 
         // 5. Success Redirect
         return NextResponse.redirect(new URL('/doctor?success=prescription_signed', req.url));

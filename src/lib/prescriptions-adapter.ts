@@ -20,6 +20,8 @@ export interface Prescription {
 export async function createPrescription(data: {
     doctorId: string;
     patientId: string;
+    type?: 'receita' | 'atestado' | 'laudo' | 'outro';
+    title?: string;
     medications: any;
     instructions?: string;
 }): Promise<string> {

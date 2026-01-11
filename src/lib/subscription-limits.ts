@@ -11,7 +11,7 @@ export const PLAN_LIMITS = {
     aiConsultationMinutes: 3,
     doctorConsultationMinutes: 0,
     therapistChatDays: 7,
-    podcastMinutes: 2,
+    podcastMinutes: 5,
     trialDurationDays: 7,
   },
   basico: {
@@ -26,7 +26,7 @@ export const PLAN_LIMITS = {
     aiConsultationMinutes: 20,
     doctorConsultationMinutes: 30,
     therapistChatDays: 30,
-    podcastMinutes: 8,
+    podcastMinutes: 20,
   },
   familiar: {
     examAnalysis: Infinity,
@@ -47,7 +47,7 @@ export async function checkActiveSubscription(patientId: string): Promise<{
   subscription: any;
 }> {
   const subscription = await getSubscriptionByPatientId(patientId);
-  
+
   if (!subscription) {
     return { hasActive: false, planId: null, subscription: null };
   }
@@ -60,15 +60,15 @@ export async function checkActiveSubscription(patientId: string): Promise<{
   // Se estiver expirado, não considerar ativo mesmo que o status diga o contrário
   // (Isso corrige o problema dos trials locais que não atualizam o status automaticamente)
   if (isExpired) {
-    return { 
-      hasActive: false, 
-      planId: null, 
+    return {
+      hasActive: false,
+      planId: null,
       subscription: { ...subscription, status: 'canceled' } // Retornar como cancelado para a UI
     };
   }
 
   const isActive = subscription.status === 'active' || subscription.status === 'trialing';
-  
+
   return {
     hasActive: isActive,
     planId: isActive ? (subscription.planId as PlanId) : null,
@@ -153,22 +153,22 @@ export async function canUseResource(
   message?: string;
 }> {
   console.log(`[canUseResource] 🔍 Verificando recurso "${resourceType}" para paciente ${patientId}`);
-  
+
   // PASSO 1: Buscar paciente e verificar customQuotas PRIMEIRO
   const { getPatientById } = await import('./db-adapter');
   const patient = await getPatientById(patientId);
-  
+
   console.log(`[canUseResource] customQuotas do paciente:`, JSON.stringify(patient?.customQuotas));
-  
+
   const customQuotaValue = patient?.customQuotas?.[resourceType];
-  
+
   // PASSO 2: Se houver cota customizada, usar ela e IGNORAR verificação de subscrição
   if (customQuotaValue !== undefined && customQuotaValue !== null) {
     console.log(`[canUseResource] ✅ COTA CUSTOMIZADA ENCONTRADA: ${customQuotaValue}`);
     console.log(`[canUseResource] Ignorando verificação de subscrição (admin override)`);
-    
+
     const limit = customQuotaValue;
-    
+
     // Mapear tipo de recurso para tipo de uso no banco
     const usageTypeMap: Record<LimitType, string> = {
       examAnalysis: 'exam_analysis',
@@ -179,9 +179,9 @@ export async function canUseResource(
     };
 
     const current = await getCurrentMonthUsage(patientId, usageTypeMap[resourceType]);
-    
+
     console.log(`[canUseResource] Uso atual: ${current}, Limite customizado: ${limit}`);
-    
+
     // Se for ilimitado, permitir
     if (limit === Infinity) {
       return {
@@ -193,7 +193,7 @@ export async function canUseResource(
     }
 
     const allowed = current < limit;
-    
+
     console.log(`[canUseResource] Resultado: allowed=${allowed}`);
 
     return {
@@ -206,10 +206,10 @@ export async function canUseResource(
         : `Você atingiu o limite de ${limit} ${getLimitLabel(resourceType)} definido pelo administrador.`,
     };
   }
-  
+
   // PASSO 3: Se NÃO houver cota customizada, verificar subscrição normalmente
   console.log(`[canUseResource] ℹ️ Nenhuma cota customizada. Verificando subscrição...`);
-  
+
   const { hasActive, planId, subscription } = await checkActiveSubscription(patientId);
 
   if (!hasActive || !planId) {
@@ -225,7 +225,7 @@ export async function canUseResource(
 
   const limits = PLAN_LIMITS[planId];
   const limit = limits[resourceType];
-  
+
   console.log(`[canUseResource] Plano: ${planId}, Limite padrão: ${limit}`);
 
   // Mapear tipo de recurso para tipo de uso no banco
@@ -274,7 +274,7 @@ export async function trackResourceUsage(
   }
 ): Promise<void> {
   const { trackUsage } = await import('./db-adapter');
-  
+
   await trackUsage({
     patientId,
     usageType,
@@ -315,10 +315,10 @@ export async function getUsageSummary(patientId: string) {
   }
 
   const limits = PLAN_LIMITS[planId];
-  
+
   const { getPatientById } = await import('./db-adapter');
   const patient = await getPatientById(patientId);
-  
+
   const examLimit = patient?.customQuotas?.examAnalysis ?? limits.examAnalysis;
   const aiMinLimit = patient?.customQuotas?.aiConsultationMinutes ?? limits.aiConsultationMinutes;
   const doctorMinLimit = patient?.customQuotas?.doctorConsultationMinutes ?? limits.doctorConsultationMinutes;

@@ -13,6 +13,7 @@ import {
   callRooms,
   signals,
   consultations,
+  prescriptions,
 } from '../../shared/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import type { Doctor, DoctorWithPassword, Patient, PatientWithPassword, Admin, AdminWithPassword, Exam, Appointment, Consultation, AdminSettings, AuditLog, UsageTracking, PatientUsageStats } from '@/types';
@@ -165,6 +166,37 @@ export async function getPatientByCpf(cpf: string): Promise<Patient | null> {
   return { ...result[0], lastVisit: result[0].lastVisit || '', avatarHint: result[0].avatarHint || '' } as Patient;
 }
 
+export async function getPatientMedicalContext(patientId: string) {
+  const patient = await getPatientById(patientId);
+  if (!patient) return null;
+
+  const recentExams = await db
+    .select()
+    .from(exams)
+    .where(eq(exams.patientId, patientId))
+    .orderBy(desc(exams.createdAt))
+    .limit(3);
+
+  const recentConsultations = await db
+    .select()
+    .from(consultations)
+    .where(eq(consultations.patientId, patientId))
+    .orderBy(desc(consultations.createdAt))
+    .limit(3);
+
+  const examSummary = recentExams.map(e => `${e.type} (${e.date}): ${e.preliminaryDiagnosis}`).join('\n');
+  const consultationSummary = recentConsultations.map(c => `${c.date}: ${c.summary}`).join('\n');
+
+  return {
+    name: patient.name,
+    age: patient.age,
+    gender: patient.gender,
+    reportedSymptoms: patient.reportedSymptoms || 'Não reportado',
+    examResults: examSummary || 'Nenhum exame recente',
+    recentConsultations: consultationSummary || 'Nenhuma consulta recente'
+  };
+}
+
 export async function getPatientByEmailWithAuth(email: string): Promise<PatientWithPassword | null> {
   const result = await db
     .select({
@@ -306,9 +338,22 @@ export async function getAllExamsForWellnessPlan(patientId: string): Promise<Exa
     .select()
     .from(exams)
     .where(eq(exams.patientId, patientId))
-    .orderBy(desc(exams.createdAt));
+    .orderBy(desc(exams.date));
 
   return results.map(e => ({ ...e, results: e.results || undefined })) as Exam[];
+}
+
+export async function getSignedDocumentsForWellnessPlan(patientId: string) {
+  return db
+    .select()
+    .from(prescriptions)
+    .where(
+      and(
+        eq(prescriptions.patientId, patientId),
+        eq(prescriptions.status, 'signed')
+      )
+    )
+    .orderBy(desc(prescriptions.createdAt));
 }
 
 export async function getRecentExamsForPodcast(patientId: string, limit: number = 5): Promise<Exam[]> {

@@ -16,12 +16,12 @@ import { z } from "genkit";
 import { getPatientById, getRecentExamsForPodcast } from "@/lib/db-adapter";
 import { trackAIUsage } from "@/lib/usage-tracker";
 import { countTextTokens } from "@/lib/token-counter";
+import { canUseResource } from "@/lib/subscription-limits";
 import { GoogleGenAI } from "@google/genai";
 import { db } from "@/server/storage";
-import { healthPodcasts, exams } from "@/shared/schema";
-import { eq, desc } from "drizzle-orm";
-import { randomUUID } from "crypto";
 import { saveFileBuffer } from "@/lib/file-storage";
+import { appointments } from "@/shared/schema";
+import { eq, desc, and, gte } from "drizzle-orm";
 
 
 // --- CONSTANTES ---
@@ -95,9 +95,21 @@ export async function generateHealthPodcast(
 // --- CONTEXTO DO PACIENTE (OTIMIZADO) ---
 async function getPatientContext(patientId: string) {
     // Execução paralela
-    const [patient, examsData] = await Promise.all([
+    const now = new Date().toISOString();
+    const [patient, examsData, upcomingAppointments] = await Promise.all([
         getPatientById(patientId),
-        getRecentExamsForPodcast(patientId, 5),
+        getRecentExamsForPodcast(patientId, 7),
+        db.select()
+            .from(appointments)
+            .where(
+                and(
+                    eq(appointments.patientId, patientId),
+                    eq(appointments.status, 'Agendada'),
+                    gte(appointments.date, now.split('T')[0])
+                )
+            )
+            .orderBy(appointments.date)
+            .limit(2)
     ]);
 
     if (!patient) {
@@ -112,19 +124,36 @@ async function getPatientContext(patientId: string) {
         ? examsData
             .map(
                 (e) =>
-                    `Exame: ${e.type} (${e.date ? new Date(e.date).toLocaleDateString("pt-BR") : "Sem data"})\nResultado: ${truncateText((e.preliminaryDiagnosis || e.result || "Sem análise").toString(), 450)}`
+                    `Exame: ${e.type} (${e.date ? new Date(e.date).toLocaleDateString("pt-BR") : "Sem data"})\nResultado: ${truncateText((e.preliminaryDiagnosis || e.result || "Sem análise").toString(), 600)}`
             )
             .join("\n\n")
         : "Nenhum exame registrado recentemente.";
 
     const wellnessContext = patient.wellnessPlan?.preliminaryAnalysis
-        ? `Análise de Saúde: ${truncateText(patient.wellnessPlan.preliminaryAnalysis, 450)}`
+        ? `Análise de Saúde: ${truncateText(patient.wellnessPlan.preliminaryAnalysis, 600)}`
         : "Sem plano de bem-estar no momento.";
+
+    const agendaContext = upcomingAppointments.length > 0
+        ? upcomingAppointments.map(a => `- ${a.type} com Dr(a). ${a.patientName.includes('Dr') ? a.patientName : 'Médico'} em ${new Date(a.date).toLocaleDateString('pt-BR')} às ${a.time}`).join('\n')
+        : "Nenhum compromisso agendado.";
+
+    const limitInfo = await canUseResource(patientId, 'podcastMinutes');
+
+    // Mapear duração sugerida baseada na cota do plano e solicitação do usuário
+    // 10 falas ~= 1 minuto de áudio (Gemini TTS)
+    let targetLines = 25; // Default/Trial (~2.5 min)
+    if (limitInfo.limit > 5 && limitInfo.limit <= 10) targetLines = 40; // Básico (~4 min)
+    else if (limitInfo.limit > 10) targetLines = 75; // Premium/Familiar (Up to ~8 min)
+
+    // Capped by GenAI typical limits and costs
+    targetLines = Math.min(targetLines, 85);
 
     return {
         patientName: patient.name,
-        examContext: truncateText(examContext, 1400),
-        wellnessContext: truncateText(wellnessContext, 900),
+        examContext: truncateText(examContext, 1800),
+        wellnessContext: truncateText(wellnessContext, 1200),
+        agendaContext,
+        targetLines,
         patientId,
     };
 }
@@ -156,13 +185,13 @@ const PODCAST_PROMPT_TEMPLATE = `
 - **EXPLIQUE CAUSAS E EFEITOS:** Conecte os pontos para o paciente. "Isso acontece porque..." -> "Isso pode levar a...".
 - **TRATAMENTOS:** Se houver menção a medicamentos ou terapias no contexto, explique como eles funcionam. Se for mudança de estilo de vida, explique a biologia por trás da mudança (ex: como o exercício baixa a glicose).
 - **TOM:** Profissional, mas extremamente humano, paciente e encorajador. Evite alarmismo, foque em soluções.
-- **FALAS CURTAS:** Cada fala deve ter no máximo **2 a 4 frases curtas**.
-- **DURAÇÃO:** Gere um roteiro objetivo, entre **12 e 14 falas**.
+- **DURAÇÃO:** Gere um roteiro detalhado com aproximadamente **{{{targetLines}}} falas**. É fundamental manter o ritmo da conversa e cobrir todos os pontos.
 
 **DADOS DO PACIENTE (USE ESTAS INFORMAÇÕES COMO BASE):**
 - Paciente: {{{patientName}}}
 - Resultados e Diagnósticos: {{{examContext}}}
 - Plano de Bem-Estar e Tratamento: {{{wellnessContext}}}
+- Próximas Consultas Agendadas: {{{agendaContext}}}
 
 **IMPORTANTE:**
 - NÃO invente medicamentos específicos que não estejam no contexto, mas pode falar sobre *classes* de medicamentos se apropriado para a condição (ex: "estatinas" para colesterol) como exemplo educativo, deixando claro que o médico prescreve o melhor.
@@ -179,6 +208,8 @@ const podcastScriptPrompt = ai.definePrompt({
             patientName: z.string(),
             examContext: z.string(),
             wellnessContext: z.string(),
+            agendaContext: z.string().optional(),
+            targetLines: z.number(),
         }),
     },
     output: {
@@ -318,6 +349,8 @@ const healthPodcastFlow = ai.defineFlow(
             patientName: context.patientName,
             examContext: context.examContext,
             wellnessContext: context.wellnessContext,
+            agendaContext: context.agendaContext,
+            targetLines: context.targetLines,
         });
         const scriptMs = Date.now() - tScriptStart;
 
@@ -326,6 +359,8 @@ const healthPodcastFlow = ai.defineFlow(
             patientName: context.patientName,
             examContext: context.examContext,
             wellnessContext: context.wellnessContext,
+            agendaContext: context.agendaContext,
+            targetLines: context.targetLines,
         });
         const scriptOutputText = JSON.stringify(output?.script || []);
 
@@ -361,9 +396,9 @@ const healthPodcastFlow = ai.defineFlow(
         }
 
         // 3. Preparar texto formatado
-        const minLines = 12;
-        const maxLines = 14;
-        const maxLineChars = 170;
+        const minLines = Math.floor(context.targetLines * 0.8);
+        const maxLines = context.targetLines + 4;
+        const maxLineChars = 320;
 
         const cleanedScript = output.script.map((s) => ({
             speaker: s.speaker,

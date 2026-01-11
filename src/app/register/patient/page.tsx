@@ -60,10 +60,11 @@ export default function PatientRegisterPage() {
         title: 'Cadastro Realizado!',
         description: state.message,
         className: "bg-green-100 text-green-800 border-green-200",
+        duration: 8000,
       });
       setTimeout(() => {
         router.push('/login');
-      }, 2000);
+      }, 10000);
     } else if (state.message && !state.success) {
       toast({
         variant: "destructive",

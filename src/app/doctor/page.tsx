@@ -6,8 +6,8 @@ import type { Doctor, Appointment, Patient } from "@/types";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { db } from '../../../server/storage';
-import { appointments, consultations, exams, patients } from '../../../shared/schema';
-import { eq, and, count, sql, gte, desc, or } from 'drizzle-orm';
+import { appointments, consultations, exams, patients, prescriptions } from '../../../shared/schema';
+import { eq, and, count, sql, gte, desc, or, asc } from 'drizzle-orm';
 
 interface PendingExam {
   id: string;
@@ -37,6 +37,16 @@ interface TodayAppointment {
   status: string;
 }
 
+interface ActivityItem {
+  id: string;
+  type: 'prescription' | 'exam' | 'consultation' | 'patient';
+  title: string;
+  subtitle: string;
+  timestamp: Date;
+  patientName: string;
+  status?: string;
+}
+
 interface DashboardData {
   doctor: Doctor | null;
   totalPatients: number;
@@ -49,6 +59,10 @@ interface DashboardData {
   avgValidationTime: number;
   weeklyConsultations: number;
   patients: { id: string; name: string }[];
+  activityTrends: { date: string; count: number }[];
+  recentActivity: ActivityItem[];
+  aiAssistCount: number;
+  priorityDistribution: { name: string; value: number }[];
   error?: string;
 }
 
@@ -65,6 +79,10 @@ async function getDashboardData(doctorId: string): Promise<DashboardData> {
     avgValidationTime: 0,
     weeklyConsultations: 0,
     patients: [],
+    activityTrends: [],
+    recentActivity: [],
+    aiAssistCount: 0,
+    priorityDistribution: [],
   };
 
   try {
@@ -94,7 +112,12 @@ async function getDashboardData(doctorId: string): Promise<DashboardData> {
       todayAppointmentsResult,
       weeklyConsultationsResult,
       urgentExamCountsResult,
-      allPatientsResult
+      allPatientsResult,
+      recentPrescriptions,
+      recentConsultations,
+      dailyTrends,
+      priorityStats,
+      aiExamsCount
     ] = await Promise.all([
       db.select({ count: sql<number>`COUNT(DISTINCT ${appointments.patientId})` })
         .from(appointments)
@@ -211,18 +234,104 @@ async function getDashboardData(doctorId: string): Promise<DashboardData> {
         .from(patients)
         .where(sql`${patients.id} IN (${doctorPatientIds})`)
         .orderBy(patients.name),
-    ]);
 
-    const examCountMap = new Map<string, number>();
-    urgentExamCountsResult.forEach(row => {
-      examCountMap.set(row.patientId, Number(row.count) || 0);
-    });
+      // Novos dados: Prescrições recentes
+      db.select({
+        id: prescriptions.id,
+        patientName: patients.name,
+        timestamp: prescriptions.createdAt,
+        status: prescriptions.status
+      })
+        .from(prescriptions)
+        .innerJoin(patients, eq(prescriptions.patientId, patients.id))
+        .where(eq(prescriptions.doctorId, doctorId))
+        .orderBy(desc(prescriptions.createdAt))
+        .limit(5),
+
+      // Novos dados: Consultas recentes
+      db.select({
+        id: consultations.id,
+        patientName: patients.name,
+        timestamp: consultations.createdAt,
+        type: consultations.type
+      })
+        .from(consultations)
+        .innerJoin(patients, eq(consultations.patientId, patients.id))
+        .where(eq(consultations.doctorId, doctorId))
+        .orderBy(desc(consultations.createdAt))
+        .limit(5),
+
+      // Novos dados: Tendências diárias (Consultas concluídas nos últimos 7 dias)
+      db.select({
+        date: sql<string>`TO_CHAR(${consultations.createdAt}, 'DD/MM')`,
+        count: count(),
+        fullDate: sql<string>`DATE_TRUNC('day', ${consultations.createdAt})`
+      })
+        .from(consultations)
+        .where(
+          and(
+            eq(consultations.doctorId, doctorId),
+            gte(consultations.createdAt, new Date(oneWeekAgo))
+          )
+        )
+        .groupBy(sql`TO_CHAR(${consultations.createdAt}, 'DD/MM')`, sql`DATE_TRUNC('day', ${consultations.createdAt})`)
+        .orderBy(asc(sql`DATE_TRUNC('day', ${consultations.createdAt})`)),
+
+      // Novos dados: Distribuição de prioridade
+      db.select({
+        priority: patients.priority,
+        count: count()
+      })
+        .from(patients)
+        .innerJoin(appointments, eq(patients.id, appointments.patientId))
+        .where(eq(appointments.doctorId, doctorId))
+        .groupBy(patients.priority),
+
+      // Novos dados: Assistência de IA (Exames validados + Consultas com resumo)
+      db.select({ count: count() })
+        .from(exams)
+        .where(
+          and(
+            sql`${exams.patientId} IN (${doctorPatientIds})`,
+            eq(exams.status, 'Validado')
+          )
+        )
+    ]);
 
     const urgentCasesWithExams = urgentPatientsResult.map(p => ({
       ...p,
       priority: p.priority || 'Normal',
       pendingExams: examCountMap.get(p.id) || 0,
     }));
+
+    // Consolidar Atividade Recente
+    const activityItems: ActivityItem[] = [
+      ...recentPrescriptions.map(p => ({
+        id: p.id,
+        type: 'prescription' as const,
+        title: 'Nova Prescrição',
+        subtitle: `Status: ${p.status === 'signed' ? 'Assinada' : 'Rascunho'}`,
+        timestamp: p.timestamp,
+        patientName: p.patientName,
+      })),
+      ...recentConsultations.map(c => ({
+        id: c.id,
+        type: 'consultation' as const,
+        title: 'Consulta Realizada',
+        subtitle: c.type,
+        timestamp: c.timestamp,
+        patientName: c.patientName,
+      })),
+      ...pendingExamsResult.map(e => ({
+        id: e.id,
+        type: 'exam' as const,
+        title: 'Exame para Validação',
+        subtitle: e.type,
+        timestamp: e.createdAt,
+        patientName: e.patientName,
+      }))
+    ].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      .slice(0, 10);
 
     return {
       doctor,
@@ -243,6 +352,10 @@ async function getDashboardData(doctorId: string): Promise<DashboardData> {
       avgValidationTime: 0,
       weeklyConsultations: Number(weeklyConsultationsResult[0]?.count) || 0,
       patients: allPatientsResult,
+      activityTrends: dailyTrends.map(t => ({ date: t.date, count: Number(t.count) })),
+      recentActivity: activityItems,
+      aiAssistCount: Number(aiExamsCount[0]?.count) || 0,
+      priorityDistribution: priorityStats.map(s => ({ name: s.priority || 'Normal', value: Number(s.count) }))
     };
   } catch (e: any) {
     const errorMessage = e.message?.toLowerCase() || '';
@@ -295,6 +408,10 @@ export default async function DoctorDashboardPage() {
           avgValidationTime={dashboardData.avgValidationTime}
           weeklyConsultations={dashboardData.weeklyConsultations}
           patients={dashboardData.patients}
+          activityTrends={dashboardData.activityTrends}
+          recentActivity={dashboardData.recentActivity}
+          aiAssistCount={dashboardData.aiAssistCount}
+          priorityDistribution={dashboardData.priorityDistribution}
         />
       )}
     </>

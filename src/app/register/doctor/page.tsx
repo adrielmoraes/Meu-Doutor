@@ -86,7 +86,7 @@ export default function DoctorRegisterPage() {
   const router = useRouter();
   const initialState = { message: null, errors: null, success: false };
   const [state, formAction] = useActionState(createDoctorAction, initialState);
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [specialtyOpen, setSpecialtyOpen] = useState(false);
@@ -95,22 +95,23 @@ export default function DoctorRegisterPage() {
 
   useEffect(() => {
     if (!state) return;
-    
+
     if (state.success && state.message) {
-        toast({
-            title: 'Cadastro Realizado!',
-            description: state.message,
-            className: "bg-green-100 text-green-800 border-green-200",
-        });
-        setTimeout(() => {
-            router.push('/login');
-        }, 2000);
+      toast({
+        title: 'Cadastro Realizado!',
+        description: state.message,
+        className: "bg-green-100 text-green-800 border-green-200",
+        duration: 8000,
+      });
+      setTimeout(() => {
+        router.push('/login');
+      }, 10000);
     } else if (state.message && !state.success) {
-         toast({
-            variant: "destructive",
-            title: 'Erro no Cadastro',
-            description: state.message,
-        });
+      toast({
+        variant: "destructive",
+        title: 'Erro no Cadastro',
+        description: state.message,
+      });
     }
   }, [state, toast, router]);
 
@@ -135,7 +136,7 @@ export default function DoctorRegisterPage() {
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
       <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse delay-700"></div>
-      
+
       <div className="mb-8 relative z-10 flex justify-center">
         <MediAILogo size="lg" />
       </div>
@@ -145,7 +146,7 @@ export default function DoctorRegisterPage() {
           <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
             <Stethoscope className="h-7 w-7 text-purple-400" />
           </div>
-          
+
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
             Cadastro de Médico
           </CardTitle>
@@ -153,7 +154,7 @@ export default function DoctorRegisterPage() {
             Preencha os dados abaixo para criar sua conta profissional
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           <form action={formAction}>
             <div className="grid gap-4">
@@ -185,7 +186,7 @@ export default function DoctorRegisterPage() {
               <div className="grid gap-2">
                 <Label htmlFor="specialty" className="text-blue-100">Especialidade</Label>
                 <input type="hidden" name="specialty" value={finalSpecialty} />
-                
+
                 <div className="space-y-2">
                   <Popover open={specialtyOpen} onOpenChange={setSpecialtyOpen}>
                     <PopoverTrigger asChild>
@@ -201,8 +202,8 @@ export default function DoctorRegisterPage() {
                     </PopoverTrigger>
                     <PopoverContent className="w-[350px] p-0 bg-slate-900 border-purple-500/30">
                       <Command className="bg-slate-900">
-                        <CommandInput 
-                          placeholder="Buscar especialidade..." 
+                        <CommandInput
+                          placeholder="Buscar especialidade..."
                           className="text-white"
                         />
                         <CommandList>
@@ -241,7 +242,7 @@ export default function DoctorRegisterPage() {
                       className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-slate-500"
                     />
                   </div>
-                  
+
                   {finalSpecialty && (
                     <p className="text-xs text-purple-300">
                       Especialidade selecionada: {finalSpecialty}
@@ -254,23 +255,23 @@ export default function DoctorRegisterPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="city" className="text-blue-100">Cidade de Atuação</Label>
-                  <Input 
-                    id="city" 
-                    name="city" 
-                    placeholder="Sua cidade" 
-                    required 
+                  <Input
+                    id="city"
+                    name="city"
+                    placeholder="Sua cidade"
+                    required
                     className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-slate-500"
                   />
                   {state?.errors?.city && <p className="text-xs text-red-400">{state.errors.city[0]}</p>}
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="state" className="text-blue-100">Estado</Label>
-                  <Input 
-                    id="state" 
-                    name="state" 
-                    placeholder="UF" 
-                    required 
-                    maxLength={2} 
+                  <Input
+                    id="state"
+                    name="state"
+                    placeholder="UF"
+                    required
+                    maxLength={2}
                     className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-slate-500"
                   />
                   {state?.errors?.state && <p className="text-xs text-red-400">{state.errors.state[0]}</p>}
@@ -293,11 +294,11 @@ export default function DoctorRegisterPage() {
               <div className="grid gap-2">
                 <Label htmlFor="password" className="text-blue-100">Senha (mínimo 6 caracteres)</Label>
                 <div className="relative">
-                  <Input 
-                    id="password" 
-                    name="password" 
+                  <Input
+                    id="password"
+                    name="password"
                     type={showPassword ? "text" : "password"}
-                    required 
+                    required
                     className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white pr-10"
                   />
                   <button
@@ -318,11 +319,11 @@ export default function DoctorRegisterPage() {
               <div className="grid gap-2">
                 <Label htmlFor="confirmPassword" className="text-blue-100">Confirmar Senha</Label>
                 <div className="relative">
-                  <Input 
-                    id="confirmPassword" 
-                    name="confirmPassword" 
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
-                    required 
+                    required
                     className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white pr-10"
                   />
                   <button
@@ -383,10 +384,10 @@ export default function DoctorRegisterPage() {
 function SubmitButton({ disabled }: { disabled?: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <Button 
-        type="submit" 
-        className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold shadow-lg shadow-purple-500/20 transition-all disabled:opacity-50" 
-        disabled={pending || disabled}
+    <Button
+      type="submit"
+      className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold shadow-lg shadow-purple-500/20 transition-all disabled:opacity-50"
+      disabled={pending || disabled}
     >
       {pending ? (
         <>

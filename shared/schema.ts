@@ -10,6 +10,7 @@ export const subscriptionStatusEnum = pgEnum('subscription_status', ['active', '
 export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'succeeded', 'failed', 'refunded']);
 export const avatarProviderEnum = pgEnum('avatar_provider', ['tavus', 'bey']);
 export const prescriptionStatusEnum = pgEnum('prescription_status', ['draft', 'pending_process', 'signed', 'error']);
+export const documentTypeEnum = pgEnum('document_type', ['receita', 'atestado', 'laudo', 'outro']);
 export const signatureMethodEnum = pgEnum('signature_method', ['a1_local', 'bry_cloud']);
 
 export const patients = pgTable('patients', {
@@ -218,6 +219,10 @@ export const prescriptions = pgTable('prescriptions', {
   id: text('id').primaryKey(),
   doctorId: text('doctor_id').notNull().references(() => doctors.id, { onDelete: 'cascade' }),
   patientId: text('patient_id').notNull().references(() => patients.id, { onDelete: 'cascade' }),
+  type: documentTypeEnum('type').default('receita').notNull(),
+  title: text('title'),
+  aiExplanation: text('ai_explanation'),
+  aiExplanationAudioUri: text('ai_explanation_audio_uri'),
   medications: json('medications').$type<{
     name: string;
     dosage: string;

@@ -3,7 +3,8 @@ import { getPrescriptionById, updatePrescriptionStatus } from '@/lib/prescriptio
 import { getDoctorById, getPatientById } from '@/lib/db-adapter';
 import { generatePrescriptionPDF } from '@/services/prescription-pdf';
 import { signWithA1 } from '@/services/signature-service';
-import { saveFileBuffer } from '@/lib/file-storage'; // Ensure this uses buffer method
+import { saveFileBuffer } from '@/lib/file-storage';
+import { regeneratePatientWellnessPlan } from '@/ai/flows/update-wellness-plan';
 
 export async function POST(
     req: NextRequest,
@@ -56,6 +57,13 @@ export async function POST(
 
         // 6. Update DB
         await updatePrescriptionStatus(id, 'signed', signedPdfUrl, 'a1_local');
+
+        // 7. Trigger Wellness Plan Update
+        try {
+            await regeneratePatientWellnessPlan(prescription.patientId);
+        } catch (planError) {
+            console.error('Error regenerating wellness plan after A1 signature:', planError);
+        }
 
         return NextResponse.json({
             success: true,

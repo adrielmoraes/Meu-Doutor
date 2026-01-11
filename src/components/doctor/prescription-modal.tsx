@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash, FileSignature, Cloud, FileText, Loader2, Check } from "lucide-react";
+import { Plus, Trash, FileSignature, Cloud, FileText, Loader2, Check, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { generateDocumentDraftAction } from "@/app/doctor/actions";
 
 interface PrescriptionModalProps {
     doctor: any;
@@ -24,10 +25,13 @@ export default function PrescriptionModal({ doctor, patients }: PrescriptionModa
 
     // Form State
     const [selectedPatientId, setSelectedPatientId] = useState('');
+    const [docType, setDocType] = useState<'receita' | 'atestado' | 'laudo' | 'outro'>('receita');
+    const [docTitle, setDocTitle] = useState('');
     const [medications, setMedications] = useState([
         { name: '', dosage: '', frequency: '', duration: '', instructions: '' }
     ]);
     const [instructions, setInstructions] = useState('');
+    const [isGeneratingIA, setIsGeneratingIA] = useState(false);
     const [currentPrescriptionId, setCurrentPrescriptionId] = useState<string | null>(null);
 
     // Signing State
@@ -48,6 +52,32 @@ export default function PrescriptionModal({ doctor, patients }: PrescriptionModa
         setMedications(newMeds);
     };
 
+    const handleAIGenerate = async () => {
+        if (!selectedPatientId) {
+            toast({ title: "Selecione um paciente", description: "A IA precisa do contexto do paciente para gerar o documento.", variant: "destructive" });
+            return;
+        }
+
+        setIsGeneratingIA(true);
+        try {
+            const result = await generateDocumentDraftAction(selectedPatientId, docType);
+            if (result.success && result.draft) {
+                if (result.draft.title) setDocTitle(result.draft.title);
+                if (result.draft.medications && result.draft.medications.length > 0) {
+                    setMedications(result.draft.medications);
+                }
+                setInstructions(result.draft.instructions);
+                toast({ title: "Rascunho gerado!", description: "A IA preencheu o documento com base no histórico do paciente." });
+            } else {
+                toast({ title: "Erro na IA", description: result.message, variant: "destructive" });
+            }
+        } catch (error) {
+            toast({ title: "Erro Inesperado", description: "Não foi possível conectar ao serviço de IA.", variant: "destructive" });
+        } finally {
+            setIsGeneratingIA(false);
+        }
+    };
+
     const handleGenerateDraft = async () => {
         if (!selectedPatientId) {
             toast({ title: "Selecione um paciente", variant: "destructive" });
@@ -62,7 +92,9 @@ export default function PrescriptionModal({ doctor, patients }: PrescriptionModa
                 body: JSON.stringify({
                     doctorId: doctor.id,
                     patientId: selectedPatientId,
-                    medications,
+                    type: docType,
+                    title: docTitle || undefined,
+                    medications: docType === 'receita' ? medications : [],
                     instructions
                 })
             });
@@ -121,6 +153,8 @@ export default function PrescriptionModal({ doctor, patients }: PrescriptionModa
 
     const resetForm = () => {
         setStep('form');
+        setDocType('receita');
+        setDocTitle('');
         setMedications([{ name: '', dosage: '', frequency: '', duration: '', instructions: '' }]);
         setInstructions('');
         setPfxFile(null);
@@ -132,100 +166,145 @@ export default function PrescriptionModal({ doctor, patients }: PrescriptionModa
     return (
         <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
-                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-sm">
+                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-sm rounded-xl">
                     <FileSignature className="h-4 w-4" />
-                    Nova Prescrição
+                    Novo Documento
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-w-3xl bg-white border-slate-200 text-slate-900 max-h-[90vh] overflow-y-auto shadow-xl">
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-bold text-slate-800">Nova Prescrição Eletrônica</DialogTitle>
+                    <DialogTitle className="text-xl font-bold text-slate-800">Novo Documento Médico Assinado</DialogTitle>
                 </DialogHeader>
 
                 {step === 'form' ? (
                     <div className="space-y-6 py-4">
-                        <div className="space-y-2">
-                            <Label className="text-slate-700 font-medium">Paciente</Label>
-                            <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
-                                <SelectTrigger className="bg-white border-slate-300 text-slate-900 focus:ring-blue-500">
-                                    <SelectValue placeholder="Selecione o paciente..." />
-                                </SelectTrigger>
-                                <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-md">
-                                    {patients.map(p => (
-                                        <SelectItem key={p.id} value={p.id} className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer">
-                                            {p.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <Label className="text-slate-700 font-medium">Medicamentos</Label>
-                                <Button variant="outline" size="sm" onClick={addMedication} className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700">
-                                    <Plus className="h-4 w-4 mr-1" /> Adicionar
-                                </Button>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-slate-700 font-medium">Paciente</Label>
+                                <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
+                                    <SelectTrigger className="bg-white border-slate-300 text-slate-900 focus:ring-blue-500">
+                                        <SelectValue placeholder="Selecione o paciente..." />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-md">
+                                        {patients.map(p => (
+                                            <SelectItem key={p.id} value={p.id} className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer">
+                                                {p.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
 
-                            {medications.map((med, index) => (
-                                <div key={index} className="grid grid-cols-12 gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 items-start shadow-sm hover:border-blue-200 transition-colors">
-                                    <div className="col-span-12 md:col-span-4 space-y-1">
-                                        <Input
-                                            placeholder="Nome do Medicamento"
-                                            value={med.name}
-                                            onChange={e => updateMedication(index, 'name', e.target.value)}
-                                            className="bg-white border-slate-300 h-9 text-sm focus:border-blue-500"
-                                        />
-                                    </div>
-                                    <div className="col-span-6 md:col-span-2 space-y-1">
-                                        <Input
-                                            placeholder="Dosagem"
-                                            value={med.dosage}
-                                            onChange={e => updateMedication(index, 'dosage', e.target.value)}
-                                            className="bg-white border-slate-300 h-9 text-sm focus:border-blue-500"
-                                        />
-                                    </div>
-                                    <div className="col-span-6 md:col-span-2 space-y-1">
-                                        <Input
-                                            placeholder="Frequência"
-                                            value={med.frequency}
-                                            onChange={e => updateMedication(index, 'frequency', e.target.value)}
-                                            className="bg-white border-slate-300 h-9 text-sm focus:border-blue-500"
-                                        />
-                                    </div>
-                                    <div className="col-span-6 md:col-span-2 space-y-1">
-                                        <Input
-                                            placeholder="Duração"
-                                            value={med.duration}
-                                            onChange={e => updateMedication(index, 'duration', e.target.value)}
-                                            className="bg-white border-slate-300 h-9 text-sm focus:border-blue-500"
-                                        />
-                                    </div>
-                                    <div className="col-span-6 md:col-span-2 flex justify-end items-center">
-                                        <Button variant="ghost" size="icon" onClick={() => removeMedication(index)} className="h-9 w-9 text-slate-400 hover:text-red-600 hover:bg-red-50">
-                                            <Trash className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                    <div className="col-span-12 mt-1">
-                                        <Input
-                                            placeholder="Instruções adicionais (opcional)"
-                                            value={med.instructions}
-                                            onChange={e => updateMedication(index, 'instructions', e.target.value)}
-                                            className="bg-white border-slate-300 h-8 text-xs text-slate-600 focus:border-blue-500"
-                                        />
-                                    </div>
-                                </div>
-                            ))}
+                            <div className="space-y-2">
+                                <Label className="text-slate-700 font-medium">Tipo de Documento</Label>
+                                <Select value={docType} onValueChange={(v: any) => setDocType(v)}>
+                                    <SelectTrigger className="bg-white border-slate-300 text-slate-900 focus:ring-blue-500">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-md">
+                                        <SelectItem value="receita">Receita Médica</SelectItem>
+                                        <SelectItem value="atestado">Atestado Médico</SelectItem>
+                                        <SelectItem value="laudo">Laudo Clínico</SelectItem>
+                                        <SelectItem value="outro">Outro Documento</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label className="text-slate-700 font-medium">Observações Gerais</Label>
+                            <div className="flex items-center justify-between">
+                                <Label className="text-slate-700 font-medium">Título do Documento (Opcional)</Label>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleAIGenerate}
+                                    disabled={isGeneratingIA || !selectedPatientId}
+                                    className="h-7 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 gap-1.5"
+                                >
+                                    {isGeneratingIA ? (
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                        <Sparkles className="h-3.5 w-3.5" />
+                                    )}
+                                    Gerar com IA
+                                </Button>
+                            </div>
+                            <Input
+                                value={docTitle}
+                                onChange={e => setDocTitle(e.target.value)}
+                                placeholder="Ex: Receita Especial, Atestado de Comparecimento..."
+                                className="bg-white border-slate-300"
+                            />
+                        </div>
+
+                        {docType === 'receita' && (
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-slate-700 font-medium">Medicamentos</Label>
+                                    <Button variant="outline" size="sm" onClick={addMedication} className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700">
+                                        <Plus className="h-4 w-4 mr-1" /> Adicionar
+                                    </Button>
+                                </div>
+
+                                {medications.map((med, index) => (
+                                    <div key={index} className="grid grid-cols-12 gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 items-start shadow-sm hover:border-blue-200 transition-colors">
+                                        <div className="col-span-12 md:col-span-4 space-y-1">
+                                            <Input
+                                                placeholder="Nome do Medicamento"
+                                                value={med.name}
+                                                onChange={e => updateMedication(index, 'name', e.target.value)}
+                                                className="bg-white border-slate-300 h-9 text-sm focus:border-blue-500"
+                                            />
+                                        </div>
+                                        <div className="col-span-6 md:col-span-2 space-y-1">
+                                            <Input
+                                                placeholder="Dosagem"
+                                                value={med.dosage}
+                                                onChange={e => updateMedication(index, 'dosage', e.target.value)}
+                                                className="bg-white border-slate-300 h-9 text-sm focus:border-blue-500"
+                                            />
+                                        </div>
+                                        <div className="col-span-6 md:col-span-2 space-y-1">
+                                            <Input
+                                                placeholder="Frequência"
+                                                value={med.frequency}
+                                                onChange={e => updateMedication(index, 'frequency', e.target.value)}
+                                                className="bg-white border-slate-300 h-9 text-sm focus:border-blue-500"
+                                            />
+                                        </div>
+                                        <div className="col-span-6 md:col-span-2 space-y-1">
+                                            <Input
+                                                placeholder="Duração"
+                                                value={med.duration}
+                                                onChange={e => updateMedication(index, 'duration', e.target.value)}
+                                                className="bg-white border-slate-300 h-9 text-sm focus:border-blue-500"
+                                            />
+                                        </div>
+                                        <div className="col-span-6 md:col-span-2 flex justify-end items-center">
+                                            <Button variant="ghost" size="icon" onClick={() => removeMedication(index)} className="h-9 w-9 text-slate-400 hover:text-red-600 hover:bg-red-50">
+                                                <Trash className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                        <div className="col-span-12 mt-1">
+                                            <Input
+                                                placeholder="Instruções adicionais (opcional)"
+                                                value={med.instructions}
+                                                onChange={e => updateMedication(index, 'instructions', e.target.value)}
+                                                className="bg-white border-slate-300 h-8 text-xs text-slate-600 focus:border-blue-500"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <div className="space-y-2">
+                            <Label className="text-slate-700 font-medium">Conteúdo do Documento / Observações</Label>
                             <Textarea
                                 value={instructions}
                                 onChange={e => setInstructions(e.target.value)}
-                                className="bg-white border-slate-300 text-slate-900 min-h-[100px] focus:border-blue-500"
-                                placeholder="Orientações gerais para o paciente..."
+                                className="bg-white border-slate-300 text-slate-900 min-h-[150px] focus:border-blue-500"
+                                placeholder={docType === 'receita' ? "Orientações gerais para o paciente..." : "Descreva o conteúdo do atestado ou laudo aqui..."}
                             />
                         </div>
 

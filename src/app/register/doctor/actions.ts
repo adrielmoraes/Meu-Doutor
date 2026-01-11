@@ -25,22 +25,22 @@ const DoctorSchema = z.object({
 export async function createDoctorAction(prevState: any, formData: FormData) {
   // Validar documento
   const documentFile = formData.get('document') as File | null;
-  
+
   if (!documentFile || documentFile.size === 0) {
     return {
-        ...prevState,
-        message: 'Por favor, envie um documento de identificação (CRM ou RG).',
-        errors: { document: ['Documento obrigatório.'] }
+      ...prevState,
+      message: 'Por favor, envie um documento de identificação (CRM ou RG).',
+      errors: { document: ['Documento obrigatório.'] }
     };
   }
 
   // Validar tamanho (max 5MB)
   if (documentFile.size > 5 * 1024 * 1024) {
-      return {
-          ...prevState,
-          message: 'O documento deve ter no máximo 5MB.',
-          errors: { document: ['Arquivo muito grande.'] }
-      };
+    return {
+      ...prevState,
+      message: 'O documento deve ter no máximo 5MB.',
+      errors: { document: ['Arquivo muito grande.'] }
+    };
   }
 
   const validatedFields = DoctorSchema.safeParse(Object.fromEntries(formData.entries()));
@@ -61,21 +61,21 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
     // Verificar se email já existe
     const existingEmail = await getDoctorByEmail(email);
     if (existingEmail) {
-        return {
-            ...prevState,
-            errors: { email: ['Este e-mail já está em uso.'] },
-            message: 'Falha no cadastro. O e-mail fornecido já está cadastrado.',
-        };
+      return {
+        ...prevState,
+        errors: { email: ['Este e-mail já está em uso.'] },
+        message: 'Falha no cadastro. O e-mail fornecido já está cadastrado.',
+      };
     }
 
     // Verificar se CRM já existe
     const existingCrm = await getDoctorByCrm(crm);
     if (existingCrm) {
-        return {
-            ...prevState,
-            errors: { crm: ['Este CRM já está cadastrado.'] },
-            message: 'Falha no cadastro. Este CRM já está cadastrado no sistema.',
-        };
+      return {
+        ...prevState,
+        errors: { crm: ['Este CRM já está cadastrado.'] },
+        message: 'Falha no cadastro. Este CRM já está cadastrado no sistema.',
+      };
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -104,9 +104,9 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
 
     // Enviar email de verificação
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ||
-                    (process.env.REPLIT_DOMAINS?.split(',')[0]
-                      ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
-                      : 'http://localhost:5000');
+      (process.env.REPLIT_DOMAINS?.split(',')[0]
+        ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
+        : 'http://localhost:5000');
 
     const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}&type=doctor`;
 
@@ -129,7 +129,7 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
     revalidatePath('/doctor/patients');
     return {
       ...prevState,
-      message: 'Cadastro realizado! Verifique seu email. Sua conta aguarda aprovação da administração.',
+      message: 'Cadastro realizado com sucesso! Enviamos um link de ativação para o seu e-mail. Por favor, valide sua conta. Lembre-se que o acesso profissional aguarda aprovação da administração.',
       errors: null,
       success: true,
     };

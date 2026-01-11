@@ -10,11 +10,20 @@ import { textToSpeech } from "@/ai/flows/text-to-speech";
 interface AudioPlaybackProps {
   textToSpeak: string;
   preGeneratedAudioUri?: string | null;
+  label?: string;
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  className?: string;
 }
 
 const MAX_TTS_CHARS = 4000;
 
-const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGeneratedAudioUri }) => {
+const AudioPlayback: React.FC<AudioPlaybackProps> = ({
+  textToSpeak,
+  preGeneratedAudioUri,
+  label,
+  variant,
+  className
+}) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -26,19 +35,19 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGenerated
   useEffect(() => {
     // Only create audio object on the client side
     if (typeof window !== 'undefined' && !audioRef.current) {
-        audioRef.current = new Audio();
+      audioRef.current = new Audio();
     }
     const audio = audioRef.current;
     if (!audio) return;
 
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => {
-        setIsPlaying(false);
-        setIsPaused(true);
+      setIsPlaying(false);
+      setIsPaused(true);
     }
     const handleEnded = () => {
-        setIsPlaying(false);
-        setIsPaused(false);
+      setIsPlaying(false);
+      setIsPaused(false);
     }
 
     audio.addEventListener('play', handlePlay);
@@ -46,7 +55,7 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGenerated
     audio.addEventListener('ended', handleEnded);
 
     if (preGeneratedAudioUri) {
-        audio.src = preGeneratedAudioUri;
+      audio.src = preGeneratedAudioUri;
     }
 
     return () => {
@@ -66,10 +75,10 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGenerated
     }
 
     if (isPaused || audioRef.current.src) {
-        audioRef.current.play().catch(e => console.error("Audio resume failed:", e));
-        return;
+      audioRef.current.play().catch(e => console.error("Audio resume failed:", e));
+      return;
     }
-    
+
     setIsGenerating(true);
     try {
       const response = await textToSpeech({ text: textToSpeak });
@@ -94,33 +103,33 @@ const AudioPlayback: React.FC<AudioPlaybackProps> = ({ textToSpeak, preGenerated
   };
 
   const getButtonContent = () => {
-      if (isTextTooLong) {
-        return <><XCircle className="mr-2 h-5 w-5" /> Texto muito longo para narrar</>
-      }
-      if (isGenerating) {
-        return <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Gerando Áudio...</>
-      }
-      if (isPlaying) {
-        return <><PauseCircle className="mr-2 h-5 w-5" /> Pausar Áudio</>
-      }
-      if(isPaused) {
-        return <><PlayCircle className="mr-2 h-5 w-5" /> Continuar Ouvindo</>
-      }
-      return <><Volume2 className="mr-2 h-5 w-5" /> Ouvir Recomendação</>
+    if (isTextTooLong) {
+      return <><XCircle className="mr-2 h-5 w-5" /> Texto muito longo para narrar</>
+    }
+    if (isGenerating) {
+      return <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Gerando Áudio...</>
+    }
+    if (isPlaying) {
+      return <><PauseCircle className="mr-2 h-5 w-5" /> Pausar Áudio</>
+    }
+    if (isPaused) {
+      return <><PlayCircle className="mr-2 h-5 w-5" /> {label || "Continuar Ouvindo"}</>
+    }
+    return <><Volume2 className="mr-2 h-5 w-5" /> {label || "Ouvir Recomendação"}</>
   }
 
   return (
     <div className="mt-4">
-        <Button
-            onClick={toggleAudio}
-            disabled={isGenerating || isTextTooLong}
-            aria-label={isPlaying ? "Pausar áudio" : "Reproduzir áudio"}
-            size="lg"
-            className="w-full"
-            variant={isPlaying ? "outline" : "default"}
-        >
+      <Button
+        onClick={toggleAudio}
+        disabled={isGenerating || isTextTooLong}
+        aria-label={isPlaying ? "Pausar áudio" : "Reproduzir áudio"}
+        size={variant === "ghost" ? "sm" : "lg"}
+        className={className || "w-full"}
+        variant={variant || (isPlaying ? "outline" : "default")}
+      >
         {getButtonContent()}
-        </Button>
+      </Button>
     </div>
   );
 };

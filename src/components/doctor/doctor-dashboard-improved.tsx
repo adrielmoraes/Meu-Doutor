@@ -12,7 +12,8 @@ import {
   Users, Calendar, History, Sparkles, Activity, TrendingUp, Clock,
   AlertTriangle, FileWarning, Search, Video, ArrowRight,
   Timer, CheckCircle, BarChart3, Zap, Bell, Heart, UserCircle, Settings,
-  Menu, LogOut, User
+  Menu, LogOut, User, FileText, ClipboardList, Briefcase, ChevronRight,
+  Stethoscope, ShieldAlert, Cpu, PieChart as PieChartIcon
 } from "lucide-react";
 import Link from "next/link";
 import { OnlineStatusToggle } from "@/components/doctor/online-status-toggle";
@@ -27,6 +28,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import PrescriptionModal from "@/components/doctor/prescription-modal";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, LineChart, Line, Cell, PieChart, Pie
+} from 'recharts';
 
 interface PendingExam {
   id: string;
@@ -56,6 +61,16 @@ interface TodayAppointment {
   status: string;
 }
 
+interface ActivityItem {
+  id: string;
+  type: 'prescription' | 'exam' | 'consultation' | 'patient';
+  title: string;
+  subtitle: string;
+  timestamp: Date;
+  patientName: string;
+  status?: string;
+}
+
 interface DoctorDashboardImprovedProps {
   doctor: Doctor;
   totalPatients: number;
@@ -68,6 +83,10 @@ interface DoctorDashboardImprovedProps {
   avgValidationTime?: number;
   weeklyConsultations: number;
   patients: { id: string; name: string }[];
+  activityTrends: { date: string; count: number }[];
+  recentActivity: ActivityItem[];
+  aiAssistCount: number;
+  priorityDistribution: { name: string; value: number }[];
 }
 
 export default function DoctorDashboardImproved({
@@ -80,7 +99,11 @@ export default function DoctorDashboardImproved({
   urgentCases,
   todayAppointments,
   weeklyConsultations,
-  patients
+  patients,
+  activityTrends,
+  recentActivity,
+  aiAssistCount,
+  priorityDistribution
 }: DoctorDashboardImprovedProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
@@ -113,10 +136,11 @@ export default function DoctorDashboardImproved({
       color: "violet"
     },
     {
-      title: "Consultas Realizadas",
-      value: completedConsultations,
-      icon: <TrendingUp className="h-6 w-6 text-emerald-600" />,
-      color: "emerald"
+      title: "Assistência de IA",
+      value: aiAssistCount,
+      icon: <Cpu className="h-6 w-6 text-emerald-600" />,
+      color: "emerald",
+      trend: "Economizando ~4h/semana"
     },
     {
       title: "Exames Pendentes",
@@ -127,13 +151,12 @@ export default function DoctorDashboardImproved({
     }
   ];
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'Crítica': return 'bg-red-500/20 text-red-300 border-red-500/50';
-      case 'Alta': return 'bg-orange-500/20 text-orange-300 border-orange-500/50';
-      case 'Média': return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50';
-      default: return 'bg-green-500/20 text-green-300 border-green-500/50';
-    }
+  const PRIORITY_COLORS: Record<string, string> = {
+    'Crítica': '#ef4444',
+    'Alta': '#f97316',
+    'Média': '#facc15',
+    'Baixa': '#22c55e',
+    'Normal': '#94a3b8'
   };
 
   const getTimeAgo = (dateStr: string) => {
@@ -272,10 +295,114 @@ export default function DoctorDashboardImproved({
                 <div>
                   <p className="text-sm font-medium text-slate-500">{stat.title}</p>
                   <p className="text-2xl font-bold text-slate-900 mt-1">{stat.value}</p>
+                  {stat.trend && (
+                    <p className="text-[10px] font-bold text-emerald-600 mt-1.5 flex items-center gap-1 uppercase tracking-tight">
+                      <Zap className="h-3 w-3" /> {stat.trend}
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Analytics Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <Card className="lg:col-span-2 border-none ring-1 ring-slate-200 shadow-sm bg-white overflow-hidden rounded-2xl">
+            <CardHeader className="pb-4 border-b border-slate-50 bg-slate-50/50">
+              <CardTitle className="flex items-center gap-2 text-slate-900 text-lg font-bold">
+                <div className="p-2 rounded-xl bg-blue-100/50 text-blue-600">
+                  <TrendingUp className="h-5 w-5" />
+                </div>
+                Produtividade Clínica
+              </CardTitle>
+              <CardDescription className="text-slate-500 font-medium tracking-tight">
+                Consultas concluídas nos últimos 7 dias
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6 h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={activityTrends}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis
+                    dataKey="date"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
+                    dy={10}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
+                  />
+                  <Tooltip
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                    itemStyle={{ fontWeight: 700, fontSize: 12 }}
+                    labelStyle={{ fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    name="Consultas"
+                    stroke="#2563eb"
+                    strokeWidth={4}
+                    dot={{ fill: '#2563eb', strokeWidth: 2, r: 4, stroke: '#fff' }}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none ring-1 ring-slate-200 shadow-sm bg-white overflow-hidden rounded-2xl">
+            <CardHeader className="pb-4 border-b border-slate-50 bg-slate-50/50">
+              <CardTitle className="flex items-center gap-2 text-slate-900 text-lg font-bold">
+                <div className="p-2 rounded-xl bg-violet-100/50 text-violet-600">
+                  <PieChartIcon className="h-5 w-5" />
+                </div>
+                Perfil dos Pacientes
+              </CardTitle>
+              <CardDescription className="text-slate-500 font-medium tracking-tight">
+                Distribuição por risco clínico
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6 h-[300px] flex flex-col justify-center">
+              <div className="h-full w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={priorityDistribution}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {priorityDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={PRIORITY_COLORS[entry.name] || '#94a3b8'} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                      itemStyle={{ fontWeight: 700, fontSize: 12 }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="grid grid-cols-2 gap-2 mt-4">
+                {priorityDistribution.map((entry) => (
+                  <div key={entry.name} className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PRIORITY_COLORS[entry.name] }} />
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter truncate">
+                      {entry.name}: {entry.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
@@ -426,9 +553,9 @@ export default function DoctorDashboardImproved({
         </div>
 
         {/* Quick Actions Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Weekly Stats */}
-          <Card className="bg-white border-slate-200 shadow-sm">
+          <Card className="bg-white border-slate-200 shadow-sm border-none ring-1 ring-slate-200 rounded-2xl overflow-hidden">
             <CardContent className="p-4 flex items-center gap-4">
               <div className="p-3 rounded-xl bg-indigo-50 text-indigo-600">
                 <BarChart3 className="h-6 w-6" />
@@ -441,7 +568,7 @@ export default function DoctorDashboardImproved({
           </Card>
 
           {/* Validation Stats */}
-          <Card className="bg-white border-slate-200 shadow-sm">
+          <Card className="bg-white border-slate-200 shadow-sm border-none ring-1 ring-slate-200 rounded-2xl overflow-hidden">
             <CardContent className="p-4 flex items-center gap-4">
               <div className="p-3 rounded-xl bg-teal-50 text-teal-600">
                 <CheckCircle className="h-6 w-6" />
@@ -455,7 +582,7 @@ export default function DoctorDashboardImproved({
 
           {/* Navigation Cards */}
           <Link href="/doctor/patients" className="block group">
-            <Card className="h-full bg-white border-slate-200 shadow-sm group-hover:border-blue-300 group-hover:shadow-md transition-all">
+            <Card className="h-full bg-white border-none ring-1 ring-slate-200 shadow-sm group-hover:ring-blue-300 group-hover:shadow-md transition-all rounded-2xl overflow-hidden">
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
@@ -469,7 +596,7 @@ export default function DoctorDashboardImproved({
           </Link>
 
           <Link href="/doctor/history" className="block group">
-            <Card className="h-full bg-white border-slate-200 shadow-sm group-hover:border-indigo-300 group-hover:shadow-md transition-all">
+            <Card className="h-full bg-white border-none ring-1 ring-slate-200 shadow-sm group-hover:ring-indigo-300 group-hover:shadow-md transition-all rounded-2xl overflow-hidden">
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-colors">
@@ -482,6 +609,85 @@ export default function DoctorDashboardImproved({
             </Card>
           </Link>
         </div>
+
+        {/* Recent Activity Feed */}
+        <Card className="border-none ring-1 ring-slate-200 shadow-sm bg-white overflow-hidden rounded-3xl mb-12">
+          <CardHeader className="pb-4 border-b border-slate-50 bg-slate-50/10 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-slate-900 text-lg font-bold">
+                <div className="p-2 rounded-xl bg-slate-100 text-slate-600">
+                  <ClipboardList className="h-5 w-5" />
+                </div>
+                Centro de Atividade Recente
+              </CardTitle>
+              <CardDescription className="text-slate-500 font-medium">
+                Acompanhe as últimas interações e eventos clínicos
+              </CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" className="text-slate-400 font-bold hover:text-slate-600">
+              Limpar Registro
+            </Button>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-slate-50">
+              {recentActivity.length > 0 ? (
+                recentActivity.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="flex items-center gap-6 p-5 hover:bg-slate-50/50 transition-colors group cursor-default"
+                  >
+                    <div className={`p-3 rounded-2xl shrink-0 ${activity.type === 'prescription' ? 'bg-blue-50 text-blue-600' :
+                        activity.type === 'exam' ? 'bg-amber-50 text-amber-600' :
+                          'bg-violet-50 text-violet-600'
+                      } group-hover:scale-110 transition-transform duration-300`}>
+                      {activity.type === 'prescription' ? <FileText className="h-6 w-6" /> :
+                        activity.type === 'exam' ? <ShieldAlert className="h-6 w-6" /> :
+                          <Stethoscope className="h-6 w-6" />}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-extrabold text-slate-900 text-lg leading-none">{activity.title}</p>
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                          <Clock className="h-3 w-3" />
+                          {getTimeAgo(activity.timestamp.toISOString())}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-slate-500">
+                        <span className="text-sm font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
+                          {activity.patientName}
+                        </span>
+                        <span className="text-sm font-medium opacity-80">•</span>
+                        <span className="text-sm font-medium">{activity.subtitle}</span>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button size="sm" variant="outline" className="rounded-xl border-slate-200 text-slate-600 font-bold hover:bg-white hover:border-blue-300 hover:text-blue-600 shadow-sm">
+                        Detalhes <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-12 text-center">
+                  <div className="bg-slate-50 p-6 rounded-full inline-block mb-4 ring-8 ring-slate-50/30">
+                    <Activity className="h-8 w-8 text-slate-300" />
+                  </div>
+                  <p className="text-slate-900 font-bold">Nenhuma atividade recente</p>
+                  <p className="text-sm text-slate-500">Seus registros clínicos aparecerão aqui conforme você atende pacientes.</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+          <div className="p-4 bg-slate-50/30 border-t border-slate-50 text-center">
+            <Link href="/doctor/history">
+              <Button variant="link" className="text-blue-600 font-bold text-sm">
+                Ver histórico completo <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        </Card>
       </div>
     </div>
   );

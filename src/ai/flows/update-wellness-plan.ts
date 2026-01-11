@@ -4,7 +4,7 @@
  * This is automatically triggered when a new exam is analyzed
  */
 
-import { getAllExamsForWellnessPlan, updatePatientWellnessPlan, getPatientById } from '@/lib/db-adapter';
+import { getAllExamsForWellnessPlan, updatePatientWellnessPlan, getPatientById, getSignedDocumentsForWellnessPlan } from '@/lib/db-adapter';
 import { nutritionistAgent } from './nutritionist-agent';
 import { generateHealthInsights } from './generate-health-insights';
 import { ai } from '@/ai/genkit';
@@ -66,16 +66,16 @@ const wellnessPlanSynthesisPrompt = ai.definePrompt({
   output: { schema: GenerateWellnessPlanFromExamsOutputSchema },
   prompt: `You are a holistic health AI creating a comprehensive wellness plan in Brazilian Portuguese.
 
-You received a detailed nutritionist's analysis of the patient's exam results.
+You received a detailed nutritionist's analysis of the patient's data, which includes exam results AND official doctor findings (prescriptions/notes).
 
 **Your task:** Create 6 sections:
 
 1. **Análise Preliminar (preliminaryAnalysis):**
-   - **OBJETIVO**: Explicar os achados dos exames de forma clara e acessível para o paciente.
+   - **OBJETIVO**: Explicar os achados dos exames e as orientações do médico de forma clara e acessível.
    - **LINGUAGEM**: Use linguagem POPULAR, evite termos técnicos médicos. Quando usar termos técnicos, explique-os.
    - **CONTEÚDO**:
-     * Resuma os principais achados dos exames
-     * Explique o que cada resultado significa para a saúde do paciente
+     * Resuma os principais achados dos exames e as conclusões do laudo médico.
+     * Explique o que cada resultado e o que o médico prescreveu significa para a saúde do paciente.
      * Destaque pontos de atenção de forma tranquilizadora
      * Compare valores com referências normais quando relevante
    - **TOM**: Empático, educativo e encorajador. Não seja alarmista.
@@ -224,7 +224,7 @@ export async function regeneratePatientWellnessPlan(patientId: string): Promise<
 
     if (exams.length === 0) {
       console.log(`[Wellness Plan Update] No exams found, skipping wellness plan update`);
-      return;
+      // return; // Do not return if there are no exams, there might be documents
     }
 
     // 3. Consolidate exam data
@@ -247,10 +247,21 @@ Histórico de Sintomas: ${patient.reportedSymptoms || 'Nenhum sintoma relatado'}
 Histórico de Conversas: ${patient.conversationHistory || 'Nenhuma conversa registrada'}
     `.trim();
 
+    // 3.5. Get signed documents (prescriptions/laudos)
+    const documents = await getSignedDocumentsForWellnessPlan(patientId);
+    const documentSummary = documents.map((doc, index) => {
+      return `
+Documento Médico ${index + 1} (${doc.type} - ${doc.createdAt.toLocaleDateString()}):
+- Título: ${doc.title || 'N/A'}
+- Orientações/Conteúdo: ${doc.instructions || 'N/A'}
+- Medicamentos: ${doc.type === 'receita' ? JSON.stringify(doc.medications) : 'N/A'}
+        `.trim();
+    }).join('\n\n---\n\n');
+
     // 4. Get nutritionist analysis
     console.log(`[Wellness Plan Update] Calling nutritionist agent...`);
     const nutritionistAnalysis = await nutritionistAgent({
-      examResults: examSummary,
+      examResults: `${examSummary}\n\nDOCUMENTOS MÉDICOS ASSINADOS:\n${documentSummary}`,
       patientHistory: patientHistory,
     });
 

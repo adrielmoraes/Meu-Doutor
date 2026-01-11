@@ -1,6 +1,6 @@
 'use client';
 
-import { FileClock, UserPlus, HeartPulse, Video, Activity, User, Upload, Brain, Calendar, TrendingUp, Award, Sparkles, MessageCircle, LayoutDashboard, FileText, Heart, Users, Apple, Dumbbell, BrainCircuit, Zap, Headphones } from "lucide-react";
+import { FileClock, UserPlus, HeartPulse, Video, Activity, User, Upload, Brain, Calendar, TrendingUp, Award, Sparkles, MessageCircle, LayoutDashboard, FileText, Heart, Users, Apple, Dumbbell, BrainCircuit, Zap, Headphones, FileSignature, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import type { Patient } from "@/types";
@@ -106,12 +106,20 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
       borderColor: "border-green-500/30",
     },
     {
+      title: "Prescrições",
+      icon: <FileSignature className="h-6 w-6 text-indigo-700 dark:text-indigo-400" />,
+      href: "/patient/prescriptions",
+      description: "Suas receitas e atestados assinados",
+      gradient: "from-indigo-500/10 to-blue-500/10",
+      borderColor: "border-indigo-500/30",
+    },
+    {
       title: "Meu Perfil",
-      icon: <User className="h-6 w-6 text-indigo-700 dark:text-indigo-400" />,
+      icon: <User className="h-6 w-6 text-violet-700 dark:text-violet-400" />,
       href: "/patient/profile",
       description: "Visualize e edite suas informações",
-      gradient: "from-indigo-500/10 to-violet-500/10",
-      borderColor: "border-indigo-500/30",
+      gradient: "from-violet-500/10 to-purple-500/10",
+      borderColor: "border-violet-500/30",
     },
   ];
 

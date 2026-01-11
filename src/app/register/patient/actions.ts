@@ -185,7 +185,7 @@ export async function createPatientAction(prevState: any, formData: FormData) {
     revalidatePath('/doctor/patients');
     return {
       ...prevState,
-      message: 'Cadastro realizado com sucesso! Você ganhou 7 dias grátis de acesso Premium. Verifique seu email para ativar sua conta.',
+      message: 'Cadastro realizado com sucesso! Para sua segurança, enviamos um link de ativação para o seu e-mail. Por favor, acesse sua caixa de entrada e valide sua conta antes de tentar fazer o login.',
       errors: null,
       success: true,
     };
