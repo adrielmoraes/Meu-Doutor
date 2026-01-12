@@ -126,28 +126,40 @@ export default function DoctorDashboardImproved({
     {
       title: "Total de Pacientes",
       value: totalPatients,
-      icon: <Users className="h-6 w-6 text-blue-600" />,
+      icon: <Users className="h-5 w-5 text-blue-600" />,
       color: "blue"
     },
     {
       title: "Consultas Agendadas",
       value: upcomingAppointments,
-      icon: <Clock className="h-6 w-6 text-violet-600" />,
+      icon: <Clock className="h-5 w-5 text-violet-600" />,
       color: "violet"
     },
     {
       title: "Assistência de IA",
       value: aiAssistCount,
-      icon: <Cpu className="h-6 w-6 text-emerald-600" />,
+      icon: <Cpu className="h-5 w-5 text-emerald-600" />,
       color: "emerald",
       trend: "Economizando ~4h/semana"
     },
     {
       title: "Exames Pendentes",
       value: pendingExamsCount,
-      icon: <FileWarning className="h-6 w-6 text-amber-600" />,
+      icon: <FileWarning className="h-5 w-5 text-amber-600" />,
       color: "amber",
       alert: pendingExamsCount > 0
+    },
+    {
+      title: "Consultas (Semana)",
+      value: weeklyConsultations,
+      icon: <BarChart3 className="h-5 w-5 text-indigo-600" />,
+      color: "indigo"
+    },
+    {
+      title: "Validações",
+      value: doctor.validations || 0,
+      icon: <CheckCircle className="h-5 w-5 text-teal-600" />,
+      color: "teal"
     }
   ];
 
@@ -274,33 +286,89 @@ export default function DoctorDashboardImproved({
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {/* Primary Navigation Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Link href="/doctor/patients" className="block group">
+            <Card className="h-full bg-white border-none ring-1 ring-slate-200 shadow-sm group-hover:ring-blue-300 group-hover:shadow-md transition-all rounded-2xl overflow-hidden">
+              <CardContent className="p-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                    <Users className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <span className="text-lg font-bold text-slate-900 group-hover:text-blue-700 block">Meus Pacientes</span>
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">Gerenciar prontuários e exames</p>
+                  </div>
+                </div>
+                <ArrowRight className="h-5 w-5 text-slate-300 group-hover:text-blue-500 transition-transform group-hover:translate-x-1" />
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/doctor/history" className="block group">
+            <Card className="h-full bg-white border-none ring-1 ring-slate-200 shadow-sm group-hover:ring-indigo-300 group-hover:shadow-md transition-all rounded-2xl overflow-hidden">
+              <CardContent className="p-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                    <History className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <span className="text-lg font-bold text-slate-900 group-hover:text-indigo-700 block">Histórico Clínico</span>
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">Atendimentos realizados</p>
+                  </div>
+                </div>
+                <ArrowRight className="h-5 w-5 text-slate-300 group-hover:text-indigo-500 transition-transform group-hover:translate-x-1" />
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/doctor/schedule" className="block group">
+            <Card className="h-full bg-white border-none ring-1 ring-slate-200 shadow-sm group-hover:ring-emerald-300 group-hover:shadow-md transition-all rounded-2xl overflow-hidden">
+              <CardContent className="p-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
+                    <Calendar className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <span className="text-lg font-bold text-slate-900 group-hover:text-emerald-700 block">Agenda Magistral</span>
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">Planejamento e turnos</p>
+                  </div>
+                </div>
+                <ArrowRight className="h-5 w-5 text-slate-300 group-hover:text-emerald-500 transition-transform group-hover:translate-x-1" />
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+
+        {/* Stats Grid - Now more compact and comprehensive */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           {stats.map((stat, index) => (
             <Card
               key={stat.title}
               className={`group bg-white border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 ${stat.alert ? 'ring-2 ring-amber-100' : ''}`}
             >
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`p-2 rounded-lg ${index === 0 ? 'bg-blue-50 text-blue-600' :
-                    index === 1 ? 'bg-violet-50 text-violet-600' :
-                      index === 2 ? 'bg-emerald-50 text-emerald-600' :
-                        'bg-amber-50 text-amber-600'
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={`p-1.5 rounded-lg ${index % 6 === 0 ? 'bg-blue-50 text-blue-600' :
+                      index % 6 === 1 ? 'bg-violet-50 text-violet-600' :
+                        index % 6 === 2 ? 'bg-emerald-50 text-emerald-600' :
+                          index % 6 === 3 ? 'bg-amber-50 text-amber-600' :
+                            index % 6 === 4 ? 'bg-indigo-50 text-indigo-600' :
+                              'bg-teal-50 text-teal-600'
                     }`}>
                     {stat.icon}
                   </div>
-                  {stat.alert && <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />}
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider truncate">{stat.title}</p>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">{stat.title}</p>
-                  <p className="text-2xl font-bold text-slate-900 mt-1">{stat.value}</p>
-                  {stat.trend && (
-                    <p className="text-[10px] font-bold text-emerald-600 mt-1.5 flex items-center gap-1 uppercase tracking-tight">
-                      <Zap className="h-3 w-3" /> {stat.trend}
-                    </p>
-                  )}
+                <div className="flex items-baseline gap-2">
+                  <p className="text-xl font-extrabold text-slate-900">{stat.value}</p>
+                  {stat.alert && <span className="flex h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />}
                 </div>
+                {stat.trend && (
+                  <p className="text-[9px] font-bold text-emerald-600 mt-1 flex items-center gap-1 uppercase tracking-tighter">
+                    <Zap className="h-2.5 w-2.5" /> {stat.trend}
+                  </p>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -450,7 +518,15 @@ export default function DoctorDashboardImproved({
                               )}
                             </div>
                           </div>
-                          <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-red-500 transition-transform group-hover:translate-x-1" />
+                          <div className="flex items-center gap-2">
+                            <PrescriptionModal
+                              doctor={doctor}
+                              patients={patients}
+                              initialPatientId={patient.id}
+                              variant="compact"
+                            />
+                            <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-red-500 transition-transform group-hover:translate-x-1" />
+                          </div>
                         </div>
                       </Link>
                     ))}
@@ -525,6 +601,12 @@ export default function DoctorDashboardImproved({
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
+                          <PrescriptionModal
+                            doctor={doctor}
+                            patients={patients}
+                            initialPatientId={appt.patientId}
+                            variant="compact"
+                          />
                           {index === 0 && appt.type.includes('Vídeo') && (
                             <Link href={`/doctor/video-call?patient=${appt.patientId}`}>
                               <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 font-bold rounded-xl px-5">
@@ -552,63 +634,6 @@ export default function DoctorDashboardImproved({
           </Card>
         </div>
 
-        {/* Quick Actions Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Weekly Stats */}
-          <Card className="bg-white border-slate-200 shadow-sm border-none ring-1 ring-slate-200 rounded-2xl overflow-hidden">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-indigo-50 text-indigo-600">
-                <BarChart3 className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-sm text-slate-500 font-medium">Consultas (Semana)</p>
-                <p className="text-2xl font-bold text-slate-900">{weeklyConsultations}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Validation Stats */}
-          <Card className="bg-white border-slate-200 shadow-sm border-none ring-1 ring-slate-200 rounded-2xl overflow-hidden">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-teal-50 text-teal-600">
-                <CheckCircle className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-sm text-slate-500 font-medium">Validações</p>
-                <p className="text-2xl font-bold text-slate-900">{doctor.validations || 0}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Navigation Cards */}
-          <Link href="/doctor/patients" className="block group">
-            <Card className="h-full bg-white border-none ring-1 ring-slate-200 shadow-sm group-hover:ring-blue-300 group-hover:shadow-md transition-all rounded-2xl overflow-hidden">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                    <Users className="h-5 w-5" />
-                  </div>
-                  <span className="font-semibold text-slate-700 group-hover:text-blue-700">Meus Pacientes</span>
-                </div>
-                <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-blue-500" />
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href="/doctor/history" className="block group">
-            <Card className="h-full bg-white border-none ring-1 ring-slate-200 shadow-sm group-hover:ring-indigo-300 group-hover:shadow-md transition-all rounded-2xl overflow-hidden">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                    <History className="h-5 w-5" />
-                  </div>
-                  <span className="font-semibold text-slate-700 group-hover:text-indigo-700">Histórico Clínico</span>
-                </div>
-                <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500" />
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
 
         {/* Recent Activity Feed */}
         <Card className="border-none ring-1 ring-slate-200 shadow-sm bg-white overflow-hidden rounded-3xl mb-12">
@@ -637,8 +662,8 @@ export default function DoctorDashboardImproved({
                     className="flex items-center gap-6 p-5 hover:bg-slate-50/50 transition-colors group cursor-default"
                   >
                     <div className={`p-3 rounded-2xl shrink-0 ${activity.type === 'prescription' ? 'bg-blue-50 text-blue-600' :
-                        activity.type === 'exam' ? 'bg-amber-50 text-amber-600' :
-                          'bg-violet-50 text-violet-600'
+                      activity.type === 'exam' ? 'bg-amber-50 text-amber-600' :
+                        'bg-violet-50 text-violet-600'
                       } group-hover:scale-110 transition-transform duration-300`}>
                       {activity.type === 'prescription' ? <FileText className="h-6 w-6" /> :
                         activity.type === 'exam' ? <ShieldAlert className="h-6 w-6" /> :

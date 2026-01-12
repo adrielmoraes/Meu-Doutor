@@ -112,8 +112,8 @@ export default function ScheduleCalendarManager({ appointments, doctor }: Schedu
                                     row: "flex w-full mt-2 justify-between",
                                     cell: "h-11 w-11 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-transparent focus-within:relative focus-within:z-20",
                                     day: "h-11 w-11 p-0 font-bold text-slate-600 aria-selected:opacity-100 hover:bg-blue-50 hover:text-blue-700 rounded-full transition-all duration-200",
-                                    day_selected: "bg-blue-600 text-white hover:bg-blue-700 hover:text-white shadow-md shadow-blue-200",
-                                    day_today: "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200",
+                                    day_selected: "bg-slate-900 text-white hover:bg-slate-800 hover:text-white shadow-lg shadow-slate-200 scale-110 z-10",
+                                    day_today: "ring-2 ring-blue-600 text-blue-600 font-black",
                                     day_outside: "text-slate-300 opacity-40",
                                     day_disabled: "text-slate-200 opacity-30",
                                     day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
@@ -122,23 +122,23 @@ export default function ScheduleCalendarManager({ appointments, doctor }: Schedu
                                 disabled={(day) => day < new Date(new Date().setDate(new Date().getDate() - 1))}
                                 modifiers={modifiers}
                                 modifiersClassNames={{
-                                    available: 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200 font-extrabold',
-                                    booked: 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200 font-extrabold',
+                                    available: 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm shadow-emerald-100 font-extrabold scale-95',
+                                    booked: 'bg-indigo-500 text-white hover:bg-indigo-600 shadow-sm shadow-indigo-100 font-extrabold scale-95',
                                 }}
                             />
 
                             {/* Legend */}
                             <div className="flex items-center justify-center gap-6 mt-8 pt-6 border-t border-slate-100">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-emerald-100 ring-1 ring-emerald-300"></div>
+                                    <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm"></div>
                                     <span className="text-xs text-slate-500 font-bold uppercase tracking-tight">Disponível</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-blue-100 ring-1 ring-blue-300"></div>
+                                    <div className="w-3 h-3 rounded-full bg-indigo-500 shadow-sm"></div>
                                     <span className="text-xs text-slate-500 font-bold uppercase tracking-tight">Agendado</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-white border-2 border-blue-600"></div>
+                                    <div className="w-3 h-3 rounded-full bg-slate-900"></div>
                                     <span className="text-xs text-slate-500 font-bold uppercase tracking-tight">Selecionado</span>
                                 </div>
                             </div>
@@ -322,8 +322,11 @@ export default function ScheduleCalendarManager({ appointments, doctor }: Schedu
                                     <p className="text-slate-500 max-w-sm font-medium leading-relaxed">
                                         Não há consultas registradas para esta data. Que tal revisar suas notas ou configurar novos horários?
                                     </p>
-                                    <Button asChild variant="outline" className="mt-8 border-blue-200 text-blue-600 hover:bg-blue-50 font-bold shadow-sm shadow-blue-50">
-                                        <Link href="/doctor/patients">Ver Meus Pacientes</Link>
+                                    <Button asChild className="mt-8 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold px-8 py-6 rounded-2xl shadow-lg shadow-blue-200 transition-all hover:scale-105 active:scale-95">
+                                        <Link href="/doctor/patients" className="flex items-center gap-2">
+                                            <Users className="h-5 w-5" />
+                                            Ver Meus Pacientes
+                                        </Link>
                                     </Button>
                                 </div>
                             )}

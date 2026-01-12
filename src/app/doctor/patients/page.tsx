@@ -31,6 +31,9 @@ import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Patient, Exam } from "@/types";
 import { getPatients, getExams } from "@/lib/db-adapter";
+import { getSession } from "@/lib/session";
+import PrescriptionModal from "@/components/doctor/prescription-modal";
+import { redirect } from "next/navigation";
 
 const examToSpecialty: Record<string, string> = {
   'Hemograma': 'Hematologia',
@@ -170,6 +173,11 @@ async function getPatientsWithSpecialty(): Promise<{ patients: PatientWithSpecia
 }
 
 export default async function PatientsPage() {
+  const session = await getSession();
+  if (!session || session.role !== 'doctor') {
+    redirect('/login');
+  }
+
   const { patients, error } = await getPatientsWithSpecialty();
 
   const stats = patients ? {
@@ -341,7 +349,13 @@ export default async function PatientsPage() {
                             {patient.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right flex items-center justify-end gap-1">
+                          <PrescriptionModal
+                            doctor={{ id: session.userId }}
+                            patients={[patient]}
+                            initialPatientId={patient.id}
+                            variant="compact"
+                          />
                           <Button
                             asChild
                             variant="ghost"

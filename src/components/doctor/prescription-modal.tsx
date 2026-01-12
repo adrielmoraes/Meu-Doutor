@@ -16,9 +16,10 @@ interface PrescriptionModalProps {
     doctor: any;
     patients: any[]; // List of patients to select from
     initialPatientId?: string;
+    variant?: 'default' | 'compact';
 }
 
-export default function PrescriptionModal({ doctor, patients, initialPatientId }: PrescriptionModalProps) {
+export default function PrescriptionModal({ doctor, patients, initialPatientId, variant = 'default' }: PrescriptionModalProps) {
     const { toast } = useToast();
     const [isOpen, setIsOpen] = useState(false);
     const [step, setStep] = useState<'form' | 'sign'>('form');
@@ -167,10 +168,16 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId }
     return (
         <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
-                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-sm rounded-xl">
-                    <FileSignature className="h-4 w-4" />
-                    Novo Documento
-                </Button>
+                {variant === 'compact' ? (
+                    <Button variant="ghost" size="sm" className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 h-8 w-8 p-0" title="Gerar Prescrição/Documento">
+                        <FileSignature className="h-4 w-4" />
+                    </Button>
+                ) : (
+                    <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-sm rounded-xl">
+                        <FileSignature className="h-4 w-4" />
+                        Novo Documento
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="max-w-3xl bg-white border-slate-200 text-slate-900 max-h-[90vh] overflow-y-auto shadow-xl">
                 <DialogHeader>

@@ -12,8 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Eye, AlertTriangle, Clock } from "lucide-react";
 import Link from "next/link";
 import { getPatients } from "@/lib/db-adapter";
+import { getSession } from "@/lib/session";
+import PrescriptionModal from "@/components/doctor/prescription-modal";
 import type { Patient } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { redirect } from "next/navigation";
 
 // Helper function to extract the diagnosis from doctor's notes
 const getValidatedDiagnosis = (patient: Patient): string => {
@@ -37,6 +40,11 @@ async function getHistoryData(): Promise<{ history: Patient[], error?: string }>
 
 
 export default async function ProfessionalHistoryPage() {
+    const session = await getSession();
+    if (!session || session.role !== 'doctor') {
+        redirect('/login');
+    }
+
     const { history, error } = await getHistoryData();
 
     return (
@@ -101,7 +109,13 @@ export default async function ProfessionalHistoryPage() {
                                                 {getValidatedDiagnosis(entry)}
                                             </p>
                                         </TableCell>
-                                        <TableCell className="text-right py-5 pr-8">
+                                        <TableCell className="text-right py-5 pr-8 flex items-center justify-end gap-1">
+                                            <PrescriptionModal
+                                                doctor={{ id: session.userId }}
+                                                patients={[entry]}
+                                                initialPatientId={entry.id}
+                                                variant="compact"
+                                            />
                                             <Button asChild variant="ghost" size="icon" className="hover:bg-blue-600 hover:text-white transition-all rounded-full h-10 w-10">
                                                 <Link href={`/doctor/patients/${entry.id}`}>
                                                     <Eye className="h-5 w-5" />
