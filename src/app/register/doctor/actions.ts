@@ -11,6 +11,9 @@ import type { Doctor } from '@/types';
 const DoctorSchema = z.object({
   fullName: z.string().min(3, { message: "O nome completo é obrigatório." }),
   crm: z.string().min(4, { message: "O CRM deve ter no mínimo 4 caracteres." }),
+  cpf: z.string().optional(),
+  birthDate: z.string().optional(),
+  phone: z.string().optional(),
   specialty: z.string().min(1, { message: "A especialidade é obrigatória." }),
   city: z.string().min(2, { message: "A cidade é obrigatória." }),
   state: z.string().length(2, { message: "O estado (UF) é obrigatório." }),
@@ -52,7 +55,7 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
     };
   }
 
-  const { fullName, email, password, specialty, crm, city, state } = validatedFields.data;
+  const { fullName, email, password, specialty, crm, cpf, birthDate, phone, city, state } = validatedFields.data;
 
   try {
     // Salvar documento
@@ -85,6 +88,9 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
     const doctorId = await addDoctorWithAuth({
       name: fullName,
       crm: crm,
+      cpf: cpf || null,
+      birthDate: birthDate || null,
+      phone: phone || null,
       email: email,
       emailVerified: false,
       specialty: specialty,
@@ -129,7 +135,7 @@ export async function createDoctorAction(prevState: any, formData: FormData) {
     revalidatePath('/doctor/patients');
     return {
       ...prevState,
-      message: 'Cadastro realizado com sucesso! Enviamos um link de ativação para o seu e-mail. Por favor, valide sua conta. Lembre-se que o acesso profissional aguarda aprovação da administração.',
+      message: `✅ Cadastro realizado com sucesso!\n\n📧 Próximos Passos:\n1. Verifique sua caixa de entrada (${email}) e clique no link de ativação que enviamos.\n2. Após validar seu email, aguarde a aprovação do seu cadastro pela equipe administrativa.\n\n⏱️ O processo de aprovação pode levar até 48 horas úteis. Você receberá um email quando seu acesso for liberado.`,
       errors: null,
       success: true,
     };

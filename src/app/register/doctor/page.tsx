@@ -98,14 +98,14 @@ export default function DoctorRegisterPage() {
 
     if (state.success && state.message) {
       toast({
-        title: 'Cadastro Realizado!',
+        title: '🎉 Cadastro Realizado com Sucesso!',
         description: state.message,
-        className: "bg-green-100 text-green-800 border-green-200",
-        duration: 8000,
+        className: "bg-gradient-to-r from-green-50 to-emerald-50 text-green-900 border-green-300 shadow-lg",
+        duration: 12000,
       });
       setTimeout(() => {
         router.push('/login');
-      }, 10000);
+      }, 13000);
     } else if (state.message && !state.success) {
       toast({
         variant: "destructive",
@@ -181,6 +181,46 @@ export default function DoctorRegisterPage() {
                   className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-slate-500"
                 />
                 {state?.errors?.crm && <p className="text-xs text-red-400">{state.errors.crm[0]}</p>}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="cpf" className="text-blue-100">CPF</Label>
+                <Input
+                  id="cpf"
+                  name="cpf"
+                  placeholder="000.000.000-00"
+                  type="text"
+                  pattern="\d{3}\.\d{3}\.\d{3}-\d{2}|\d{11}"
+                  title="Digite um CPF válido (000.000.000-00 ou 11 dígitos)"
+                  className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-slate-500"
+                />
+                {state?.errors?.cpf && <p className="text-xs text-red-400">{state.errors.cpf[0]}</p>}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="birthDate" className="text-blue-100">Data de Nascimento</Label>
+                  <Input
+                    id="birthDate"
+                    name="birthDate"
+                    type="date"
+                    className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-slate-500"
+                  />
+                  {state?.errors?.birthDate && <p className="text-xs text-red-400">{state.errors.birthDate[0]}</p>}
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="phone" className="text-blue-100">Telefone</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="(00) 00000-0000"
+                    pattern="\(\d{2}\)\s?\d{4,5}-?\d{4}|\d{10,11}"
+                    title="Digite um telefone válido"
+                    className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-slate-500"
+                  />
+                  {state?.errors?.phone && <p className="text-xs text-red-400">{state.errors.phone[0]}</p>}
+                </div>
               </div>
 
               <div className="grid gap-2">
@@ -357,11 +397,18 @@ export default function DoctorRegisterPage() {
               </div>
 
               {state.success && state.message && (
-                <Alert variant="default" className="bg-green-100 border-green-200">
-                  <AlertTitle>Cadastro realizado!</AlertTitle>
-                  <AlertDescription>
-                    {state.message}
-                  </AlertDescription>
+                <Alert variant="default" className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-400 shadow-xl">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                      <Check className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <AlertTitle className="text-lg font-bold text-green-900 mb-2">🎉 Cadastro Realizado com Sucesso!</AlertTitle>
+                      <AlertDescription className="text-green-800 whitespace-pre-line">
+                        {state.message}
+                      </AlertDescription>
+                    </div>
+                  </div>
                 </Alert>
               )}
 

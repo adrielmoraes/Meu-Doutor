@@ -18,7 +18,7 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
 
   // --- COMPLIANCE & AUDIT START ---
   try {
-    const headersList = headers();
+    const headersList = await headers();
     const ip = headersList.get('x-forwarded-for') || 'unknown';
     const userAgent = headersList.get('user-agent') || 'unknown';
 

@@ -12,6 +12,7 @@ export interface Prescription {
     signedPdfUrl?: string | null;
     signatureMethod?: 'a1_local' | 'bry_cloud' | null;
     bryTransactionId?: string | null;
+    externalId?: string | null;
     status: 'draft' | 'pending_process' | 'signed' | 'error';
     createdAt: Date;
     updatedAt: Date;
@@ -22,14 +23,17 @@ export async function createPrescription(data: {
     patientId: string;
     type?: 'receita' | 'atestado' | 'laudo' | 'outro';
     title?: string;
-    medications: any;
+    medications?: any;
     instructions?: string;
+    externalId?: string;
+    signedPdfUrl?: string;
+    status?: 'draft' | 'signed';
 }): Promise<string> {
     const id = randomUUID();
     await db.insert(prescriptions).values({
         id,
         ...data,
-        status: 'draft',
+        status: data.status || 'draft',
         createdAt: new Date(),
         updatedAt: new Date(),
     });

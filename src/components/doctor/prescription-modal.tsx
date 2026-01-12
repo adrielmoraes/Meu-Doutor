@@ -10,7 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash, FileSignature, Cloud, FileText, Loader2, Check, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { generateDocumentDraftAction } from "@/app/doctor/actions";
+import { generateDocumentDraftAction, searchMemedMedicinesAction } from "@/app/doctor/actions";
+import MemedPrescriptionWidget from './memed-prescription-widget';
 
 interface PrescriptionModalProps {
     doctor: any;
@@ -27,7 +28,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
 
     // Form State
     const [selectedPatientId, setSelectedPatientId] = useState(initialPatientId || '');
-    const [docType, setDocType] = useState<'receita' | 'atestado' | 'laudo' | 'outro'>('receita');
+    const [docType, setDocType] = useState<'receita' | 'atestado' | 'laudo' | 'outro' | 'memed'>('receita');
     const [docTitle, setDocTitle] = useState('');
     const [medications, setMedications] = useState([
         { name: '', dosage: '', frequency: '', duration: '', instructions: '' }
@@ -48,10 +49,20 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
         setMedications(medications.filter((_, i) => i !== index));
     };
 
-    const updateMedication = (index: number, field: string, value: string) => {
+    const updateMedication = async (index: number, field: string, value: string) => {
         const newMeds = [...medications];
         (newMeds[index] as any)[field] = value;
         setMedications(newMeds);
+
+        // Se estiver editando o nome e for uma receita normal, podemos sugerir via Memed API
+        if (field === 'name' && value.length >= 3 && docType === 'receita') {
+            const searchResult = await searchMemedMedicinesAction(value);
+            if (searchResult.success && searchResult.results && searchResult.results.length > 0) {
+                // Aqui poderíamos mostrar um dropdown, mas por simplificação vamos apenas logar
+                // ou preencher se houver um match exato em um cenário real.
+                console.log('Sugestões Memed:', searchResult.results);
+            }
+        }
     };
 
     const handleAIGenerate = async () => {
@@ -62,7 +73,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
 
         setIsGeneratingIA(true);
         try {
-            const result = await generateDocumentDraftAction(selectedPatientId, docType);
+            const result = await generateDocumentDraftAction(selectedPatientId, docType === 'memed' ? 'receita' : docType);
             if (result.success && result.draft) {
                 if (result.draft.title) setDocTitle(result.draft.title);
                 if (result.draft.medications && result.draft.medications.length > 0) {
@@ -153,6 +164,32 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
         window.location.href = `/api/prescriptions/${currentPrescriptionId}/sign/bry/init`;
     };
 
+    const handleMemedSuccess = async (prescriptionData: any) => {
+        // Salvar a receita da Memed no nosso banco para o paciente ver no portal
+        try {
+            const res = await fetch('/api/prescriptions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    doctorId: doctor.id,
+                    patientId: selectedPatientId,
+                    type: 'receita',
+                    title: 'Prescrição Digital Memed',
+                    externalId: prescriptionData.id,
+                    signedPdfUrl: prescriptionData.pdf_url || prescriptionData.show_url,
+                    status: 'signed'
+                })
+            });
+
+            if (res.ok) {
+                setIsOpen(false);
+                resetForm();
+            }
+        } catch (error) {
+            console.error('Erro ao salvar referência Memed:', error);
+        }
+    };
+
     const resetForm = () => {
         setStep('form');
         setDocType('receita');
@@ -210,7 +247,8 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-md">
-                                        <SelectItem value="receita">Receita Médica</SelectItem>
+                                        <SelectItem value="receita">Receita Médica (Interna)</SelectItem>
+                                        <SelectItem value="memed" className="text-blue-600 font-bold">💊 Prescrição Digital Memed</SelectItem>
                                         <SelectItem value="atestado">Atestado Médico</SelectItem>
                                         <SelectItem value="laudo">Laudo Clínico</SelectItem>
                                         <SelectItem value="outro">Outro Documento</SelectItem>
@@ -227,14 +265,17 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                     size="sm"
                                     onClick={handleAIGenerate}
                                     disabled={isGeneratingIA || !selectedPatientId}
-                                    className="h-7 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 gap-1.5"
+                                    className="relative h-8 px-4 text-xs font-semibold transition-all duration-300 rounded-lg bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white hover:shadow-lg hover:shadow-purple-500/50 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 gap-2 overflow-hidden group"
                                 >
-                                    {isGeneratingIA ? (
-                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                    ) : (
-                                        <Sparkles className="h-3.5 w-3.5" />
-                                    )}
-                                    Gerar com IA
+                                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                    <span className="relative z-10 flex items-center gap-2">
+                                        {isGeneratingIA ? (
+                                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        ) : (
+                                            <Sparkles className="h-3.5 w-3.5" />
+                                        )}
+                                        Gerar com IA
+                                    </span>
                                 </Button>
                             </div>
                             <Input
@@ -249,8 +290,16 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <Label className="text-slate-700 font-medium">Medicamentos</Label>
-                                    <Button variant="outline" size="sm" onClick={addMedication} className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700">
-                                        <Plus className="h-4 w-4 mr-1" /> Adicionar
+                                    <Button
+                                        onClick={addMedication}
+                                        size="sm"
+                                        className="relative h-9 px-5 font-semibold transition-all duration-300 rounded-lg bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow-md hover:shadow-xl hover:shadow-blue-500/40 hover:scale-105 gap-2 overflow-hidden group"
+                                    >
+                                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-500 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                        <span className="relative z-10 flex items-center gap-2">
+                                            <Plus className="h-4 w-4" />
+                                            Adicionar
+                                        </span>
                                     </Button>
                                 </div>
 
@@ -316,10 +365,22 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                             />
                         </div>
 
-                        <Button onClick={handleGenerateDraft} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md">
-                            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
-                            Revisar e Assinar
-                        </Button>
+                        {docType === 'memed' && selectedPatientId && (
+                            <div className="mt-4 border-t pt-6">
+                                <MemedPrescriptionWidget
+                                    doctor={doctor}
+                                    patient={patients.find(p => p.id === selectedPatientId)}
+                                    onSuccess={handleMemedSuccess}
+                                />
+                            </div>
+                        )}
+
+                        {docType !== 'memed' && (
+                            <Button onClick={handleGenerateDraft} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md">
+                                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
+                                Revisar e Assinar
+                            </Button>
+                        )}
                     </div>
                 ) : (
                     <div className="space-y-6 py-4">

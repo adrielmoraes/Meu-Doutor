@@ -133,6 +133,9 @@ export const doctors = pgTable('doctors', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   crm: text('crm').notNull().unique(),
+  cpf: text('cpf').unique(), // Opcional no início para não quebrar cadastros existentes, mas necessário para Memed
+  birthDate: text('birth_date'),
+  phone: text('phone'),
   specialty: text('specialty').notNull(),
   city: text('city').notNull(),
   state: text('state').notNull(),
@@ -234,6 +237,7 @@ export const prescriptions = pgTable('prescriptions', {
   signedPdfUrl: text('signed_pdf_url'),
   signatureMethod: signatureMethodEnum('signature_method'),
   bryTransactionId: text('bry_transaction_id'),
+  externalId: text('external_id'), // Memed Prescription ID
   status: prescriptionStatusEnum('status').default('draft').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
