@@ -89,8 +89,9 @@ export default function MemedPrescriptionWidget({ doctor, patient, onSuccess, on
             {token && (
                 <>
                     <Script
-                        src="https://gemed.memed.com.br/backend-scripts/portal-prescricao.js"
+                        src="https://sandbox.memed.com.br/modulos/plataforma.sinapse-prescricao/build/sinapse-prescricao.min.js"
                         data-token={token}
+                        data-container="memed-container"
                         onLoad={() => {
                             console.log('Memed SDK Loaded');
                         }}

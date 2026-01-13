@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getBryAuthUrl } from '@/services/signature-service';
+import { fetchBryAuthUrl } from '@/services/signature-service';
 
 export async function GET(
     req: NextRequest,
@@ -7,7 +7,7 @@ export async function GET(
 ) {
     try {
         const { id } = await params;
-        const url = getBryAuthUrl(id);
+        const url = await fetchBryAuthUrl(id);
         return NextResponse.redirect(url);
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });

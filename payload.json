@@ -1,0 +1,7 @@
+{
+    "identificador": "solicitarURLAutorizacao",
+    "parametros": [
+        "http://localhost:3000/callback",
+        "test-state"
+    ]
+}

@@ -8,9 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash, FileSignature, Cloud, FileText, Loader2, Check, Sparkles } from "lucide-react";
+import { Plus, Trash, FileSignature, Cloud, FileText, Loader2, Check, Sparkles, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { generateDocumentDraftAction, searchMemedMedicinesAction } from "@/app/doctor/actions";
+import { generateDocumentDraftAction, searchMemedMedicinesAction, createMemedDocumentAction } from "@/app/doctor/actions";
 import MemedPrescriptionWidget from './memed-prescription-widget';
 
 interface PrescriptionModalProps {
@@ -36,6 +36,8 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
     const [instructions, setInstructions] = useState('');
     const [isGeneratingIA, setIsGeneratingIA] = useState(false);
     const [currentPrescriptionId, setCurrentPrescriptionId] = useState<string | null>(null);
+    const [memedPdfUrl, setMemedPdfUrl] = useState<string | null>(null);
+    const [isCreatingMemed, setIsCreatingMemed] = useState(false);
 
     // Signing State
     const [pfxFile, setPfxFile] = useState<File | null>(null);
@@ -190,6 +192,78 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
         }
     };
 
+    const handleCreateMemedDocument = async () => {
+        if (!selectedPatientId) {
+            toast({ title: "Selecione um paciente", variant: "destructive" });
+            return;
+        }
+
+        if (docType === 'receita' && medications.filter(m => m.name).length === 0) {
+            toast({ title: "Adicione pelo menos um medicamento", variant: "destructive" });
+            return;
+        }
+
+        setIsCreatingMemed(true);
+
+        try {
+            const result = await createMemedDocumentAction({
+                patientId: selectedPatientId,
+                documentType: docType === 'outro' ? 'receita' : docType,
+                title: docTitle || undefined,
+                medications: docType === 'receita' ? medications.filter(m => m.name) : undefined,
+                observations: instructions,
+            });
+
+            if (result.success && result.document) {
+                // Save reference to our database
+                const res = await fetch('/api/prescriptions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        doctorId: doctor.id,
+                        patientId: selectedPatientId,
+                        type: docType,
+                        title: result.document.title || 'Documento Memed',
+                        externalId: result.document.externalId,
+                        signedPdfUrl: result.document.signedPdfUrl,
+                        status: result.document.status || 'signed',
+                    }),
+                });
+
+                if (res.ok) {
+                    setMemedPdfUrl(result.document.signedPdfUrl);
+                    toast({
+                        title: "✅ Documento criado com sucesso!",
+                        description: "O documento foi gerado e salvo.",
+                        className: "bg-gradient-to-r from-green-50 to-emerald-50 text-green-900 border-green-300",
+                    });
+                } else {
+                    toast({
+                        title: "Documento criado, mas não foi possível salvar localmente",
+                        description: "O PDF está disponível abaixo.",
+                        variant: "default",
+                    });
+                    setMemedPdfUrl(result.document.signedPdfUrl);
+                }
+            } else {
+                toast({
+                    title: "Erro ao criar documento",
+                    description: result.message || "Não foi possível criar o documento via Memed.",
+                    variant: "destructive",
+                });
+            }
+        } catch (error) {
+            console.error('[Memed] Erro inesperado:', error);
+            toast({
+                title: "Erro inesperado",
+                description: "Ocorreu um erro ao criar o documento.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsCreatingMemed(false);
+        }
+    };
+
     const resetForm = () => {
         setStep('form');
         setDocType('receita');
@@ -200,6 +274,8 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
         setPfxPassword('');
         setCurrentPrescriptionId(null);
         setSelectedPatientId('');
+        setMemedPdfUrl(null);
+        setIsCreatingMemed(false);
     };
 
     return (
@@ -375,11 +451,57 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                             </div>
                         )}
 
-                        {docType !== 'memed' && (
-                            <Button onClick={handleGenerateDraft} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md">
-                                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
-                                Revisar e Assinar
-                            </Button>
+                        {memedPdfUrl && (
+                            <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-400 rounded-xl">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex-shrink-0 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                                        <Check className="h-6 w-6 text-white" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="font-bold text-green-900 mb-1">Documento Criado!</h4>
+                                        <p className="text-sm text-green-800 mb-2">O documento foi gerado com sucesso pela Memed.</p>
+                                        <a
+                                            href={memedPdfUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                                        >
+                                            <ExternalLink className="h-4 w-4" />
+                                            Abrir PDF
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {docType !== 'memed' && !memedPdfUrl && (
+                            <div className="space-y-3">
+                                <Button
+                                    onClick={handleCreateMemedDocument}
+                                    disabled={isCreatingMemed || !selectedPatientId}
+                                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold shadow-lg transition-all"
+                                >
+                                    {isCreatingMemed ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                            Criando documento...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Cloud className="h-4 w-4 mr-2" />
+                                            Criar com Memed
+                                        </>
+                                    )}
+                                </Button>
+                                <Button
+                                    onClick={handleGenerateDraft}
+                                    disabled={loading}
+                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-md transition-colors border border-emerald-700"
+                                >
+                                    {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
+                                    Revisar e Assinar Localmente
+                                </Button>
+                            </div>
                         )}
                     </div>
                 ) : (

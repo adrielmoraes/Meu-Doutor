@@ -1,10 +1,10 @@
 import forge from 'node-forge';
-import { sign } from '@signpdf/signpdf';
+import signpdf from '@signpdf/signpdf';
 import { P12Signer } from '@signpdf/signer-p12';
 import { PDFDocument } from 'pdf-lib';
 
 // Environment variables should be set for BRy
-const BRY_API_URL = process.env.BRY_API_URL || 'https://hub-api.bry.com.br';
+const BRY_API_URL = process.env.BRY_API_URL || 'https://cloud.bry.com.br';
 const BRY_CLIENT_ID = process.env.BRY_CLIENT_ID;
 const BRY_CLIENT_SECRET = process.env.BRY_CLIENT_SECRET;
 const BRY_REDIRECT_URI = process.env.BRY_REDIRECT_URI || 'http://localhost:3000/api/prescriptions/sign/bry/callback';
@@ -28,11 +28,11 @@ export async function signWithA1(
     // but P12Signer does the heavy lifting for PDF signing)
 
     // Create a P12Signer instance
-    const signer = new P12Signer(pfxBuffer, { passPhrase: password });
+    const signer = new P12Signer(pfxBuffer, { passphrase: password });
 
     // 2. Sign the PDF (PAdES simple)
     // This adds a placeholder and fills it with the signature
-    const signedPdf = await sign(pdfBuffer, signer);
+    const signedPdf = await signpdf.sign(pdfBuffer, signer);
 
     return {
         signedPdf: signedPdf,
@@ -43,18 +43,58 @@ export async function signWithA1(
 /**
  * Generates the BRy Cloud Authorization URL for OAuth flow
  */
-export function getBryAuthUrl(prescriptionId: string): string {
+/**
+ * Retrieves the BRy Cloud Authorization URL via API
+ */
+export async function fetchBryAuthUrl(prescriptionId: string): Promise<string> {
     if (!BRY_CLIENT_ID) throw new Error('BRY_CLIENT_ID not configured');
 
-    const params = new URLSearchParams({
-        client_id: BRY_CLIENT_ID,
-        response_type: 'code',
-        redirect_uri: BRY_REDIRECT_URI,
-        scope: 'cloud-certificate:sign', // Adjust scope based on BRy docs
-        state: prescriptionId // Pass prescription ID as state to link callback
-    });
+    const callbackUrl = `${BRY_REDIRECT_URI}`;
 
-    return `${BRY_API_URL}/oauth/authorize?${params.toString()}`;
+    try {
+        // Updated to use /kms/rest/servicos as probing showed it exists (returns 500 vs 404 for scad)
+        // using cloud.bry.com.br as hub timed out and api-assinatura is frontend
+        const response = await fetch(`${BRY_API_URL}/kms/rest/servicos`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                "identificador": "solicitarURLAutorizacao",
+                "client_id": BRY_CLIENT_ID,
+                "parametros": [
+                    callbackUrl,
+                    prescriptionId // Passing state/context
+                ]
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Bry API RPC Failed:', errorText);
+            // Don't throw immediately, try fallback
+            throw new Error(`RPC_FAILED: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.resultado;
+    } catch (error) {
+        console.warn('Bry RPC failed, falling back to manual URL construction:', error);
+
+        // Fallback: Construct standard Keycloak/OAuth2 URL
+        // Assuming 'bry' realm based on common patterns
+        const baseUrl = BRY_API_URL.replace(/\/$/, ''); // Remove trailing slash
+        const authUrl = new URL(`${baseUrl}/auth/realms/bry/protocol/openid-connect/auth`);
+        authUrl.searchParams.append('response_type', 'code');
+        authUrl.searchParams.append('client_id', BRY_CLIENT_ID);
+        authUrl.searchParams.append('redirect_uri', callbackUrl);
+        authUrl.searchParams.append('scope', 'openid profile email');
+        // State is passed as prescriptionId to track context
+        authUrl.searchParams.append('state', prescriptionId);
+
+        console.log('Generated Fallback Auth URL:', authUrl.toString());
+        return authUrl.toString();
+    }
 }
 
 /**
