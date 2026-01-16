@@ -20,8 +20,9 @@ import { canUseResource } from "@/lib/subscription-limits";
 import { GoogleGenAI } from "@google/genai";
 import { db } from "@/server/storage";
 import { saveFileBuffer } from "@/lib/file-storage";
-import { appointments } from "@/shared/schema";
+import { appointments, healthPodcasts, exams } from "@/shared/schema";
 import { eq, desc, and, gte } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
 
 // --- CONSTANTES ---
@@ -230,101 +231,99 @@ async function generateAudio(dialogText: string): Promise<Buffer> {
         );
     }
 
-    const genAI = new GoogleGenAI({ apiKey });
+    const MAX_ATTEMPTS = 3;
+    let lastError: any;
 
-    try {
-        const responseStream = await genAI.models.generateContentStream({
-            model: TTS_CONFIG.model,
-            contents: [
-                {
-                    role: "user",
-                    parts: [{ text: dialogText }],
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+            // Using raw fetch to control caching and timeout explicitly
+            // This avoids Next.js cache which causes "Failed to set fetch cache" / ECONNRESET errors
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${TTS_CONFIG.model}:generateContent?key=${apiKey}`;
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Cache-Control": "no-store", // CRITICAL: Disable Next.js caching
                 },
-            ],
-            config: {
-                responseModalities: ["audio"],
-                speechConfig: {
-                    multiSpeakerVoiceConfig: {
-                        speakerVoiceConfigs: [
-                            {
-                                speaker: SPEAKERS.SPECIALIST, // ✅ Corrigido
-                                voiceConfig: {
-                                    prebuiltVoiceConfig: { voiceName: "Orus" },
-                                },
+                body: JSON.stringify({
+                    contents: [
+                        {
+                            role: "user",
+                            parts: [{ text: dialogText }],
+                        },
+                    ],
+                    generationConfig: {
+                        responseModalities: ["audio"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: { voiceName: "Aoede" },
                             },
-                            {
-                                speaker: SPEAKERS.HOST, // ✅ Corrigido
-                                voiceConfig: {
-                                    prebuiltVoiceConfig: { voiceName: "Kore" },
-                                },
-                            },
-                        ],
+                        },
                     },
-                },
-            },
-        });
+                }),
+                cache: "no-store", // Next.js specific
+                signal: AbortSignal.timeout(300000), // 5 minutes timeout
+            });
 
-        const pcmChunks: Buffer[] = [];
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Gemini API Error ${response.status}: ${errorText}`);
+            }
 
-        for await (const chunk of responseStream) {
-            const inlineData = chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData;
-            if (inlineData?.data) {
-                pcmChunks.push(Buffer.from(inlineData.data, "base64"));
+            const data = await response.json();
+            
+            // Extract audio data from response
+            // Non-streaming response format: candidates[0].content.parts[0].inlineData.data
+            const inlineData = data.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+            
+            if (!inlineData?.data) {
+                throw new PodcastGenerationError(
+                    "Nenhum áudio retornado pelo modelo",
+                    "NO_AUDIO_DATA",
+                    true
+                );
+            }
+
+            const rawAudio = Buffer.from(inlineData.data, "base64");
+            const wavHeader = createWavHeader(rawAudio.length, TTS_CONFIG);
+            
+            return Buffer.concat([wavHeader, rawAudio]);
+
+        } catch (error: any) {
+            lastError = error;
+            console.warn(`[Health Podcast] Audio generation attempt ${attempt} failed:`, error.message || error);
+
+            const msg = error.message || String(error);
+            // Don't retry auth/client errors
+            if (msg.includes("403") || msg.includes("API_KEY") || msg.includes("MODEL_NOT_FOUND") || msg.includes("400")) {
+                throw error;
+            }
+
+            if (attempt < MAX_ATTEMPTS) {
+                await new Promise(resolve => setTimeout(resolve, 2000 * Math.pow(2, attempt - 1)));
             }
         }
-
-        if (pcmChunks.length === 0) {
-            throw new PodcastGenerationError(
-                "Nenhum áudio retornado pelo modelo",
-                "NO_AUDIO_DATA",
-                true
-            );
-        }
-
-        const rawAudio = Buffer.concat(pcmChunks);
-        const wavHeader = createWavHeader(rawAudio.length, TTS_CONFIG);
-
-        return Buffer.concat([wavHeader, rawAudio]);
-    } catch (error) {
-        if (error instanceof PodcastGenerationError) throw error;
-
-        const errorMessage = error instanceof Error ? error.message : String(error);
-
-        if (errorMessage.includes("403") || errorMessage.includes("API_KEY_SERVICE_BLOCKED")) {
-            throw new PodcastGenerationError(
-                "API do Google Cloud não habilitada ou bloqueada",
-                "API_BLOCKED",
-                false
-            );
-        }
-        if (errorMessage.includes("404")) {
-            throw new PodcastGenerationError(
-                `Modelo '${TTS_CONFIG.model}' não encontrado`,
-                "MODEL_NOT_FOUND",
-                false
-            );
-        }
-        if (errorMessage.includes("400") || errorMessage.includes("INVALID_ARGUMENT")) {
-            throw new PodcastGenerationError(
-                "Parâmetros inválidos enviados ao Gemini",
-                "INVALID_PARAMS",
-                false
-            );
-        }
-        if (errorMessage.includes("429")) {
-            throw new PodcastGenerationError(
-                "Limite de requisições excedido",
-                "RATE_LIMITED",
-                true
-            );
-        }
-
-        throw new PodcastGenerationError(
-            `Falha na geração de áudio: ${errorMessage}`,
-            "AUDIO_GENERATION_FAILED",
-            true
-        );
     }
+
+    // Process last error
+    const errorMessage = lastError instanceof Error ? lastError.message : String(lastError);
+
+    if (errorMessage.includes("403") || errorMessage.includes("API_KEY_SERVICE_BLOCKED")) {
+        throw new PodcastGenerationError("API do Google Cloud não habilitada ou bloqueada", "API_BLOCKED", false);
+    }
+    if (errorMessage.includes("404")) {
+        throw new PodcastGenerationError(`Modelo '${TTS_CONFIG.model}' não encontrado`, "MODEL_NOT_FOUND", false);
+    }
+    if (errorMessage.includes("429")) {
+        throw new PodcastGenerationError("Limite de requisições excedido", "RATE_LIMITED", true);
+    }
+    
+    throw new PodcastGenerationError(
+        `Falha na geração de áudio após ${MAX_ATTEMPTS} tentativas: ${errorMessage}`,
+        "AUDIO_GENERATION_FAILED",
+        true
+    );
 }
 
 // --- FLUXO PRINCIPAL ---
@@ -396,7 +395,7 @@ const healthPodcastFlow = ai.defineFlow(
         }
 
         // 3. Preparar texto formatado
-        const minLines = Math.floor(context.targetLines * 0.8);
+        const minLines = Math.max(5, Math.floor(context.targetLines * 0.5));
         const maxLines = context.targetLines + 4;
         const maxLineChars = 320;
 

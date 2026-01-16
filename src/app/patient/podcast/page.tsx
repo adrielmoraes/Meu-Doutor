@@ -312,25 +312,62 @@ export default function HealthPodcastPage() {
                                     )}
                                 </div>
 
-                                {/* Barra de Progresso e Info de Tempo */}
-                                <div className="h-32 bg-white/70 rounded-2xl border border-purple-200 flex items-center justify-center gap-1.5 overflow-hidden px-10 shadow-inner dark:bg-slate-900/60 dark:border-cyan-500/20">
-                                    <div className="flex flex-col w-full gap-4">
-                                        <div className="flex flex-col items-center gap-3 text-slate-500 dark:text-blue-200/60 w-full">
-                                            <div className="w-full h-1.5 bg-slate-100 rounded-full dark:bg-slate-800 overflow-hidden relative group/progress cursor-pointer">
+
+                                {/* Visualizador de Áudio e Progresso */}
+                                <div className="bg-white/70 rounded-2xl border border-purple-200 p-6 shadow-inner dark:bg-slate-900/60 dark:border-cyan-500/20">
+                                    {/* Visualizador de Barras */}
+                                    <div className="h-24 flex items-center justify-center gap-1 mb-6 px-4">
+                                        {Array.from({ length: 40 }).map((_, i) => {
+                                            // Simulação de visualização baseada no progresso
+                                            const progress = duration > 0 ? currentTime / duration : 0;
+                                            const isActive = i / 40 <= progress;
+                                            
+                                            // Altura aleatória para simular onda, mas consistente
+                                            const baseHeight = 20 + Math.random() * 40; 
+                                            // Animação quando tocando
+                                            const animationDelay = `${i * 0.05}s`;
+                                            
+                                            return (
                                                 <div
-                                                    className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300 relative"
-                                                    style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
-                                                >
-                                                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-2 border-pink-500 rounded-full shadow-lg scale-0 group-hover/progress:scale-100 transition-transform"></div>
-                                                </div>
+                                                    key={i}
+                                                    className={`w-1.5 rounded-full transition-all duration-300 ${
+                                                        isActive 
+                                                            ? 'bg-gradient-to-t from-purple-600 to-pink-500 dark:from-cyan-500 dark:to-blue-500' 
+                                                            : 'bg-slate-200 dark:bg-slate-700'
+                                                    } ${isPlaying ? 'animate-music-bar' : ''}`}
+                                                    style={{
+                                                        height: isPlaying ? `${Math.max(20, Math.random() * 80)}%` : `${30 + Math.sin(i * 0.5) * 20}%`,
+                                                        animationDelay: isPlaying ? `-${Math.random()}s` : '0s',
+                                                        opacity: isActive ? 1 : 0.5
+                                                    }}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Barra de Progresso Interativa */}
+                                    <div className="flex flex-col gap-2">
+                                        <div 
+                                            className="w-full h-2 bg-slate-100 rounded-full dark:bg-slate-800 cursor-pointer relative group"
+                                            onClick={(e) => {
+                                                if (audioRef.current && duration) {
+                                                    const rect = e.currentTarget.getBoundingClientRect();
+                                                    const pos = (e.clientX - rect.left) / rect.width;
+                                                    audioRef.current.currentTime = pos * duration;
+                                                }
+                                            }}
+                                        >
+                                            <div 
+                                                className="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-500 to-pink-500 dark:from-cyan-500 dark:to-blue-600 rounded-full transition-all duration-100"
+                                                style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+                                            >
+                                                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-pink-500 dark:border-cyan-500 rounded-full shadow-lg scale-0 group-hover:scale-100 transition-transform" />
                                             </div>
-                                            <div className="flex justify-between w-full text-[10px] font-bold uppercase tracking-widest opacity-70">
-                                                <span>{formatTime(currentTime)}</span>
-                                                <div className="flex items-center gap-1">
-                                                    {isPlaying && <div className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse" />}
-                                                    <span>{formatTime(duration)}</span>
-                                                </div>
-                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
+                                            <span>{formatTime(currentTime)}</span>
+                                            <span>{formatTime(duration)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -414,6 +451,21 @@ export default function HealthPodcastPage() {
                         </div>
                     )}
                 </div>
+                
+                {/* Elemento de Áudio Oculto */}
+                <audio
+                    ref={audioRef}
+                    src={audioUrl || ""}
+                    crossOrigin="anonymous"
+                    preload="auto"
+                    className="hidden"
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
+                    onEnded={() => setIsPlaying(false)}
+                    onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                    onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+                    onError={(e) => console.error("Audio error:", e.currentTarget.error)}
+                />
             </main>
 
             {/* Styles for equalizer animation */}
@@ -426,6 +478,13 @@ export default function HealthPodcastPage() {
                 @keyframes loadingstrip {
                     0% { transform: translateX(-100%); }
                     100% { transform: translateX(300%); }
+                }
+                @keyframes music-bar {
+                    0%, 100% { transform: scaleY(0.5); }
+                    50% { transform: scaleY(1); }
+                }
+                .animate-music-bar {
+                    animation: music-bar 1s ease-in-out infinite alternate;
                 }
             `}</style>
         </div>
