@@ -27,7 +27,7 @@ import { randomUUID } from "crypto";
 
 // --- CONSTANTES ---
 const SPEAKERS = {
-    HOST: "Nathalia",
+    HOST: "Nathália",
     SPECIALIST: "Dr. Daniel",
 } as const;
 
@@ -245,7 +245,7 @@ const podcastScriptPrompt = ai.definePrompt({
 });
 
 // --- GERAÇÃO DE ÁUDIO ---
-async function generateAudio(dialogText: string): Promise<Buffer> {
+async function generateAudio(scriptItems: { speaker: string; text: string }[]): Promise<Buffer> {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
         throw new PodcastGenerationError(
@@ -258,23 +258,44 @@ async function generateAudio(dialogText: string): Promise<Buffer> {
     const MAX_ATTEMPTS = 3;
     let lastError: any;
 
-    // 3. Processar em chunks para evitar timeout
-    const chunks: string[] = [];
-    const parts = dialogText.split("\n\n");
-    let currentChunk = "";
-    const CHUNK_SIZE = 800; // REDUZIDO: 800 caracteres por chunk para garantir resposta rápida
+    // 1. Agrupar falas consecutivas do mesmo speaker para reduzir chamadas
+    // e aplicar limite de tamanho por chunk
+    const chunks: { speaker: string; text: string }[] = [];
+    const MAX_CHUNK_LENGTH = 800; 
 
-    for (const part of parts) {
-        if ((currentChunk + "\n\n" + part).length > CHUNK_SIZE && currentChunk.length > 0) {
-            chunks.push(currentChunk);
-            currentChunk = part;
-        } else {
-            currentChunk = currentChunk ? currentChunk + "\n\n" + part : part;
+    let currentSpeaker = "";
+    let currentBuffer = "";
+
+    for (const item of scriptItems) {
+        // Se mudou o speaker, fecha o chunk anterior
+        if (item.speaker !== currentSpeaker && currentSpeaker !== "") {
+            if (currentBuffer.trim()) {
+                 chunks.push({ speaker: currentSpeaker, text: currentBuffer.trim() });
+            }
+            currentSpeaker = item.speaker;
+            currentBuffer = item.text;
+        } 
+        // Se o speaker é o mesmo, verifica se estourou o limite
+        else if ((currentBuffer + " " + item.text).length > MAX_CHUNK_LENGTH) {
+            if (currentBuffer.trim()) {
+                chunks.push({ speaker: currentSpeaker, text: currentBuffer.trim() });
+            }
+            // Começa novo chunk com o mesmo speaker
+            currentSpeaker = item.speaker; // Redundante mas claro
+            currentBuffer = item.text;
+        }
+        // Mesmo speaker e cabe no buffer
+        else {
+            if (currentSpeaker === "") currentSpeaker = item.speaker; // Primeira iteração
+            currentBuffer = currentBuffer ? currentBuffer + " " + item.text : item.text;
         }
     }
-    if (currentChunk) chunks.push(currentChunk);
+    // Adicionar o último
+    if (currentBuffer.trim()) {
+        chunks.push({ speaker: currentSpeaker || scriptItems[0]?.speaker || "Host", text: currentBuffer.trim() });
+    }
 
-    console.log(`[Health Podcast] Dividindo áudio em ${chunks.length} partes.`);
+    console.log(`[Health Podcast] Gerando áudio para ${chunks.length} turnos de fala.`);
 
     const audioBuffers: Buffer[] = [];
 
@@ -282,6 +303,13 @@ async function generateAudio(dialogText: string): Promise<Buffer> {
         const chunk = chunks[i];
         let chunkSuccess = false;
         
+        // Definir voz baseada no speaker
+        // Nathália (Host) -> Aoede (Feminina)
+        // Dr. Daniel (Especialista) -> Puck (Masculina)
+        const speakerName = chunk.speaker.toLowerCase();
+        const isFemale = speakerName.includes("nathália") || speakerName.includes("nathalia") || speakerName.includes("ana");
+        const voiceName = isFemale ? "Aoede" : "Puck"; // Puck é voz masculina profunda
+
         for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             try {
                 // Using raw fetch to control caching and timeout explicitly
@@ -297,20 +325,20 @@ async function generateAudio(dialogText: string): Promise<Buffer> {
                         contents: [
                             {
                                 role: "user",
-                                parts: [{ text: chunk }],
+                                parts: [{ text: chunk.text }],
                             },
                         ],
                         generationConfig: {
                             responseModalities: ["audio"],
                             speechConfig: {
                                 voiceConfig: {
-                                    prebuiltVoiceConfig: { voiceName: "Aoede" },
+                                    prebuiltVoiceConfig: { voiceName: voiceName },
                                 },
                             },
                         },
                     }),
                     cache: "no-store",
-                    signal: AbortSignal.timeout(120000), // AUMENTADO: 120s timeout por chunk
+                    signal: AbortSignal.timeout(120000), // 120s timeout
                 });
 
                 if (!response.ok) {
@@ -336,7 +364,7 @@ async function generateAudio(dialogText: string): Promise<Buffer> {
                 break; // Sucesso, próximo chunk
 
             } catch (error: any) {
-                console.warn(`[Health Podcast] Audio chunk ${i + 1}/${chunks.length} attempt ${attempt} failed:`, error.message || error);
+                console.warn(`[Health Podcast] Audio chunk ${i + 1}/${chunks.length} (${chunk.speaker}) attempt ${attempt} failed:`, error.message || error);
 
                 const msg = error.message || String(error);
                 if (msg.includes("403") || msg.includes("API_KEY") || msg.includes("MODEL_NOT_FOUND") || msg.includes("400")) {
@@ -361,25 +389,6 @@ async function generateAudio(dialogText: string): Promise<Buffer> {
     const wavHeader = createWavHeader(totalRawAudio.length, TTS_CONFIG);
     
     return Buffer.concat([wavHeader, totalRawAudio]);
-
-    // Process last error
-    const errorMessage = lastError instanceof Error ? lastError.message : String(lastError);
-
-    if (errorMessage.includes("403") || errorMessage.includes("API_KEY_SERVICE_BLOCKED")) {
-        throw new PodcastGenerationError("API do Google Cloud não habilitada ou bloqueada", "API_BLOCKED", false);
-    }
-    if (errorMessage.includes("404")) {
-        throw new PodcastGenerationError(`Modelo '${TTS_CONFIG.model}' não encontrado`, "MODEL_NOT_FOUND", false);
-    }
-    if (errorMessage.includes("429")) {
-        throw new PodcastGenerationError("Limite de requisições excedido", "RATE_LIMITED", true);
-    }
-    
-    throw new PodcastGenerationError(
-        `Falha na geração de áudio após ${MAX_ATTEMPTS} tentativas: ${errorMessage}`,
-        "AUDIO_GENERATION_FAILED",
-        true
-    );
 }
 
 // --- FLUXO PRINCIPAL ---
@@ -482,7 +491,7 @@ const healthPodcastFlow = ai.defineFlow(
 
         // 4. Gerar Áudio
         const tAudioStart = Date.now();
-        const audioBuffer = await generateAudio(dialogText);
+        const audioBuffer = await generateAudio(limitedScript);
         const audioMs = Date.now() - tAudioStart;
 
         // 5. Salvar em Storage (Vercel Blob ou Local)

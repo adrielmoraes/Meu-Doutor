@@ -258,11 +258,11 @@ export default function HealthPodcastPage() {
                     {/* Hosts Badges */}
                     <div className="flex items-center gap-3 bg-white/60 py-2 px-4 rounded-full border border-purple-200 backdrop-blur-sm dark:bg-slate-900/50 dark:border-cyan-500/20">
                         <div className="flex -space-x-2">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold border-2 border-white/30 ring-1 ring-blue-200/40">D</div>
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white text-xs font-bold border-2 border-white/30 ring-1 ring-pink-200/40">N</div>
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold border-2 border-white/30 ring-1 ring-blue-200/40">D</div>
                         </div>
                         <span className="text-sm font-medium text-slate-700 dark:text-blue-200/80">
-                            Dr. Daniel <span className="text-slate-400 dark:text-white/40">&</span> Nathalia
+                            Nathália <span className="text-slate-400 dark:text-white/40">&</span> Dr. Daniel
                         </span>
                     </div>
                 </div>
