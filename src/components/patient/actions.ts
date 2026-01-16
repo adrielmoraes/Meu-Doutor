@@ -442,11 +442,11 @@ async function consolidateExamsWithRetry(
     throw lastError;
 }
 
-export async function generatePodcastAction(patientId: string): Promise<{ success: boolean; audioUrl?: string; message?: string }> {
+export async function generatePodcastAction(patientId: string): Promise<{ success: boolean; status?: string; message?: string }> {
     try {
         const { generateHealthPodcast } = await import('@/ai/flows/generate-health-podcast');
         const result = await generateHealthPodcast({ patientId });
-        return { success: true, audioUrl: result.audioUrl };
+        return { success: true, status: result.status };
     } catch (error: any) {
         console.error('Failed to generate podcast:', error);
         return { success: false, message: error.message };
@@ -458,11 +458,13 @@ export async function getPodcastAction(patientId: string): Promise<{
     latestPodcast?: {
         id: string;
         audioUrl: string;
+        status?: string;
         generatedAt: string;
     };
     history?: Array<{
         id: string;
         audioUrl: string;
+        status?: string;
         generatedAt: string;
     }>;
     hasNewExams?: boolean;
@@ -511,11 +513,13 @@ export async function getPodcastAction(patientId: string): Promise<{
             latestPodcast: {
                 id: latestPodcastRecord.id,
                 audioUrl: latestPodcastRecord.audioUrl,
+                status: latestPodcastRecord.status || 'completed', // Fallback for old records
                 generatedAt: latestPodcastRecord.generatedAt.toISOString()
             },
             history: history.map(p => ({
                 id: p.id,
                 audioUrl: p.audioUrl,
+                status: p.status || 'completed',
                 generatedAt: p.generatedAt.toISOString()
             })),
             hasNewExams: hasNewExams || false,

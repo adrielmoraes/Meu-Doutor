@@ -48,10 +48,20 @@ export default function HealthPodcastPage() {
             const result = await getPodcastAction(session.userId);
 
             if (result.success && result.latestPodcast) {
-                setAudioUrl(result.latestPodcast.audioUrl);
-                setPodcastDate(result.latestPodcast.generatedAt || null);
+                // Verificar status
+                if (result.latestPodcast.status === 'processing') {
+                    setIsLoading(true);
+                    setAudioUrl(null);
+                } else if (result.latestPodcast.status === 'completed' || !result.latestPodcast.status) {
+                    setIsLoading(false);
+                    setAudioUrl(result.latestPodcast.audioUrl);
+                    setPodcastDate(result.latestPodcast.generatedAt || null);
+                } else if (result.latestPodcast.status === 'failed') {
+                    setIsLoading(false);
+                    setHasNewExams(true); // Permitir tentar novamente
+                }
+
                 // Lógica para verificar se há novos exames desde o último podcast
-                // Se o backend retorna essa flag:
                 setHasNewExams(!!result.hasNewExams);
                 if (result.history) {
                     setPodcastHistory(result.history);
@@ -59,13 +69,28 @@ export default function HealthPodcastPage() {
             } else {
                 // Sem podcast, habilitar geração
                 setHasNewExams(true);
+                setIsLoading(false);
             }
         } catch (error) {
             console.error('Failed to load existing podcast:', error);
+            setIsLoading(false);
         } finally {
             setIsLoadingExisting(false);
         }
     };
+
+    // Polling para verificar status quando estiver carregando
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (isLoading) {
+            interval = setInterval(() => {
+                loadPodcasts();
+            }, 10000); // Verificar a cada 10 segundos
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [isLoading]);
 
     // Carregar podcast existente ao montar
     useEffect(() => {
@@ -93,29 +118,37 @@ export default function HealthPodcastPage() {
             // Chama Server Action que internamente chama 'generateHealthPodcast'
             const result = await generatePodcastAction(userId);
 
-            if (result.success && result.audioUrl) {
-                // Atualiza a lista completa de podcasts após gerar um novo
-                await loadPodcasts();
-
-                setIsPlaying(false); // Reseta o player
-
-                toast({
-                    title: "Podcast Gerado com Sucesso!",
-                    description: "Seu resumo de saúde personalizado está pronto para ouvir.",
-                    className: "bg-green-500 text-white border-none"
-                });
+            if (result.success) {
+                if (result.status === 'processing') {
+                    setIsLoading(true);
+                    toast({
+                        title: "Geração Iniciada",
+                        description: "Você pode sair desta tela. O podcast continuará sendo gerado em segundo plano.",
+                        className: "bg-blue-500 text-white border-none"
+                    });
+                    // Atualiza estado local
+                    await loadPodcasts();
+                } else if (result.audioUrl) {
+                    // Fallback para caso síncrono (não deve ocorrer com a mudança atual, mas bom manter)
+                    await loadPodcasts();
+                    setIsPlaying(false);
+                    toast({
+                        title: "Podcast Gerado com Sucesso!",
+                        description: "Seu resumo de saúde personalizado está pronto para ouvir.",
+                        className: "bg-green-500 text-white border-none"
+                    });
+                }
             } else {
                 throw new Error(result.message || 'Erro ao gerar o podcast.');
             }
         } catch (error: any) {
             console.error(error);
+            setIsLoading(false);
             toast({
                 variant: "destructive",
                 title: "Não foi possível gerar",
                 description: error.message || "Tente novamente mais tarde.",
             });
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -268,9 +301,14 @@ export default function HealthPodcastPage() {
                                         <p className="mt-3 text-sm text-slate-600 text-center dark:text-blue-200/80">
                                             {LOADING_HINTS[loadingHintIndex]}
                                         </p>
-                                        <p className="text-xs text-slate-500 text-center mt-1 dark:text-blue-200/50">
-                                            Isso pode levar alguns minutos. Você será avisado quando terminar.
-                                        </p>
+                                        <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-100 dark:border-purple-800/30">
+                                            <p className="text-xs text-slate-600 text-center font-medium dark:text-blue-200/80 mb-1">
+                                                Tempo médio estimado: 3 a 5 minutos
+                                            </p>
+                                            <p className="text-[10px] text-slate-500 text-center dark:text-blue-200/50">
+                                                (O processo leva cerca de 1 minuto para cada minuto de áudio gerado)
+                                            </p>
+                                        </div>
                                     </div>
                                 )}
                             </CardContent>
@@ -455,7 +493,7 @@ export default function HealthPodcastPage() {
                 {/* Elemento de Áudio Oculto */}
                 <audio
                     ref={audioRef}
-                    src={audioUrl || ""}
+                    src={audioUrl || undefined}
                     crossOrigin="anonymous"
                     preload="auto"
                     className="hidden"

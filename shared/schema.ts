@@ -637,6 +637,7 @@ export const healthPodcasts = pgTable('health_podcasts', {
   transcript: text('transcript'), // Transcrição interna (não exibida ao paciente)
   lastExamId: text('last_exam_id'), // ID do último exame considerado na geração
   lastExamDate: text('last_exam_date'), // Data do último exame considerado
+  status: text('status', { enum: ['processing', 'completed', 'failed'] }).default('processing').notNull(),
   generatedAt: timestamp('generated_at').defaultNow().notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

@@ -32,10 +32,15 @@ async function main() {
         // Depending on genkit version, it might be `await generateHealthPodcast(input)`.
         const result = await generateHealthPodcast({ patientId: patient.id });
 
+        console.log(`Podcast generation started. ID: ${result.podcastId}, Status: ${result.status}`);
+        console.log("Check database for completion (this is now an async background process).");
+        
+        /*
         console.log("\n--- PODCAST TRANSCRIPT ---\n");
         console.log(result.transcript);
         console.log("\n--- END TRANSCRIPT ---\n");
         console.log(`Audio generated (length: ${result.audioUrl.length} chars base64)`);
+        */
 
     } catch (e) {
         console.error("Error generating podcast:", e);
