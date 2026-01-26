@@ -37,13 +37,13 @@ export async function POST(request: NextRequest) {
 
     const existingAudioUri = existingAudioUriMap[section];
     
-    // If audio already exists for this section, reuse it
-    if (existingAudioUri) {
+    // Only reuse existing audio if no new content is provided (regeneration request)
+    if (existingAudioUri && !audioDataUri && !text) {
       console.log(`[Wellness Audio] ♻️ Reusing existing audio for section "${section}"`);
       return NextResponse.json({ success: true, url: existingAudioUri, reused: true });
     }
 
-    // Generate new audio
+    // Generate new audio (or use provided data URI)
     let dataUri: string;
 
     if (audioDataUri) {
@@ -77,11 +77,22 @@ export async function POST(request: NextRequest) {
       dataUri = tts.audioDataUri;
     }
 
+    // Validate data URI size (max 5MB to prevent DB bloat)
+    const MAX_AUDIO_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+    const dataUriBytes = Buffer.byteLength(dataUri, 'utf8');
+    if (dataUriBytes > MAX_AUDIO_SIZE_BYTES) {
+      console.warn(`[Wellness Audio] ⚠️ Audio too large: ${(dataUriBytes / 1024 / 1024).toFixed(2)}MB`);
+      return NextResponse.json(
+        { error: 'Áudio muito grande. Por favor, tente um texto mais curto.' },
+        { status: 413 }
+      );
+    }
+
     // Save the data URI directly to the database for persistence
     try {
       await updatePatientWellnessPlanAudio(session.userId, section, dataUri);
       revalidatePath('/patient/wellness');
-      console.log(`[Wellness Audio] ✅ Audio saved to database for section "${section}" - patient ${session.userId}`);
+      console.log(`[Wellness Audio] ✅ Audio saved to database for section "${section}" (${(dataUriBytes / 1024).toFixed(1)}KB) - patient ${session.userId}`);
     } catch (dbError: any) {
       console.error('[Wellness Audio] Failed to save audio to database:', dbError);
       return NextResponse.json(

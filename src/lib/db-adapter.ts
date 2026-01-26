@@ -457,24 +457,18 @@ export async function updatePatientWellnessPlanAudio(
   };
   const field = fieldMap[section];
 
-  // First get current wellness plan to ensure it exists
-  const patient = await getPatientById(patientId);
-  if (!patient) {
-    throw new Error('Patient not found');
-  }
-
-  // Update the wellness plan with the new audio URI
-  const currentPlan = patient.wellnessPlan || {};
-  const updatedPlan = {
-    ...currentPlan,
-    [field]: audioUri,
-  };
-
-  // Save back to database
-  await db.update(patients).set({
-    wellnessPlan: updatedPlan as any,
-    updatedAt: new Date(),
-  }).where(eq(patients.id, patientId));
+  // Use atomic SQL update with jsonb_set to avoid race conditions
+  // COALESCE handles NULL wellness_plan by initializing to empty object
+  await db.execute(sql`
+    UPDATE patients 
+    SET wellness_plan = jsonb_set(
+      COALESCE(wellness_plan, '{}'::jsonb), 
+      ${'{' + field + '}'}::text[], 
+      ${JSON.stringify(audioUri)}::jsonb
+    ),
+    updated_at = NOW()
+    WHERE id = ${patientId}
+  `);
 
   console.log(`[DB] ✅ Audio URI saved for ${section} section - patient ${patientId}`);
 }
