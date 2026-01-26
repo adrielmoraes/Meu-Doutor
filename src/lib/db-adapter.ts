@@ -450,20 +450,33 @@ export async function updatePatientWellnessPlanAudio(
   section: 'dietary' | 'exercise' | 'mental',
   audioUri: string
 ): Promise<void> {
-  const fieldMap = {
+  const fieldMap: Record<string, string> = {
     dietary: 'preliminaryAnalysisAudioUri',
     exercise: 'exercisePlanAudioUri',
     mental: 'mentalWellnessPlanAudioUri',
   };
   const field = fieldMap[section];
 
-  // Use SQL to update specific field in JSONB column to avoid race conditions
-  await db.execute(sql`
-    UPDATE patients 
-    SET wellness_plan = jsonb_set(wellness_plan, ${sql.raw(`'{${field}}'`)}, ${JSON.stringify(audioUri)}::jsonb),
-        updated_at = NOW()
-    WHERE id = ${patientId}
-  `);
+  // First get current wellness plan to ensure it exists
+  const patient = await getPatientById(patientId);
+  if (!patient) {
+    throw new Error('Patient not found');
+  }
+
+  // Update the wellness plan with the new audio URI
+  const currentPlan = patient.wellnessPlan || {};
+  const updatedPlan = {
+    ...currentPlan,
+    [field]: audioUri,
+  };
+
+  // Save back to database
+  await db.update(patients).set({
+    wellnessPlan: updatedPlan as any,
+    updatedAt: new Date(),
+  }).where(eq(patients.id, patientId));
+
+  console.log(`[DB] ✅ Audio URI saved for ${section} section - patient ${patientId}`);
 }
 
 export async function getAppointmentsForPatient(patientId: string): Promise<Appointment[]> {

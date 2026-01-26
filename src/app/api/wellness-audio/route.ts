@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { getPatientById, updatePatientWellnessPlanAudio } from '@/lib/db-adapter';
-import { saveFileBuffer } from '@/lib/file-storage';
 import { revalidatePath } from 'next/cache';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 
@@ -37,31 +36,24 @@ export async function POST(request: NextRequest) {
     };
 
     const existingAudioUri = existingAudioUriMap[section];
-    if (existingAudioUri && !audioDataUri) {
+    
+    // If audio already exists for this section, reuse it
+    if (existingAudioUri) {
+      console.log(`[Wellness Audio] ♻️ Reusing existing audio for section "${section}"`);
       return NextResponse.json({ success: true, url: existingAudioUri, reused: true });
     }
 
-    let buffer: Buffer;
-    let extension = 'wav';
+    // Generate new audio
+    let dataUri: string;
 
     if (audioDataUri) {
+      // Audio already provided as data URI
       if (!audioDataUri.startsWith('data:')) {
         return NextResponse.json({ error: 'Formato de áudio inválido' }, { status: 400 });
       }
-
-      const commaIndex = audioDataUri.indexOf(',');
-      if (commaIndex === -1) {
-        return NextResponse.json({ error: 'Formato de áudio inválido' }, { status: 400 });
-      }
-
-      const meta = audioDataUri.substring(5, commaIndex);
-      const base64Data = audioDataUri.substring(commaIndex + 1);
-      const mimeType = meta.split(';')[0];
-
-      buffer = Buffer.from(base64Data, 'base64');
-      if (mimeType.includes('mpeg')) extension = 'mp3';
-      else if (mimeType.includes('ogg')) extension = 'ogg';
+      dataUri = audioDataUri;
     } else {
+      // Generate audio from text using TTS
       const trimmedText = (text || '').trim();
       if (!trimmedText) {
         return NextResponse.json({ error: 'Texto inválido' }, { status: 400 });
@@ -70,34 +62,35 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Texto muito longo para gerar áudio' }, { status: 413 });
       }
 
+      console.log(`[Wellness Audio] 🎤 Generating TTS for section "${section}" (${trimmedText.length} chars)`);
+
       const tts = await textToSpeech({
         text: trimmedText,
         patientId: session.userId,
-        returnBuffer: true,
+        returnBuffer: false, // Get data URI directly
       });
 
-      if (!tts?.audioBuffer || !(tts.audioBuffer instanceof Buffer)) {
+      if (!tts?.audioDataUri) {
         return NextResponse.json({ error: 'Falha ao gerar áudio' }, { status: 500 });
       }
 
-      buffer = tts.audioBuffer;
-      extension = 'wav';
+      dataUri = tts.audioDataUri;
     }
 
-    const storedUrl = await saveFileBuffer(buffer, `wellness-${section}.${extension}`, 'wellness-audio');
-
-    // Use atomic update to prevent race conditions and data loss
+    // Save the data URI directly to the database for persistence
     try {
-      await updatePatientWellnessPlanAudio(session.userId, section, storedUrl);
+      await updatePatientWellnessPlanAudio(session.userId, section, dataUri);
       revalidatePath('/patient/wellness');
-    } catch (dbError) {
-      console.error('[Wellness Audio] Warning: Failed to update DB with audio URL, but file was saved:', dbError);
-      // We continue because the audio file was successfully created and can be played
+      console.log(`[Wellness Audio] ✅ Audio saved to database for section "${section}" - patient ${session.userId}`);
+    } catch (dbError: any) {
+      console.error('[Wellness Audio] Failed to save audio to database:', dbError);
+      return NextResponse.json(
+        { error: 'Falha ao salvar áudio no banco de dados', details: dbError.message },
+        { status: 500 }
+      );
     }
 
-    console.log(`[Wellness Audio] ✅ Audio saved for section "${section}" - patient ${session.userId} at ${storedUrl}`);
-
-    return NextResponse.json({ success: true, url: storedUrl, reused: false });
+    return NextResponse.json({ success: true, url: dataUri, reused: false });
   } catch (error: any) {
     console.error('[Wellness Audio] Error saving audio:', error);
     return NextResponse.json(
