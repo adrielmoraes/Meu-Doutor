@@ -72,8 +72,8 @@ source venv/bin/activate
 
 # Install/upgrade dependencies
 echo "📥 Instalando dependências..."
-pip install --upgrade pip > /dev/null 2>&1
-pip install -r requirements.txt > /dev/null 2>&1
+PIP_USER=0 pip install --upgrade pip > /dev/null 2>&1
+PIP_USER=0 pip install -r requirements.txt > /dev/null 2>&1
 echo "✅ Dependências instaladas"
 echo ""
 

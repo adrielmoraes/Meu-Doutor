@@ -5,7 +5,7 @@ integrations = ["resend:1.0.0"]
 
 [nix]
 channel = "stable-25_05"
-packages = ["imagemagick", "docker_28", "nano"]
+packages = ["docker_28", "imagemagick", "nano"]
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -24,6 +24,10 @@ author = "agent"
 task = "workflow.run"
 args = "Frontend - Next.js"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "LiveKit Agent"
+
 [[workflows.workflow]]
 name = "Frontend - Next.js"
 author = "agent"
@@ -37,17 +41,23 @@ args = "npm run dev"
 waitForPort = 5000
 
 [[workflows.workflow]]
-name = "livikit-agent"
-mode = "parallel"
-author = 40924732
+name = "LiveKit Agent"
+author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python agent.py start"
+args = "cd livekit-agent && bash start-agent.sh"
+
+[workflows.workflow.metadata]
+outputType = "console"
 
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 8081
+externalPort = 8081
 
 [userenv]
 
