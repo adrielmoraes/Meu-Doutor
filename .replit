@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "python-3.11", "bash", "web", "postgresql-16"]
+modules = ["nodejs-20", "python-3.11", "bash", "web"]
 [agent]
 expertMode = true
 integrations = ["resend:1.0.0"]
@@ -9,7 +9,7 @@ packages = ["imagemagick", "docker_28", "nano"]
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["npm", "run", "start"]
+run = ["node", "./dist/index.cjs"]
 build = ["npm", "run", "build"]
 
 [workflows]
@@ -48,10 +48,6 @@ args = "python agent.py start"
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 8081
-externalPort = 8081
 
 [userenv]
 
