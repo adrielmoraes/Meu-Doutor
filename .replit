@@ -63,3 +63,4 @@ externalPort = 8081
 
 [userenv.shared]
 ENABLE_VISION = "true"
+STORAGE_READ_WRITE_TOKEN = "vercel_blob_rw_1ZVj2PxI59FgIVgC_27Eg5tzoAwAfP3oPXXU2DHHI9WbNOz"

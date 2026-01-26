@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { getPatientById, updatePatientWellnessPlanAudio } from '@/lib/db-adapter';
+import { saveFileBuffer } from '@/lib/file-storage';
 import { revalidatePath } from 'next/cache';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 
@@ -43,15 +44,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, url: existingAudioUri, reused: true });
     }
 
-    // Generate new audio (or use provided data URI)
-    let dataUri: string;
+    // Generate new audio
+    let audioBuffer: Buffer;
 
     if (audioDataUri) {
-      // Audio already provided as data URI
+      // Audio already provided as data URI - extract buffer
       if (!audioDataUri.startsWith('data:')) {
         return NextResponse.json({ error: 'Formato de áudio inválido' }, { status: 400 });
       }
-      dataUri = audioDataUri;
+      const commaIndex = audioDataUri.indexOf(',');
+      if (commaIndex === -1) {
+        return NextResponse.json({ error: 'Formato de áudio inválido' }, { status: 400 });
+      }
+      const base64Data = audioDataUri.substring(commaIndex + 1);
+      audioBuffer = Buffer.from(base64Data, 'base64');
     } else {
       // Generate audio from text using TTS
       const trimmedText = (text || '').trim();
@@ -67,41 +73,55 @@ export async function POST(request: NextRequest) {
       const tts = await textToSpeech({
         text: trimmedText,
         patientId: session.userId,
-        returnBuffer: false, // Get data URI directly
+        returnBuffer: true,
       });
 
-      if (!tts?.audioDataUri) {
+      if (!tts?.audioBuffer || !(tts.audioBuffer instanceof Buffer)) {
         return NextResponse.json({ error: 'Falha ao gerar áudio' }, { status: 500 });
       }
 
-      dataUri = tts.audioDataUri;
+      audioBuffer = tts.audioBuffer;
     }
 
-    // Validate data URI size (max 5MB to prevent DB bloat)
-    const MAX_AUDIO_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
-    const dataUriBytes = Buffer.byteLength(dataUri, 'utf8');
-    if (dataUriBytes > MAX_AUDIO_SIZE_BYTES) {
-      console.warn(`[Wellness Audio] ⚠️ Audio too large: ${(dataUriBytes / 1024 / 1024).toFixed(2)}MB`);
+    // Validate audio size (max 10MB)
+    const MAX_AUDIO_SIZE_BYTES = 10 * 1024 * 1024;
+    if (audioBuffer.length > MAX_AUDIO_SIZE_BYTES) {
+      console.warn(`[Wellness Audio] ⚠️ Audio too large: ${(audioBuffer.length / 1024 / 1024).toFixed(2)}MB`);
       return NextResponse.json(
         { error: 'Áudio muito grande. Por favor, tente um texto mais curto.' },
         { status: 413 }
       );
     }
 
-    // Save the data URI directly to the database for persistence
+    // Upload to Vercel Blob Storage
+    const fileName = `wellness-${section}-${session.userId.slice(0, 8)}.wav`;
+    let storedUrl: string;
+    
     try {
-      await updatePatientWellnessPlanAudio(session.userId, section, dataUri);
-      revalidatePath('/patient/wellness');
-      console.log(`[Wellness Audio] ✅ Audio saved to database for section "${section}" (${(dataUriBytes / 1024).toFixed(1)}KB) - patient ${session.userId}`);
-    } catch (dbError: any) {
-      console.error('[Wellness Audio] Failed to save audio to database:', dbError);
+      storedUrl = await saveFileBuffer(audioBuffer, fileName, 'wellness-audio');
+      console.log(`[Wellness Audio] ☁️ Audio uploaded to storage: ${storedUrl} (${(audioBuffer.length / 1024).toFixed(1)}KB)`);
+    } catch (storageError: any) {
+      console.error('[Wellness Audio] Failed to upload audio to storage:', storageError);
       return NextResponse.json(
-        { error: 'Falha ao salvar áudio no banco de dados', details: dbError.message },
+        { error: 'Falha ao fazer upload do áudio', details: storageError.message },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({ success: true, url: dataUri, reused: false });
+    // Save the URL to the database
+    try {
+      await updatePatientWellnessPlanAudio(session.userId, section, storedUrl);
+      revalidatePath('/patient/wellness');
+      console.log(`[Wellness Audio] ✅ Audio URL saved to database for section "${section}" - patient ${session.userId}`);
+    } catch (dbError: any) {
+      console.error('[Wellness Audio] Failed to save audio URL to database:', dbError);
+      return NextResponse.json(
+        { error: 'Falha ao salvar URL do áudio no banco de dados', details: dbError.message },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true, url: storedUrl, reused: false });
   } catch (error: any) {
     console.error('[Wellness Audio] Error saving audio:', error);
     return NextResponse.json(
