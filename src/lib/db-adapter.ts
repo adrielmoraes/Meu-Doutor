@@ -458,14 +458,15 @@ export async function updatePatientWellnessPlanAudio(
   const field = fieldMap[section];
 
   // Use atomic SQL update with jsonb_set to avoid race conditions
+  // Cast json to jsonb, perform update, then cast back to json
   // COALESCE handles NULL wellness_plan by initializing to empty object
   await db.execute(sql`
     UPDATE patients 
     SET wellness_plan = jsonb_set(
-      COALESCE(wellness_plan, '{}'::jsonb), 
+      COALESCE(wellness_plan::jsonb, '{}'::jsonb), 
       ${'{' + field + '}'}::text[], 
       ${JSON.stringify(audioUri)}::jsonb
-    ),
+    )::json,
     updated_at = NOW()
     WHERE id = ${patientId}
   `);
