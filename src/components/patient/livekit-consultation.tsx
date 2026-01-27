@@ -20,7 +20,7 @@ import {
   useTokenManager,
   useNetworkQuality,
 } from '@/shared/realtime';
-import { getCachedToken, clearCachedToken } from '@/lib/livekit-warmup';
+import { getCachedToken, clearCachedToken, clearConnectionState, cleanupRoom } from '@/lib/livekit-warmup';
 
 interface LiveKitConsultationProps {
   patientId: string;
@@ -402,6 +402,9 @@ export default function LiveKitConsultation({
       try {
         logEvent('Initializing consultation');
         
+        // Step 0: Clear any stale connection state from previous sessions
+        clearConnectionState(patientId);
+        
         // Step 1: Quick network check (parallel with token fetch for speed)
         setCurrentState('checking-network');
         
@@ -409,15 +412,17 @@ export default function LiveKitConsultation({
           throw new Error('Sem conexão com a internet. Verifique sua conexão e tente novamente.');
         }
 
-        // Check for cached token first (instant if available)
-        const cached = getCachedToken();
-        if (cached) {
-          logEvent('Using cached token (instant connection!)');
-          tokenManager.setToken(cached.token, cached.url);
-          connectionSupervisor.connect();
-          setCurrentState('ready');
-          return;
+        // Cleanup any previous room before starting new connection
+        // This must complete before we request a new token to prevent race conditions
+        try {
+          await cleanupRoom(patientId);
+          logEvent('Previous room cleanup completed');
+        } catch (err) {
+          logEvent('Previous room cleanup failed (continuing anyway)');
         }
+        
+        // Clear any cached token since we cleaned up the room
+        clearCachedToken();
 
         // Step 2: Get initial token (immediately, no artificial delay)
         setCurrentState('getting-token');
@@ -732,6 +737,11 @@ export default function LiveKitConsultation({
     connectionSupervisor.disconnect();
     tokenManager.clearToken();
     clearCachedToken();
+    clearConnectionState(patientId);
+    
+    cleanupRoom(patientId).catch((error) => {
+      logEvent('Room cleanup failed (non-blocking)', { error });
+    });
     
     window.location.href = '/patient/dashboard';
   }, [connectionSupervisor, logEvent, patientId, tokenManager]);

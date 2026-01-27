@@ -101,3 +101,38 @@ export function getCachedToken() {
 export function clearCachedToken() {
   cachedToken = null;
 }
+
+export function clearConnectionState(patientId: string) {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    localStorage.removeItem(`livekit-consultation-${patientId}`);
+    console.log('[LiveKit Warmup] Connection state cleared for patient:', patientId);
+  } catch (error) {
+    console.error('[LiveKit Warmup] Failed to clear connection state:', error);
+  }
+}
+
+export async function cleanupRoom(patientId: string): Promise<boolean> {
+  try {
+    const roomName = `mediai-consultation-${patientId}`;
+    console.log('[LiveKit Warmup] Cleaning up room:', roomName);
+    
+    const response = await fetch('/api/livekit/room', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roomName }),
+    });
+    
+    if (!response.ok) {
+      console.warn('[LiveKit Warmup] Room cleanup failed:', response.status);
+      return false;
+    }
+    
+    console.log('[LiveKit Warmup] Room cleaned up successfully');
+    return true;
+  } catch (error) {
+    console.error('[LiveKit Warmup] Room cleanup error:', error);
+    return false;
+  }
+}
