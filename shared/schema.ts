@@ -156,6 +156,36 @@ export const doctors = pgTable('doctors', {
   validations: integer('validations').default(0).notNull(),
   badges: json('badges').$type<{ name: string; icon: string; description: string }[]>().default([]),
   availability: json('availability').$type<{ date: string; time: string; available: boolean }[]>(),
+  settings: json('settings').$type<{
+    notifications?: {
+      emailNewAppointment?: boolean;
+      emailCancellation?: boolean;
+      emailReminder?: boolean;
+      pushNotifications?: boolean;
+      smsAlerts?: boolean;
+      soundEnabled?: boolean;
+    };
+    schedule?: {
+      defaultDuration?: number;
+      bufferTime?: number;
+      workDayStart?: string;
+      workDayEnd?: string;
+      autoConfirm?: boolean;
+    };
+    privacy?: {
+      showOnlineStatus?: boolean;
+      showLastActive?: boolean;
+      allowPatientMessages?: boolean;
+    };
+    consultation?: {
+      autoRecordCalls?: boolean;
+      enableTranscription?: boolean;
+      defaultVideoQuality?: string;
+    };
+    appearance?: {
+      theme?: string;
+    };
+  }>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

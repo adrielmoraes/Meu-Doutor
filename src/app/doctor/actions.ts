@@ -618,3 +618,86 @@ export async function cancelMemedDocumentAction(documentId: string) {
     return { success: false, message: 'Erro inesperado' };
   }
 }
+
+export interface DoctorSettings {
+  notifications?: {
+    emailNewAppointment?: boolean;
+    emailCancellation?: boolean;
+    emailReminder?: boolean;
+    pushNotifications?: boolean;
+    smsAlerts?: boolean;
+    soundEnabled?: boolean;
+  };
+  schedule?: {
+    defaultDuration?: number;
+    bufferTime?: number;
+    workDayStart?: string;
+    workDayEnd?: string;
+    autoConfirm?: boolean;
+  };
+  privacy?: {
+    showOnlineStatus?: boolean;
+    showLastActive?: boolean;
+    allowPatientMessages?: boolean;
+  };
+  consultation?: {
+    autoRecordCalls?: boolean;
+    enableTranscription?: boolean;
+    defaultVideoQuality?: string;
+  };
+  appearance?: {
+    theme?: string;
+  };
+}
+
+export async function getDoctorSettingsAction(): Promise<{ success: boolean; settings?: DoctorSettings; message?: string }> {
+  const session = await getSession();
+
+  if (!session || session.role !== 'doctor' || !session.userId) {
+    return { success: false, message: 'Não autorizado.' };
+  }
+
+  try {
+    const doctor = await getDoctorById(session.userId);
+    if (!doctor) {
+      return { success: false, message: 'Médico não encontrado.' };
+    }
+
+    return { 
+      success: true, 
+      settings: (doctor as any).settings || {} 
+    };
+  } catch (error) {
+    console.error('[Settings] Erro ao carregar configurações:', error);
+    return { success: false, message: 'Erro ao carregar configurações.' };
+  }
+}
+
+export async function saveDoctorSettingsAction(settings: DoctorSettings): Promise<{ success: boolean; message: string }> {
+  const session = await getSession();
+
+  if (!session || session.role !== 'doctor' || !session.userId) {
+    return { success: false, message: 'Não autorizado.' };
+  }
+
+  try {
+    const { db } = await import('@/server/storage');
+    const { doctors } = await import('@/shared/schema');
+    const { eq } = await import('drizzle-orm');
+
+    await db.update(doctors)
+      .set({ 
+        settings,
+        updatedAt: new Date()
+      })
+      .where(eq(doctors.id, session.userId));
+
+    revalidatePath('/doctor/settings');
+    revalidatePath('/doctor');
+
+    return { success: true, message: 'Configurações salvas com sucesso!' };
+  } catch (error) {
+    console.error('[Settings] Erro ao salvar configurações:', error);
+    return { success: false, message: 'Erro ao salvar configurações.' };
+  }
+}

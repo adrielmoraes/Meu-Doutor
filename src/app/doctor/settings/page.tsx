@@ -17,8 +17,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import MediAILogo from "@/components/layout/mediai-logo";
+import { getDoctorSettingsAction, saveDoctorSettingsAction, type DoctorSettings } from '../actions';
 
-interface DoctorSettings {
+interface FullDoctorSettings {
   notifications: {
     emailNewAppointment: boolean;
     emailCancellation: boolean;
@@ -49,7 +50,7 @@ interface DoctorSettings {
   };
 }
 
-const defaultSettings: DoctorSettings = {
+const defaultSettings: FullDoctorSettings = {
   notifications: {
     emailNewAppointment: true,
     emailCancellation: true,
@@ -76,31 +77,44 @@ const defaultSettings: DoctorSettings = {
     defaultVideoQuality: 'high',
   },
   appearance: {
-    theme: 'dark',
+    theme: 'light',
   },
 };
 
 export default function DoctorSettingsPage() {
-  const [settings, setSettings] = useState<DoctorSettings>(defaultSettings);
+  const [settings, setSettings] = useState<FullDoctorSettings>(defaultSettings);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [hasChanges, setHasChanges] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    const savedSettings = localStorage.getItem('doctorSettings');
-    if (savedSettings) {
+    async function loadSettings() {
       try {
-        setSettings(JSON.parse(savedSettings));
-      } catch (e) {
-        console.error('Error loading settings:', e);
+        const result = await getDoctorSettingsAction();
+        if (result.success && result.settings) {
+          const merged = {
+            notifications: { ...defaultSettings.notifications, ...result.settings.notifications },
+            schedule: { ...defaultSettings.schedule, ...result.settings.schedule },
+            privacy: { ...defaultSettings.privacy, ...result.settings.privacy },
+            consultation: { ...defaultSettings.consultation, ...result.settings.consultation },
+            appearance: { ...defaultSettings.appearance, ...result.settings.appearance },
+          };
+          setSettings(merged);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar configurações:', error);
+      } finally {
+        setIsLoading(false);
       }
     }
+    loadSettings();
   }, []);
 
-  const updateSetting = <K extends keyof DoctorSettings>(
+  const updateSetting = <K extends keyof FullDoctorSettings>(
     category: K,
-    key: keyof DoctorSettings[K],
-    value: DoctorSettings[K][keyof DoctorSettings[K]]
+    key: keyof FullDoctorSettings[K],
+    value: FullDoctorSettings[K][keyof FullDoctorSettings[K]]
   ) => {
     setSettings(prev => ({
       ...prev,
@@ -115,14 +129,21 @@ export default function DoctorSettingsPage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      localStorage.setItem('doctorSettings', JSON.stringify(settings));
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const result = await saveDoctorSettingsAction(settings);
 
-      toast({
-        title: "Configurações salvas",
-        description: "Suas preferências foram atualizadas com sucesso.",
-      });
-      setHasChanges(false);
+      if (result.success) {
+        toast({
+          title: "Configurações salvas",
+          description: result.message,
+        });
+        setHasChanges(false);
+      } else {
+        toast({
+          title: "Erro ao salvar",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       toast({
         title: "Erro ao salvar",
@@ -133,6 +154,17 @@ export default function DoctorSettingsPage() {
       setIsSaving(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="bg-slate-50 min-h-screen flex items-center justify-center">
+        <div className="flex items-center gap-3 text-slate-600">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Carregando configurações...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-slate-50 min-h-screen relative font-sans text-slate-900">
