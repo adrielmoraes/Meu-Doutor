@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,10 +8,26 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash, FileSignature, Cloud, FileText, Loader2, Check, Sparkles, ExternalLink } from "lucide-react";
+import { Plus, Trash, FileSignature, Cloud, FileText, Loader2, Check, Sparkles, ExternalLink, Eye, Edit, Search, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateDocumentDraftAction, searchMemedMedicinesAction, createMemedDocumentAction } from "@/app/doctor/actions";
 import MemedPrescriptionWidget from './memed-prescription-widget';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+interface MedicationSuggestion {
+    id: string;
+    name: string;
+    presentation?: string;
+    manufacturer?: string;
+}
+
+interface ValidationErrors {
+    patient?: string;
+    title?: string;
+    medications?: string;
+    instructions?: string;
+}
 
 interface PrescriptionModalProps {
     doctor: any;
@@ -39,9 +55,96 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
     const [memedPdfUrl, setMemedPdfUrl] = useState<string | null>(null);
     const [isCreatingMemed, setIsCreatingMemed] = useState(false);
 
+    // Markdown Preview State
+    const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
+
+    // Medication Autocomplete State
+    const [medicationSuggestions, setMedicationSuggestions] = useState<{ [key: number]: MedicationSuggestion[] }>({});
+    const [activeSuggestionIndex, setActiveSuggestionIndex] = useState<number | null>(null);
+    const [isSearchingMeds, setIsSearchingMeds] = useState<{ [key: number]: boolean }>({});
+    const searchTimeoutRef = useRef<{ [key: number]: NodeJS.Timeout }>({});
+
+    // Validation State
+    const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+
     // Signing State
     const [pfxFile, setPfxFile] = useState<File | null>(null);
     const [pfxPassword, setPfxPassword] = useState('');
+
+    // Debounced medication search
+    const searchMedications = useCallback(async (query: string, index: number) => {
+        if (query.length < 3) {
+            setMedicationSuggestions(prev => ({ ...prev, [index]: [] }));
+            return;
+        }
+
+        setIsSearchingMeds(prev => ({ ...prev, [index]: true }));
+        
+        try {
+            const result = await searchMemedMedicinesAction(query);
+            if (result.success && result.results) {
+                setMedicationSuggestions(prev => ({
+                    ...prev,
+                    [index]: result.results.map((med: any) => ({
+                        id: med.id || med.nome,
+                        name: med.nome || med.name,
+                        presentation: med.apresentacao || med.presentation,
+                        manufacturer: med.laboratorio || med.manufacturer
+                    }))
+                }));
+            }
+        } catch (error) {
+            console.error('Erro ao buscar medicamentos:', error);
+        } finally {
+            setIsSearchingMeds(prev => ({ ...prev, [index]: false }));
+        }
+    }, []);
+
+    // Validation function
+    const validateForm = useCallback((): boolean => {
+        const errors: ValidationErrors = {};
+        let isValid = true;
+
+        if (!selectedPatientId) {
+            errors.patient = 'Selecione um paciente';
+            isValid = false;
+        }
+
+        if ((docType === 'receita' || docType === 'memed')) {
+            const validMeds = medications.filter(m => m.name.trim());
+            if (validMeds.length === 0) {
+                errors.medications = 'Adicione pelo menos um medicamento';
+                isValid = false;
+            } else {
+                const incompleteMed = validMeds.find(m => !m.dosage || !m.frequency || !m.duration);
+                if (incompleteMed) {
+                    errors.medications = 'Preencha dosagem, frequência e duração de todos os medicamentos';
+                    isValid = false;
+                }
+            }
+        }
+
+        if (!instructions.trim() && docType !== 'receita' && docType !== 'memed') {
+            errors.instructions = 'O conteúdo do documento é obrigatório';
+            isValid = false;
+        }
+
+        setValidationErrors(errors);
+        return isValid;
+    }, [selectedPatientId, docType, medications, instructions]);
+
+    // Select medication from suggestions
+    const selectMedication = (index: number, suggestion: MedicationSuggestion) => {
+        const fullName = suggestion.presentation 
+            ? `${suggestion.name} - ${suggestion.presentation}`
+            : suggestion.name;
+        
+        const newMeds = [...medications];
+        newMeds[index].name = fullName;
+        setMedications(newMeds);
+        setMedicationSuggestions(prev => ({ ...prev, [index]: [] }));
+        setActiveSuggestionIndex(null);
+    };
 
     const addMedication = () => {
         setMedications([...medications, { name: '', dosage: '', frequency: '', duration: '', instructions: '' }]);
@@ -49,21 +152,36 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
 
     const removeMedication = (index: number) => {
         setMedications(medications.filter((_, i) => i !== index));
+        setMedicationSuggestions(prev => {
+            const next = { ...prev };
+            delete next[index];
+            return next;
+        });
     };
 
-    const updateMedication = async (index: number, field: string, value: string) => {
+    const updateMedication = (index: number, field: string, value: string) => {
         const newMeds = [...medications];
         (newMeds[index] as any)[field] = value;
         setMedications(newMeds);
 
-        // Se estiver editando o nome e for uma receita normal, podemos sugerir via Memed API
-        if (field === 'name' && value.length >= 3 && docType === 'receita') {
-            const searchResult = await searchMemedMedicinesAction(value);
-            if (searchResult.success && searchResult.results && searchResult.results.length > 0) {
-                // Aqui poderíamos mostrar um dropdown, mas por simplificação vamos apenas logar
-                // ou preencher se houver um match exato em um cenário real.
-                console.log('Sugestões Memed:', searchResult.results);
+        // Clear validation errors when user starts typing
+        if (validationErrors.medications) {
+            setValidationErrors(prev => ({ ...prev, medications: undefined }));
+        }
+
+        // Debounced search for medication names via Memed API
+        if (field === 'name' && (docType === 'receita' || docType === 'memed')) {
+            // Clear previous timeout for this index
+            if (searchTimeoutRef.current[index]) {
+                clearTimeout(searchTimeoutRef.current[index]);
             }
+
+            // Set new timeout for debounced search
+            searchTimeoutRef.current[index] = setTimeout(() => {
+                searchMedications(value, index);
+            }, 300);
+
+            setActiveSuggestionIndex(index);
         }
     };
 
@@ -94,8 +212,8 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
     };
 
     const handleGenerateDraft = async () => {
-        if (!selectedPatientId) {
-            toast({ title: "Selecione um paciente", variant: "destructive" });
+        if (!validateForm()) {
+            toast({ title: "Campos obrigatórios", description: "Verifique os campos destacados em vermelho.", variant: "destructive" });
             return;
         }
 
@@ -193,13 +311,8 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
     };
 
     const handleCreateMemedDocument = async () => {
-        if (!selectedPatientId) {
-            toast({ title: "Selecione um paciente", variant: "destructive" });
-            return;
-        }
-
-        if (docType === 'receita' && medications.filter(m => m.name).length === 0) {
-            toast({ title: "Adicione pelo menos um medicamento", variant: "destructive" });
+        if (!validateForm()) {
+            toast({ title: "Campos obrigatórios", description: "Verifique os campos destacados em vermelho.", variant: "destructive" });
             return;
         }
 
@@ -363,10 +476,18 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                             />
                         </div>
 
-                        {docType === 'receita' && (
+                        {(docType === 'receita' || docType === 'memed') && (
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <Label className="text-slate-700 font-medium">Medicamentos</Label>
+                                    <div className="flex items-center gap-2">
+                                        <Label className="text-slate-700 font-medium">Medicamentos</Label>
+                                        {validationErrors.medications && (
+                                            <span className="flex items-center gap-1 text-xs text-red-600">
+                                                <AlertCircle className="h-3 w-3" />
+                                                {validationErrors.medications}
+                                            </span>
+                                        )}
+                                    </div>
                                     <Button
                                         onClick={addMedication}
                                         size="sm"
@@ -381,37 +502,76 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                 </div>
 
                                 {medications.map((med, index) => (
-                                    <div key={index} className="grid grid-cols-12 gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 items-start shadow-sm hover:border-blue-200 transition-colors">
-                                        <div className="col-span-12 md:col-span-4 space-y-1">
-                                            <Input
-                                                placeholder="Nome do Medicamento"
-                                                value={med.name}
-                                                onChange={e => updateMedication(index, 'name', e.target.value)}
-                                                className="bg-white border-slate-300 h-9 text-sm focus:border-blue-500"
-                                            />
+                                    <div key={index} className={`grid grid-cols-12 gap-3 p-4 bg-slate-50 rounded-xl border items-start shadow-sm transition-colors ${validationErrors.medications && (!med.name || !med.dosage || !med.frequency || !med.duration) ? 'border-red-300 bg-red-50/50' : 'border-slate-200 hover:border-blue-200'}`}>
+                                        <div className="col-span-12 md:col-span-4 space-y-1 relative">
+                                            <div className="relative">
+                                                <Input
+                                                    placeholder="Nome do Medicamento *"
+                                                    value={med.name}
+                                                    onChange={e => updateMedication(index, 'name', e.target.value)}
+                                                    onFocus={() => setActiveSuggestionIndex(index)}
+                                                    onBlur={() => setTimeout(() => setActiveSuggestionIndex(null), 200)}
+                                                    className={`bg-white border-slate-300 h-9 text-sm focus:border-blue-500 pr-8 ${!med.name && validationErrors.medications ? 'border-red-400' : ''}`}
+                                                />
+                                                {isSearchingMeds[index] && (
+                                                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                                                        <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {/* Medication Suggestions Dropdown */}
+                                            {activeSuggestionIndex === index && medicationSuggestions[index]?.length > 0 && (
+                                                <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                                    {medicationSuggestions[index].map((suggestion, suggIdx) => (
+                                                        <button
+                                                            key={suggestion.id || suggIdx}
+                                                            type="button"
+                                                            onClick={() => selectMedication(index, suggestion)}
+                                                            className="w-full px-3 py-2 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none transition-colors border-b border-slate-100 last:border-0"
+                                                        >
+                                                            <div className="font-medium text-sm text-slate-800">{suggestion.name}</div>
+                                                            {suggestion.presentation && (
+                                                                <div className="text-xs text-slate-500">{suggestion.presentation}</div>
+                                                            )}
+                                                            {suggestion.manufacturer && (
+                                                                <div className="text-xs text-slate-400">{suggestion.manufacturer}</div>
+                                                            )}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {/* No results indicator */}
+                                            {activeSuggestionIndex === index && !isSearchingMeds[index] && med.name.length >= 3 && medicationSuggestions[index]?.length === 0 && (
+                                                <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg p-3">
+                                                    <div className="flex items-center gap-2 text-sm text-slate-500">
+                                                        <Search className="h-4 w-4" />
+                                                        <span>Nenhum medicamento encontrado</span>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="col-span-6 md:col-span-2 space-y-1">
                                             <Input
-                                                placeholder="Dosagem"
+                                                placeholder="Dosagem *"
                                                 value={med.dosage}
                                                 onChange={e => updateMedication(index, 'dosage', e.target.value)}
-                                                className="bg-white border-slate-300 h-9 text-sm focus:border-blue-500"
+                                                className={`bg-white border-slate-300 h-9 text-sm focus:border-blue-500 ${!med.dosage && validationErrors.medications ? 'border-red-400' : ''}`}
                                             />
                                         </div>
                                         <div className="col-span-6 md:col-span-2 space-y-1">
                                             <Input
-                                                placeholder="Frequência"
+                                                placeholder="Frequência *"
                                                 value={med.frequency}
                                                 onChange={e => updateMedication(index, 'frequency', e.target.value)}
-                                                className="bg-white border-slate-300 h-9 text-sm focus:border-blue-500"
+                                                className={`bg-white border-slate-300 h-9 text-sm focus:border-blue-500 ${!med.frequency && validationErrors.medications ? 'border-red-400' : ''}`}
                                             />
                                         </div>
                                         <div className="col-span-6 md:col-span-2 space-y-1">
                                             <Input
-                                                placeholder="Duração"
+                                                placeholder="Duração *"
                                                 value={med.duration}
                                                 onChange={e => updateMedication(index, 'duration', e.target.value)}
-                                                className="bg-white border-slate-300 h-9 text-sm focus:border-blue-500"
+                                                className={`bg-white border-slate-300 h-9 text-sm focus:border-blue-500 ${!med.duration && validationErrors.medications ? 'border-red-400' : ''}`}
                                             />
                                         </div>
                                         <div className="col-span-6 md:col-span-2 flex justify-end items-center">
@@ -421,7 +581,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                         </div>
                                         <div className="col-span-12 mt-1">
                                             <Input
-                                                placeholder="Instruções adicionais (opcional)"
+                                                placeholder="Instruções adicionais (ex: tomar em jejum)"
                                                 value={med.instructions}
                                                 onChange={e => updateMedication(index, 'instructions', e.target.value)}
                                                 className="bg-white border-slate-300 h-8 text-xs text-slate-600 focus:border-blue-500"
@@ -433,13 +593,63 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                         )}
 
                         <div className="space-y-2">
-                            <Label className="text-slate-700 font-medium">Conteúdo do Documento / Observações</Label>
-                            <Textarea
-                                value={instructions}
-                                onChange={e => setInstructions(e.target.value)}
-                                className="bg-white border-slate-300 text-slate-900 min-h-[150px] focus:border-blue-500"
-                                placeholder={docType === 'receita' ? "Orientações gerais para o paciente..." : "Descreva o conteúdo do atestado ou laudo aqui..."}
-                            />
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Label className="text-slate-700 font-medium">Conteúdo do Documento / Observações</Label>
+                                    <span className="text-xs text-slate-400">(Suporta Markdown)</span>
+                                    {validationErrors.instructions && (
+                                        <span className="flex items-center gap-1 text-xs text-red-600">
+                                            <AlertCircle className="h-3 w-3" />
+                                            {validationErrors.instructions}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setShowMarkdownPreview(false)}
+                                        className={`h-7 px-2 text-xs ${!showMarkdownPreview ? 'bg-slate-100 text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                                    >
+                                        <Edit className="h-3 w-3 mr-1" />
+                                        Editar
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setShowMarkdownPreview(true)}
+                                        className={`h-7 px-2 text-xs ${showMarkdownPreview ? 'bg-slate-100 text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                                    >
+                                        <Eye className="h-3 w-3 mr-1" />
+                                        Preview
+                                    </Button>
+                                </div>
+                            </div>
+                            {showMarkdownPreview ? (
+                                <div className="bg-white border border-slate-300 rounded-md p-4 min-h-[150px] max-h-[300px] overflow-y-auto prose prose-sm prose-slate max-w-none">
+                                    {instructions ? (
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{instructions}</ReactMarkdown>
+                                    ) : (
+                                        <p className="text-slate-400 italic">Nenhum conteúdo para visualizar...</p>
+                                    )}
+                                </div>
+                            ) : (
+                                <Textarea
+                                    value={instructions}
+                                    onChange={e => {
+                                        setInstructions(e.target.value);
+                                        if (validationErrors.instructions) {
+                                            setValidationErrors(prev => ({ ...prev, instructions: undefined }));
+                                        }
+                                    }}
+                                    className={`bg-white border-slate-300 text-slate-900 min-h-[150px] focus:border-blue-500 font-mono text-sm ${validationErrors.instructions ? 'border-red-400' : ''}`}
+                                    placeholder={(docType === 'receita' || docType === 'memed') 
+                                        ? "## Orientações\n\n- Manter dieta balanceada\n- Evitar bebidas alcoólicas\n- Retornar em 30 dias" 
+                                        : "## Conteúdo do Documento\n\nDescreva aqui o conteúdo do atestado ou laudo..."}
+                                />
+                            )}
                         </div>
 
                         {docType === 'memed' && selectedPatientId && (

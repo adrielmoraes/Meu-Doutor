@@ -1,0 +1,90 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "Inter",
+      "count": 88
+    },
+    {
+      "family": "Helvetica Neue",
+      "count": 88
+    },
+    {
+      "family": "Arial",
+      "count": 88
+    },
+    {
+      "family": "Helvetica",
+      "count": 88
+    },
+    {
+      "family": "sans-serif",
+      "count": 88
+    }
+  ],
+  "colors": {
+    "primary": "#FFEBEC",
+    "accent": "#6161FF",
+    "background": "#666666",
+    "textPrimary": "#666666",
+    "link": "#6161FF"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "Inter",
+      "heading": "Inter"
+    },
+    "fontStacks": {
+      "body": [
+        "Inter",
+        "Helvetica Neue",
+        "Arial",
+        "Helvetica",
+        "sans-serif"
+      ],
+      "heading": [
+        "Inter",
+        "Helvetica Neue",
+        "Arial",
+        "Helvetica",
+        "sans-serif"
+      ],
+      "paragraph": [
+        "Inter",
+        "Helvetica Neue",
+        "Arial",
+        "Helvetica",
+        "sans-serif"
+      ]
+    },
+    "fontSizes": {
+      "h1": "48px",
+      "h2": "32px",
+      "body": "16px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "3px"
+  },
+  "components": {},
+  "images": {
+    "logo": "File saved at: attached_assets/logo.png",
+    "favicon": "File saved at: attached_assets/favicon.ico",
+    "ogImage": null
+  },
+  "__framework_hints": [
+    "Docusaurus v2.3.1"
+  ],
+  "__llm_logo_reasoning": {
+    "selectedIndex": 0,
+    "reasoning": "Logo rejected: Red flags detected (small square icon). Strong indicators: header logo linking to homepage, header location, visible, top-left position, highest logo on page, src contains logo, class contains logo, reasonable size, small square icon (likely UI icon, heavy penalty). Score: 110 (clear winner by 110 points)",
+    "confidence": 0.9,
+    "rejected": true
+  },
+  "confidence": {
+    "buttons": 0,
+    "colors": 0,
+    "overall": 0
+  }
+}

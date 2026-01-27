@@ -42,17 +42,48 @@ CONTEXTO DO PACIENTE:
 - EXAMES: {{patientContext.examResults}}
 - CONSULTAS RECENTES: {{patientContext.recentConsultations}}
 
-INSTRUÇÕES PARA O DOCUMENTO:
-1. Se for RECEITA: Liste os medicamentos ideais baseados nos sintomas/exames. Inclua nome, dosagem, frequência e duração. No campo 'instructions', dê orientações de estilo de vida.
-2. Se for ATESTADO: Escreva um texto formal recomendando afastamento (se necessário) ou confirmando comparecimento, baseando-se no contexto.
-3. Se for LAUDO: Faça uma análise técnica simplificada dos achados mencionados no contexto.
-4. Se for OUTRO: Gere um texto profissional genérico adequado ao contexto.
+INSTRUÇÕES OBRIGATÓRIAS PARA O DOCUMENTO:
+
+## RECEITA (documentType = "receita"):
+É OBRIGATÓRIO preencher TODOS os campos abaixo:
+- **title**: Título descritivo (ex: "Receita para Tratamento de Hipertensão")
+- **medications**: Lista de medicamentos com TODOS os campos preenchidos:
+  - name: Nome comercial ou genérico do medicamento (ex: "Losartana 50mg")
+  - dosage: Dosagem por administração (ex: "1 comprimido", "10ml", "2 cápsulas")
+  - frequency: Frequência de uso (ex: "1x ao dia", "8/8 horas", "de manhã e à noite")
+  - duration: Duração do tratamento (ex: "30 dias", "uso contínuo", "7 dias")
+  - instructions: Instruções específicas (ex: "Tomar em jejum", "Após as refeições", "Evitar álcool")
+- **instructions**: Observações gerais em formato Markdown com orientações de estilo de vida e cuidados
+
+## ATESTADO (documentType = "atestado"):
+É OBRIGATÓRIO preencher:
+- **title**: Título do atestado (ex: "Atestado Médico de Comparecimento")
+- **instructions**: Texto formal em Markdown com:
+  - Identificação do paciente
+  - Motivo do atestado (afastamento, comparecimento, aptidão)
+  - Período quando aplicável
+  - CID se necessário
+
+## LAUDO (documentType = "laudo"):
+É OBRIGATÓRIO preencher:
+- **title**: Título do laudo (ex: "Laudo de Avaliação Cardiológica")
+- **instructions**: Análise técnica em Markdown com:
+  - Histórico clínico resumido
+  - Exames analisados
+  - Achados e diagnóstico
+  - Conclusão e recomendações
+
+## OUTRO (documentType = "outro"):
+Preencha title e instructions conforme o contexto.
 
 REGRAS CRÍTICAS:
-- Use terminologia médica correta, mas clara.
-- Seja conciso e profissional.
-- Responda em Português Brasileiro.
-- Isso é APENAS UM RASCUNHO que será revisado por um médico humano.
+- TODOS os campos devem ser preenchidos - nunca deixe campos vazios
+- Para receitas, SEMPRE inclua pelo menos 1 medicamento com TODOS os 5 campos
+- Use terminologia médica correta, mas clara
+- O campo 'instructions' DEVE estar em formato Markdown para melhor legibilidade
+- Seja conciso e profissional
+- Responda em Português Brasileiro
+- Isso é APENAS UM RASCUNHO que será revisado por um médico humano
 
 Gere o rascunho estruturado no formato JSON definido:`,
 });
