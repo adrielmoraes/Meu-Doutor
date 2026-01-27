@@ -29,7 +29,8 @@ export type UsageType =
   | 'livekit'           // LiveKit video/audio
   | 'vision'            // Vision API usage
   | 'wellness_plan'     // Wellness plan generation
-  | 'podcast_script';   // Podcast script generation
+  | 'podcast_script'    // Podcast script generation
+  | 'llm';              // Generic LLM usage (document generation, etc.)
 
 interface TrackUsageParams {
   patientId: string;

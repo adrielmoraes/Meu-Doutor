@@ -116,7 +116,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                 errors.medications = 'Adicione pelo menos um medicamento';
                 isValid = false;
             } else {
-                const incompleteMed = validMeds.find(m => !m.dosage || !m.frequency || !m.duration);
+                const incompleteMed = validMeds.find(m => !m.dosage.trim() || !m.frequency.trim() || !m.duration.trim());
                 if (incompleteMed) {
                     errors.medications = 'Preencha dosagem, frequência e duração de todos os medicamentos';
                     isValid = false;
@@ -124,9 +124,11 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
             }
         }
 
-        if (!instructions.trim() && docType !== 'receita' && docType !== 'memed') {
-            errors.instructions = 'O conteúdo do documento é obrigatório';
-            isValid = false;
+        if (docType === 'atestado' || docType === 'laudo' || docType === 'outro') {
+            if (!instructions.trim()) {
+                errors.instructions = 'O conteúdo do documento é obrigatório';
+                isValid = false;
+            }
         }
 
         setValidationErrors(errors);

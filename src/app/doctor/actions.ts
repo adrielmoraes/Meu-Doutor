@@ -209,7 +209,13 @@ export async function searchMemedMedicinesAction(query: string) {
 
     const data = await response.json();
     const results = (data.data || []).map((item: any) => ({
-      name: item.nome,
+      id: item.id || item.nome || `med-${Date.now()}`,
+      nome: item.nome || item.name || '',
+      name: item.nome || item.name || '',
+      apresentacao: item.apresentacao || item.presentation || '',
+      presentation: item.apresentacao || item.presentation || '',
+      laboratorio: item.laboratorio || item.manufacturer || '',
+      manufacturer: item.laboratorio || item.manufacturer || '',
       dosage: '',
       frequency: '',
       duration: '',
