@@ -1,0 +1,32 @@
+Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+session.ts:88  Server  [Session Debug] getSession - sessionCookie: eyJhbGciOiJIUzI1NiJ9...
+session.ts:92  Server  [Session Debug] getSession - decryptedSession: {"userId":"84dff61e-73fb-45e2-b253-c26eb34c08f1","role":"patient","expires":"2026-02-02T23:19:58.427Z","iat":1769469598,"exp":1770074398}
+dashboard:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+use-livekit-warmup.ts:24 [LiveKit Warmup Hook] Starting warmup...
+livekit-warmup.ts:34 [LiveKit Warmup] Fetching new token
+livekit-warmup.ts:68 [LiveKit Warmup] Token cached successfully
+use-livekit-warmup.ts:29 [LiveKit Warmup Hook] ✅ Connection pre-loaded! Instant start ready.
+session.ts:88  Server  [Session Debug] getSession - sessionCookie: eyJhbGciOiJIUzI1NiJ9...
+session.ts:92  Server  [Session Debug] getSession - decryptedSession: {"userId":"84dff61e-73fb-45e2-b253-c26eb34c08f1","role":"patient","expires":"2026-02-02T23:19:58.427Z","iat":1769469598,"exp":1770074398}
+subscription-limits.ts:155  Server  [canUseResource] 🔍 Verificando recurso "aiConsultationMinutes" para paciente 84dff61e-73fb-45e2-b253-c26eb34c08f1
+subscription-limits.ts:161  Server  [canUseResource] customQuotas do paciente: {"examAnalysis":5,"aiConsultationMinutes":10,"doctorConsultationMinutes":0,"therapistChat":999999}
+subscription-limits.ts:167  Server  [canUseResource] ✅ COTA CUSTOMIZADA ENCONTRADA: 10
+subscription-limits.ts:168  Server  [canUseResource] Ignorando verificação de subscrição (admin override)
+subscription-limits.ts:183  Server  [canUseResource] Uso atual: 0, Limite customizado: 10
+subscription-limits.ts:197  Server  [canUseResource] Resultado: allowed=true
+livekit-consultation.tsx:302 [LiveKitConsultation] Initializing consultation Object
+livekit-warmup.ts:110 [LiveKit Warmup] Connection state cleared for patient: 84dff61e-73fb-45e2-b253-c26eb34c08f1
+livekit-warmup.ts:119 [LiveKit Warmup] Cleaning up room: mediai-consultation-84dff61e-73fb-45e2-b253-c26eb34c08f1
+livekit-consultation.tsx:302 [LiveKitConsultation] Timer effect running Object
+livekit-consultation.tsx:302 [LiveKitConsultation] Timer effect running Object
+live-consultation:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+livekit-warmup.ts:132 [LiveKit Warmup] Room cleaned up successfully
+livekit-consultation.tsx:302 [LiveKitConsultation] Previous room cleanup completed Object
+livekit-consultation.tsx:302 [LiveKitConsultation] Fetching initial token Object
+livekit-consultation.tsx:302 [LiveKitConsultation] Media permissions granted Object
+livekit-consultation.tsx:302 [LiveKitConsultation] Initial token received Object
+token-manager.ts:210 [TokenManager] Token set, will auto-refresh in 553s
+livekit-client.esm.mjs:23436 publishing track Object
+livekit-consultation.tsx:302 [LiveKitConsultation] LiveKitRoom onConnected callback Object
+livekit-client.esm.mjs:23436 publishing track Object
+livekit-client.esm.mjs:25288 already connected to room mediai-consultation-84dff61e-73fb-45e2-b253-c26eb34c08f1 {room: 'mediai-consultation-84dff61e-73fb-45e2-b253-c26eb34c08f1', roomID: 'RM_G9FTCRqekm5D', participant: 'Adriel da Silva Moraes', pID: 'PA_JpBTt2etvvNG'}

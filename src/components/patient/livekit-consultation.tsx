@@ -8,7 +8,8 @@ import {
   useRemoteParticipants,
   useTracks,
   useLocalParticipant,
-  useConnectionState
+  useConnectionState,
+  useRoomContext
 } from '@livekit/components-react';
 import { Track, Room, RoomEvent, VideoPresets } from 'livekit-client';
 import '@livekit/components-styles';
@@ -49,6 +50,33 @@ const CONNECTION_STATE_LABELS = {
   disconnected: 'Desconectado',
   error: 'Erro de conexão',
 } as const;
+
+interface RoomConnectionHandlerProps {
+  onRoomReady: (room: Room) => void;
+  onConnectionChange: (connected: boolean) => void;
+}
+
+function RoomConnectionHandler({ onRoomReady, onConnectionChange }: RoomConnectionHandlerProps) {
+  const room = useRoomContext();
+  const connectionState = useConnectionState();
+  const hasNotifiedRef = useRef(false);
+
+  useEffect(() => {
+    if (room && connectionState === 'connected' && !hasNotifiedRef.current) {
+      hasNotifiedRef.current = true;
+      console.log('[RoomConnectionHandler] Room connected, notifying parent');
+      onRoomReady(room);
+      onConnectionChange(true);
+    } else if (connectionState === 'disconnected') {
+      hasNotifiedRef.current = false;
+      onConnectionChange(false);
+    } else if (connectionState === 'reconnecting') {
+      onConnectionChange(false);
+    }
+  }, [room, connectionState, onRoomReady, onConnectionChange]);
+
+  return null;
+}
 
 function AvatarVideoDisplay({ audioOnlyMode }: { audioOnlyMode: boolean }) {
   const remoteParticipants = useRemoteParticipants();
@@ -492,6 +520,25 @@ export default function LiveKitConsultation({
     initializeConsultation();
   }, [isOnline, patientId, patientName, roomName, tokenManager, connectionSupervisor, logEvent]);
 
+  // Callbacks for RoomConnectionHandler (useCallback to avoid re-renders)
+  const handleRoomReady = useCallback((newRoom: Room) => {
+    logEvent('RoomConnectionHandler: Room ready');
+    setRoom(newRoom);
+    if (!consultationStartTime.current) {
+      consultationStartTime.current = Date.now();
+    }
+    connectionSupervisor.markConnected();
+    startHeartbeat();
+  }, [logEvent, connectionSupervisor, startHeartbeat]);
+
+  const handleConnectionChange = useCallback((connected: boolean) => {
+    logEvent('RoomConnectionHandler: Connection change', { connected });
+    setIsRoomConnected(connected);
+    if (!connected) {
+      stopHeartbeat();
+    }
+  }, [logEvent, stopHeartbeat]);
+
   // Track room connection and start heartbeat
   useEffect(() => {
     if (room) {
@@ -917,9 +964,8 @@ export default function LiveKitConsultation({
           deviceId: undefined,
           resolution: VideoPresets.h720.resolution,
         }}
-        onConnected={(room?: Room) => {
+        onConnected={() => {
           logEvent('LiveKitRoom onConnected callback');
-          if (room) setRoom(room);
         }}
         onDisconnected={() => {
           logEvent('LiveKitRoom onDisconnected callback');
@@ -987,6 +1033,12 @@ export default function LiveKitConsultation({
         }}
         className="h-full w-full"
       >
+        {/* Connection handler - uses hooks to detect room state */}
+        <RoomConnectionHandler 
+          onRoomReady={handleRoomReady} 
+          onConnectionChange={handleConnectionChange} 
+        />
+        
         <div className="relative h-full w-full">
           {/* Avatar Video - Full Screen */}
           <AvatarVideoDisplay audioOnlyMode={audioOnlyMode} />
