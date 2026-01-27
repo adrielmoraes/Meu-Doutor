@@ -357,8 +357,10 @@ export default function PatientDetailView({
                             <Files className="h-5 w-5 text-blue-500" />
                             <span className="tracking-tight">{exam.type}</span>
                             {exam.fileUrl && (
-                              <button
-                                className={`ml-auto text-xs font-bold flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-full border ${
+                              <span
+                                role="button"
+                                tabIndex={0}
+                                className={`ml-auto text-xs font-bold flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-full border cursor-pointer ${
                                   expandedDocuments[exam.id]
                                     ? 'text-white bg-blue-600 border-blue-600 hover:bg-blue-700'
                                     : 'text-blue-600 bg-blue-50 border-blue-100 hover:bg-blue-100'
@@ -366,6 +368,13 @@ export default function PatientDetailView({
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   toggleDocumentExpand(exam.id);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    toggleDocumentExpand(exam.id);
+                                  }
                                 }}
                               >
                                 {expandedDocuments[exam.id] ? (
@@ -379,7 +388,7 @@ export default function PatientDetailView({
                                     Ver Original
                                   </>
                                 )}
-                              </button>
+                              </span>
                             )}
                           </div>
                         </AccordionTrigger>
@@ -607,8 +616,10 @@ export default function PatientDetailView({
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{new Date(exam.date).toLocaleDateString('pt-BR')}</p>
                           </div>
                           {exam.fileUrl && (
-                            <button
-                              className={`ml-auto text-xs font-bold flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-full border ${
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              className={`ml-auto text-xs font-bold flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-full border cursor-pointer ${
                                 expandedDocuments[exam.id]
                                   ? 'text-white bg-emerald-600 border-emerald-600 hover:bg-emerald-700'
                                   : 'text-blue-600 bg-blue-50 border-blue-100 hover:bg-blue-100'
@@ -616,6 +627,13 @@ export default function PatientDetailView({
                               onClick={(e) => {
                                 e.stopPropagation();
                                 toggleDocumentExpand(exam.id);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  toggleDocumentExpand(exam.id);
+                                }
                               }}
                             >
                               {expandedDocuments[exam.id] ? (
@@ -629,7 +647,7 @@ export default function PatientDetailView({
                                   Ver Original
                                 </>
                               )}
-                            </button>
+                            </span>
                           )}
                         </div>
                       </AccordionTrigger>

@@ -1,0 +1,72 @@
+Console Error
+
+
+In HTML, <button> cannot be a descendant of <button>.
+This will cause a hydration error.
+
+See more info here: https://nextjs.org/docs/messages/react-hydration-error
+
+
+...
+    <Collapsible data-orientation="vertical" data-state="closed" __scopeCollapsible={{...}} className="border bor..." ...>
+      <CollapsibleProvider scope={{...}} disabled={undefined} contentId="radix-_r_f_" open={false} ...>
+        <Primitive.div data-state="closed" data-disabled={undefined} data-orientation="vertical" ...>
+          <div data-state="closed" data-disabled={undefined} data-orientation="vertical" className="border bor..." ...>
+            <_c2 className="text-sm fo...">
+              <AccordionHeader className="flex">
+                <Primitive.h3 data-orientation="vertical" data-state="closed" data-disabled={undefined} className="flex" ...>
+                  <h3 data-orientation="vertical" data-state="closed" data-disabled={undefined} className="flex" ...>
+                    <AccordionTrigger ref={null} className={"flex fle..."}>
+                      <AccordionCollectionItemSlot scope={undefined}>
+                        <AccordionCollectionItemSlot.Slot data-radix-collection-item="" ref={function}>
+                          <AccordionCollectionItemSlot.SlotClone data-radix-collection-item="" ref={function}>
+                            <CollapsibleTrigger aria-disabled={undefined} data-orientation="vertical" id="radix-_r_e_" ...>
+                              <Primitive.button type="button" aria-controls="radix-_r_f_" aria-expanded={false} ...>
+>                               <button
+>                                 type="button"
+>                                 aria-controls="radix-_r_f_"
+>                                 aria-expanded={false}
+>                                 data-state="closed"
+>                                 data-disabled={undefined}
+>                                 disabled={undefined}
+>                                 aria-disabled={undefined}
+>                                 data-orientation="vertical"
+>                                 id="radix-_r_e_"
+>                                 className={"flex flex-1 items-center justify-between transition-all [&[data-state=o..."}
+>                                 data-radix-collection-item=""
+>                                 onClick={function handleEvent}
+>                                 ref={function}
+>                               >
+                                  <div className="flex items...">
+                                    <Files>
+                                    <div>
+>                                   <button
+>                                     className="ml-auto text-xs font-bold flex items-center gap-1.5 transition-all px..."
+>                                     onClick={function onClick}
+>                                   >
+                                  ...
+            ...
+src/components/doctor/patient-detail-view.tsx (610:29) @ eval
+
+
+  608 |                           </div>
+  609 |                           {exam.fileUrl && (
+> 610 |                             <button
+      |                             ^
+  611 |                               className={`ml-auto text-xs font-bold flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-full border ${
+  612 |                                 expandedDocuments[exam.id]
+  613 |                                   ? 'text-white bg-emerald-600 border-emerald-600 hover:bg-emerald-700'
+Call Stack
+19
+
+Show 14 ignore-listed frame(s)
+button
+<anonymous>
+eval
+src/components/doctor/patient-detail-view.tsx (610:29)
+Array.map
+<anonymous>
+PatientDetailView
+src/components/doctor/patient-detail-view.tsx (600:35)
+PatientDetailPage
+src/app/doctor/patients/[id]/page.tsx (59:5)
