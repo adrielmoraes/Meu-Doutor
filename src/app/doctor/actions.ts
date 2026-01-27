@@ -228,7 +228,7 @@ export async function searchMemedMedicinesAction(query: string) {
  */
 export async function createMemedDocumentAction(params: {
   patientId: string;
-  documentType: 'receita' | 'atestado' | 'laudo' | 'exame';
+  documentType: 'receita' | 'atestado' | 'laudo' | 'exame' | 'memed' | 'outro';
   title?: string;
   medications?: Array<{
     name: string;

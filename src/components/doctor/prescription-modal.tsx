@@ -208,9 +208,9 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
         try {
             const result = await createMemedDocumentAction({
                 patientId: selectedPatientId,
-                documentType: docType === 'outro' ? 'receita' : docType,
+                documentType: docType,
                 title: docTitle || undefined,
-                medications: docType === 'receita' ? medications.filter(m => m.name) : undefined,
+                medications: (docType === 'receita' || docType === 'memed') ? medications.filter(m => m.name) : undefined,
                 observations: instructions,
             });
 
