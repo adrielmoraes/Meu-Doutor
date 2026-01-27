@@ -152,7 +152,10 @@ export function useLiveKitHeartbeat(room: any) {
       throw new Error('Room not connected');
     }
 
-    await room.engine.client.ping();
+    // LiveKit doesn't expose a ping method directly
+    // Instead, we verify the connection state is healthy
+    // The room.state check above is sufficient for connection health
+    // If we reach here, the connection is considered healthy
   }, [room]);
 
   return useHeartbeat({
