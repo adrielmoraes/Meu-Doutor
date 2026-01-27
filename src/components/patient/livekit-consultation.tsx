@@ -344,6 +344,7 @@ export default function LiveKitConsultation({
 
   // Component state
   const [room, setRoom] = useState<Room | null>(null);
+  const [isRoomConnected, setIsRoomConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentState, setCurrentState] = useState<'checking-network' | 'getting-token' | 'ready'>('checking-network');
   const [audioOnlyMode, setAudioOnlyMode] = useState(false);
@@ -497,7 +498,8 @@ export default function LiveKitConsultation({
       logEvent('Room instance created');
       
       const handleConnected = () => {
-        logEvent('Room connected event');
+        logEvent('Room connected event - starting timer');
+        setIsRoomConnected(true);
         if (!consultationStartTime.current) {
           consultationStartTime.current = Date.now();
         }
@@ -507,15 +509,18 @@ export default function LiveKitConsultation({
 
       const handleDisconnected = () => {
         logEvent('Room disconnected event');
+        setIsRoomConnected(false);
         stopHeartbeat();
       };
 
       const handleReconnecting = () => {
         logEvent('Room reconnecting event');
+        setIsRoomConnected(false);
       };
 
       const handleReconnected = () => {
         logEvent('Room reconnected event');
+        setIsRoomConnected(true);
         connectionSupervisor.markConnected();
       };
 
@@ -524,8 +529,13 @@ export default function LiveKitConsultation({
       room.on(RoomEvent.Reconnecting, handleReconnecting);
       room.on(RoomEvent.Reconnected, handleReconnected);
 
-      // Check if already connected
+      // Check if already connected (room was passed already connected)
       if (room.state === 'connected') {
+        logEvent('Room already connected on mount - starting timer');
+        setIsRoomConnected(true);
+        if (!consultationStartTime.current) {
+          consultationStartTime.current = Date.now();
+        }
         connectionSupervisor.markConnected();
         startHeartbeat();
       }
@@ -623,18 +633,20 @@ export default function LiveKitConsultation({
       }
     };
 
-    // Check if we should have a timer running
-    // Use room.state as source of truth, fallback to connectionSupervisor
-    const isRoomConnected = room?.state === 'connected';
-    const isSupervisorConnected = connectionSupervisor.state === 'connected';
-    const isConnected = room && (isRoomConnected || isSupervisorConnected);
-    
     // Use availableMinutes if defined, otherwise fall back to totalMinutes
     const effectiveMinutes = availableMinutes !== undefined ? availableMinutes : totalMinutes;
     const hasTimeLimit = effectiveMinutes !== undefined && effectiveMinutes !== Infinity;
 
+    logEvent('Timer effect running', {
+      isRoomConnected,
+      hasTimeLimit,
+      effectiveMinutes,
+      timeExpired,
+      timerStarted: timerStartedRef.current
+    });
+
     // If not connected, no time limit, or already expired, clear timer
-    if (!isConnected || !hasTimeLimit || timeExpired) {
+    if (!isRoomConnected || !hasTimeLimit || timeExpired) {
       clearTimer();
       timerStartedRef.current = false;
       return;
@@ -648,7 +660,8 @@ export default function LiveKitConsultation({
     // Start the timer
     timerStartedRef.current = true;
     logEvent('Starting time limit countdown', { 
-      effectiveMinutes
+      effectiveMinutes,
+      remainingSeconds
     });
 
     // Timer tick function
@@ -701,7 +714,7 @@ export default function LiveKitConsultation({
     timerIntervalRef.current = setInterval(timerTick, 1000);
 
     return clearTimer;
-  }, [room, connectionSupervisor.state, availableMinutes, totalMinutes, timeExpired, logEvent]);
+  }, [isRoomConnected, availableMinutes, totalMinutes, timeExpired, remainingSeconds, logEvent]);
 
   const endConsultation = useCallback(async () => {
     if (isEndingRef.current) return;
