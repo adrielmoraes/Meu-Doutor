@@ -167,6 +167,11 @@ export const AI_PRICING = {
   },
 } as const;
 
+// Normalize model name by removing provider prefix (e.g., 'googleai/gemini-2.5-flash' -> 'gemini-2.5-flash')
+function normalizeModelName(model: string): string {
+  return model.replace(/^(googleai\/|google\/|vertexai\/)/, '');
+}
+
 // Helper function to calculate LLM cost
 export function calculateLLMCost(
   model: string,
@@ -178,7 +183,8 @@ export function calculateLLMCost(
     hasThinking?: boolean;
   } = {}
 ): { inputCost: number; outputCost: number; totalCost: number } {
-  const pricing = AI_PRICING.models[model as keyof typeof AI_PRICING.models];
+  const normalizedModel = normalizeModelName(model);
+  const pricing = AI_PRICING.models[normalizedModel as keyof typeof AI_PRICING.models];
 
   if (!pricing) {
     console.warn(`[AI Pricing] Unknown model: ${model}, using gemini-2.5-flash pricing`);
