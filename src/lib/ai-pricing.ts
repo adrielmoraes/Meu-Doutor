@@ -74,6 +74,14 @@ export const AI_PRICING = {
       output: { all: 0.40 },
       knowledgeCutoff: '2025-01',
     },
+    // Gemini 3 Flash Preview (New)
+    'gemini-3-flash-preview': {
+      name: 'Gemini 3 Flash Preview',
+      description: 'Most intelligent model built for speed, combining frontier intelligence with superior search and grounding',
+      input: { all: 0.50 },
+      output: { all: 3.00 },
+      knowledgeCutoff: '2025-01',
+    },
   },
 
   // Image Generation Models (per 1M tokens for text, per image for output)
@@ -95,16 +103,25 @@ export const AI_PRICING = {
     },
   },
 
-  // Audio Models (per 1M tokens) - Official pricing Dec 2025
+  // Audio Models (per 1M tokens) - Official pricing Jan 2026
   audioModels: {
-    // Native Audio - Natural voice with better pacing, voice naturalness, mood
+    // Native Audio 12-2025 - Natural voice with better pacing, voice naturalness, mood
+    'gemini-2.5-flash-native-audio-preview-12-2025': {
+      name: 'Gemini 2.5 Flash Native Audio Preview 12-2025',
+      description: 'Native audio model optimized for higher quality audio outputs with better pacing, voice naturalness, verbosity, and mood',
+      textInput: 0.50,          // $0.50 per 1M text input tokens
+      textOutput: 2.00,         // $2.00 per 1M text output tokens
+      audioVideoInput: 3.00,    // $3.00 per 1M audio/video input tokens (STT)
+      audioVideoOutput: 12.00,  // $12.00 per 1M audio/video output tokens (TTS)
+    },
+    // Legacy Native Audio 09-2025 (keeping for backwards compatibility)
     'gemini-2.5-flash-native-audio-preview-09-2025': {
       name: 'Gemini 2.5 Flash Native Audio Preview',
-      description: 'Native audio models for higher quality audio outputs with better pacing, voice naturalness, verbosity, and mood',
+      description: 'Native audio models for higher quality audio outputs',
       textInput: 0.50,          // $0.50 per 1M text input tokens
-      textOutput: 12.00,        // $12.00 per 1M text output tokens
+      textOutput: 2.00,         // $2.00 per 1M text output tokens
       audioVideoInput: 3.00,    // $3.00 per 1M audio/video input tokens (STT)
-      audioVideoOutput: 2.00,   // $2.00 per 1M audio/video output tokens (TTS) - FIXED
+      audioVideoOutput: 12.00,  // $12.00 per 1M audio/video output tokens (TTS)
     },
     // Standard TTS Models
     'gemini-2.5-flash-preview-tts': {
@@ -122,13 +139,13 @@ export const AI_PRICING = {
   },
 
   // Live API Native Audio (for real-time consultations with Gemini 2.5 Flash Native Audio)
-  // Official pricing Dec 2025: https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash-native-audio
+  // Official pricing Jan 2026: gemini-2.5-flash-native-audio-preview-12-2025
   liveApiAudio: {
     // Gemini 2.5 Flash Native Audio (Live API)
     textInput: 0.50,           // $0.50 per 1M text input tokens
-    textOutput: 12.00,         // $12.00 per 1M text output tokens
+    textOutput: 2.00,          // $2.00 per 1M text output tokens
     audioVideoInput: 3.00,     // $3.00 per 1M audio/video input tokens (STT)
-    audioVideoOutput: 2.00,    // $2.00 per 1M audio/video output tokens (TTS) - FIXED: was incorrectly $12.00
+    audioVideoOutput: 12.00,   // $12.00 per 1M audio/video output tokens (TTS)
   },
 
   // Avatar Providers (per minute)

@@ -347,22 +347,22 @@ class MetricsCollector:
 
         # ========================================
         # GEMINI 2.5 Flash Native Audio (Live API) 
-        # Official Pricing Dec 2025 (Updated from Google AI Studio)
-        # https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash-native-audio
+        # Official Pricing Jan 2026 (gemini-2.5-flash-native-audio-preview-12-2025)
+        # https://ai.google.dev/gemini-api/docs/pricing
         # ========================================
         # Text Input: $0.50/1M tokens
-        # Text Output: $12.00/1M tokens
+        # Text Output: $2.00/1M tokens
         # Audio/Video Input (STT): $3.00/1M tokens
-        # Audio/Video Output (TTS): $2.00/1M tokens
+        # Audio/Video Output (TTS): $12.00/1M tokens
         # Vision/Image Input: $0.50/1M tokens (same as text for native audio)
-        # Vision Output: $12.00/1M tokens (same as text for native audio)
+        # Vision Output: $2.00/1M tokens (same as text for native audio)
 
         stt_cost_usd = (self.stt_tokens / 1_000_000) * 3.00       # Audio/Video input
         llm_input_cost_usd = (self.llm_input_tokens / 1_000_000) * 0.50    # Text input
-        llm_output_cost_usd = (self.llm_output_tokens / 1_000_000) * 12.00  # Text output
-        tts_cost_usd = (self.tts_tokens / 1_000_000) * 2.00       # Audio/Video output
+        llm_output_cost_usd = (self.llm_output_tokens / 1_000_000) * 2.00   # Text output
+        tts_cost_usd = (self.tts_tokens / 1_000_000) * 12.00      # Audio/Video output
         vision_input_cost_usd = (self.vision_input_tokens / 1_000_000) * 0.50  # Same as text input
-        vision_output_cost_usd = (self.vision_output_tokens / 1_000_000) * 12.00  # Same as text output
+        vision_output_cost_usd = (self.vision_output_tokens / 1_000_000) * 2.00  # Same as text output
 
         gemini_total_usd = (stt_cost_usd + llm_input_cost_usd + llm_output_cost_usd +
                            tts_cost_usd + vision_input_cost_usd +
@@ -417,15 +417,16 @@ class MetricsCollector:
             return
 
         # ========================================
-        # Calcular custo Gemini (Gemini 2.5 Flash Native Audio - Dec 2025 Updated)
+        # Calcular custo Gemini (Gemini 2.5 Flash Native Audio - Jan 2026 Updated)
+        # gemini-2.5-flash-native-audio-preview-12-2025
         # ========================================
         usd_to_brl = 5.42  # R$5,42 por $1 USD
         delta_stt_cost_usd = (delta_stt / 1_000_000) * 3.00       # Audio/Video input: $3.00/1M
         delta_llm_input_cost_usd = (delta_llm_input / 1_000_000) * 0.50    # Text input: $0.50/1M
-        delta_llm_output_cost_usd = (delta_llm_output / 1_000_000) * 12.00  # Text output: $12.00/1M
-        delta_tts_cost_usd = (delta_tts / 1_000_000) * 2.00       # Audio/Video output: $2.00/1M
+        delta_llm_output_cost_usd = (delta_llm_output / 1_000_000) * 2.00   # Text output: $2.00/1M
+        delta_tts_cost_usd = (delta_tts / 1_000_000) * 12.00      # Audio/Video output: $12.00/1M
         delta_vision_input_cost_usd = (delta_vision_input / 1_000_000) * 0.50  # Image: $0.50/1M
-        delta_vision_output_cost_usd = (delta_vision_output / 1_000_000) * 12.00  # Vision: $12.00/1M
+        delta_vision_output_cost_usd = (delta_vision_output / 1_000_000) * 2.00  # Vision: $2.00/1M
 
         delta_gemini_cost_usd = (delta_stt_cost_usd + delta_llm_input_cost_usd +
                                  delta_llm_output_cost_usd + delta_tts_cost_usd +
