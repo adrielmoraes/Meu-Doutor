@@ -349,24 +349,25 @@ export default async function PatientsPage() {
                             {patient.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right flex items-center justify-end gap-1">
-                          <PrescriptionModal
-                            doctor={{ id: session.userId }}
-                            patients={[patient]}
-                            initialPatientId={patient.id}
-                            variant="compact"
-                          />
-                          <Button
-                            asChild
-                            variant="ghost"
-                            size="sm"
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-medium"
-                          >
-                            <Link href={`/doctor/patients/${patient.id}`}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              Ver Prontuário
-                            </Link>
-                          </Button>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <PrescriptionModal
+                              doctor={{ id: session.userId }}
+                              patients={[patient]}
+                              initialPatientId={patient.id}
+                              variant="compact"
+                            />
+                            <Button
+                              asChild
+                              size="sm"
+                              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm rounded-lg px-4 py-2 h-9"
+                            >
+                              <Link href={`/doctor/patients/${patient.id}`}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver Prontuário
+                              </Link>
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );

@@ -282,8 +282,9 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
         <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
                 {variant === 'compact' ? (
-                    <Button variant="ghost" size="sm" className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 h-8 w-8 p-0" title="Gerar Prescrição/Documento">
+                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm rounded-lg px-3 py-2 h-9 gap-1.5" title="Gerar Prescrição/Documento">
                         <FileSignature className="h-4 w-4" />
+                        <span className="text-xs">Prescrição</span>
                     </Button>
                 ) : (
                     <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-sm rounded-xl">
