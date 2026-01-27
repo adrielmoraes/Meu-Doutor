@@ -78,6 +78,7 @@ export async function trackAIUsage({
       case 'wellness_plan':
       case 'podcast_script':
       case 'vision':
+      case 'llm':
         const llmCost = calculateLLMCost(model, estimatedInputTokens, estimatedOutputTokens, { contextLength });
         costUSD = llmCost.totalCost;
         resourceName = AI_PRICING.models[model as keyof typeof AI_PRICING.models]?.name || model;
