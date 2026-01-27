@@ -24,11 +24,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PatientTimeline from "./patient-timeline";
 import DiagnosisMacros from "./diagnosis-macros";
 import PrescriptionHelper from "./prescription-helper";
-import { Filter, ExternalLink, CheckSquare, Stethoscope, FileSignature } from "lucide-react";
+import { Filter, ExternalLink, CheckSquare, Stethoscope, FileSignature, Eye, EyeOff, Maximize2, X, Download } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import SoapEvolutionModal from "./soap-evolution-modal";
 import PrescriptionModal from "./prescription-modal";
 import type { Consultation, Prescription } from "@/types";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type PatientDetailViewProps = {
   patient: Patient;
@@ -127,6 +128,23 @@ export default function PatientDetailView({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedExams, setSelectedExams] = useState<string[]>([]);
   const [isBulkValidating, setIsBulkValidating] = useState(false);
+  const [expandedDocuments, setExpandedDocuments] = useState<Record<string, boolean>>({});
+  const [fullscreenDocument, setFullscreenDocument] = useState<{ url: string; title: string } | null>(null);
+
+  const toggleDocumentExpand = (examId: string) => {
+    setExpandedDocuments(prev => ({
+      ...prev,
+      [examId]: !prev[examId]
+    }));
+  };
+
+  const isImageUrl = (url: string) => {
+    return /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(url) || url.includes('image');
+  };
+
+  const isPdfUrl = (url: string) => {
+    return /\.pdf$/i.test(url) || url.includes('pdf');
+  };
 
   const handleNotesChange = (examId: string, newNotes: string) => {
     setValidationState(prev => ({
@@ -339,20 +357,88 @@ export default function PatientDetailView({
                             <Files className="h-5 w-5 text-blue-500" />
                             <span className="tracking-tight">{exam.type}</span>
                             {exam.fileUrl && (
-                              <a
-                                href={exam.fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="ml-auto text-xs font-bold flex items-center gap-1.5 text-blue-600 hover:text-blue-700 transition-all bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100"
-                                onClick={(e) => e.stopPropagation()}
+                              <button
+                                className={`ml-auto text-xs font-bold flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-full border ${
+                                  expandedDocuments[exam.id]
+                                    ? 'text-white bg-blue-600 border-blue-600 hover:bg-blue-700'
+                                    : 'text-blue-600 bg-blue-50 border-blue-100 hover:bg-blue-100'
+                                }`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleDocumentExpand(exam.id);
+                                }}
                               >
-                                <ExternalLink className="h-3 w-3" />
-                                Ver Original
-                              </a>
+                                {expandedDocuments[exam.id] ? (
+                                  <>
+                                    <EyeOff className="h-3 w-3" />
+                                    Ocultar
+                                  </>
+                                ) : (
+                                  <>
+                                    <Eye className="h-3 w-3" />
+                                    Ver Original
+                                  </>
+                                )}
+                              </button>
                             )}
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="space-y-6 pt-4 px-4 pb-6 border-t border-slate-50">
+                          {exam.fileUrl && expandedDocuments[exam.id] && (
+                            <div className="rounded-xl border border-blue-200 overflow-hidden bg-gradient-to-b from-blue-50/50 to-white">
+                              <div className="flex items-center justify-between px-4 py-3 bg-blue-50 border-b border-blue-100">
+                                <span className="text-sm font-bold text-blue-900 flex items-center gap-2">
+                                  <FileText className="h-4 w-4" />
+                                  Documento Original
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <a
+                                    href={exam.fileUrl}
+                                    download
+                                    className="p-1.5 rounded-lg bg-white border border-blue-200 text-blue-600 hover:bg-blue-100 transition-colors"
+                                    title="Baixar documento"
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </a>
+                                  <button
+                                    onClick={() => setFullscreenDocument({ url: exam.fileUrl!, title: exam.type })}
+                                    className="p-1.5 rounded-lg bg-white border border-blue-200 text-blue-600 hover:bg-blue-100 transition-colors"
+                                    title="Abrir em tela cheia"
+                                  >
+                                    <Maximize2 className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => toggleDocumentExpand(exam.id)}
+                                    className="p-1.5 rounded-lg bg-white border border-blue-200 text-slate-600 hover:bg-slate-100 transition-colors"
+                                    title="Fechar visualização"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="p-4">
+                                {isImageUrl(exam.fileUrl) ? (
+                                  <img
+                                    src={exam.fileUrl}
+                                    alt={`Documento: ${exam.type}`}
+                                    className="max-w-full h-auto max-h-[600px] mx-auto rounded-lg shadow-md"
+                                  />
+                                ) : isPdfUrl(exam.fileUrl) ? (
+                                  <iframe
+                                    src={exam.fileUrl}
+                                    className="w-full h-[600px] rounded-lg border border-slate-200"
+                                    title={`Documento: ${exam.type}`}
+                                  />
+                                ) : (
+                                  <iframe
+                                    src={exam.fileUrl}
+                                    className="w-full h-[600px] rounded-lg border border-slate-200"
+                                    title={`Documento: ${exam.type}`}
+                                  />
+                                )}
+                              </div>
+                            </div>
+                          )}
                           {exam.results && exam.results.length > 0 && (
                             <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl shadow-inner">
                               <h4 className="font-bold text-sm mb-4 text-slate-900 flex items-center gap-2">
@@ -521,20 +607,88 @@ export default function PatientDetailView({
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{new Date(exam.date).toLocaleDateString('pt-BR')}</p>
                           </div>
                           {exam.fileUrl && (
-                            <a
-                              href={exam.fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="ml-auto text-xs font-bold flex items-center gap-1.5 text-blue-600 hover:text-blue-700 transition-all bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100"
-                              onClick={(e) => e.stopPropagation()}
+                            <button
+                              className={`ml-auto text-xs font-bold flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-full border ${
+                                expandedDocuments[exam.id]
+                                  ? 'text-white bg-emerald-600 border-emerald-600 hover:bg-emerald-700'
+                                  : 'text-blue-600 bg-blue-50 border-blue-100 hover:bg-blue-100'
+                              }`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleDocumentExpand(exam.id);
+                              }}
                             >
-                              <ExternalLink className="h-3 w-3" />
-                              Ver Original
-                            </a>
+                              {expandedDocuments[exam.id] ? (
+                                <>
+                                  <EyeOff className="h-3 w-3" />
+                                  Ocultar
+                                </>
+                              ) : (
+                                <>
+                                  <Eye className="h-3 w-3" />
+                                  Ver Original
+                                </>
+                              )}
+                            </button>
                           )}
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="space-y-4 pt-4 px-4 pb-4 border-t border-slate-50 bg-slate-50/30">
+                        {exam.fileUrl && expandedDocuments[exam.id] && (
+                          <div className="rounded-xl border border-emerald-200 overflow-hidden bg-gradient-to-b from-emerald-50/50 to-white">
+                            <div className="flex items-center justify-between px-4 py-3 bg-emerald-50 border-b border-emerald-100">
+                              <span className="text-sm font-bold text-emerald-900 flex items-center gap-2">
+                                <FileText className="h-4 w-4" />
+                                Documento Original
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <a
+                                  href={exam.fileUrl}
+                                  download
+                                  className="p-1.5 rounded-lg bg-white border border-emerald-200 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                                  title="Baixar documento"
+                                >
+                                  <Download className="h-4 w-4" />
+                                </a>
+                                <button
+                                  onClick={() => setFullscreenDocument({ url: exam.fileUrl!, title: exam.type })}
+                                  className="p-1.5 rounded-lg bg-white border border-emerald-200 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                                  title="Abrir em tela cheia"
+                                >
+                                  <Maximize2 className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => toggleDocumentExpand(exam.id)}
+                                  className="p-1.5 rounded-lg bg-white border border-emerald-200 text-slate-600 hover:bg-slate-100 transition-colors"
+                                  title="Fechar visualização"
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                            <div className="p-4">
+                              {isImageUrl(exam.fileUrl) ? (
+                                <img
+                                  src={exam.fileUrl}
+                                  alt={`Documento: ${exam.type}`}
+                                  className="max-w-full h-auto max-h-[500px] mx-auto rounded-lg shadow-md"
+                                />
+                              ) : isPdfUrl(exam.fileUrl) ? (
+                                <iframe
+                                  src={exam.fileUrl}
+                                  className="w-full h-[500px] rounded-lg border border-slate-200"
+                                  title={`Documento: ${exam.type}`}
+                                />
+                              ) : (
+                                <iframe
+                                  src={exam.fileUrl}
+                                  className="w-full h-[500px] rounded-lg border border-slate-200"
+                                  title={`Documento: ${exam.type}`}
+                                />
+                              )}
+                            </div>
+                          </div>
+                        )}
                         {exam.results && exam.results.length > 0 && (
                           <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
                             <h4 className="font-bold text-[10px] uppercase tracking-wider mb-3 text-emerald-700 flex items-center gap-2">
@@ -634,6 +788,57 @@ export default function PatientDetailView({
           </Tabs>
         </div>
       </div>
+
+      <Dialog open={!!fullscreenDocument} onOpenChange={() => setFullscreenDocument(null)}>
+        <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] p-0 overflow-hidden">
+          <DialogHeader className="px-6 py-4 border-b border-slate-200 bg-slate-50">
+            <DialogTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-3 text-lg font-bold text-slate-900">
+                <FileText className="h-5 w-5 text-blue-600" />
+                {fullscreenDocument?.title || 'Documento'}
+              </span>
+              <div className="flex items-center gap-2">
+                {fullscreenDocument?.url && (
+                  <a
+                    href={fullscreenDocument.url}
+                    download
+                    className="p-2 rounded-lg bg-white border border-slate-200 text-blue-600 hover:bg-blue-50 transition-colors"
+                    title="Baixar documento"
+                  >
+                    <Download className="h-5 w-5" />
+                  </a>
+                )}
+                <a
+                  href={fullscreenDocument?.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors"
+                  title="Abrir em nova aba"
+                >
+                  <ExternalLink className="h-5 w-5" />
+                </a>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 h-[calc(90vh-80px)] p-4 bg-slate-100">
+            {fullscreenDocument?.url && (
+              isImageUrl(fullscreenDocument.url) ? (
+                <img
+                  src={fullscreenDocument.url}
+                  alt={`Documento: ${fullscreenDocument.title}`}
+                  className="max-w-full h-full object-contain mx-auto rounded-lg shadow-lg"
+                />
+              ) : (
+                <iframe
+                  src={fullscreenDocument.url}
+                  className="w-full h-full rounded-lg border border-slate-200 bg-white"
+                  title={`Documento: ${fullscreenDocument.title}`}
+                />
+              )
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
