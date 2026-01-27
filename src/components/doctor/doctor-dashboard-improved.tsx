@@ -189,41 +189,50 @@ export default function DoctorDashboardImproved({
       <div className="relative z-10 p-4 md:p-8 max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="mb-8 space-y-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-4">
-              <MediAILogo className="h-10 w-auto text-blue-600" />
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100">
-                <Sparkles className="h-4 w-4 text-blue-600" />
-                <span className="text-sm text-blue-800 font-medium">Portal do Médico</span>
-              </div>
-              <PrescriptionModal doctor={doctor} patients={patients} />
-            </div>
+          <div className="flex items-center justify-between">
+            <MediAILogo className="h-10 w-auto text-blue-600" />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="flex items-center gap-3 px-2 py-1 h-auto hover:bg-slate-100 rounded-full transition-colors"
+                  size="icon"
+                  className="h-10 w-10 hover:bg-slate-100 rounded-full transition-colors"
                 >
-                  <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
-                    <AvatarImage src={doctor.avatar || ''} alt={doctor.name} />
-                    <AvatarFallback className="bg-blue-600 text-white font-bold">
-                      {doctor.name.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="text-left hidden sm:block">
-                    <p className="text-sm font-semibold text-slate-900 leading-none">{doctor.name}</p>
-                    <p className="text-xs text-slate-500 mt-1">{doctor.specialty}</p>
-                  </div>
-                  <Menu className="h-4 w-4 text-slate-400 ml-2" />
+                  <Menu className="h-5 w-5 text-slate-600" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-56 bg-white border-slate-200 shadow-lg text-slate-700"
+                className="w-64 bg-white border-slate-200 shadow-lg text-slate-700"
               >
-                <DropdownMenuLabel className="text-slate-900">Minha Conta</DropdownMenuLabel>
+                <div className="px-3 py-2 border-b border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 border-2 border-slate-100">
+                      <AvatarImage src={doctor.avatar || ''} alt={doctor.name} />
+                      <AvatarFallback className="bg-blue-600 text-white font-bold">
+                        {doctor.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{doctor.name}</p>
+                      <p className="text-xs text-slate-500">{doctor.specialty}</p>
+                    </div>
+                  </div>
+                </div>
                 <DropdownMenuSeparator className="bg-slate-100" />
+                <DropdownMenuItem asChild>
+                  <Link href="/doctor" className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 focus:bg-slate-50">
+                    <Stethoscope className="h-4 w-4 text-blue-500" />
+                    <span>Portal do Médico</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/doctor/patients" className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 focus:bg-slate-50">
+                    <Users className="h-4 w-4 text-slate-500" />
+                    <span>Meus Pacientes</span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/doctor/profile" className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 focus:bg-slate-50">
                     <User className="h-4 w-4 text-slate-500" />
@@ -258,7 +267,8 @@ export default function DoctorDashboardImproved({
                 {formattedDate}
               </p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <PrescriptionModal doctor={doctor} patients={patients} />
               <OnlineStatusToggle initialStatus={doctor.online || false} doctorName={doctor.name} />
             </div>
           </div>
