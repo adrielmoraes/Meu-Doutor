@@ -114,8 +114,8 @@ export default async function UsagePage() {
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-semibold text-white">{stat.patientName}</h3>
-                      <p className="text-sm text-gray-400">{stat.patientEmail}</p>
+                      <h3 className="font-semibold text-white">{stat.patientName || 'Paciente sem nome'}</h3>
+                      <p className="text-sm text-gray-400">{stat.patientEmail || 'Email não informado'}</p>
                       <p className="text-xs text-gray-500 mt-1">
                         Entrada: {stat.totalInputTokens.toLocaleString()} • Saída: {stat.totalOutputTokens.toLocaleString()}
                       </p>
