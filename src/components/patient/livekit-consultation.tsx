@@ -528,16 +528,14 @@ export default function LiveKitConsultation({
       consultationStartTime.current = Date.now();
     }
     connectionSupervisor.markConnected();
-    startHeartbeat();
-  }, [logEvent, connectionSupervisor, startHeartbeat]);
+    // Note: startHeartbeat is called in the useEffect when room is set
+  }, [logEvent, connectionSupervisor]);
 
   const handleConnectionChange = useCallback((connected: boolean) => {
     logEvent('RoomConnectionHandler: Connection change', { connected });
     setIsRoomConnected(connected);
-    if (!connected) {
-      stopHeartbeat();
-    }
-  }, [logEvent, stopHeartbeat]);
+    // Note: stopHeartbeat is handled in the useEffect when room disconnects
+  }, [logEvent]);
 
   // Track room connection and start heartbeat
   useEffect(() => {
