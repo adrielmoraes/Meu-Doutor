@@ -143,29 +143,45 @@ export function useHeartbeat(options: HeartbeatOptions) {
  * ```
  */
 export function useLiveKitHeartbeat(room: any) {
-  const sendPing = useCallback(async () => {
-    if (!room) {
-      throw new Error('Room not available');
-    }
+  const [isHealthy, setIsHealthy] = useState(true);
+  const [latency, setLatency] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isRunningRef = useRef(false);
 
-    if (room.state !== 'connected') {
-      throw new Error('Room not connected');
-    }
-
-    // LiveKit doesn't expose a ping method directly
-    // Instead, we verify the connection state is healthy
-    // The room.state check above is sufficient for connection health
-    // If we reach here, the connection is considered healthy
+  const start = useCallback(() => {
+    if (isRunningRef.current || !room) return;
+    isRunningRef.current = true;
+    
+    // Check room health periodically
+    intervalRef.current = setInterval(() => {
+      if (room && room.state === 'connected') {
+        setIsHealthy(true);
+        setLatency(0); // LiveKit doesn't expose latency
+      } else {
+        setIsHealthy(false);
+        console.warn('[LiveKitHeartbeat] Room connection unhealthy');
+      }
+    }, 10000);
   }, [room]);
 
-  return useHeartbeat({
-    intervalMs: 10000,
-    timeoutMs: 5000,
-    sendPing,
-    onUnhealthy: () => {
-      console.warn('[LiveKitHeartbeat] Room connection unhealthy');
-    },
-  });
+  const stop = useCallback(() => {
+    isRunningRef.current = false;
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
+
+  return { isHealthy, latency, start, stop };
 }
 
 /**
