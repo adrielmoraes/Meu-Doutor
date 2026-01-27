@@ -309,6 +309,7 @@ export type PatientUsageStats = {
     consultationFlow: number; // tokens
     liveConsultation: number; // tokens
     vision: number; // tokens
+    avatar: number; // segundos - uso de avatar (Tavus/BEY)
   };
 };
 

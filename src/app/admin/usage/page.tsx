@@ -256,6 +256,13 @@ export default async function UsagePage() {
                         </div>
                         <p className="font-medium text-white">{stat.breakdown.vision.toLocaleString()} tokens</p>
                       </div>
+                      <div className="p-2 rounded bg-slate-950/50">
+                        <div className="flex items-center gap-1 text-gray-400 mb-1">
+                          <Video className="h-3 w-3" />
+                          <span className="text-xs">Avatar (Tavus/BEY)</span>
+                        </div>
+                        <p className="font-medium text-white">{formatDuration(stat.breakdown.avatar)}</p>
+                      </div>
                     </div>
                   </details>
                 </div>

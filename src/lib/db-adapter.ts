@@ -1035,6 +1035,7 @@ export async function getPatientUsageStats(patientId: string): Promise<PatientUs
         consultationFlow: 0,
         liveConsultation: 0,
         vision: 0,
+        avatar: 0,
       },
     } as PatientUsageStats;
   }
@@ -1068,6 +1069,7 @@ export async function getPatientUsageStats(patientId: string): Promise<PatientUs
       consultationFlow: 0,
       liveConsultation: 0,
       vision: 0,
+      avatar: 0,
     },
   };
 
@@ -1125,6 +1127,10 @@ export async function getPatientUsageStats(patientId: string): Promise<PatientUs
         break;
       case 'vision':
         stats.breakdown.vision += record.tokensUsed || 0;
+        break;
+      case 'avatar':
+        stats.breakdown.avatar += record.durationSeconds || 0;
+        stats.aiCallDuration += record.durationSeconds || 0;
         break;
     }
   }
