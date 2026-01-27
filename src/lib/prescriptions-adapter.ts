@@ -10,7 +10,7 @@ export interface Prescription {
     medications: any; // Using any for JSON structure
     instructions?: string | null;
     signedPdfUrl?: string | null;
-    signatureMethod?: 'a1_local' | 'bry_cloud' | null;
+    signatureMethod?: 'a1_local' | 'bry_cloud' | 'birdid_cloud' | null;
     bryTransactionId?: string | null;
     externalId?: string | null;
     status: 'draft' | 'pending_process' | 'signed' | 'error';

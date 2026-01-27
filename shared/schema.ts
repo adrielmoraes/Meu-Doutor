@@ -11,7 +11,7 @@ export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'succeeded
 export const avatarProviderEnum = pgEnum('avatar_provider', ['tavus', 'bey']);
 export const prescriptionStatusEnum = pgEnum('prescription_status', ['draft', 'pending_process', 'signed', 'error']);
 export const documentTypeEnum = pgEnum('document_type', ['receita', 'atestado', 'laudo', 'outro']);
-export const signatureMethodEnum = pgEnum('signature_method', ['a1_local', 'bry_cloud']);
+export const signatureMethodEnum = pgEnum('signature_method', ['a1_local', 'bry_cloud', 'birdid_cloud']);
 
 export const patients = pgTable('patients', {
   id: text('id').primaryKey(),

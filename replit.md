@@ -112,3 +112,18 @@ Critical variables for production:
 - **Required Secrets**: `MEMED_API_KEY`, `MEMED_SECRET_KEY`, `MEMED_API_URL`
 - **Important**: Homologation environment is **unavailable** from 00:00-06:00 on weekdays and **all weekend**
 - **Medication Autocomplete**: Uses local Brazilian medication database (Memed doesn't provide search endpoint)
+
+### Digital Signature - BirdID Integration (Soluti/VaultID)
+- **Provider**: Soluti BirdID - Certificado Digital ICP-Brasil em nuvem
+- **API Documentation**: https://docs.vaultid.com.br/workspace/cess/api
+- **Production API**: `https://cess.vaultid.com.br`
+- **Homologation API**: `https://cess.lab.vaultid.com.br`
+- **OAuth URL**: `https://api.birdid.com.br`
+- **Required Secrets**: `BIRDID_CLIENT_ID`, `BIRDID_CLIENT_SECRET`
+- **Environment Variables**: `BIRDID_API_URL`, `BIRDID_OAUTH_URL`, `BIRDID_REDIRECT_URI`
+- **Signature Flow**: 
+  1. Create signature request with PDF upload
+  2. Redirect user to BirdID OAuth authorization
+  3. Callback receives authorization code
+  4. Finalize signature and download signed PDF
+- **Authentication Methods**: Basic Auth (credentials), Bearer Token (OAuth2), VCSchemaCfg header

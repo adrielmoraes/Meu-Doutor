@@ -29,6 +29,13 @@
       "when": 1765818983593,
       "tag": "0003_magenta_power_man",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1769508206339,
+      "tag": "0004_gray_excalibur",
+      "breakpoints": true
     }
   ]
 }

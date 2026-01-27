@@ -280,10 +280,9 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
         }
     };
 
-    const handleSignBry = () => {
+    const handleSignBirdId = () => {
         if (!currentPrescriptionId) return;
-        // Redirect to Auth
-        window.location.href = `/api/prescriptions/${currentPrescriptionId}/sign/bry/init`;
+        window.location.href = `/api/prescriptions/${currentPrescriptionId}/sign/birdid/init`;
     };
 
     const handleMemedSuccess = async (prescriptionData: any) => {
@@ -778,15 +777,15 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                 <div className="bg-sky-50 border border-sky-200 p-5 rounded-xl space-y-3">
                                     <div className="flex items-center gap-2 text-sky-800 font-bold text-lg">
                                         <Cloud className="h-6 w-6 text-sky-600" />
-                                        Assinatura em Nuvem (BRy Cloud)
+                                        Assinatura em Nuvem (BirdID)
                                     </div>
                                     <p className="text-sm text-sky-700 leading-relaxed">
-                                        Você será redirecionado para o portal seguro da BRy Tecnologia.
-                                        Suporte nativo para certificados em nuvem como <strong>BirdID, Vidaas, SafeID, NeoID</strong> e outros.
+                                        Você será redirecionado para o portal seguro da <strong>Soluti BirdID</strong>.
+                                        Certificado digital ICP-Brasil em nuvem com validade jurídica.
                                     </p>
                                 </div>
-                                <Button onClick={handleSignBry} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md h-11 text-base">
-                                    Ir para Portal de Assinatura
+                                <Button onClick={handleSignBirdId} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md h-11 text-base">
+                                    Assinar com BirdID
                                 </Button>
                             </TabsContent>
                         </Tabs>
