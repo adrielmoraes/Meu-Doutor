@@ -22,11 +22,13 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [audioLoaded, setAudioLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [hasSavedAudio, setHasSavedAudio] = useState(!!preGeneratedAudioUri);
   const [resolvedAudioUri, setResolvedAudioUri] = useState<string | null>(preGeneratedAudioUri || null);
+  const [audioError, setAudioError] = useState<string | null>(null);
+  
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playPromiseRef = useRef<Promise<void> | null>(null);
   const { toast } = useToast();
 
   const isTextTooLong = (textToSpeak || "").length > MAX_TTS_CHARS;
@@ -80,124 +82,210 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
   }, [fetchSavedAudio, isTextTooLong, preGeneratedAudioUri, resolvedAudioUri]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && !audioRef.current) {
-      audioRef.current = new Audio();
-    }
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    audio.preload = 'auto';
-    audio.crossOrigin = 'anonymous';
-
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => {
-      setIsPlaying(false);
-      setIsPaused(true);
-    };
-    const handleEnded = () => {
-      setIsPlaying(false);
-      setIsPaused(false);
-    };
-    const handleCanPlay = () => setAudioLoaded(true);
-
-    audio.addEventListener('play', handlePlay);
-    audio.addEventListener('pause', handlePause);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('canplay', handleCanPlay);
-
-    if (resolvedAudioUri) {
-      audio.src = resolvedAudioUri;
-      audio.load();
-      setHasSavedAudio(true);
-      setAudioLoaded(true);
-      setIsPaused(false);
-    } else {
-      audio.pause();
-      audio.removeAttribute('src');
-      audio.load();
-      setIsPlaying(false);
-      setIsPaused(false);
-      setAudioLoaded(false);
-      setHasSavedAudio(false);
-    }
-
     return () => {
-      audio.removeEventListener('play', handlePlay);
-      audio.removeEventListener('pause', handlePause);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('canplay', handleCanPlay);
-      audio.pause();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
     };
-  }, [resolvedAudioUri, section, textToSpeak]);
+  }, []);
+
+  const safePlay = async (audio: HTMLAudioElement): Promise<boolean> => {
+    try {
+      if (playPromiseRef.current) {
+        await playPromiseRef.current.catch(() => {});
+      }
+      
+      console.log('[Audio] Starting playback...');
+      playPromiseRef.current = audio.play();
+      await playPromiseRef.current;
+      playPromiseRef.current = null;
+      console.log('[Audio] Playback started successfully');
+      return true;
+    } catch (error: any) {
+      playPromiseRef.current = null;
+      console.error('[Audio] Play error:', error.name, error.message);
+      if (error.name === 'AbortError') {
+        return false;
+      }
+      throw error;
+    }
+  };
+
+  const safePause = async (audio: HTMLAudioElement) => {
+    if (playPromiseRef.current) {
+      try {
+        await playPromiseRef.current;
+      } catch {
+      }
+      playPromiseRef.current = null;
+    }
+    audio.pause();
+  };
+
+  const loadAudio = (audio: HTMLAudioElement, url: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const cleanup = () => {
+        audio.removeEventListener('canplaythrough', onCanPlay);
+        audio.removeEventListener('loadeddata', onLoadedData);
+        audio.removeEventListener('error', onError);
+        clearTimeout(timeoutId);
+      };
+
+      const onCanPlay = () => {
+        console.log('[Audio] canplaythrough event received');
+        cleanup();
+        resolve();
+      };
+
+      const onLoadedData = () => {
+        console.log('[Audio] loadeddata event received');
+        cleanup();
+        resolve();
+      };
+      
+      const onError = (e: Event) => {
+        const mediaError = audio.error;
+        let errorMsg = 'Erro ao carregar áudio';
+        if (mediaError) {
+          switch (mediaError.code) {
+            case MediaError.MEDIA_ERR_ABORTED:
+              errorMsg = 'Carregamento do áudio foi abortado';
+              break;
+            case MediaError.MEDIA_ERR_NETWORK:
+              errorMsg = 'Erro de rede ao carregar áudio';
+              break;
+            case MediaError.MEDIA_ERR_DECODE:
+              errorMsg = 'Formato de áudio não suportado';
+              break;
+            case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+              errorMsg = 'Formato ou URL de áudio não suportado';
+              break;
+          }
+        }
+        console.error('[Audio] Load error:', errorMsg, mediaError);
+        cleanup();
+        reject(new Error(errorMsg));
+      };
+
+      const timeoutId = setTimeout(() => {
+        console.warn('[Audio] Load timeout, attempting to play anyway');
+        cleanup();
+        resolve();
+      }, 10000);
+
+      audio.addEventListener('canplaythrough', onCanPlay);
+      audio.addEventListener('loadeddata', onLoadedData);
+      audio.addEventListener('error', onError);
+      
+      console.log('[Audio] Loading audio from:', url.substring(0, 60) + '...');
+      audio.src = url;
+      audio.load();
+    });
+  };
 
   const toggleAudio = async () => {
+    setAudioError(null);
+    
     if (!audioRef.current) {
       audioRef.current = new Audio();
-      audioRef.current.preload = 'auto';
-      audioRef.current.crossOrigin = 'anonymous';
     }
+    
+    const audio = audioRef.current;
 
     if (isPlaying) {
-      audioRef.current.pause();
+      await safePause(audio);
+      setIsPlaying(false);
       return;
     }
 
-    if (isPaused && audioRef.current.src) {
-      audioRef.current.play().catch(e => console.error("Audio resume failed:", e));
+    if (audio.src && audio.currentTime > 0 && audio.paused) {
+      setIsLoading(true);
+      try {
+        const played = await safePlay(audio);
+        if (played) setIsPlaying(true);
+      } catch (e) {
+        console.error("Resume failed:", e);
+        setAudioError("Erro ao retomar áudio");
+      } finally {
+        setIsLoading(false);
+      }
       return;
     }
 
-    if (audioLoaded && audioRef.current.src) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+    if (resolvedAudioUri) {
+      setIsLoading(true);
+      try {
+        await loadAudio(audio, resolvedAudioUri);
+        audio.currentTime = 0;
+        
+        audio.onended = () => {
+          setIsPlaying(false);
+        };
+        audio.onpause = () => {
+          if (audio.currentTime < audio.duration) {
+            setIsPlaying(false);
+          }
+        };
+
+        const played = await safePlay(audio);
+        if (played) setIsPlaying(true);
+      } catch (e) {
+        console.error("Play failed:", e);
+        setAudioError("Erro ao reproduzir áudio");
+      } finally {
+        setIsLoading(false);
+      }
       return;
     }
 
     setIsGenerating(true);
     try {
-      const existingUri = resolvedAudioUri || await fetchSavedAudio();
-      if (existingUri) {
-        audioRef.current.src = existingUri;
-        audioRef.current.load();
-        setAudioLoaded(true);
-        setIsPaused(false);
-        audioRef.current.currentTime = 0;
-        await audioRef.current.play();
-        return;
+      const existingUri = await fetchSavedAudio();
+      let urlToPlay = existingUri;
+
+      if (!urlToPlay) {
+        const saveResponse = await fetch('/api/wellness-audio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ section, text: textToSpeak, patientId }),
+        });
+
+        const saveData = await saveResponse.json().catch(() => ({}));
+        if (!saveResponse.ok || !saveData?.url) {
+          const details = typeof saveData?.error === 'string' ? saveData.error : '';
+          throw new Error(details || "Não foi possível gerar o áudio.");
+        }
+
+        urlToPlay = saveData.url as string;
+        setResolvedAudioUri(urlToPlay);
+        setHasSavedAudio(true);
       }
 
-      const saveResponse = await fetch('/api/wellness-audio', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ section, text: textToSpeak, patientId }),
-      });
+      await loadAudio(audio, urlToPlay);
+      audio.currentTime = 0;
+      
+      audio.onended = () => {
+        setIsPlaying(false);
+      };
+      audio.onpause = () => {
+        if (audio.currentTime < audio.duration) {
+          setIsPlaying(false);
+        }
+      };
 
-      const saveData = await saveResponse.json().catch(() => ({}));
-      if (!saveResponse.ok || !saveData?.url) {
-        const details = typeof saveData?.error === 'string' ? saveData.error : '';
-        throw new Error(details || "Não foi possível gerar/salvar o áudio.");
-      }
-
-      const url = saveData.url as string;
-      setResolvedAudioUri(url);
-      setHasSavedAudio(true);
-      audioRef.current.src = url;
-      audioRef.current.load();
-      setAudioLoaded(true);
-      setIsPaused(false);
-      audioRef.current.currentTime = 0;
-      await audioRef.current.play();
-      console.log(`[Wellness Audio] Audio ready for section "${section}"`);
-      return;
+      const played = await safePlay(audio);
+      if (played) setIsPlaying(true);
+      
     } catch (error: any) {
-      console.error("Failed to generate audio:", error);
+      console.error("Failed to generate/play audio:", error);
 
-      // Ignore AbortError which happens when pausing while loading/playing
-      if (error.name === 'AbortError' || error.message?.includes('interrupted by a call to pause')) {
+      if (error.name === 'AbortError') {
         return;
       }
 
-      const errorMessage = error instanceof Error ? error.message : "Não foi possível reproduzir o áudio. Tente novamente.";
+      const errorMessage = error instanceof Error ? error.message : "Erro ao reproduzir áudio.";
+      setAudioError(errorMessage);
       toast({
         variant: "destructive",
         title: "Erro no Áudio",
@@ -215,13 +303,13 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
     if (isGenerating) {
       return <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Gerando Áudio...</>;
     }
+    if (isLoading) {
+      return <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Carregando...</>;
+    }
     if (isPlaying) {
       return <><PauseCircle className="mr-2 h-5 w-5" /> Pausar Áudio</>;
     }
-    if (isPaused) {
-      return <><PlayCircle className="mr-2 h-5 w-5" /> Continuar Ouvindo</>;
-    }
-    if (hasSavedAudio && audioLoaded) {
+    if (hasSavedAudio) {
       return <><CheckCircle className="mr-2 h-5 w-5 text-green-500" /> Ouvir Recomendação</>;
     }
     return <><Volume2 className="mr-2 h-5 w-5" /> Ouvir Recomendação</>;
@@ -231,7 +319,7 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
     <div className="mt-4">
       <Button
         onClick={toggleAudio}
-        disabled={isGenerating || isTextTooLong}
+        disabled={isGenerating || isLoading || isTextTooLong}
         aria-label={isPlaying ? "Pausar áudio" : "Reproduzir áudio"}
         size="lg"
         className="w-full"
@@ -239,7 +327,12 @@ const WellnessAudioPlayback: React.FC<WellnessAudioPlaybackProps> = ({
       >
         {getButtonContent()}
       </Button>
-      {hasSavedAudio && !isGenerating && (
+      {audioError && (
+        <p className="text-xs text-red-500 mt-2 text-center">
+          {audioError}
+        </p>
+      )}
+      {hasSavedAudio && !isGenerating && !audioError && (
         <p className="text-xs text-muted-foreground mt-2 text-center">
           Áudio salvo - não será necessário gerar novamente
         </p>
