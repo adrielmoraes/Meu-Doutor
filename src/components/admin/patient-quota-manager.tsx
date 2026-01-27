@@ -123,7 +123,7 @@ export default function PatientQuotaManager({ patientId, customQuotas, currentPl
               </div>
               Gerenciar Cotas do Paciente
             </CardTitle>
-            <CardDescription className="mt-2">
+            <CardDescription className="mt-2 text-slate-300">
               Defina cotas personalizadas para este paciente. Deixe vazio para usar os limites do plano.
             </CardDescription>
           </div>

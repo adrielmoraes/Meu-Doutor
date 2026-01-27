@@ -49,7 +49,7 @@ export default async function AdminPatientDetailPage({ params }: { params: { id:
       <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-cyan-500/20">
         <CardHeader>
           <CardTitle className="text-white">Informações do Paciente</CardTitle>
-          <CardDescription>Dados cadastrais e informações de contato</CardDescription>
+          <CardDescription className="text-slate-300">Dados cadastrais e informações de contato</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -146,7 +146,7 @@ export default async function AdminPatientDetailPage({ params }: { params: { id:
       <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-green-500/20">
         <CardHeader>
           <CardTitle className="text-white">Histórico de Exames</CardTitle>
-          <CardDescription>Todos os exames enviados pelo paciente</CardDescription>
+          <CardDescription className="text-slate-300">Todos os exames enviados pelo paciente</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -189,7 +189,7 @@ export default async function AdminPatientDetailPage({ params }: { params: { id:
       <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-orange-500/20">
         <CardHeader>
           <CardTitle className="text-white">Histórico de Consultas</CardTitle>
-          <CardDescription>Todas as consultas realizadas</CardDescription>
+          <CardDescription className="text-slate-300">Todas as consultas realizadas</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">

@@ -60,7 +60,7 @@ export default async function AdminPatientsPage() {
       <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-cyan-500/20">
         <CardHeader>
           <CardTitle className="text-white">Lista de Pacientes</CardTitle>
-          <CardDescription>Visualize e gerencie todos os pacientes cadastrados</CardDescription>
+          <CardDescription className="text-slate-300">Visualize e gerencie todos os pacientes cadastrados</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
