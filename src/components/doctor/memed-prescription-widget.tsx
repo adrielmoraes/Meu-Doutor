@@ -89,11 +89,11 @@ export default function MemedPrescriptionWidget({ doctor, patient, onSuccess, on
             {token && (
                 <>
                     <Script
-                        src="https://sandbox.memed.com.br/modulos/plataforma.sinapse-prescricao/build/sinapse-prescricao.min.js"
+                        src="https://integrations.memed.com.br/modulos/plataforma.sinapse-prescricao/build/sinapse-prescricao.min.js"
                         data-token={token}
                         data-container="memed-container"
                         onLoad={() => {
-                            console.log('Memed SDK Loaded');
+                            console.log('Memed SDK Loaded - Ambiente de Homologação');
                         }}
                     />
                     <div id="memed-container" className="w-full h-full">

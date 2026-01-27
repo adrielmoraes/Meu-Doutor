@@ -105,3 +105,10 @@ Critical variables for production:
 
 ### Monitoring
 - Sentry (for error tracking and performance monitoring)
+
+### Digital Prescription - Memed Integration
+- **Environment**: Homologação (testing) at `https://integrations.api.memed.com.br/v1`
+- **Script URL**: `https://integrations.memed.com.br/modulos/plataforma.sinapse-prescricao/build/sinapse-prescricao.min.js`
+- **Required Secrets**: `MEMED_API_KEY`, `MEMED_SECRET_KEY`, `MEMED_API_URL`
+- **Important**: Homologation environment is **unavailable** from 00:00-06:00 on weekdays and **all weekend**
+- **Medication Autocomplete**: Uses local Brazilian medication database (Memed doesn't provide search endpoint)
