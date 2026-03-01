@@ -194,19 +194,8 @@ export default function PatientDetailView({
     }
   };
 
-  // Pre-fetch AI analysis for the first pending exam or on mount
-  useEffect(() => {
-    const firstPendingExam = exams.find(e => e.status === 'Requer Validação');
-    if (firstPendingExam) {
-      handleGenerateDiagnosis(firstPendingExam.id);
-    }
-  }, []);
-
-  const handleAccordionChange = (value: string) => {
-    if (value) {
-      handleGenerateDiagnosis(value);
-    }
-  };
+  // Parecer Médico é gerado SOMENTE pelo clique no botão "Gerar Parecer (IA)"
+  // Não há mais pre-fetch automático nem geração ao expandir accordion.
 
 
   const handleSaveDraft = async (examId: string) => {
@@ -389,7 +378,7 @@ export default function PatientDetailView({
             </CardHeader>
             <CardContent className="p-6">
               {pendingExams.length > 0 ? (
-                <Accordion type="single" collapsible className="w-full space-y-4" defaultValue={pendingExams[0].id} onValueChange={handleAccordionChange}>
+                <Accordion type="single" collapsible className="w-full space-y-4" defaultValue={pendingExams[0].id}>
                   {pendingExams.map(exam => {
                     const state = validationState[exam.id];
                     return (
