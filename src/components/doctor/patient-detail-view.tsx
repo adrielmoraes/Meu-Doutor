@@ -133,6 +133,7 @@ export default function PatientDetailView({
   const [isBulkValidating, setIsBulkValidating] = useState(false);
   const [expandedDocuments, setExpandedDocuments] = useState<Record<string, boolean>>({});
   const [fullscreenDocument, setFullscreenDocument] = useState<{ url: string; title: string } | null>(null);
+  const [fullscreenEditor, setFullscreenEditor] = useState<{ examId: string; title: string } | null>(null);
 
   const toggleDocumentExpand = (examId: string) => {
     setExpandedDocuments(prev => ({
@@ -574,7 +575,19 @@ export default function PatientDetailView({
                               <AIAnalysisCollapsible exam={exam} />
 
                               <div className="p-6 border border-slate-200 rounded-xl bg-white shadow-sm ring-1 ring-slate-100 flex-1 flex flex-col">
-                                <h3 className="font-extrabold text-xl mb-4 text-slate-900 tracking-tight">Parecer Médico Final</h3>
+                                <div className="flex items-center justify-between mb-4">
+                                  <h3 className="font-extrabold text-xl text-slate-900 tracking-tight">Parecer Médico Final</h3>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setFullscreenEditor({ examId: exam.id, title: exam.type })}
+                                    className="text-slate-500 hover:text-blue-600 hover:bg-blue-50 border-slate-200 h-9 px-3 font-bold gap-1.5"
+                                    title="Expandir editor em tela cheia"
+                                  >
+                                    <Maximize2 className="h-4 w-4" />
+                                    <span className="hidden sm:inline text-xs">Tela Cheia</span>
+                                  </Button>
+                                </div>
 
                                 <Button
                                   onClick={() => handleGenerateDiagnosis(exam.id)}
@@ -880,6 +893,89 @@ export default function PatientDetailView({
           </Tabs>
         </div>
       </div>
+
+      {/* Dialog do Editor em Tela Cheia */}
+      <Dialog open={!!fullscreenEditor} onOpenChange={() => setFullscreenEditor(null)}>
+        <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] p-0 overflow-hidden flex flex-col">
+          <DialogHeader className="px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white shrink-0">
+            <DialogTitle className="flex items-center gap-3 text-lg font-bold text-slate-900">
+              <div className="bg-blue-600 p-2 rounded-lg shadow-sm">
+                <Pen className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <span>Parecer Médico Final</span>
+                {fullscreenEditor && (
+                  <p className="text-sm font-medium text-slate-500 mt-0.5">{fullscreenEditor.title}</p>
+                )}
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          {fullscreenEditor && (
+            <div className="flex-1 flex flex-col p-6 gap-4 overflow-hidden">
+              {validationState[fullscreenEditor.examId]?.generatedDiagnosis && (
+                <div className="p-4 bg-gradient-to-br from-blue-50/50 to-white rounded-xl border border-blue-100 shadow-sm shrink-0 max-h-[200px] overflow-y-auto">
+                  <h4 className="font-extrabold text-sm mb-3 text-blue-900 flex items-center gap-2">
+                    <div className="bg-blue-600 p-1 rounded-md shadow-sm">
+                      <Sparkles className="h-3.5 w-3.5 text-white" />
+                    </div>
+                    Insights da IA
+                  </h4>
+                  <div className="space-y-2">
+                    {validationState[fullscreenEditor.examId].generatedDiagnosis!.structuredFindings.map(finding => (
+                      <div key={finding.specialist} className="border border-blue-50 pl-3 py-2 bg-white rounded-lg border-l-2 border-l-blue-400">
+                        <h5 className="font-bold text-blue-700 mb-1 text-xs uppercase tracking-wider">{finding.specialist}</h5>
+                        <div className="prose prose-sm max-w-none text-xs prose-p:text-slate-600 prose-p:my-0.5">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{finding.findings}</ReactMarkdown>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-2 items-center shrink-0">
+                <DiagnosisMacros onInsert={(text) => {
+                  const currentNotes = validationState[fullscreenEditor.examId]?.notes || "";
+                  const newNotes = currentNotes ? `${currentNotes}\n${text}` : text;
+                  handleNotesChange(fullscreenEditor.examId, newNotes);
+                }} />
+                <PrescriptionHelper onAdd={(text) => {
+                  const currentNotes = validationState[fullscreenEditor.examId]?.notes || "";
+                  const newNotes = currentNotes ? `${currentNotes}\n${text}` : text;
+                  handleNotesChange(fullscreenEditor.examId, newNotes);
+                }} />
+              </div>
+
+              <Textarea
+                placeholder="Edite o diagnóstico e adicione sua prescrição oficial aqui..."
+                value={validationState[fullscreenEditor.examId]?.notes || ''}
+                onChange={(e) => handleNotesChange(fullscreenEditor.examId, e.target.value)}
+                className="bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus:ring-blue-500 focus:border-blue-500 rounded-xl p-5 text-base leading-relaxed flex-1 min-h-0 resize-none"
+              />
+
+              <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+                <Button
+                  onClick={() => { handleSaveDraft(fullscreenEditor.examId); }}
+                  disabled={validationState[fullscreenEditor.examId]?.isSaving || !validationState[fullscreenEditor.examId]?.notes}
+                  variant="outline"
+                  className="flex-1 bg-white border-slate-200 hover:bg-slate-50 text-slate-700 font-bold h-12 shadow-sm"
+                >
+                  {validationState[fullscreenEditor.examId]?.isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  {validationState[fullscreenEditor.examId]?.isSaving ? "Salvando..." : "Salvar Rascunho"}
+                </Button>
+                <Button
+                  onClick={() => { handleValidateDiagnosis(fullscreenEditor.examId); setFullscreenEditor(null); }}
+                  disabled={validationState[fullscreenEditor.examId]?.isValidating || !validationState[fullscreenEditor.examId]?.notes}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold h-12 shadow-md shadow-emerald-100"
+                >
+                  {validationState[fullscreenEditor.examId]?.isValidating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                  {validationState[fullscreenEditor.examId]?.isValidating ? "Validando..." : "Validar e Finalizar"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!fullscreenDocument} onOpenChange={() => setFullscreenDocument(null)}>
         <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] p-0 overflow-hidden">
