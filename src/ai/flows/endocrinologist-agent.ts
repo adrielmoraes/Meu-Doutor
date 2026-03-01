@@ -6,6 +6,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { generateWithFallback } from '@/lib/ai-resilience';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -295,7 +296,8 @@ Extract ALL endocrine metrics with interpretation
 - Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 
 **OUTPUT FORMAT:**
-Return complete JSON with all SpecialistAgentOutputSchema fields including suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, and relevantMetrics when applicable.`;
+Return a JSON object ONLY. NO MARKDOWN, NO \`\`\`json, NO text before or after the JSON.
+Include all fields: findings, clinicalAssessment, recommendations, suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, and relevantMetrics when applicable.`;
 
 const specialistPrompt = ai.definePrompt({
   name: 'endocrinologistAgentPrompt',
@@ -321,7 +323,7 @@ const endocrinologistAgentFlow = ai.defineFlow(
     const inputTokens = countTextTokens(inputText);
 
     const startTime = Date.now();
-    const { output } = await specialistPrompt(input);
+    const { output, fallbackModel } = await generateWithFallback({ prompt: specialistPrompt, input }) as any;
     const duration = Date.now() - startTime;
 
     if (!output) {
@@ -334,7 +336,7 @@ const endocrinologistAgentFlow = ai.defineFlow(
     await trackAIUsage({
       patientId,
       usageType: 'diagnosis',
-      model: 'googleai/gemini-2.5-flash',
+      model: fallbackModel || 'googleai/gemini-2.5-flash',
       inputTokens: inputTokens,
       outputTokens: outputTokens,
       metadata: { feature: 'Specialist Agent - Endocrinologist', specialist: 'endocrinologist' },

@@ -39,6 +39,7 @@ export const patients = pgTable('patients', {
   reportedSymptoms: text('reported_symptoms').default(''),
   examResults: text('exam_results').default(''),
   doctorNotes: text('doctor_notes'),
+  attendingDoctorId: text('attending_doctor_id'), // Referência criada em patientsRelations
   preventiveAlerts: json('preventive_alerts').$type<string[]>(),
   healthGoals: json('health_goals').$type<{ title: string; description: string; progress: number }[]>(),
   finalExplanation: text('final_explanation'),
@@ -322,13 +323,17 @@ export const consultations = pgTable('consultations', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const patientsRelations = relations(patients, ({ many }) => ({
+export const patientsRelations = relations(patients, ({ one, many }) => ({
   exams: many(exams),
   appointments: many(appointments),
   consultations: many(consultations),
   callRooms: many(callRooms),
   auth: many(patientAuth),
   prescriptions: many(prescriptions),
+  attendingDoctor: one(doctors, {
+    fields: [patients.attendingDoctorId],
+    references: [doctors.id],
+  }),
 }));
 
 export const doctorsRelations = relations(doctors, ({ many }) => ({
@@ -337,6 +342,7 @@ export const doctorsRelations = relations(doctors, ({ many }) => ({
   callRooms: many(callRooms),
   auth: many(doctorAuth),
   prescriptions: many(prescriptions),
+  patients: many(patients),
 }));
 
 export const prescriptionsRelations = relations(prescriptions, ({ one }) => ({

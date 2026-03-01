@@ -220,6 +220,41 @@ export async function updatePatient(id: string, data: Partial<Patient>): Promise
   await db.update(patients).set({ ...data, updatedAt: new Date() }).where(eq(patients.id, id));
 }
 
+export async function getGlobalPatientsQueue(): Promise<Patient[]> {
+  const { isNull } = await import('drizzle-orm');
+  const results = await db
+    .select()
+    .from(patients)
+    .where(isNull(patients.attendingDoctorId))
+    .orderBy(desc(patients.updatedAt));
+
+  return results.map(p => ({ ...p, lastVisit: p.lastVisit || '', avatarHint: p.avatarHint || '' })) as Patient[];
+}
+
+export async function getDoctorPatients(doctorId: string): Promise<Patient[]> {
+  const results = await db
+    .select()
+    .from(patients)
+    .where(eq(patients.attendingDoctorId, doctorId))
+    .orderBy(desc(patients.updatedAt));
+
+  return results.map(p => ({ ...p, lastVisit: p.lastVisit || '', avatarHint: p.avatarHint || '' })) as Patient[];
+}
+
+export async function claimPatient(patientId: string, doctorId: string): Promise<void> {
+  await db
+    .update(patients)
+    .set({ attendingDoctorId: doctorId, updatedAt: new Date() })
+    .where(eq(patients.id, patientId));
+}
+
+export async function releasePatient(patientId: string): Promise<void> {
+  await db
+    .update(patients)
+    .set({ attendingDoctorId: null, updatedAt: new Date() })
+    .where(eq(patients.id, patientId));
+}
+
 export async function addPatientWithAuth(
   patient: Omit<Patient, 'id' | 'verificationToken' | 'tokenExpiry' | 'emailVerified'>,
   password: string,

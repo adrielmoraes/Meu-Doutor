@@ -143,7 +143,7 @@ export async function consolidateExamsAnalysis(
 
   console.log('[🔗 Consolidation] Multiple exams - combining analyses first...');
 
-  const { output: consolidatedSummary } = await generateWithFallback({
+  const { output: consolidatedSummary, fallbackModel } = await generateWithFallback({
     prompt: combineAnalysesPrompt,
     input: {
       examResults: examResults.map(r => ({
@@ -154,7 +154,7 @@ export async function consolidateExamsAnalysis(
         documentType: r.analysis.documentType || 'Exame médico',
       })),
     },
-  });
+  }) as any;
 
   if (!consolidatedSummary) {
     throw new Error('Failed to consolidate exam analyses');
@@ -192,7 +192,7 @@ export async function consolidateExamsAnalysis(
   await trackAIUsage({
     patientId,
     usageType: 'diagnosis',
-    model: 'googleai/gemini-2.5-flash',
+    model: fallbackModel || 'googleai/gemini-2.5-flash',
     inputTokens,
     outputTokens,
     metadata: {

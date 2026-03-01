@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { cn } from "@/lib/utils";
 
 interface MediAILogoProps {
@@ -13,16 +14,20 @@ export default function MediAILogo({
   showText = true,
   size = "md",
 }: MediAILogoProps) {
+  const id = useId();
+  const gradientId = `logo-gradient-${id.replace(/:/g, "")}`;
+  const glowId = `glow-${id.replace(/:/g, "")}`;
+
   const sizes = {
-    sm: { icon: 24, text: "text-base" },
-    md: { icon: 32, text: "text-xl" },
-    lg: { icon: 48, text: "text-3xl" },
+    sm: { icon: 32, text: "text-2xl" },    // Increased sizes slightly to match original scale better
+    md: { icon: 48, text: "text-4xl" },
+    lg: { icon: 64, text: "text-5xl" },
   };
 
   const currentSize = sizes[size];
 
   return (
-    <div className={cn("flex items-center gap-1 group", className)}>
+    <div className={cn("flex items-center gap-2 group", className)}>
       <svg
         width={currentSize.icon}
         height={currentSize.icon}
@@ -34,18 +39,18 @@ export default function MediAILogo({
       >
         <defs>
           <linearGradient
-            id="logo-gradient-fixed"
+            id={gradientId}
             x1="0%"
             y1="0%"
             x2="100%"
             y2="100%"
           >
-            <stop offset="0%" stopColor="var(--logo-gradient-start)" />
-            <stop offset="50%" stopColor="var(--logo-gradient-middle)" />
-            <stop offset="100%" stopColor="var(--logo-gradient-end)" />
+            <stop offset="0%" stopColor="var(--logo-gradient-start, #f774c0)" />
+            <stop offset="50%" stopColor="var(--logo-gradient-middle, #e85fb8)" />
+            <stop offset="100%" stopColor="var(--logo-gradient-end, #d94aaf)" />
           </linearGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+          <filter id={glowId}>
+            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
             <feMerge>
               <feMergeNode in="coloredBlur" />
               <feMergeNode in="SourceGraphic" />
@@ -54,17 +59,17 @@ export default function MediAILogo({
         </defs>
 
         {/* Heart Shape - Main Logo */}
-        <g filter="url(#glow)">
+        <g filter={`url(#${glowId})`}>
           <path
             d="M50 85C50 85 15 65 15 40C15 30 20 20 30 20C37 20 43 25 50 32C57 25 63 20 70 20C80 20 85 30 85 40C85 65 50 85 50 85Z"
-            fill="url(#logo-gradient-fixed)"
+            fill={`url(#${gradientId})`}
             className="animate-pulse"
             style={{ animationDuration: "3s" }}
           />
         </g>
 
         {/* Medical Cross inside Heart */}
-        <g filter="url(#glow)" opacity="0.9">
+        <g opacity="0.95" filter={`url(#${glowId})`}>
           <rect x="47" y="35" width="6" height="30" rx="1.5" fill="white" />
           <rect x="35" y="47" width="30" height="6" rx="1.5" fill="white" />
         </g>
@@ -141,10 +146,10 @@ export default function MediAILogo({
         <span
           className={cn(
             currentSize.text,
-            "font-['Poppins',sans-serif] font-bold tracking-tight transition-all text-[#e85fb8]",
+            "font-['Poppins',sans-serif] font-extrabold tracking-tight transition-all text-[#e85fb8]",
           )}
         >
-          Medi<span className="font-extrabold">.AI</span>
+          Medi.AI
         </span>
       )}
     </div>

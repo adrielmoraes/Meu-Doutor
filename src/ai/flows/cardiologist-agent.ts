@@ -6,6 +6,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { generateWithFallback } from '@/lib/ai-resilience';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import { countTextTokens } from '@/lib/token-counter';
 import { trackAIUsage } from '@/lib/usage-tracker';
@@ -182,7 +183,7 @@ Extract ALL cardiovascular metrics with interpretation:
 - Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 
 **OUTPUT FORMAT:**
-Return a JSON object with ALL fields from SpecialistAgentOutputSchema:
+Return a JSON object ONLY. NO MARKDOWN, NO \`\`\`json, NO text before or after the JSON:
 - findings (string - ultra-detailed)
 - clinicalAssessment (string - severity level)
 - recommendations (string - specific actions)
@@ -216,7 +217,7 @@ const cardiologistAgentFlow = ai.defineFlow(
     const inputTokens = countTextTokens(inputText);
 
     const startTime = Date.now();
-    const { output } = await specialistPrompt(input);
+    const { output, fallbackModel } = await generateWithFallback({ prompt: specialistPrompt, input }) as any;
     const duration = Date.now() - startTime;
 
     if (!output) {
@@ -229,7 +230,7 @@ const cardiologistAgentFlow = ai.defineFlow(
     await trackAIUsage({
       patientId,
       usageType: 'diagnosis',
-      model: 'googleai/gemini-2.5-flash',
+      model: fallbackModel || 'googleai/gemini-2.5-flash',
       inputTokens: inputTokens,
       outputTokens: outputTokens,
       metadata: { feature: 'Specialist Agent - Cardiologist', specialist: 'cardiologist' },

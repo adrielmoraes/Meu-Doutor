@@ -8,6 +8,8 @@ import { Bot, FileText, User, Pen, CheckCircle, Send, Loader2, FileWarning, File
 import { useToast } from "@/hooks/use-toast";
 import type { Patient, Exam } from "@/types";
 import { validateExamDiagnosisAction, saveDraftNotesAction, validateMultipleExamsAction } from "@/app/doctor/patients/[id]/actions";
+import { releasePatientAction } from "@/app/doctor/actions";
+import { useRouter } from "next/navigation";
 import { Badge } from "../ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
@@ -112,6 +114,7 @@ export default function PatientDetailView({
   doctor,
 }: PatientDetailViewProps) {
   const { toast } = useToast();
+  const router = useRouter();
 
   const initialValidationState = exams.reduce((acc, exam) => {
     acc[exam.id] = {
@@ -154,6 +157,11 @@ export default function PatientDetailView({
   };
 
   const handleGenerateDiagnosis = async (examId: string) => {
+    // Prevent multiple requests for the same exam
+    if (validationState[examId]?.isGenerating || validationState[examId]?.generatedDiagnosis) {
+      return;
+    }
+
     setValidationState(prev => ({ ...prev, [examId]: { ...prev[examId], isGenerating: true, generatedDiagnosis: null } }));
     try {
       const examToAnalyze = exams.find(e => e.id === examId);
@@ -183,6 +191,20 @@ export default function PatientDetailView({
       });
     } finally {
       setValidationState(prev => ({ ...prev, [examId]: { ...prev[examId], isGenerating: false } }));
+    }
+  };
+
+  // Pre-fetch AI analysis for the first pending exam or on mount
+  useEffect(() => {
+    const firstPendingExam = exams.find(e => e.status === 'Requer Validação');
+    if (firstPendingExam) {
+      handleGenerateDiagnosis(firstPendingExam.id);
+    }
+  }, []);
+
+  const handleAccordionChange = (value: string) => {
+    if (value) {
+      handleGenerateDiagnosis(value);
     }
   };
 
@@ -253,17 +275,17 @@ export default function PatientDetailView({
     <div className="space-y-6 bg-slate-50 p-1 rounded-xl">
       <Card className="bg-white border-slate-200 shadow-sm overflow-hidden border-none ring-1 ring-slate-200">
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-5 p-6 border-b border-slate-50">
-          <Avatar className="h-24 w-24 border-4 border-white shadow-md">
+          <Avatar className="h-24 w-24 border-4 border-white shadow-md shrink-0">
             <AvatarImage src={patient.avatar} data-ai-hint={patient.avatarHint} />
             <AvatarFallback className="bg-slate-100 text-slate-600 text-xl font-bold">{patient.name.substring(0, 2)}</AvatarFallback>
           </Avatar>
-          <div className="flex-grow">
-            <CardTitle className="text-4xl font-extrabold text-slate-900 tracking-tight">{patient.name}</CardTitle>
-            <CardDescription className="text-slate-500 text-lg mt-1 font-medium">
+          <div className="flex-grow min-w-0">
+            <CardTitle className="text-4xl font-extrabold text-slate-900 tracking-tight break-words">{patient.name}</CardTitle>
+            <CardDescription className="text-slate-500 text-lg mt-1 font-medium break-words">
               {patient.age} anos • {patient.gender} • Última Interação: {patient.lastVisit}
             </CardDescription>
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
             <SoapEvolutionModal patientId={patient.id} patientName={patient.name} />
             <PrescriptionModal
               doctor={doctor}
@@ -278,6 +300,33 @@ export default function PatientDetailView({
                 <Badge variant="outline" className="text-[10px] font-bold px-3 py-1 border-slate-200 text-slate-600 bg-white">
                   Prioridade: <span className="ml-1 text-slate-900">{patient.priority}</span>
                 </Badge>
+              )}
+              {patient.attendingDoctorId === doctor.id && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    const result = await releasePatientAction(patient.id);
+                    if (result.success) {
+                      toast({
+                        title: "Paciente liberado",
+                        description: "O paciente retornou ao Mural de Casos.",
+                        variant: "default",
+                      });
+                      router.push('/doctor/patients');
+                    } else {
+                      toast({
+                        title: "Erro",
+                        description: result.message,
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                  className="mt-2 text-rose-600 hover:bg-rose-50 hover:text-rose-700 border-rose-200 w-full font-bold shadow-sm"
+                >
+                  <ArrowDownRight className="w-4 h-4 mr-1" />
+                  Devolver ao Mural
+                </Button>
               )}
             </div>
           </div>
@@ -340,7 +389,7 @@ export default function PatientDetailView({
             </CardHeader>
             <CardContent className="p-6">
               {pendingExams.length > 0 ? (
-                <Accordion type="single" collapsible className="w-full space-y-4" defaultValue={pendingExams[0].id}>
+                <Accordion type="single" collapsible className="w-full space-y-4" defaultValue={pendingExams[0].id} onValueChange={handleAccordionChange}>
                   {pendingExams.map(exam => {
                     const state = validationState[exam.id];
                     return (
@@ -360,11 +409,10 @@ export default function PatientDetailView({
                               <span
                                 role="button"
                                 tabIndex={0}
-                                className={`ml-auto text-xs font-bold flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-full border cursor-pointer ${
-                                  expandedDocuments[exam.id]
-                                    ? 'text-white bg-blue-600 border-blue-600 hover:bg-blue-700'
-                                    : 'text-blue-600 bg-blue-50 border-blue-100 hover:bg-blue-100'
-                                }`}
+                                className={`ml-auto text-xs font-bold flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-full border cursor-pointer ${expandedDocuments[exam.id]
+                                  ? 'text-white bg-blue-600 border-blue-600 hover:bg-blue-700'
+                                  : 'text-blue-600 bg-blue-50 border-blue-100 hover:bg-blue-100'
+                                  }`}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   toggleDocumentExpand(exam.id);
@@ -393,190 +441,228 @@ export default function PatientDetailView({
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="space-y-6 pt-4 px-4 pb-6 border-t border-slate-50">
-                          {exam.fileUrl && expandedDocuments[exam.id] && (
-                            <div className="rounded-xl border border-blue-200 overflow-hidden bg-gradient-to-b from-blue-50/50 to-white">
-                              <div className="flex items-center justify-between px-4 py-3 bg-blue-50 border-b border-blue-100">
-                                <span className="text-sm font-bold text-blue-900 flex items-center gap-2">
-                                  <FileText className="h-4 w-4" />
-                                  Documento Original
-                                </span>
-                                <div className="flex items-center gap-2">
-                                  <a
-                                    href={exam.fileUrl}
-                                    download
-                                    className="p-1.5 rounded-lg bg-white border border-blue-200 text-blue-600 hover:bg-blue-100 transition-colors"
-                                    title="Baixar documento"
-                                  >
-                                    <Download className="h-4 w-4" />
-                                  </a>
-                                  <button
-                                    onClick={() => setFullscreenDocument({ url: exam.fileUrl!, title: exam.type })}
-                                    className="p-1.5 rounded-lg bg-white border border-blue-200 text-blue-600 hover:bg-blue-100 transition-colors"
-                                    title="Abrir em tela cheia"
-                                  >
-                                    <Maximize2 className="h-4 w-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => toggleDocumentExpand(exam.id)}
-                                    className="p-1.5 rounded-lg bg-white border border-blue-200 text-slate-600 hover:bg-slate-100 transition-colors"
-                                    title="Fechar visualização"
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </button>
-                                </div>
-                              </div>
-                              <div className="p-4">
-                                {isImageUrl(exam.fileUrl) ? (
-                                  <img
-                                    src={exam.fileUrl}
-                                    alt={`Documento: ${exam.type}`}
-                                    className="max-w-full h-auto max-h-[600px] mx-auto rounded-lg shadow-md"
-                                  />
-                                ) : isPdfUrl(exam.fileUrl) ? (
-                                  <iframe
-                                    src={exam.fileUrl}
-                                    className="w-full h-[600px] rounded-lg border border-slate-200"
-                                    title={`Documento: ${exam.type}`}
-                                  />
-                                ) : (
-                                  <iframe
-                                    src={exam.fileUrl}
-                                    className="w-full h-[600px] rounded-lg border border-slate-200"
-                                    title={`Documento: ${exam.type}`}
-                                  />
-                                )}
-                              </div>
-                            </div>
-                          )}
-                          {exam.results && exam.results.length > 0 && (
-                            <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl shadow-inner">
-                              <h4 className="font-bold text-sm mb-4 text-slate-900 flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-blue-600" />
-                                Resultados Laboratoriais
-                              </h4>
-                              <div className="space-y-3">
-                                {exam.results.map((result, idx) => {
-                                  const isAbnormal = result.value.includes('*') ||
-                                    result.value.toLowerCase().includes('alto') ||
-                                    result.value.toLowerCase().includes('baixo');
-
-                                  const trend = isAbnormal ? (Math.random() > 0.5 ? 'up' : 'down') : 'stable';
-
-                                  return (
-                                    <div key={idx} className={`grid grid-cols-4 gap-4 p-3 rounded-lg border transition-colors ${isAbnormal ? 'bg-rose-50 border-rose-200 shadow-sm' : 'bg-white border-slate-100'}`}>
-                                      <div className="col-span-1">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Parâmetro</p>
-                                        <p className={`text-sm font-bold ${isAbnormal ? 'text-rose-900' : 'text-slate-800'}`}>{result.name}</p>
-                                      </div>
-                                      <div className="col-span-1">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Valor</p>
-                                        <div className="flex items-center gap-1.5">
-                                          <p className={`text-sm font-extrabold ${isAbnormal ? 'text-rose-600 text-base' : 'text-blue-600'}`}>{result.value}</p>
-                                          {isAbnormal && <AlertTriangle className="h-4 w-4 text-rose-500 animate-pulse" />}
-                                        </div>
-                                      </div>
-                                      <div className="col-span-1">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Tendência</p>
-                                        <div className="flex items-center gap-2">
-                                          <div className={`p-1 rounded-full ${trend === 'up' ? 'bg-rose-100' : trend === 'down' ? 'bg-emerald-100' : 'bg-slate-100'}`}>
-                                            {trend === 'up' && <ArrowUpRight className="h-3 w-3 text-rose-600" />}
-                                            {trend === 'down' && <ArrowDownRight className="h-3 w-3 text-emerald-600" />}
-                                            {trend === 'stable' && <Minus className="h-3 w-3 text-slate-500" />}
-                                          </div>
-                                          <span className="text-[11px] font-bold text-slate-600">{trend === 'up' ? 'Aumento' : trend === 'down' ? 'Queda' : 'Estável'}</span>
-                                        </div>
-                                      </div>
-                                      <div className="col-span-1">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Referência</p>
-                                        <p className="text-sm font-semibold text-slate-500">{result.reference}</p>
+                          <div className="flex flex-col gap-6">
+                            {/* Esquerda: Documento e Resultados (quando expandido) */}
+                            {expandedDocuments[exam.id] && (
+                              <div className="space-y-6">
+                                {exam.fileUrl && (
+                                  <div className="rounded-xl border border-blue-200 overflow-hidden bg-gradient-to-b from-blue-50/50 to-white flex flex-col h-full">
+                                    <div className="flex items-center justify-between px-4 py-3 bg-blue-50 border-b border-blue-100 shrink-0">
+                                      <span className="text-sm font-bold text-blue-900 flex items-center gap-2">
+                                        <FileText className="h-4 w-4" />
+                                        Documento Original
+                                      </span>
+                                      <div className="flex items-center gap-2">
+                                        <a
+                                          href={exam.fileUrl}
+                                          download
+                                          className="p-1.5 rounded-lg bg-white border border-blue-200 text-blue-600 hover:bg-blue-100 transition-colors"
+                                          title="Baixar documento"
+                                        >
+                                          <Download className="h-4 w-4" />
+                                        </a>
+                                        <button
+                                          onClick={() => setFullscreenDocument({ url: exam.fileUrl!, title: exam.type })}
+                                          className="p-1.5 rounded-lg bg-white border border-blue-200 text-blue-600 hover:bg-blue-100 transition-colors"
+                                          title="Abrir em tela cheia"
+                                        >
+                                          <Maximize2 className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                          onClick={() => toggleDocumentExpand(exam.id)}
+                                          className="p-1.5 rounded-lg bg-white border border-blue-200 text-slate-600 hover:bg-slate-100 transition-colors"
+                                          title="Fechar visualização"
+                                        >
+                                          <X className="h-4 w-4" />
+                                        </button>
                                       </div>
                                     </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
-
-                          <AIAnalysisCollapsible exam={exam} />
-
-                          <div className="p-6 border border-slate-200 rounded-xl bg-white shadow-sm ring-1 ring-slate-100">
-                            <h3 className="font-extrabold text-xl mb-4 text-slate-900 tracking-tight">Parecer Médico Final</h3>
-
-                            <Button
-                              onClick={() => handleGenerateDiagnosis(exam.id)}
-                              disabled={state?.isGenerating}
-                              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md shadow-blue-200 transition-all mb-5 w-full text-base font-bold text-white border-none h-12"
-                            >
-                              {state?.isGenerating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
-                              {state?.isGenerating ? "Consultando Equipe Médica Digital..." : "Gerar Parecer Multi-Especialista (IA)"}
-                            </Button>
-
-                            {state?.generatedDiagnosis && (
-                              <div className="p-6 bg-gradient-to-br from-blue-50/50 to-white rounded-xl mb-6 border border-blue-100 shadow-sm">
-                                <h4 className="font-extrabold text-lg mb-5 text-blue-900 flex items-center gap-3">
-                                  <div className="bg-blue-600 p-1.5 rounded-lg shadow-sm">
-                                    <Sparkles className="h-5 w-5 text-white" />
+                                    <div className="p-4 flex-1 overflow-auto min-h-[400px]">
+                                      {isImageUrl(exam.fileUrl) ? (
+                                        <div className="flex justify-center items-center w-full bg-slate-50/50 rounded-lg p-2">
+                                          <img
+                                            src={exam.fileUrl}
+                                            alt={`Documento: ${exam.type}`}
+                                            className="max-w-full max-h-[80vh] w-auto h-auto object-contain rounded-lg shadow-md"
+                                          />
+                                        </div>
+                                      ) : (
+                                        <iframe
+                                          src={exam.fileUrl}
+                                          className="w-full h-full min-h-[500px] rounded-lg border border-slate-200 bg-white"
+                                          title={`Documento: ${exam.type}`}
+                                        />
+                                      )}
+                                    </div>
                                   </div>
-                                  Insights por Especialidade
-                                </h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  {state.generatedDiagnosis.structuredFindings.map(finding => (
-                                    <div key={finding.specialist} className="border border-blue-50 pl-4 py-4 bg-white rounded-xl shadow-sm transition-all hover:shadow-md hover:border-blue-200">
-                                      <h5 className="font-bold text-blue-700 mb-2 truncate text-sm uppercase tracking-wider">{finding.specialist}</h5>
-                                      <div className="prose prose-slate prose-sm max-w-none
-                                                                  prose-p:text-slate-600 prose-p:leading-relaxed prose-p:my-1
-                                                                  prose-strong:text-slate-900 prose-strong:font-bold
-                                                                  prose-ul:my-1 prose-ul:pl-4 prose-li:text-slate-600
-                                                                  prose-code:text-blue-700 prose-code:bg-blue-50">
-                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                          {finding.findings}
-                                        </ReactMarkdown>
-                                      </div>
+                                )}
+
+                                {exam.results && exam.results.length > 0 && (
+                                  <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl shadow-inner">
+                                    <h4 className="font-bold text-sm mb-4 text-slate-900 flex items-center gap-2">
+                                      <FileText className="h-4 w-4 text-blue-600" />
+                                      Resultados Laboratoriais
+                                    </h4>
+                                    <div className="space-y-3">
+                                      {exam.results.map((result, idx) => {
+                                        const isAbnormal = result.value.includes('*') ||
+                                          result.value.toLowerCase().includes('alto') ||
+                                          result.value.toLowerCase().includes('baixo');
+
+                                        const trend = isAbnormal ? (Math.random() > 0.5 ? 'up' : 'down') : 'stable';
+
+                                        return (
+                                          <div key={idx} className={`grid grid-cols-4 gap-4 p-3 rounded-lg border transition-colors ${isAbnormal ? 'bg-rose-50 border-rose-200 shadow-sm relative overflow-hidden' : 'bg-white border-slate-100'}`}>
+                                            {isAbnormal && <div className="absolute left-0 top-0 bottom-0 w-1 bg-rose-500"></div>}
+                                            <div className="col-span-1">
+                                              <p className="text-[10px] font-bold text-slate-400 uppercase">Parâmetro</p>
+                                              <p className={`text-sm font-bold ${isAbnormal ? 'text-rose-900 ml-2' : 'text-slate-800'}`}>{result.name}</p>
+                                            </div>
+                                            <div className="col-span-1">
+                                              <p className="text-[10px] font-bold text-slate-400 uppercase">Valor</p>
+                                              <div className="flex items-center gap-1.5">
+                                                <p className={`text-sm font-extrabold ${isAbnormal ? 'text-rose-600 text-base' : 'text-blue-600'}`}>{result.value}</p>
+                                                {isAbnormal && <AlertTriangle className="h-4 w-4 text-rose-500 animate-pulse" />}
+                                              </div>
+                                            </div>
+                                            <div className="col-span-1">
+                                              <p className="text-[10px] font-bold text-slate-400 uppercase">Tendência</p>
+                                              <div className="flex items-center gap-2">
+                                                <div className={`p-1 rounded-full ${trend === 'up' ? 'bg-rose-100' : trend === 'down' ? 'bg-emerald-100' : 'bg-slate-100'}`}>
+                                                  {trend === 'up' && <ArrowUpRight className="h-3 w-3 text-rose-600" />}
+                                                  {trend === 'down' && <ArrowDownRight className="h-3 w-3 text-emerald-600" />}
+                                                  {trend === 'stable' && <Minus className="h-3 w-3 text-slate-500" />}
+                                                </div>
+                                                <span className="text-[11px] font-bold text-slate-600 truncate">{trend === 'up' ? 'Aumento' : trend === 'down' ? 'Queda' : 'Estável'}</span>
+                                              </div>
+                                            </div>
+                                            <div className="col-span-1">
+                                              <p className="text-[10px] font-bold text-slate-400 uppercase">Ref</p>
+                                              <p className="text-xs font-semibold text-slate-500 truncate" title={result.reference}>{result.reference}</p>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
                                     </div>
-                                  ))}
-                                </div>
+                                  </div>
+                                )}
                               </div>
                             )}
 
-                            <div className="flex flex-wrap gap-2 mb-3 items-center">
-                              <DiagnosisMacros onInsert={(text) => {
-                                const currentNotes = state?.notes || "";
-                                const newNotes = currentNotes ? `${currentNotes}\n${text}` : text;
-                                handleNotesChange(exam.id, newNotes);
-                              }} />
-                              <PrescriptionHelper onAdd={(text) => {
-                                const currentNotes = state?.notes || "";
-                                const newNotes = currentNotes ? `${currentNotes}\n${text}` : text;
-                                handleNotesChange(exam.id, newNotes);
-                              }} />
-                            </div>
+                            {/* Direita (ou Centro): IA e Parecer */}
+                            <div className="space-y-6 flex flex-col">
+                              {!expandedDocuments[exam.id] && exam.results && exam.results.length > 0 && (
+                                <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl shadow-inner">
+                                  <h4 className="font-bold text-sm mb-4 text-slate-900 flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-blue-600" />
+                                    Resultados Laboratoriais
+                                  </h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {exam.results.map((result, idx) => {
+                                      const isAbnormal = result.value.includes('*') ||
+                                        result.value.toLowerCase().includes('alto') ||
+                                        result.value.toLowerCase().includes('baixo');
+                                      return (
+                                        <div key={idx} className={`flex items-center justify-between p-3 rounded-lg border ${isAbnormal ? 'bg-rose-50 border-rose-200 border-l-4 border-l-rose-500' : 'bg-white border-slate-100'}`}>
+                                          <div className="min-w-0 pr-2">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase truncate">{result.name}</p>
+                                            <div className="flex items-center gap-1.5 mt-0.5">
+                                              <p className={`text-sm font-extrabold ${isAbnormal ? 'text-rose-600' : 'text-slate-800'}`}>{result.value}</p>
+                                              {isAbnormal && <AlertTriangle className="h-3.5 w-3.5 text-rose-500" />}
+                                            </div>
+                                          </div>
+                                          <div className="text-right shrink-0">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase">Ref</p>
+                                            <p className="text-xs font-semibold text-slate-500 truncate max-w-[80px]" title={result.reference}>{result.reference}</p>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
 
-                            <Textarea
-                              placeholder="Edite o diagnóstico e adicione sua prescrição oficial aqui..."
-                              rows={8}
-                              value={state?.notes || ''}
-                              onChange={(e) => handleNotesChange(exam.id, e.target.value)}
-                              className="bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus:ring-blue-500 focus:border-blue-500 rounded-xl p-4 text-base leading-relaxed"
-                            />
+                              <AIAnalysisCollapsible exam={exam} />
 
-                            <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                              <Button
-                                onClick={() => handleSaveDraft(exam.id)}
-                                disabled={state?.isSaving || !state?.notes}
-                                variant="outline"
-                                className="flex-1 bg-white border-slate-200 hover:bg-slate-50 text-slate-700 font-bold h-11 shadow-sm"
-                              >
-                                {state?.isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                                {state?.isSaving ? "Salvando..." : "Salvar Rascunho"}
-                              </Button>
-                              <Button
-                                onClick={() => handleValidateDiagnosis(exam.id)}
-                                disabled={state?.isValidating || !state?.notes}
-                                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold h-11 shadow-md shadow-emerald-100"
-                              >
-                                {state?.isValidating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-                                {state?.isValidating ? "Validando..." : "Validar e Finalizar"}
-                              </Button>
+                              <div className="p-6 border border-slate-200 rounded-xl bg-white shadow-sm ring-1 ring-slate-100 flex-1 flex flex-col">
+                                <h3 className="font-extrabold text-xl mb-4 text-slate-900 tracking-tight">Parecer Médico Final</h3>
+
+                                <Button
+                                  onClick={() => handleGenerateDiagnosis(exam.id)}
+                                  disabled={state?.isGenerating}
+                                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md shadow-blue-200 transition-all mb-5 w-full text-base font-bold text-white border-none h-12 shrink-0"
+                                >
+                                  {state?.isGenerating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                                  {state?.isGenerating ? "Consultando AI..." : "Gerar Parecer (IA)"}
+                                </Button>
+
+                                {state?.generatedDiagnosis && (
+                                  <div className="p-4 bg-gradient-to-br from-blue-50/50 to-white rounded-xl mb-6 border border-blue-100 shadow-sm">
+                                    <h4 className="font-extrabold text-sm mb-3 text-blue-900 flex items-center gap-2">
+                                      <div className="bg-blue-600 p-1 rounded-md shadow-sm">
+                                        <Sparkles className="h-3.5 w-3.5 text-white" />
+                                      </div>
+                                      Insights
+                                    </h4>
+                                    <div className="space-y-3">
+                                      {state.generatedDiagnosis.structuredFindings.map(finding => (
+                                        <div key={finding.specialist} className="border border-blue-50 pl-3 py-3 bg-white rounded-lg shadow-sm border-l-2 border-l-blue-400">
+                                          <h5 className="font-bold text-blue-700 mb-1.5 truncate text-xs uppercase tracking-wider">{finding.specialist}</h5>
+                                          <div className="prose prose-slate prose-sm max-w-none text-xs
+                                                                      prose-p:text-slate-600 prose-p:leading-snug prose-p:my-0.5
+                                                                      prose-strong:text-slate-900 prose-strong:font-bold
+                                                                      prose-ul:my-0.5 prose-ul:pl-4 prose-li:text-slate-600
+                                                                      prose-code:text-blue-700 prose-code:bg-blue-50">
+                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                              {finding.findings}
+                                            </ReactMarkdown>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div className="flex flex-wrap gap-2 mb-3 items-center shrink-0">
+                                  <DiagnosisMacros onInsert={(text) => {
+                                    const currentNotes = state?.notes || "";
+                                    const newNotes = currentNotes ? `${currentNotes}\n${text}` : text;
+                                    handleNotesChange(exam.id, newNotes);
+                                  }} />
+                                  <PrescriptionHelper onAdd={(text) => {
+                                    const currentNotes = state?.notes || "";
+                                    const newNotes = currentNotes ? `${currentNotes}\n${text}` : text;
+                                    handleNotesChange(exam.id, newNotes);
+                                  }} />
+                                </div>
+
+                                <Textarea
+                                  placeholder="Edite o diagnóstico e adicione sua prescrição oficial aqui..."
+                                  value={state?.notes || ''}
+                                  onChange={(e) => handleNotesChange(exam.id, e.target.value)}
+                                  className="bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus:ring-blue-500 focus:border-blue-500 rounded-xl p-4 text-base leading-relaxed flex-1 min-h-[150px] resize-y"
+                                />
+
+                                <div className="flex flex-col sm:flex-row gap-3 mt-6 shrink-0">
+                                  <Button
+                                    onClick={() => handleSaveDraft(exam.id)}
+                                    disabled={state?.isSaving || !state?.notes}
+                                    variant="outline"
+                                    className="flex-1 bg-white border-slate-200 hover:bg-slate-50 text-slate-700 font-bold h-11 shadow-sm"
+                                  >
+                                    {state?.isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                    {state?.isSaving ? "Salvando..." : "Salvar Rascunho"}
+                                  </Button>
+                                  <Button
+                                    onClick={() => handleValidateDiagnosis(exam.id)}
+                                    disabled={state?.isValidating || !state?.notes}
+                                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold h-11 shadow-md shadow-emerald-100"
+                                  >
+                                    {state?.isValidating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                                    {state?.isValidating ? "Validando..." : "Validar e Finalizar"}
+                                  </Button>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </AccordionContent>
@@ -619,11 +705,10 @@ export default function PatientDetailView({
                             <span
                               role="button"
                               tabIndex={0}
-                              className={`ml-auto text-xs font-bold flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-full border cursor-pointer ${
-                                expandedDocuments[exam.id]
-                                  ? 'text-white bg-emerald-600 border-emerald-600 hover:bg-emerald-700'
-                                  : 'text-blue-600 bg-blue-50 border-blue-100 hover:bg-blue-100'
-                              }`}
+                              className={`ml-auto text-xs font-bold flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-full border cursor-pointer ${expandedDocuments[exam.id]
+                                ? 'text-white bg-emerald-600 border-emerald-600 hover:bg-emerald-700'
+                                : 'text-blue-600 bg-blue-50 border-blue-100 hover:bg-blue-100'
+                                }`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 toggleDocumentExpand(exam.id);

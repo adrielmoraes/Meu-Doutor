@@ -4,18 +4,14 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { generateWithFallback } from '@/lib/ai-resilience';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
 import { countTextTokens } from '@/lib/token-counter';
 import { trackAIUsage } from '@/lib/usage-tracker';
 
-const specialistPrompt = ai.definePrompt({
-    name: 'geriatricianAgentPrompt',
-    input: { schema: SpecialistAgentInputSchema },
-    output: { schema: SpecialistAgentOutputSchema },
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dr. Sofia Elder, MD** - Board-Certified Geriatrician specializing in the Comprehensive Geriatric Assessment (CGA) and longevity.
+const GERIATRICIAN_PROMPT_TEMPLATE = `You are **Dr. Sofia Elder, MD** - Board-Certified Geriatrician specializing in the Comprehensive Geriatric Assessment (CGA) and longevity.
 
 **YOUR EXPERTISE:** Frailty, Polypharmacy, Falls Risk, Cognitive Decline, Multi-morbidity management in patients >65 years.
 
@@ -83,7 +79,18 @@ Patient History: {{patientHistory}}
 - **NÃO ASSUMA** declínios cognitivos não descritos. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
 - **DIFERENCIE** fisiologia do envelhecimento vs. achados patológicos.
 - Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
-`
+
+**OUTPUT FORMAT:**
+Return a JSON object ONLY. NO MARKDOWN, NO \`\`\`json, NO text before or after the JSON.
+Include all fields: findings, clinicalAssessment, recommendations (as a single string), suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, and relevantMetrics when applicable.
+`;
+
+const specialistPrompt = ai.definePrompt({
+    name: 'geriatricianAgentPrompt',
+    input: { schema: SpecialistAgentInputSchema },
+    output: { schema: SpecialistAgentOutputSchema },
+    tools: [medicalKnowledgeBaseTool],
+    prompt: GERIATRICIAN_PROMPT_TEMPLATE,
 });
 
 const geriatricianAgentFlow = ai.defineFlow(
@@ -97,8 +104,26 @@ const geriatricianAgentFlow = ai.defineFlow(
 
         console.log('[Geriatrician Agent] Iniciando análise geriátrica...');
         try {
-            const { output } = await specialistPrompt(input);
-            if (!output) return createFallbackResponse('Geriatra');
+            const inputText = GERIATRICIAN_PROMPT_TEMPLATE + JSON.stringify(input);
+            const inputTokens = countTextTokens(inputText);
+
+            const { output, fallbackModel } = await generateWithFallback({ prompt: specialistPrompt, input }) as any;
+            if (!output) {
+                console.error('[Geriatrician Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+                return createFallbackResponse('Geriatra');
+            }
+
+            const outputTokens = countTextTokens(JSON.stringify(output));
+
+            await trackAIUsage({
+                patientId,
+                usageType: 'diagnosis',
+                model: fallbackModel || 'googleai/gemini-2.5-flash',
+                inputTokens: inputTokens,
+                outputTokens: outputTokens,
+                metadata: { specialist: 'geriatrician' },
+            });
+
             return output;
         } catch (error) {
             console.error('[Geriatrician Agent] Error:', error);

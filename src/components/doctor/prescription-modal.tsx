@@ -32,7 +32,7 @@ interface ValidationErrors {
 interface PrescriptionModalProps {
     doctor: any;
     patients: any[]; // List of patients to select from
-    initialPatientId?: string;
+    initialPatientId?: string | null;
     variant?: 'default' | 'compact';
 }
 
@@ -79,7 +79,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
         }
 
         setIsSearchingMeds(prev => ({ ...prev, [index]: true }));
-        
+
         try {
             const result = await searchMemedMedicinesAction(query);
             if (result.success && result.results) {
@@ -137,10 +137,10 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
 
     // Select medication from suggestions
     const selectMedication = (index: number, suggestion: MedicationSuggestion) => {
-        const fullName = suggestion.presentation 
+        const fullName = suggestion.presentation
             ? `${suggestion.name} - ${suggestion.presentation}`
             : suggestion.name;
-        
+
         const newMeds = [...medications];
         newMeds[index].name = fullName;
         setMedications(newMeds);
@@ -646,8 +646,8 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                         }
                                     }}
                                     className={`bg-white border-slate-300 text-slate-900 min-h-[150px] focus:border-blue-500 font-mono text-sm ${validationErrors.instructions ? 'border-red-400' : ''}`}
-                                    placeholder={(docType === 'receita' || docType === 'memed') 
-                                        ? "## Orientações\n\n- Manter dieta balanceada\n- Evitar bebidas alcoólicas\n- Retornar em 30 dias" 
+                                    placeholder={(docType === 'receita' || docType === 'memed')
+                                        ? "## Orientações\n\n- Manter dieta balanceada\n- Evitar bebidas alcoólicas\n- Retornar em 30 dias"
                                         : "## Conteúdo do Documento\n\nDescreva aqui o conteúdo do atestado ou laudo..."}
                                 />
                             )}

@@ -13,6 +13,7 @@ import { getSession } from "@/lib/session";
 import RegenerateWellnessPlanButton from "@/components/patient/regenerate-wellness-plan-button";
 import WeeklyTasksSection from "@/components/patient/weekly-tasks-section";
 import WellnessMarkdownContent from "@/components/patient/wellness-markdown-content";
+import WellnessReminderToasts from "@/components/patient/wellness-reminder-toasts";
 
 
 // --- INTERNAL COMPONENTS (To avoid new files) ---
@@ -433,6 +434,14 @@ export default async function WellnessPlanPage() {
                     tasks={wellnessPlan.weeklyTasks || []}
                 />
             </div>
+
+            {/* INJEÇÃO: Notificações em Toast (Lembretes + Metas) */}
+            {wellnessPlan.dailyReminders && wellnessPlan.dailyReminders.length > 0 && (
+                <WellnessReminderToasts
+                    reminders={wellnessPlan.dailyReminders}
+                    healthGoals={wellnessPlan.healthGoals}
+                />
+            )}
         </div>
     );
 }

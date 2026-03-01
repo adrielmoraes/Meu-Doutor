@@ -11,6 +11,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { countTextTokens } from '@/lib/token-counter';
 import { trackAIUsage } from '@/lib/usage-tracker';
+import { generateWithFallback } from '@/lib/ai-resilience';
 import {
   SpecialistAgentInputSchema,
   SpecialistAgentOutputSchema,
@@ -53,7 +54,7 @@ const SpecialistFindingSchema = z.object({
   specialist: z.string().describe("The name of the specialist providing the finding, e.g., 'Dra. Ana (Cardiologista)' or 'Dr. Miguel (Radiologista)'."),
   findings: z.string().describe("The detailed clinical findings from the specialist."),
   clinicalAssessment: z.string().describe("The specialist's assessment of severity and urgency."),
-  recommendations: z.string().describe("Specific recommendations from this specialist."),
+  recommendations: z.union([z.string(), z.array(z.string())]).transform(val => Array.isArray(val) ? val.map(item => '- ' + item).join('\n') : val).describe("Specific recommendations from this specialist."),
   suggestedMedications: z.array(z.object({
     medication: z.string(),
     dosage: z.string(),
@@ -383,7 +384,9 @@ const synthesisPrompt = ai.definePrompt({
           specialist: z.string(),
           findings: z.string(),
           clinicalAssessment: z.string(),
-          recommendations: z.string(),
+          recommendations: z.union([z.string(), z.array(z.string())]).transform(val =>
+            Array.isArray(val) ? val.map(item => `- ${item}`).join('\n') : val
+          ),
           suggestedMedications: z.array(z.object({
             medication: z.string(),
             dosage: z.string(),
@@ -440,16 +443,19 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
 
     const triageInputText = TRIAGE_PROMPT_TEMPLATE + JSON.stringify(input);
     const triageInputTokens = countTextTokens(triageInputText);
-    
-    const triageResult = await triagePrompt(input);
+
+    const triageResult = await generateWithFallback({
+      prompt: triagePrompt,
+      input: input
+    }) as any;
     const specialistsToCall = triageResult.output?.specialists || [];
-    
+
     const triageOutputTokens = countTextTokens(JSON.stringify(triageResult.output));
-    
+
     // Track Triage Usage
     await trackAIUsage({
       usageType: 'diagnosis',
-      model: 'googleai/gemini-2.5-flash',
+      model: triageResult.fallbackModel || 'googleai/gemini-2.5-flash',
       inputTokens: triageInputTokens,
       outputTokens: triageOutputTokens,
       patientId,
@@ -477,7 +483,7 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     console.log(`[Orchestrator] Especialistas: ${specialistsToCall.join(', ')}`);
     console.log(`========================================\n`);
 
-    const specialistPromises = specialistsToCall.map(async (specialistKey, index) => {
+    const specialistPromises = specialistsToCall.map((specialistKey, index) => async () => {
       const agent = specialistAgents[specialistKey];
       const specialistName = specialistKey.charAt(0).toUpperCase() + specialistKey.slice(1);
 
@@ -564,7 +570,15 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
       }
     });
 
-    const specialistReports = await Promise.all(specialistPromises);
+    const specialistReports = [];
+    for (let i = 0; i < specialistsToCall.length; i++) {
+      const promiseFn = specialistPromises[i];
+      if (i > 0) {
+        console.log(`[Orchestrator] ⏳ Pausa de 3 segundos para evitar (Rate Limit - 429) na API do Gemini...`);
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+      specialistReports.push(await promiseFn());
+    }
 
     console.log(`\n========================================`);
     console.log(`[Orchestrator] ✅ ANÁLISE MULTI-ESPECIALISTA CONCLUÍDA`);
@@ -578,10 +592,13 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     const synthesisInputText = SYNTHESIS_PROMPT_TEMPLATE + JSON.stringify({ ...input, specialistReports });
     const synthesisInputTokens = countTextTokens(synthesisInputText);
 
-    const synthesisResult = await synthesisPrompt({
-      ...input,
-      specialistReports,
-    });
+    const synthesisResult = await generateWithFallback({
+      prompt: synthesisPrompt,
+      input: {
+        ...input,
+        specialistReports,
+      }
+    }) as any;
 
     const synthesisOutputText = (synthesisResult.output!.synthesis || '') + (synthesisResult.output!.suggestions || '');
     const synthesisOutputTokens = countTextTokens(synthesisOutputText);
@@ -589,7 +606,7 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     // Track Synthesis Usage
     await trackAIUsage({
       usageType: 'diagnosis',
-      model: 'googleai/gemini-2.5-flash',
+      model: synthesisResult.fallbackModel || 'googleai/gemini-2.5-flash',
       inputTokens: synthesisInputTokens,
       outputTokens: synthesisOutputTokens,
       patientId,
@@ -606,7 +623,7 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     // Note: This is logging only, real tracking is handled by trackAIUsage above
     const specialistCount = specialistReports.length;
     // Estimate tokens per specialist (conservative estimate for display)
-    const tokensPerSpecialist = 4500; 
+    const tokensPerSpecialist = 4500;
     const specialistTokens = specialistCount * tokensPerSpecialist;
     const totalTokens = triageInputTokens + triageOutputTokens + specialistTokens + synthesisInputTokens + synthesisOutputTokens;
 

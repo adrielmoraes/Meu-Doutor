@@ -4,18 +4,14 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { generateWithFallback } from '@/lib/ai-resilience';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
 import { countTextTokens } from '@/lib/token-counter';
 import { trackAIUsage } from '@/lib/usage-tracker';
 
-const specialistPrompt = ai.definePrompt({
-    name: 'geneticistAgentPrompt',
-    input: { schema: SpecialistAgentInputSchema },
-    output: { schema: SpecialistAgentOutputSchema },
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dr. Gene Helix, MD, PhD** - Medical Geneticist specialized in Precision Medicine and Cancer Genomics.
+const GENETICIST_PROMPT_TEMPLATE = `You are **Dr. Gene Helix, MD, PhD** - Medical Geneticist specialized in Precision Medicine and Cancer Genomics.
 
 **YOUR EXPERTISE:** Hereditary Cancer Syndromes, Pharmacogenomics, Rare Diseases, Carrier Screening.
 
@@ -73,7 +69,18 @@ Patient History: {{patientHistory}}
 - **NÃO ASSUMA** patogenicidade de VUS. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
 - **DIFERENCIE** risco populacional vs. risco genético confirmado.
 - Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
-`
+
+**OUTPUT FORMAT:**
+Return a JSON object ONLY. NO MARKDOWN, NO \`\`\`json, NO text before or after the JSON.
+Include all fields: findings, clinicalAssessment, recommendations (as a single string), suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, and relevantMetrics when applicable.
+`;
+
+const specialistPrompt = ai.definePrompt({
+    name: 'geneticistAgentPrompt',
+    input: { schema: SpecialistAgentInputSchema },
+    output: { schema: SpecialistAgentOutputSchema },
+    tools: [medicalKnowledgeBaseTool],
+    prompt: GENETICIST_PROMPT_TEMPLATE,
 });
 
 const geneticistAgentFlow = ai.defineFlow(
@@ -87,8 +94,26 @@ const geneticistAgentFlow = ai.defineFlow(
 
         console.log('[Geneticist Agent] Iniciando análise genética...');
         try {
-            const { output } = await specialistPrompt(input);
-            if (!output) return createFallbackResponse('Geneticista');
+            const inputText = GENETICIST_PROMPT_TEMPLATE + JSON.stringify(input);
+            const inputTokens = countTextTokens(inputText);
+
+            const { output, fallbackModel } = await generateWithFallback({ prompt: specialistPrompt, input }) as any;
+            if (!output) {
+                console.error('[Geneticist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+                return createFallbackResponse('Geneticista');
+            }
+
+            const outputTokens = countTextTokens(JSON.stringify(output));
+
+            await trackAIUsage({
+                patientId,
+                usageType: 'diagnosis',
+                model: fallbackModel || 'googleai/gemini-2.5-flash',
+                inputTokens: inputTokens,
+                outputTokens: outputTokens,
+                metadata: { specialist: 'geneticist' },
+            });
+
             return output;
         } catch (error) {
             console.error('[Geneticist Agent] Error:', error);

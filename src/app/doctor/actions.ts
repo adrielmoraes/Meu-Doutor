@@ -279,7 +279,7 @@ export async function searchMemedMedicinesAction(query: string) {
 
   // Busca local na base de medicamentos brasileiros
   const searchLower = query.toLowerCase();
-  const results = MEDICAMENTOS_BRASILEIROS.filter(med => 
+  const results = MEDICAMENTOS_BRASILEIROS.filter(med =>
     med.nome.toLowerCase().includes(searchLower) ||
     med.apresentacao.toLowerCase().includes(searchLower)
   ).slice(0, 10).map(med => ({
@@ -663,9 +663,9 @@ export async function getDoctorSettingsAction(): Promise<{ success: boolean; set
       return { success: false, message: 'Médico não encontrado.' };
     }
 
-    return { 
-      success: true, 
-      settings: (doctor as any).settings || {} 
+    return {
+      success: true,
+      settings: (doctor as any).settings || {}
     };
   } catch (error) {
     console.error('[Settings] Erro ao carregar configurações:', error);
@@ -686,7 +686,7 @@ export async function saveDoctorSettingsAction(settings: DoctorSettings): Promis
     const { eq } = await import('drizzle-orm');
 
     await db.update(doctors)
-      .set({ 
+      .set({
         settings,
         updatedAt: new Date()
       })
@@ -699,5 +699,47 @@ export async function saveDoctorSettingsAction(settings: DoctorSettings): Promis
   } catch (error) {
     console.error('[Settings] Erro ao salvar configurações:', error);
     return { success: false, message: 'Erro ao salvar configurações.' };
+  }
+}
+
+export async function claimPatientAction(patientId: string, doctorIdOrFormData?: string | FormData): Promise<{ success: boolean; message: string }> {
+  const session = await getSession();
+
+  if (!session || session.role !== 'doctor' || !session.userId) {
+    return { success: false, message: 'Não autorizado.' };
+  }
+
+  // When called via <form action={fn.bind(null, id)}>, the second arg is FormData.
+  // When called directly (e.g. from a client component), it may be a doctorId string.
+  const effectiveDoctorId = (typeof doctorIdOrFormData === 'string') ? doctorIdOrFormData : session.userId;
+
+  try {
+    const { claimPatient } = await import('@/lib/db-adapter');
+    await claimPatient(patientId, effectiveDoctorId);
+    revalidatePath('/doctor');
+    revalidatePath('/doctor/patients');
+    return { success: true, message: 'Paciente reivindicado com sucesso.' };
+  } catch (error) {
+    console.error('[ClaimPatient] Erro:', error);
+    return { success: false, message: 'Erro ao reivindicar paciente.' };
+  }
+}
+
+export async function releasePatientAction(patientId: string): Promise<{ success: boolean; message: string }> {
+  const session = await getSession();
+
+  if (!session || session.role !== 'doctor' || !session.userId) {
+    return { success: false, message: 'Não autorizado.' };
+  }
+
+  try {
+    const { releasePatient } = await import('@/lib/db-adapter');
+    await releasePatient(patientId);
+    revalidatePath('/doctor');
+    revalidatePath('/doctor/patients');
+    return { success: true, message: 'Paciente devolvido ao mural.' };
+  } catch (error) {
+    console.error('[ReleasePatient] Erro:', error);
+    return { success: false, message: 'Erro ao devolver paciente.' };
   }
 }

@@ -5,32 +5,65 @@ import { getAppointmentsByDate, getPatientById, getDoctorById, addAppointment, u
 import { format } from "date-fns";
 import { z } from 'zod';
 
-// Defines a standard work day for doctors
-const allPossibleTimes = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
+// Gera slots de horário dinâmicos com base nas configurações do médico
+function generateTimeSlots(
+    workDayStart: string,
+    workDayEnd: string,
+    durationMinutes: number,
+    bufferMinutes: number
+): string[] {
+    const slots: string[] = [];
+    const [startH, startM] = workDayStart.split(':').map(Number);
+    const [endH, endM] = workDayEnd.split(':').map(Number);
+
+    let currentMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    const step = durationMinutes + bufferMinutes;
+
+    while (currentMinutes + durationMinutes <= endMinutes) {
+        const h = Math.floor(currentMinutes / 60);
+        const m = currentMinutes % 60;
+        slots.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
+        currentMinutes += step;
+    }
+
+    return slots;
+}
+
+// Fallback para slots padrão caso o médico não tenha configurações
+const DEFAULT_TIME_SLOTS = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
 
 /**
- * Calculates available appointment times for a given date by checking existing appointments.
- * @param doctorId The ID of the doctor.
- * @param date The selected date.
- * @returns A list of available time slots.
+ * Calcula os horários disponíveis para agendamento com base nas configurações do médico.
+ * Respeita: workDayStart, workDayEnd, defaultDuration, bufferTime do médico.
  */
 export async function getAvailableTimesAction(doctorId: string, date: Date): Promise<string[]> {
     try {
         const formattedDate = format(date, 'yyyy-MM-dd');
         const existingAppointments = await getAppointmentsByDate(doctorId, formattedDate);
-
         const bookedTimes = new Set(existingAppointments.map(appt => appt.time));
 
-        const doctor = await getDoctorById(doctorId); // Obter disponibilidade do médico
+        const doctor = await getDoctorById(doctorId);
         if (!doctor || !doctor.availability) {
-            return []; // Se o médico não tiver disponibilidade definida, não há horários
+            return [];
         }
+
+        // Gerar slots baseados nas configurações do médico
+        const scheduleSettings = (doctor as any).settings?.schedule;
+        const allPossibleTimes = scheduleSettings
+            ? generateTimeSlots(
+                scheduleSettings.workDayStart || '08:00',
+                scheduleSettings.workDayEnd || '18:00',
+                scheduleSettings.defaultDuration || 30,
+                scheduleSettings.bufferTime || 10
+            )
+            : DEFAULT_TIME_SLOTS;
 
         const doctorAvailableTimes = doctor.availability
             .filter(slot => slot.date === formattedDate && slot.available)
             .map(slot => slot.time);
 
-        const availableTimes = allPossibleTimes.filter(time => 
+        const availableTimes = allPossibleTimes.filter(time =>
             !bookedTimes.has(time) && doctorAvailableTimes.includes(time)
         );
 
@@ -38,10 +71,10 @@ export async function getAvailableTimesAction(doctorId: string, date: Date): Pro
 
     } catch (error) {
         console.error("Error fetching available times:", error);
-        // In case of an error, return no available times to be safe.
         return [];
     }
 }
+
 
 // Schema para validação do agendamento
 const ScheduleSchema = z.object({
@@ -86,6 +119,9 @@ export async function scheduleAppointmentAction(prevState: any, formData: FormDa
         }
 
         // 3. Criar o agendamento
+        const scheduleSettings = (doctor as any).settings?.schedule;
+        const initialStatus = scheduleSettings?.autoConfirm ? 'Confirmada' : 'Agendada';
+
         const newAppointment = {
             patientId: patient.id,
             patientName: patient.name,
@@ -96,7 +132,7 @@ export async function scheduleAppointmentAction(prevState: any, formData: FormDa
             date: date,
             time: time,
             type: type,
-            status: 'Agendada' as const,
+            status: initialStatus as const,
         };
 
         await addAppointment(newAppointment); // Supondo que addAppointment existe no admin-adapter

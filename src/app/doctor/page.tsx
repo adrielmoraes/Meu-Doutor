@@ -1,5 +1,5 @@
 import DoctorDashboardImproved from "@/components/doctor/doctor-dashboard-improved";
-import { getDoctorById } from "@/lib/db-adapter";
+import { getDoctorById, getGlobalPatientsQueue } from "@/lib/db-adapter";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import type { Doctor, Appointment, Patient } from "@/types";
@@ -7,7 +7,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { db } from '../../../server/storage';
 import { appointments, consultations, exams, patients, prescriptions } from '../../../shared/schema';
-import { eq, and, count, sql, gte, desc, or, asc } from 'drizzle-orm';
+import { eq, and, count, sql, gte, desc, or, asc, isNull } from 'drizzle-orm';
 
 interface PendingExam {
   id: string;
@@ -63,6 +63,8 @@ interface DashboardData {
   recentActivity: ActivityItem[];
   aiAssistCount: number;
   priorityDistribution: { name: string; value: number }[];
+  globalPatientsCount?: number;
+  globalPatients?: Patient[];
   error?: string;
 }
 
@@ -83,6 +85,8 @@ async function getDashboardData(doctorId: string): Promise<DashboardData> {
     recentActivity: [],
     aiAssistCount: 0,
     priorityDistribution: [],
+    globalPatientsCount: 0,
+    globalPatients: []
   };
 
   try {
@@ -101,6 +105,13 @@ async function getDashboardData(doctorId: string): Promise<DashboardData> {
       .selectDistinct({ patientId: appointments.patientId })
       .from(appointments)
       .where(eq(appointments.doctorId, doctorId));
+
+    const globalPatientsCountQuery = await db.select({ count: count() }).from(patients).where(isNull(patients.attendingDoctorId));
+    const globalPatientsCount = Number(globalPatientsCountQuery[0]?.count) || 0;
+
+    // Get a few recent global patients for quick access
+    const globalPatientsResult = await getGlobalPatientsQueue();
+    const globalPatientsPreview = globalPatientsResult.slice(0, 5);
 
     const [
       totalPatientsResult,
@@ -298,6 +309,8 @@ async function getDashboardData(doctorId: string): Promise<DashboardData> {
         )
     ]);
 
+    const examCountMap = new Map(urgentExamCountsResult.map(r => [r.patientId, Number(r.count)]));
+
     const urgentCasesWithExams = urgentPatientsResult.map(p => ({
       ...p,
       priority: p.priority || 'Normal',
@@ -355,7 +368,9 @@ async function getDashboardData(doctorId: string): Promise<DashboardData> {
       activityTrends: dailyTrends.map(t => ({ date: t.date, count: Number(t.count) })),
       recentActivity: activityItems,
       aiAssistCount: Number(aiExamsCount[0]?.count) || 0,
-      priorityDistribution: priorityStats.map(s => ({ name: s.priority || 'Normal', value: Number(s.count) }))
+      priorityDistribution: priorityStats.map(s => ({ name: s.priority || 'Normal', value: Number(s.count) })),
+      globalPatientsCount,
+      globalPatients: globalPatientsPreview as Patient[]
     };
   } catch (e: any) {
     const errorMessage = e.message?.toLowerCase() || '';
@@ -412,6 +427,8 @@ export default async function DoctorDashboardPage() {
           recentActivity={dashboardData.recentActivity}
           aiAssistCount={dashboardData.aiAssistCount}
           priorityDistribution={dashboardData.priorityDistribution}
+          globalPatientsCount={dashboardData.globalPatientsCount}
+          globalPatients={dashboardData.globalPatients}
         />
       )}
     </>

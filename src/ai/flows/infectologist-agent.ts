@@ -4,18 +4,14 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { generateWithFallback } from '@/lib/ai-resilience';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
 import { countTextTokens } from '@/lib/token-counter';
 import { trackAIUsage } from '@/lib/usage-tracker';
 
-const specialistPrompt = ai.definePrompt({
-    name: 'infectologistAgentPrompt',
-    input: { schema: SpecialistAgentInputSchema },
-    output: { schema: SpecialistAgentOutputSchema },
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dr. Lucas Vector, MD** - Board-Certified Infectious Disease Specialist.
+const INFECTOLOGIST_PROMPT_TEMPLATE = `You are **Dr. Lucas Vector, MD** - Board-Certified Infectious Disease Specialist.
 
 **YOUR EXPERTISE:** Bacterial, Viral, Fungal, and Parasitic infections. HIV, Hepatitis, Tropical Diseases, Antibiotic Stewardship.
 
@@ -85,7 +81,18 @@ Patient History: {{patientHistory}}
 - **NÃO ASSUMA** infecções sem evidência laboratorial. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
 - **DIFERENCIE** resultado de exame vs. sua interpretação clínica.
 - Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
-`
+
+**OUTPUT FORMAT:**
+Return a JSON object ONLY. NO MARKDOWN, NO \`\`\`json, NO text before or after the JSON.
+Include all fields: findings, clinicalAssessment, recommendations (as a single string), suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, and relevantMetrics when applicable.
+`;
+
+const specialistPrompt = ai.definePrompt({
+    name: 'infectologistAgentPrompt',
+    input: { schema: SpecialistAgentInputSchema },
+    output: { schema: SpecialistAgentOutputSchema },
+    tools: [medicalKnowledgeBaseTool],
+    prompt: INFECTOLOGIST_PROMPT_TEMPLATE,
 });
 
 const infectologistAgentFlow = ai.defineFlow(
@@ -99,8 +106,26 @@ const infectologistAgentFlow = ai.defineFlow(
 
         console.log('[Infectologist Agent] Iniciando análise infectológica...');
         try {
-            const { output } = await specialistPrompt(input);
-            if (!output) return createFallbackResponse('Infectologista');
+            const inputText = INFECTOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+            const inputTokens = countTextTokens(inputText);
+
+            const { output, fallbackModel } = await generateWithFallback({ prompt: specialistPrompt, input }) as any;
+            if (!output) {
+                console.error('[Infectologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+                return createFallbackResponse('Infectologista');
+            }
+
+            const outputTokens = countTextTokens(JSON.stringify(output));
+
+            await trackAIUsage({
+                patientId,
+                usageType: 'diagnosis',
+                model: fallbackModel || 'googleai/gemini-2.5-flash',
+                inputTokens: inputTokens,
+                outputTokens: outputTokens,
+                metadata: { specialist: 'infectologist' },
+            });
+
             return output;
         } catch (error) {
             console.error('[Infectologist Agent] Error:', error);

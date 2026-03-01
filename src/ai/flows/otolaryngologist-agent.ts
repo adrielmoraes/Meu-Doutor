@@ -6,6 +6,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { generateWithFallback } from '@/lib/ai-resilience';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -65,6 +66,10 @@ Analyze ENT indicators if present:
 - **DIFERENCIE** dado clínico vs. sua interpretação otorrinolaringológica.
 - Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 
+**OUTPUT FORMAT:**
+Return a JSON object ONLY. NO MARKDOWN, NO \`\`\`json, NO text before or after the JSON.
+Include all fields: findings, clinicalAssessment, recommendations (as a single string), suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, and relevantMetrics when applicable.
+
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
@@ -92,7 +97,7 @@ const otolaryngologistAgentFlow = ai.defineFlow(
     const inputText = OTOLARYNGOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
     const inputTokens = countTextTokens(inputText);
 
-    const { output } = await specialistPrompt(input);
+    const { output, fallbackModel } = await generateWithFallback({ prompt: specialistPrompt, input }) as any;
     if (!output) {
       console.error('[Otolaryngologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
       return createFallbackResponse('Otorrinolaringologista');
@@ -103,7 +108,7 @@ const otolaryngologistAgentFlow = ai.defineFlow(
     await trackAIUsage({
       patientId,
       usageType: 'diagnosis',
-      model: 'googleai/gemini-2.5-flash',
+      model: fallbackModel || 'googleai/gemini-2.5-flash',
       inputTokens: inputTokens,
       outputTokens: outputTokens,
       metadata: { specialist: 'otolaryngologist' },

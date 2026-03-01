@@ -17,6 +17,8 @@ import {
     SpecialistAgentOutputSchema,
     createFallbackResponse,
 } from "./specialist-agent-types";
+import { countTextTokens } from '@/lib/token-counter';
+import { trackAIUsage } from '@/lib/usage-tracker';
 
 const NUTRITIONIST_PROMPT = `You are **Dra. Laura Mendes, RD, MSc** - Registered Dietitian and Clinical Nutritionist specializing in medical nutrition therapy, sports nutrition, and metabolic diseases.
 
@@ -73,15 +75,17 @@ IMPORTANT: Use internetSearchTool for evidence-based dietary recommendations and
 - **DIFERENCIE** dado bruto vs. sua interpretação nutricional.
 - Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 
+**OUTPUT FORMAT:**
+Return a JSON object ONLY. NO MARKDOWN, NO \`\`\`json, NO text before or after the JSON.
+Include all fields: findings, clinicalAssessment, recommendations (as a single string), suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, and relevantMetrics when applicable.
+
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
 {"findings": "Text here in Portuguese", "clinicalAssessment": "mild", "recommendations": "Text here in Portuguese"}`;
 
 const FALLBACK_MODELS = [
-    "googleai/gemini-2.5-flash",
-    "models/gemini-3-flash-preview",
-    "googleai/gemini-2.0-flash",
+    "googleai/gemini-2.5-flash"
 ];
 
 async function executeWithRetry(
@@ -103,6 +107,20 @@ async function executeWithRetry(
                 console.log(
                     `[Nutritionist Agent] ✅ Sucesso com modelo: ${model}`,
                 );
+
+                const inputText = NUTRITIONIST_PROMPT + JSON.stringify(input);
+                const inputTokens = countTextTokens(inputText);
+                const outputTokens = countTextTokens(JSON.stringify(output));
+
+                await trackAIUsage({
+                    patientId: input.patientId || 'anonymous',
+                    usageType: 'diagnosis',
+                    model: model,
+                    inputTokens: inputTokens,
+                    outputTokens: outputTokens,
+                    metadata: { specialist: 'nutritionist' },
+                });
+
                 return output;
             }
         } catch (error: any) {

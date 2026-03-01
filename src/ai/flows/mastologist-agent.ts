@@ -4,18 +4,14 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { generateWithFallback } from '@/lib/ai-resilience';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
 import { countTextTokens } from '@/lib/token-counter';
 import { trackAIUsage } from '@/lib/usage-tracker';
 
-const specialistPrompt = ai.definePrompt({
-    name: 'mastologistAgentPrompt',
-    input: { schema: SpecialistAgentInputSchema },
-    output: { schema: SpecialistAgentOutputSchema },
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dra. Elena Mama, MD** - Board-Certified Mastologist specializing in breast health and oncology.
+const MASTOLOGIST_PROMPT_TEMPLATE = `You are **Dra. Elena Mama, MD** - Board-Certified Mastologist specializing in breast health and oncology.
 
 **YOUR EXPERTISE:** Breast cancer screening, benign breast disease, mastalgia, high-risk genetic assessment.
 
@@ -76,7 +72,18 @@ Patient History: {{patientHistory}}
 - **NÃO ASSUMA** malignidade sem evidência descrita. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
 - **DIFERENCIE** achado de imagem vs. sua classificação BI-RADS.
 - Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
-`
+
+**OUTPUT FORMAT:**
+Return a JSON object ONLY. NO MARKDOWN, NO \`\`\`json, NO text before or after the JSON.
+Include all fields: findings, clinicalAssessment, recommendations (as a single string), suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, and relevantMetrics when applicable.
+`;
+
+const specialistPrompt = ai.definePrompt({
+    name: 'mastologistAgentPrompt',
+    input: { schema: SpecialistAgentInputSchema },
+    output: { schema: SpecialistAgentOutputSchema },
+    tools: [medicalKnowledgeBaseTool],
+    prompt: MASTOLOGIST_PROMPT_TEMPLATE,
 });
 
 const mastologistAgentFlow = ai.defineFlow(
@@ -90,8 +97,26 @@ const mastologistAgentFlow = ai.defineFlow(
 
         console.log('[Mastologist Agent] Iniciando análise mastológica...');
         try {
-            const { output } = await specialistPrompt(input);
-            if (!output) return createFallbackResponse('Mastologista');
+            const inputText = MASTOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+            const inputTokens = countTextTokens(inputText);
+
+            const { output, fallbackModel } = await generateWithFallback({ prompt: specialistPrompt, input }) as any;
+            if (!output) {
+                console.error('[Mastologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+                return createFallbackResponse('Mastologista');
+            }
+
+            const outputTokens = countTextTokens(JSON.stringify(output));
+
+            await trackAIUsage({
+                patientId,
+                usageType: 'diagnosis',
+                model: fallbackModel || 'googleai/gemini-2.5-flash',
+                inputTokens: inputTokens,
+                outputTokens: outputTokens,
+                metadata: { specialist: 'mastologist' },
+            });
+
             return output;
         } catch (error) {
             console.error('[Mastologist Agent] Error:', error);

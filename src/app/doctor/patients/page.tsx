@@ -25,15 +25,20 @@ import {
   Bone,
   Activity,
   Droplets,
-  Microscope
+  Microscope,
+  Globe,
+  UserPlus,
+  UserMinus
 } from "lucide-react";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Patient, Exam } from "@/types";
-import { getPatients, getExams } from "@/lib/db-adapter";
+import { getGlobalPatientsQueue, getDoctorPatients, getExams } from "@/lib/db-adapter";
 import { getSession } from "@/lib/session";
 import PrescriptionModal from "@/components/doctor/prescription-modal";
 import { redirect } from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { claimPatientAction, releasePatientAction } from "../actions";
 
 const examToSpecialty: Record<string, string> = {
   'Hemograma': 'Hematologia',
@@ -143,246 +148,322 @@ function sortPatients(patients: PatientWithSpecialty[]): PatientWithSpecialty[] 
   });
 }
 
-async function getPatientsWithSpecialty(): Promise<{ patients: PatientWithSpecialty[] | null; error?: string }> {
+async function getPatientsWithSpecialtyData(patientsData: Patient[], examsData: Exam[]): Promise<PatientWithSpecialty[]> {
+  const patientsWithSpecialty: PatientWithSpecialty[] = patientsData.map(patient => {
+    const patientExams = examsData.filter(exam => exam.patientId === patient.id);
+    const examTypes = [...new Set(patientExams.map(e => e.type))];
+
+    const specialties = examTypes.map(type => getSpecialtyFromExamType(type));
+    const uniqueSpecialties = [...new Set(specialties)];
+    const primarySpecialty = uniqueSpecialties[0] || 'Geral';
+
+    return {
+      ...patient,
+      specialty: primarySpecialty,
+      examTypes,
+    };
+  });
+
+  return sortPatients(patientsWithSpecialty);
+}
+
+async function loadPatientsQueue(doctorId: string): Promise<{ myPatients: PatientWithSpecialty[] | null; globalPatients: PatientWithSpecialty[] | null; error?: string }> {
   try {
-    const [patientsData, examsData] = await Promise.all([
-      getPatients(),
+    const [myPatientsData, globalPatientsData, examsData] = await Promise.all([
+      getDoctorPatients(doctorId),
+      getGlobalPatientsQueue(),
       getExams()
     ]);
 
-    const patientsWithSpecialty: PatientWithSpecialty[] = patientsData.map(patient => {
-      const patientExams = examsData.filter(exam => exam.patientId === patient.id);
-      const examTypes = [...new Set(patientExams.map(e => e.type))];
+    const myPatients = await getPatientsWithSpecialtyData(myPatientsData, examsData);
+    const globalPatients = await getPatientsWithSpecialtyData(globalPatientsData, examsData);
 
-      const specialties = examTypes.map(type => getSpecialtyFromExamType(type));
-      const uniqueSpecialties = [...new Set(specialties)];
-      const primarySpecialty = uniqueSpecialties[0] || 'Geral';
-
-      return {
-        ...patient,
-        specialty: primarySpecialty,
-        examTypes,
-      };
-    });
-
-    return { patients: sortPatients(patientsWithSpecialty) };
+    return { myPatients, globalPatients };
   } catch (e: any) {
     console.error("Error fetching patients:", e);
-    return { patients: null, error: "Ocorreu um erro ao carregar a lista de pacientes." };
+    return { myPatients: null, globalPatients: null, error: "Ocorreu um erro ao carregar a lista de pacientes." };
   }
 }
 
 export default async function PatientsPage() {
   const session = await getSession();
-  if (!session || session.role !== 'doctor') {
+  if (!session || session.role !== 'doctor' || !session.userId) {
     redirect('/login');
   }
 
-  const { patients, error } = await getPatientsWithSpecialty();
+  const { myPatients, globalPatients, error } = await loadPatientsQueue(session.userId);
 
-  const stats = patients ? {
-    total: patients.length,
-    pending: patients.filter(p => p.status === 'Requer Validação').length,
-    validated: patients.filter(p => p.status === 'Validado').length,
-    urgent: patients.filter(p => p.priority === 'Urgente' && p.status !== 'Validado').length,
+  const stats = myPatients ? {
+    total: myPatients.length,
+    pending: myPatients.filter(p => p.status === 'Requer Validação').length,
+    validated: myPatients.filter(p => p.status === 'Validado').length,
+    urgent: myPatients.filter(p => p.priority === 'Urgente' && p.status !== 'Validado').length,
   } : { total: 0, pending: 0, validated: 0, urgent: 0 };
+
+  const PatientTable = ({ patients, isGlobalView }: { patients: PatientWithSpecialty[], isGlobalView?: boolean }) => (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader className="bg-slate-50/50">
+          <TableRow className="border-slate-200">
+            <TableHead className="text-slate-500 font-semibold py-4">Paciente</TableHead>
+            <TableHead className="text-slate-500 font-semibold py-4">Especialidade</TableHead>
+            <TableHead className="hidden md:table-cell text-slate-500 font-semibold py-4">Idade</TableHead>
+            <TableHead className="text-slate-500 font-semibold py-4">Prioridade</TableHead>
+            <TableHead className="text-slate-500 font-semibold py-4">Status</TableHead>
+            <TableHead className="text-right text-slate-500 font-semibold py-4">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {patients.map(patient => {
+            const priorityInfo = priorityMap[patient.priority || 'Normal'];
+            const isInvalidated = patient.status !== 'Validado';
+            const specialtyStyle = getSpecialtyStyle(patient.specialty);
+
+            return (
+              <TableRow
+                key={patient.id}
+                className={`border-slate-100 hover:bg-slate-50/80 transition-colors ${isInvalidated && priorityInfo.level === 1 ? 'bg-rose-50/30' : ''
+                  }`}
+              >
+                <TableCell className="py-4">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 border border-slate-200 shadow-sm">
+                      <AvatarImage src={patient.avatar} data-ai-hint={patient.avatarHint} />
+                      <AvatarFallback className="bg-slate-100 text-slate-600 font-medium">
+                        {patient.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <span className="font-semibold text-slate-900 block">{patient.name}</span>
+                      {patient.examTypes.length > 0 && (
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {patient.examTypes.slice(0, 2).join(', ')}
+                          {patient.examTypes.length > 2 && ` +${patient.examTypes.length - 2}`}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    variant="outline"
+                    className={`flex items-center gap-1.5 w-fit px-2.5 py-1 font-medium ${specialtyStyle.bgColor} ${specialtyStyle.color} border-transparent shadow-sm`}
+                  >
+                    <SpecialtyIcon specialty={patient.specialty} />
+                    {patient.specialty}
+                  </Badge>
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-slate-600">
+                  {patient.age} anos
+                </TableCell>
+                <TableCell>
+                  {isInvalidated ? (
+                    <Badge
+                      variant="outline"
+                      className={`flex items-center gap-1.5 w-fit px-2.5 py-1 ${priorityInfo.className}`}
+                    >
+                      {priorityInfo.icon}
+                      {priorityInfo.label}
+                    </Badge>
+                  ) : (
+                    <span className="text-slate-400 font-medium italic">Finalizado</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    variant="outline"
+                    className={patient.status === 'Validado'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200 px-2.5 py-1 font-medium'
+                      : 'bg-amber-50 text-amber-700 border-amber-200 px-2.5 py-1 font-medium'
+                    }
+                  >
+                    {patient.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    {isGlobalView ? (
+                      <form action={claimPatientAction.bind(null, patient.id)}>
+                        <Button
+                          type="submit"
+                          size="sm"
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm rounded-lg px-4 py-2 h-9"
+                        >
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          Atender
+                        </Button>
+                      </form>
+                    ) : (
+                      <>
+                        <form action={releasePatientAction.bind(null, patient.id)}>
+                          <Button
+                            type="submit"
+                            variant="outline"
+                            size="sm"
+                            className="text-slate-600 hover:text-rose-600 hover:bg-rose-50 h-9"
+                            title="Devolver ao Mural"
+                          >
+                            <UserMinus className="h-4 w-4" />
+                          </Button>
+                        </form>
+                        <PrescriptionModal
+                          doctor={{ id: session.userId || '' }}
+                          patients={[patient]}
+                          initialPatientId={patient.id}
+                          variant="compact"
+                        />
+                        <Button
+                          asChild
+                          size="sm"
+                          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm rounded-lg px-4 py-2 h-9"
+                        >
+                          <Link href={`/doctor/patients/${patient.id}`}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Ver Prontuário
+                          </Link>
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+          {patients.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center text-slate-400 py-12">
+                Nenhum paciente encontrado.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
 
   return (
     <div className="bg-slate-50 min-h-screen relative font-sans text-slate-900">
-      {/* Background Decor - Subtle & Clean */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50 via-transparent to-transparent opacity-60"></div>
 
       <div className="relative z-10 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
-              Meus Pacientes
+              Fila de Pacientes
             </h1>
             <p className="text-slate-500 mt-2">
-              Gerencie e acompanhe seus pacientes por especialidade
+              Gerencie seus pacientes ou atenda novos do mural de casos.
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="bg-white border-slate-200 shadow-sm transition-all hover:shadow-md">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 font-medium">Total</p>
-                  <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
-                </div>
-                <div className="bg-blue-50 p-2 rounded-lg">
-                  <Users className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border-slate-200 shadow-sm transition-all hover:shadow-md">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 font-medium">Pendentes</p>
-                  <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
-                </div>
-                <div className="bg-amber-50 p-2 rounded-lg">
-                  <Clock className="h-6 w-6 text-amber-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border-slate-200 shadow-sm transition-all hover:shadow-md">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 font-medium">Validados</p>
-                  <p className="text-2xl font-bold text-emerald-600">{stats.validated}</p>
-                </div>
-                <div className="bg-emerald-50 p-2 rounded-lg">
-                  <CheckCircle className="h-6 w-6 text-emerald-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border-slate-200 shadow-sm transition-all hover:shadow-md">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 font-medium">Urgentes</p>
-                  <p className="text-2xl font-bold text-rose-600">{stats.urgent}</p>
-                </div>
-                <div className="bg-rose-50 p-2 rounded-lg">
-                  <ShieldAlert className="h-6 w-6 text-rose-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {error || !patients ? (
+        {error ? (
           <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-800">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Erro</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : (
-          <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-slate-50/50">
-                  <TableRow className="border-slate-200">
-                    <TableHead className="text-slate-500 font-semibold py-4">Paciente</TableHead>
-                    <TableHead className="text-slate-500 font-semibold py-4">Especialidade</TableHead>
-                    <TableHead className="hidden md:table-cell text-slate-500 font-semibold py-4">Idade</TableHead>
-                    <TableHead className="text-slate-500 font-semibold py-4">Prioridade</TableHead>
-                    <TableHead className="text-slate-500 font-semibold py-4">Status</TableHead>
-                    <TableHead className="text-right text-slate-500 font-semibold py-4">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {patients.map(patient => {
-                    const priorityInfo = priorityMap[patient.priority || 'Normal'];
-                    const isInvalidated = patient.status !== 'Validado';
-                    const specialtyStyle = getSpecialtyStyle(patient.specialty);
+          <Tabs defaultValue="meus-pacientes" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 max-w-[400px] mb-6 p-1 bg-slate-100 rounded-xl">
+              <TabsTrigger
+                value="meus-pacientes"
+                className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm transition-all"
+              >
+                <Users className="w-4 h-4 mr-2" />
+                Meus Pacientes
+              </TabsTrigger>
+              <TabsTrigger
+                value="mural-casos"
+                className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-sm transition-all"
+              >
+                <Globe className="w-4 h-4 mr-2" />
+                Mural de Casos
+                {globalPatients && globalPatients.length > 0 && (
+                  <Badge variant="secondary" className="ml-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-100">
+                    {globalPatients.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
 
-                    return (
-                      <TableRow
-                        key={patient.id}
-                        className={`border-slate-100 hover:bg-slate-50/80 transition-colors ${isInvalidated && priorityInfo.level === 1 ? 'bg-rose-50/30' : ''
-                          }`}
-                      >
-                        <TableCell className="py-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10 border border-slate-200 shadow-sm">
-                              <AvatarImage src={patient.avatar} data-ai-hint={patient.avatarHint} />
-                              <AvatarFallback className="bg-slate-100 text-slate-600 font-medium">
-                                {patient.name.substring(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <span className="font-semibold text-slate-900 block">{patient.name}</span>
-                              {patient.examTypes.length > 0 && (
-                                <p className="text-xs text-slate-500 mt-0.5">
-                                  {patient.examTypes.slice(0, 2).join(', ')}
-                                  {patient.examTypes.length > 2 && ` +${patient.examTypes.length - 2}`}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={`flex items-center gap-1.5 w-fit px-2.5 py-1 font-medium ${specialtyStyle.bgColor} ${specialtyStyle.color} border-transparent shadow-sm`}
-                          >
-                            <SpecialtyIcon specialty={patient.specialty} />
-                            {patient.specialty}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell text-slate-600">
-                          {patient.age} anos
-                        </TableCell>
-                        <TableCell>
-                          {isInvalidated ? (
-                            <Badge
-                              variant="outline"
-                              className={`flex items-center gap-1.5 w-fit px-2.5 py-1 ${priorityInfo.className}`}
-                            >
-                              {priorityInfo.icon}
-                              {priorityInfo.label}
-                            </Badge>
-                          ) : (
-                            <span className="text-slate-400 font-medium italic">Finalizado</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={patient.status === 'Validado'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 px-2.5 py-1 font-medium'
-                              : 'bg-amber-50 text-amber-700 border-amber-200 px-2.5 py-1 font-medium'
-                            }
-                          >
-                            {patient.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <PrescriptionModal
-                              doctor={{ id: session.userId }}
-                              patients={[patient]}
-                              initialPatientId={patient.id}
-                              variant="compact"
-                            />
-                            <Button
-                              asChild
-                              size="sm"
-                              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm rounded-lg px-4 py-2 h-9"
-                            >
-                              <Link href={`/doctor/patients/${patient.id}`}>
-                                <Eye className="h-4 w-4 mr-2" />
-                                Ver Prontuário
-                              </Link>
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {patients.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center text-slate-400 py-12">
-                        Nenhum paciente encontrado.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </Card>
+            <TabsContent value="meus-pacientes" className="space-y-6 focus-visible:outline-none focus-visible:ring-0 mt-0">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card className="bg-white border-slate-200 shadow-sm transition-all hover:shadow-md">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-slate-500 font-medium">Total</p>
+                        <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
+                      </div>
+                      <div className="bg-blue-50 p-2 rounded-lg">
+                        <Users className="h-6 w-6 text-blue-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white border-slate-200 shadow-sm transition-all hover:shadow-md">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-slate-500 font-medium">Pendentes</p>
+                        <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
+                      </div>
+                      <div className="bg-amber-50 p-2 rounded-lg">
+                        <Clock className="h-6 w-6 text-amber-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white border-slate-200 shadow-sm transition-all hover:shadow-md">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-slate-500 font-medium">Validados</p>
+                        <p className="text-2xl font-bold text-emerald-600">{stats.validated}</p>
+                      </div>
+                      <div className="bg-emerald-50 p-2 rounded-lg">
+                        <CheckCircle className="h-6 w-6 text-emerald-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white border-slate-200 shadow-sm transition-all hover:shadow-md">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-slate-500 font-medium">Urgentes</p>
+                        <p className="text-2xl font-bold text-rose-600">{stats.urgent}</p>
+                      </div>
+                      <div className="bg-rose-50 p-2 rounded-lg">
+                        <ShieldAlert className="h-6 w-6 text-rose-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
+                {myPatients && <PatientTable patients={myPatients} isGlobalView={false} />}
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="mural-casos" className="space-y-6 focus-visible:outline-none focus-visible:ring-0 mt-0">
+              <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-6 bg-slate-50 border-b border-slate-100">
+                  <h3 className="text-lg font-semibold text-slate-900 flex items-center">
+                    <Globe className="h-5 w-5 text-indigo-500 mr-2" />
+                    Sala de Espera Global
+                  </h3>
+                  <p className="text-slate-500 mt-1">Pacientes aguardando atendimento por qualquer médico disponível.</p>
+                </div>
+                {globalPatients && <PatientTable patients={globalPatients} isGlobalView={true} />}
+              </Card>
+            </TabsContent>
+          </Tabs>
         )}
       </div>
     </div>

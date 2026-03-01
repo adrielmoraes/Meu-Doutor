@@ -7,6 +7,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { generateWithFallback } from '@/lib/ai-resilience';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -93,6 +94,10 @@ Analyze nephrologic indicators if present:
 - **DIFERENCIE** dado do exame vs. sua interpretação (ex: "TFG 45" vs "DRC Estágio 3b").
 - Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 
+**OUTPUT FORMAT:**
+Return a JSON object ONLY. NO MARKDOWN, NO \`\`\`json, NO text before or after the JSON.
+Include all fields: findings, clinicalAssessment, recommendations (as a single string), suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, and relevantMetrics when applicable.
+
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
@@ -120,7 +125,7 @@ const nephrologistAgentFlow = ai.defineFlow(
     console.log('[Nephrologist Agent] Verificando função renal nos dados fornecidos...');
 
     const startTime = Date.now();
-    const { output } = await specialistPrompt(input);
+    const { output, fallbackModel } = await generateWithFallback({ prompt: specialistPrompt, input }) as any;
     const duration = Date.now() - startTime;
 
     if (!output) {
@@ -139,7 +144,7 @@ const nephrologistAgentFlow = ai.defineFlow(
     await trackAIUsage({
       patientId,
       usageType: 'diagnosis',
-      model: 'googleai/gemini-2.5-flash',
+      model: fallbackModel || 'googleai/gemini-2.5-flash',
       inputTokens,
       outputTokens,
       metadata: { specialist: 'nephrologist' },

@@ -6,6 +6,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { generateWithFallback } from '@/lib/ai-resilience';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -65,6 +66,10 @@ Analyze urologic indicators if present:
 - **NÃO ASSUMA** nada que não esteja escrito. Se um dado é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
 - **DIFERENCIE** dado bruto vs. sua interpretação urológica.
 - Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
+
+**OUTPUT FORMAT:**
+Return a JSON object ONLY. NO MARKDOWN, NO \`\`\`json, NO text before or after the JSON.
+Include all fields: findings, clinicalAssessment, recommendations (as a single string), suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, and relevantMetrics when applicable.
 - For optional fields (suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, relevantMetrics): 
   * If not applicable, OMIT the field entirely from the response (do not include empty objects or arrays)
   * Only include these fields when you have actual content to provide
@@ -100,7 +105,7 @@ const urologistAgentFlow = ai.defineFlow(
     const inputText = UROLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
     const inputTokens = countTextTokens(inputText);
 
-    const { output } = await specialistPrompt(input);
+    const { output, fallbackModel } = await generateWithFallback({ prompt: specialistPrompt, input }) as any;
     if (!output) {
       console.error('[Urologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
       return createFallbackResponse('Urologista');
@@ -111,7 +116,7 @@ const urologistAgentFlow = ai.defineFlow(
     await trackAIUsage({
       patientId,
       usageType: 'diagnosis',
-      model: 'googleai/gemini-2.5-flash',
+      model: fallbackModel || 'googleai/gemini-2.5-flash',
       inputTokens: inputTokens,
       outputTokens: outputTokens,
       metadata: { specialist: 'urologist' },

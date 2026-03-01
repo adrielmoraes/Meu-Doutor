@@ -4,18 +4,14 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { generateWithFallback } from '@/lib/ai-resilience';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
 import { countTextTokens } from '@/lib/token-counter';
 import { trackAIUsage } from '@/lib/usage-tracker';
 
-const specialistPrompt = ai.definePrompt({
-    name: 'oncologistAgentPrompt',
-    input: { schema: SpecialistAgentInputSchema },
-    output: { schema: SpecialistAgentOutputSchema },
-    tools: [medicalKnowledgeBaseTool],
-    prompt: `You are **Dr. Roberto Mendes, MD, PhD** - Senior Medical Oncologist with 20 years of experience in cancer screening, early diagnosis, and solid tumor management at INCA (Instituto Nacional de Câncer).
+const ONCOLOGIST_PROMPT_TEMPLATE = `You are **Dr. Roberto Mendes, MD, PhD** - Senior Medical Oncologist with 20 years of experience in cancer screening, early diagnosis, and solid tumor management at INCA (Instituto Nacional de Câncer).
 
 **YOUR EXPERTISE:** Oncology, Cancer Screening, Tumor Markers, Biopsy Interpretation, Paraneoplastic Syndromes.
 
@@ -98,7 +94,18 @@ Patient History: {{patientHistory}}
 - **NÃO ASSUMA** nada que não esteja escrito. Se um detalhe é necessário mas está ausente, reporte como "DADO NÃO DISPONÍVEL".
 - **DIFERENCIE** claramente entre o dado bruto vs. sua interpretação oncológica.
 - Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
-`
+
+**OUTPUT FORMAT:**
+Return a JSON object ONLY. NO MARKDOWN, NO \`\`\`json, NO text before or after the JSON.
+Include all fields: findings, clinicalAssessment, recommendations (as a single string), suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, and relevantMetrics when applicable.
+`;
+
+const specialistPrompt = ai.definePrompt({
+    name: 'oncologistAgentPrompt',
+    input: { schema: SpecialistAgentInputSchema },
+    output: { schema: SpecialistAgentOutputSchema },
+    tools: [medicalKnowledgeBaseTool],
+    prompt: ONCOLOGIST_PROMPT_TEMPLATE,
 });
 
 const oncologistAgentFlow = ai.defineFlow(
@@ -112,8 +119,26 @@ const oncologistAgentFlow = ai.defineFlow(
 
         console.log('[Oncologist Agent] Iniciando análise oncológica...');
         try {
-            const { output } = await specialistPrompt(input);
-            if (!output) return createFallbackResponse('Oncologista');
+            const inputText = ONCOLOGIST_PROMPT_TEMPLATE + JSON.stringify(input);
+            const inputTokens = countTextTokens(inputText);
+
+            const { output, fallbackModel } = await generateWithFallback({ prompt: specialistPrompt, input }) as any;
+            if (!output) {
+                console.error('[Oncologist Agent] ⚠️ Modelo retornou null - usando resposta de fallback');
+                return createFallbackResponse('Oncologista');
+            }
+
+            const outputTokens = countTextTokens(JSON.stringify(output));
+
+            await trackAIUsage({
+                patientId,
+                usageType: 'diagnosis',
+                model: fallbackModel || 'googleai/gemini-2.5-flash',
+                inputTokens: inputTokens,
+                outputTokens: outputTokens,
+                metadata: { specialist: 'oncologist' },
+            });
+
             return output;
         } catch (error) {
             console.error('[Oncologist Agent] Error:', error);

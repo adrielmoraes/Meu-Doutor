@@ -4,7 +4,7 @@
  * This file centralizes the types to prevent circular dependencies.
  */
 
-import {z} from 'genkit';
+import { z } from 'genkit';
 
 export const SpecialistAgentInputSchema = z.object({
   patientId: z.string().optional().describe("The patient ID for usage tracking."),
@@ -20,7 +20,7 @@ export type SpecialistAgentInput = z.infer<typeof SpecialistAgentInputSchema>;
 export const SpecialistAgentOutputSchema = z.object({
   findings: z.string().describe("CONCISE clinical findings. Use bullet points. Focus strictly on abnormalities and relevant negatives."),
   clinicalAssessment: z.string().describe("Brief professional assessment of severity and urgency (1-2 sentences)."),
-  recommendations: z.string().describe("Specific, actionable recommendations. Use bullet points. Be brief."),
+  recommendations: z.union([z.string(), z.array(z.string())]).transform((val: string | string[]) => Array.isArray(val) ? val.map(s => `- ${s}`).join('\n') : val).describe("Specific, actionable recommendations. Use bullet points. Be brief."),
   suggestedMedications: z.array(z.object({
     medication: z.string().describe("Nome do medicamento (princípio ativo e nome comercial quando aplicável)"),
     dosage: z.string().describe("Dosagem específica recomendada (ex: '50mg', '10mg/kg')"),

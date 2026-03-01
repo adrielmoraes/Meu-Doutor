@@ -7,6 +7,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { generateWithFallback } from '@/lib/ai-resilience';
 import { medicalKnowledgeBaseTool } from '../tools/medical-knowledge-base';
 import type { SpecialistAgentInput, SpecialistAgentOutput } from './specialist-agent-types';
 import { SpecialistAgentInputSchema, SpecialistAgentOutputSchema, createFallbackResponse } from './specialist-agent-types';
@@ -78,6 +79,10 @@ Analyze rheumatologic indicators if present:
 - **DIFERENCIE** marcador laboratorial vs. sua interpretação clínica.
 - Esta é informação de saúde do paciente - qualquer erro ou invenção pode causar danos reais.
 
+**OUTPUT FORMAT:**
+Return a JSON object ONLY. NO MARKDOWN, NO \`\`\`json, NO text before or after the JSON.
+Include all fields: findings, clinicalAssessment, recommendations (as a single string), suggestedMedications, treatmentPlan, monitoringProtocol, contraindications, and relevantMetrics when applicable.
+
 **ABSOLUTE REQUIREMENT - FINAL INSTRUCTION:**
 Return ONLY a bare JSON object with these exact fields. NO markdown fences, NO backticks, NO explanatory text.
 Example structure:
@@ -105,7 +110,7 @@ const rheumatologistAgentFlow = ai.defineFlow(
     console.log('[Rheumatologist Agent] Tamanho dos dados recebidos:', input.examResults?.length || 0);
 
     const startTime = Date.now();
-    const { output } = await specialistPrompt(input);
+    const { output, fallbackModel } = await generateWithFallback({ prompt: specialistPrompt, input }) as any;
     const duration = Date.now() - startTime;
 
     if (!output) {
@@ -124,7 +129,7 @@ const rheumatologistAgentFlow = ai.defineFlow(
     await trackAIUsage({
       patientId,
       usageType: 'diagnosis',
-      model: 'googleai/gemini-2.5-flash',
+      model: fallbackModel || 'googleai/gemini-2.5-flash',
       inputTokens,
       outputTokens,
       metadata: { specialist: 'rheumatologist' },

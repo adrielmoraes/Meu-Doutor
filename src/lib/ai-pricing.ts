@@ -9,9 +9,16 @@ export const AI_PRICING = {
   // Official pricing from: https://ai.google.dev/gemini-api/docs/pricing
   // Last updated: December 2025 (User-provided pricing sheet)
   models: {
+    'gemini-3.1-pro-preview': {
+      name: 'Gemini 3.1 Pro Preview',
+      description: 'Latest SOTA reasoning model with unprecedented depth and nuance',
+      input: { upTo200k: 2.00, over200k: 4.00 },
+      output: { upTo200k: 12.00, over200k: 18.00 },
+      knowledgeCutoff: '2025-01',
+    },
     'gemini-3-pro-preview': {
       name: 'Gemini 3 Pro Preview',
-      description: 'Most intelligent model with SOTA reasoning and multimodal understanding',
+      description: 'First Gemini 3 reasoning model with advanced intelligence and multimodal understanding',
       input: { upTo200k: 2.00, over200k: 4.00 },
       output: { upTo200k: 12.00, over200k: 18.00 },
       knowledgeCutoff: '2025-01',
@@ -30,13 +37,6 @@ export const AI_PRICING = {
       // Output: $2.50 per 1M tokens (all context lengths)
       input: { all: 0.30 },
       output: { all: 2.50 },
-      knowledgeCutoff: '2025-01',
-    },
-    'gemini-2.5-flash-lite': {
-      name: 'Gemini 2.5 Flash-Lite',
-      description: 'Smallest and most cost effective model, built for at scale usage',
-      input: { all: 0.10 },
-      output: { all: 0.40 },
       knowledgeCutoff: '2025-01',
     },
     'gemini-2.0-flash': {
@@ -67,14 +67,6 @@ export const AI_PRICING = {
       output: { all: 2.50 },
       knowledgeCutoff: '2025-01',
     },
-    'gemini-flash-lite-latest': {
-      name: 'Gemini Flash-Lite Latest',
-      description: 'Points to gemini-2.5-flash-lite-preview-09-2025',
-      input: { all: 0.10 },
-      output: { all: 0.40 },
-      knowledgeCutoff: '2025-01',
-    },
-    // Gemini 3 Flash Preview (New)
     'gemini-3-flash-preview': {
       name: 'Gemini 3 Flash Preview',
       description: 'Most intelligent model built for speed, combining frontier intelligence with superior search and grounding',

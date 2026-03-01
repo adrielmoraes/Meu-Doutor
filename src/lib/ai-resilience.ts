@@ -3,9 +3,11 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 export const FALLBACK_MODELS = [
-    'googleai/gemini-2.5-flash-lite', // 1st choice: Fast, cheap
-    'googleai/gemini-2.5-flash',      // 2nd choice: Standard
-    'googleai/gemini-1.5-flash',      // 3rd choice: High availability fallback
+    'googleai/gemini-2.5-flash',
+    'googleai/gemini-3.1-pro-preview',
+    'googleai/gemini-3-pro-preview',
+    'googleai/gemini-3-flash-preview',
+    'googleai/gemini-2.5-pro'
 ] as const;
 
 type FallbackOptions<I, O> = {
@@ -32,16 +34,40 @@ export async function generateWithFallback<I, O>({ prompt, input }: FallbackOpti
             });
 
             console.log(`[AI Resilience] ✅ Success with ${model}`);
-            return result;
+            // Attach the exact model used so callers can log it in the database
+            return Object.assign(result, { fallbackModel: model });
         } catch (error: any) {
             console.warn(`[AI Resilience] ⚠️ Failed with ${model}:`, error.message);
             lastError = error;
 
-            // If it's a 429 (Quota) or 5xx (Server), we continue to next model.
-            // If it's a 400 (Bad Request), it might be the input, but we try anyway just in case it's model-specific.
+            // Check if it's a Rate Limit (429) error
+            const isRateLimit = error.message?.includes('429') || error.status === 429;
 
-            // Small delay before next attempt to be nice
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (isRateLimit) {
+                let waitTimeMs = 15000; // Default fallback delay is now 15s instead of 5s
+
+                // Try to extract exact retryDelay from Google Generative AI Error Details
+                if (error.errorDetails && Array.isArray(error.errorDetails)) {
+                    const retryInfo = error.errorDetails.find((d: any) =>
+                        d['@type'] === 'type.googleapis.com/google.rpc.RetryInfo' || d.retryDelay
+                    );
+
+                    if (retryInfo && typeof retryInfo.retryDelay === 'string') {
+                        // retryDelay usually comes in format "44s"
+                        const seconds = parseInt(retryInfo.retryDelay.replace('s', ''), 10);
+                        if (!isNaN(seconds) && seconds > 0) {
+                            waitTimeMs = (seconds * 1000) + 1000; // Add 1 extra safe second
+                            console.log(`[AI Resilience] ⏳ Google API explicitly requested a retry delay of ${seconds}s`);
+                        }
+                    }
+                }
+
+                console.log(`[AI Resilience] ⏳ Rate Limit (429) detected. Waiting ${waitTimeMs / 1000}s before trying next fallback...`);
+                await new Promise(resolve => setTimeout(resolve, waitTimeMs));
+            } else {
+                // For other errors (500, 400), immediate quick delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
         }
     }
 

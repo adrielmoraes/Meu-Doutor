@@ -5,8 +5,8 @@
 
 import { db } from '../../server/storage';
 import { usageTracking } from '../../shared/schema';
-import { 
-  calculateLLMCost, 
+import {
+  calculateLLMCost,
   calculateTTSCost,
   calculateSTTCost,
   calculateAvatarCost,
@@ -17,7 +17,7 @@ import {
 } from './ai-pricing';
 import { countTextTokens, estimateImageTokens, estimateAudioTokens as estimateAudioTokensAccurate } from './token-counter';
 
-export type UsageType = 
+export type UsageType =
   | 'chat'              // AI Therapist chat
   | 'exam_analysis'     // Medical exam analysis
   | 'consultation_flow' // AI consultation flow
@@ -65,7 +65,13 @@ export async function trackAIUsage({
     // UPDATED: Use accurate token counting from token-counter.ts
     const estimatedInputTokens = inputTokens ?? (inputText ? countTextTokens(inputText) : 0);
     const estimatedOutputTokens = outputTokens ?? (outputText ? countTextTokens(outputText) : 0);
-    
+
+    // Bypass constraint violation
+    if (!patientId || patientId === 'anonymous') {
+      console.warn(`[Usage Tracker] Bypassing DB insert for anonymous patient... Tokens[IN:${estimatedInputTokens}, OUT:${estimatedOutputTokens}]`);
+      return `usage_bypassed_${Date.now()}`;
+    }
+
     let costUSD = 0;
     let resourceName = '';
 
@@ -121,7 +127,7 @@ export async function trackAIUsage({
 
     // Convert to BRL cents for storage
     const costCents = usdToBRLCents(costUSD);
-    
+
     // Generate unique ID
     const id = `usage_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -217,7 +223,7 @@ export async function trackTTS(
     model,
     inputTokens: estimatedInputTokens,
     outputTokens: estimatedOutputTokens,
-    metadata: { 
+    metadata: {
       textLength: text.length,
       durationSeconds
     },
@@ -339,11 +345,11 @@ export async function trackExamDocumentAnalysis(
     model,
     inputTokens: inputTokens + imageTokens,
     outputTokens,
-    metadata: { 
-      documentCount, 
+    metadata: {
+      documentCount,
       imageTokens,
       textInputTokens: inputTokens,
-      pipeline: 'document_analysis' 
+      pipeline: 'document_analysis'
     },
   });
 }
@@ -364,8 +370,8 @@ export async function trackMultiSpecialistDiagnosis(
     model,
     inputTokens,
     outputTokens,
-    metadata: { 
-      specialistCount, 
+    metadata: {
+      specialistCount,
       pipeline: 'multi-specialist',
       tokensPerSpecialist: Math.round((inputTokens + outputTokens) / Math.max(specialistCount, 1))
     },
@@ -383,7 +389,7 @@ export async function trackConsultationFlow(
   model: string = 'gemini-2.5-flash'
 ): Promise<string[]> {
   const ids: string[] = [];
-  
+
   // Track the LLM usage
   const llmId = await trackAIUsage({
     patientId,

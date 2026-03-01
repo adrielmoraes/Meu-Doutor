@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import MediAILogo from "@/components/layout/mediai-logo";
 import { getDoctorSettingsAction, saveDoctorSettingsAction, type DoctorSettings } from '../actions';
+import { useTheme } from 'next-themes';
 
 interface FullDoctorSettings {
   notifications: {
@@ -87,6 +88,7 @@ export default function DoctorSettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasChanges, setHasChanges] = useState(false);
   const { toast } = useToast();
+  const { setTheme: setNextTheme } = useTheme();
 
   useEffect(() => {
     async function loadSettings() {
@@ -101,6 +103,10 @@ export default function DoctorSettingsPage() {
             appearance: { ...defaultSettings.appearance, ...result.settings.appearance },
           };
           setSettings(merged);
+          // Sincronizar o tema salvo no banco com o next-themes
+          if (merged.appearance.theme) {
+            setNextTheme(merged.appearance.theme);
+          }
         }
       } catch (error) {
         console.error('Erro ao carregar configurações:', error);
@@ -109,7 +115,7 @@ export default function DoctorSettingsPage() {
       }
     }
     loadSettings();
-  }, []);
+  }, [setNextTheme]);
 
   const updateSetting = <K extends keyof FullDoctorSettings>(
     category: K,
@@ -124,6 +130,11 @@ export default function DoctorSettingsPage() {
       },
     }));
     setHasChanges(true);
+
+    // Aplicar tema em tempo real ao selecionar
+    if (category === 'appearance' && key === 'theme' && typeof value === 'string') {
+      setNextTheme(value);
+    }
   };
 
   const handleSave = async () => {

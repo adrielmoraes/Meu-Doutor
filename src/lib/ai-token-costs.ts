@@ -18,29 +18,47 @@ export const GEMINI_TOKEN_COSTS = {
     output: 12.00,      // Usar textOutput para cálculos gerais
     description: 'Modelo de áudio nativo para consultas ao vivo',
   },
-  
+
   // Gemini 2.5 Flash - Usado em análises, chat terapeuta, flows gerais
   'gemini-2.5-flash': {
     input: 0.30,   // $0.30 por 1M tokens
     output: 2.50,  // $2.50 por 1M tokens
     description: 'Modelo híbrido para análises e conversas',
   },
-  
+
   // Gemini 2.5 Flash Preview TTS - Usado para Text-to-Speech
   'gemini-2.5-flash-preview-tts': {
     input: 0.50,   // $0.50 por 1M tokens
     output: 10.00, // $10.00 por 1M tokens
     description: 'Modelo de síntese de voz',
   },
-  
-  // Gemini 2.5 Flash-Lite - Modelo econômico
-  'gemini-2.5-flash-lite': {
-    input: 0.10,   // $0.10 por 1M tokens
-    output: 0.40,  // $0.40 por 1M tokens
-    description: 'Modelo mais econômico',
+
+  // Gemini 3.1 Pro Preview - SOTA Reasoning Model
+  'gemini-3.1-pro-preview': {
+    input: 2.00,       // $2.00 por 1M tokens (<=200K)
+    output: 12.00,     // $12.00 por 1M tokens (<=200K)
+    inputLarge: 4.00,  // $4.00 por 1M tokens (>200K)
+    outputLarge: 18.00,// $18.00 por 1M tokens (>200K)
+    description: 'Latest SOTA reasoning model',
   },
-  
-  // Gemini 2.5 Pro - Modelo avançado (não usado atualmente, mas disponível)
+
+  // Gemini 3 Pro Preview - Reasoning Model
+  'gemini-3-pro-preview': {
+    input: 2.00,       // $2.00 por 1M tokens (<=200K)
+    output: 12.00,     // $12.00 por 1M tokens (<=200K)
+    inputLarge: 4.00,  // $4.00 por 1M tokens (>200K)
+    outputLarge: 18.00,// $18.00 por 1M tokens (>200K)
+    description: 'Advanced reasoning model with multimodal understanding',
+  },
+
+  // Gemini 3 Flash Preview - Speed and Intelligence
+  'gemini-3-flash-preview': {
+    input: 0.50,   // $0.50 por 1M tokens
+    output: 3.00,  // $3.00 por 1M tokens
+    description: 'Most intelligent model built for speed',
+  },
+
+  // Gemini 2.5 Pro - Modelo avançado
   'gemini-2.5-pro': {
     input: 1.25,   // $1.25 por 1M tokens (<=200K)
     output: 10.00, // $10.00 por 1M tokens (<=200K)
@@ -59,7 +77,7 @@ export const TOKEN_ESTIMATES = {
     outputTokens: 8000,  // ~8K tokens: diagnósticos + medicações + tratamentos
     description: 'Análise completa com 15 especialistas',
   },
-  
+
   // Consulta ao vivo (por minuto)
   // Estimativa baseada em conversas reais: ~25 tokens/segundo de áudio
   // 1 minuto = 60 segundos × 25 tokens = ~1500 tokens
@@ -70,7 +88,7 @@ export const TOKEN_ESTIMATES = {
     useAudioPricing: true, // Usar preços de áudio, não texto
     description: 'Consulta ao vivo com IA (áudio nativo)',
   },
-  
+
   // Chat terapeuta (por mensagem)
   therapistChatMessage: {
     model: 'gemini-2.5-flash',
@@ -78,7 +96,7 @@ export const TOKEN_ESTIMATES = {
     outputTokens: 800,   // ~800 tokens: resposta terapêutica
     description: 'Mensagem de chat terapeuta',
   },
-  
+
   // Text-to-Speech (por uso)
   textToSpeech: {
     model: 'gemini-2.5-flash-preview-tts',
@@ -92,19 +110,19 @@ export const TOKEN_ESTIMATES = {
 export function calculateServiceCost(serviceName: keyof typeof TOKEN_ESTIMATES): number {
   const estimate = TOKEN_ESTIMATES[serviceName];
   const modelCosts = GEMINI_TOKEN_COSTS[estimate.model as keyof typeof GEMINI_TOKEN_COSTS];
-  
+
   if (!modelCosts) {
     console.error(`Modelo ${estimate.model} não encontrado em GEMINI_TOKEN_COSTS`);
     return 0;
   }
-  
+
   // Custos por 1 milhão de tokens, então dividimos por 1.000.000
   // Para consultas ao vivo, usar preços de áudio (STT/TTS)
   const useAudio = 'useAudioPricing' in estimate && estimate.useAudioPricing;
-  
+
   let inputCost: number;
   let outputCost: number;
-  
+
   if (useAudio && 'audioInput' in modelCosts && 'audioOutput' in modelCosts) {
     // Usar preços de áudio para STT (input) e TTS (output)
     inputCost = (estimate.inputTokens / 1_000_000) * modelCosts.audioInput;
@@ -114,7 +132,7 @@ export function calculateServiceCost(serviceName: keyof typeof TOKEN_ESTIMATES):
     inputCost = (estimate.inputTokens / 1_000_000) * modelCosts.input;
     outputCost = (estimate.outputTokens / 1_000_000) * modelCosts.output;
   }
-  
+
   return inputCost + outputCost;
 }
 
@@ -125,21 +143,21 @@ export function calculatePlanCost(limits: {
   therapistChatMessages?: number; // Estimativa de mensagens por mês
 }): number {
   let totalCost = 0;
-  
+
   // Custo de análises de exames
   if (limits.examAnalysis > 0 && limits.examAnalysis !== Infinity) {
     totalCost += calculateServiceCost('examAnalysis') * limits.examAnalysis;
   }
-  
+
   // Custo de consultas ao vivo (por minuto)
   if (limits.aiConsultationMinutes > 0 && limits.aiConsultationMinutes !== Infinity) {
     totalCost += calculateServiceCost('aiConsultationPerMinute') * limits.aiConsultationMinutes;
   }
-  
+
   // Custo de chat terapeuta (estimativa: 100 mensagens/mês para planos ilimitados)
   const chatMessages = limits.therapistChatMessages || 100;
   totalCost += calculateServiceCost('therapistChatMessage') * chatMessages;
-  
+
   return totalCost;
 }
 
@@ -181,7 +199,7 @@ export function calculatePlanPrice(
   const costBRL = costUSD * USD_TO_BRL;
   const priceBRL = priceUSD * USD_TO_BRL;
   const priceBRLCents = usdToBrlCents(priceUSD);
-  
+
   return {
     costUSD,
     costBRL,

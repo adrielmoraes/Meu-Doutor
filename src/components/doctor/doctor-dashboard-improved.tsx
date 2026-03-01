@@ -9,29 +9,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Users, Calendar, History, Sparkles, Activity, TrendingUp, Clock,
+  Users, Calendar, Activity, TrendingUp, Clock,
   AlertTriangle, FileWarning, Search, Video, ArrowRight,
-  Timer, CheckCircle, BarChart3, Zap, Bell, Heart, UserCircle, Settings,
-  Menu, LogOut, User, FileText, ClipboardList, Briefcase, ChevronRight,
-  Stethoscope, ShieldAlert, Cpu, PieChart as PieChartIcon
+  Timer, CheckCircle, BarChart3, Zap, FileText, ClipboardList,
+  Stethoscope, ShieldAlert, Cpu, PieChart as PieChartIcon, UserPlus,
+  ChevronRight, Sparkles, Eye
 } from "lucide-react";
 import Link from "next/link";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OnlineStatusToggle } from "@/components/doctor/online-status-toggle";
-import type { Doctor } from "@/types";
-import MediAILogo from "@/components/layout/mediai-logo";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
+import type { Doctor, Patient } from "@/types";
+import { claimPatientAction } from "@/app/doctor/actions";
 import PrescriptionModal from "@/components/doctor/prescription-modal";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, LineChart, Line, Cell, PieChart, Pie
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  PieChart, Pie, Cell
 } from 'recharts';
+
+// ─── Interfaces ───────────────────────────────────────────────────────────────
 
 interface PendingExam {
   id: string;
@@ -87,7 +83,96 @@ interface DoctorDashboardImprovedProps {
   recentActivity: ActivityItem[];
   aiAssistCount: number;
   priorityDistribution: { name: string; value: number }[];
+  globalPatientsCount?: number;
+  globalPatients?: Patient[];
 }
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const PRIORITY_COLORS: Record<string, string> = {
+  'Crítica': '#ef4444',
+  'Alta': '#f97316',
+  'Média': '#eab308',
+  'Baixa': '#22c55e',
+  'Normal': '#94a3b8'
+};
+
+const PRIORITY_BORDER: Record<string, string> = {
+  'Crítica': 'border-l-red-500',
+  'Alta': 'border-l-orange-500',
+  'Média': 'border-l-yellow-500',
+  'Baixa': 'border-l-green-500',
+  'Normal': 'border-l-slate-300'
+};
+
+const PRIORITY_BG: Record<string, string> = {
+  'Crítica': 'bg-red-50 text-red-700',
+  'Alta': 'bg-orange-50 text-orange-700',
+  'Média': 'bg-yellow-50 text-yellow-700',
+  'Baixa': 'bg-green-50 text-green-700',
+  'Normal': 'bg-slate-50 text-slate-600'
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getTimeAgo(dateStr: string) {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+  if (diffHours < 1) return 'Agora';
+  if (diffHours < 24) return `${diffHours}h atrás`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d atrás`;
+}
+
+// ─── PatientCard Sub-Component ────────────────────────────────────────────────
+
+function PatientCard({
+  id, name, avatar, priority, pendingExams, doctor, patients, linkHref
+}: {
+  id: string;
+  name: string;
+  avatar: string;
+  priority: string;
+  pendingExams: number;
+  doctor: Doctor;
+  patients: { id: string; name: string }[];
+  linkHref: string;
+}) {
+  return (
+    <Link href={linkHref} className="block group">
+      <div className={`flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-100 border-l-4 ${PRIORITY_BORDER[priority] || 'border-l-slate-300'} hover:shadow-md transition-all duration-200 active:scale-[0.99]`}>
+        <Avatar className="h-11 w-11 border-2 border-white shadow-sm shrink-0">
+          <AvatarImage src={avatar} />
+          <AvatarFallback className="bg-slate-100 text-slate-600 font-bold text-sm">
+            {name.substring(0, 2).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-[15px] text-slate-900 group-hover:text-blue-700 transition-colors truncate leading-tight">
+            {name}
+          </p>
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            <Badge variant="outline" className={`text-[10px] font-bold uppercase tracking-tight border-none px-2 py-0.5 ${PRIORITY_BG[priority] || 'bg-slate-50 text-slate-600'}`}>
+              {priority}
+            </Badge>
+            {pendingExams > 0 && (
+              <span className="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-tight">
+                {pendingExams} exame{pendingExams > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <PrescriptionModal doctor={doctor} patients={patients} initialPatientId={id} variant="compact" />
+          <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-blue-500 transition-transform group-hover:translate-x-0.5" />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function DoctorDashboardImproved({
   doctor,
@@ -103,9 +188,12 @@ export default function DoctorDashboardImproved({
   activityTrends,
   recentActivity,
   aiAssistCount,
-  priorityDistribution
+  priorityDistribution,
+  globalPatientsCount,
+  globalPatients
 }: DoctorDashboardImprovedProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [formattedDate, setFormattedDate] = useState('');
 
@@ -113,270 +201,71 @@ export default function DoctorDashboardImproved({
     setFormattedDate(new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }));
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/logout', { method: 'POST' });
-      router.push('/');
-    } catch (error) {
-      console.error('Erro ao fazer logout:', error);
-    }
-  };
-
   const stats = [
-    {
-      title: "Total de Pacientes",
-      value: totalPatients,
-      icon: <Users className="h-5 w-5 text-blue-600" />,
-      color: "blue"
-    },
-    {
-      title: "Consultas Agendadas",
-      value: upcomingAppointments,
-      icon: <Clock className="h-5 w-5 text-violet-600" />,
-      color: "violet"
-    },
-    {
-      title: "Assistência de IA",
-      value: aiAssistCount,
-      icon: <Cpu className="h-5 w-5 text-emerald-600" />,
-      color: "emerald",
-      trend: "Economizando ~4h/semana"
-    },
-    {
-      title: "Exames Pendentes",
-      value: pendingExamsCount,
-      icon: <FileWarning className="h-5 w-5 text-amber-600" />,
-      color: "amber",
-      alert: pendingExamsCount > 0
-    },
-    {
-      title: "Consultas (Semana)",
-      value: weeklyConsultations,
-      icon: <BarChart3 className="h-5 w-5 text-indigo-600" />,
-      color: "indigo"
-    },
-    {
-      title: "Validações",
-      value: doctor.validations || 0,
-      icon: <CheckCircle className="h-5 w-5 text-teal-600" />,
-      color: "teal"
-    }
+    { title: "Meus Pacientes", value: totalPatients, icon: <Users className="h-5 w-5" />, iconBg: "bg-blue-50 text-blue-600" },
+    { title: "Consultas Hoje", value: upcomingAppointments, icon: <Clock className="h-5 w-5" />, iconBg: "bg-violet-50 text-violet-600" },
+    { title: "Exames Pendentes", value: pendingExamsCount, icon: <FileWarning className="h-5 w-5" />, iconBg: "bg-amber-50 text-amber-600", alert: pendingExamsCount > 0 },
+    { title: "IA Assistências", value: aiAssistCount, icon: <Cpu className="h-5 w-5" />, iconBg: "bg-emerald-50 text-emerald-600", trend: "~4h/sem economizadas" },
   ];
 
-  const PRIORITY_COLORS: Record<string, string> = {
-    'Crítica': '#ef4444',
-    'Alta': '#f97316',
-    'Média': '#facc15',
-    'Baixa': '#22c55e',
-    'Normal': '#94a3b8'
-  };
-
-  const getTimeAgo = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    if (diffHours < 1) return 'Agora';
-    if (diffHours < 24) return `${diffHours}h atrás`;
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays}d atrás`;
-  };
-
   return (
-    <div className="bg-slate-50 min-h-screen relative font-sans text-slate-900">
-      {/* Background Decor - Subtle & Clean */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50 via-transparent to-transparent opacity-60"></div>
+    <div className="min-h-screen bg-slate-50">
+      <div className="p-4 md:p-6 lg:p-8 max-w-[1400px] mx-auto">
 
-      <div className="relative z-10 p-4 md:p-8 max-w-7xl mx-auto">
-        {/* Header Section */}
-        <div className="mb-8 space-y-6">
-          <div className="flex items-center justify-between">
-            <MediAILogo className="h-10 w-auto text-blue-600" />
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 hover:bg-slate-100 rounded-full transition-colors"
-                >
-                  <Menu className="h-5 w-5 text-slate-600" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-64 bg-white border-slate-200 shadow-lg text-slate-700"
-              >
-                <div className="px-3 py-2 border-b border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 border-2 border-slate-100">
-                      <AvatarImage src={doctor.avatar || ''} alt={doctor.name} />
-                      <AvatarFallback className="bg-blue-600 text-white font-bold">
-                        {doctor.name.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">{doctor.name}</p>
-                      <p className="text-xs text-slate-500">{doctor.specialty}</p>
-                    </div>
-                  </div>
-                </div>
-                <DropdownMenuSeparator className="bg-slate-100" />
-                <DropdownMenuItem asChild>
-                  <Link href="/doctor" className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 focus:bg-slate-50">
-                    <Stethoscope className="h-4 w-4 text-blue-500" />
-                    <span>Portal do Médico</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/doctor/patients" className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 focus:bg-slate-50">
-                    <Users className="h-4 w-4 text-slate-500" />
-                    <span>Meus Pacientes</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/doctor/profile" className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 focus:bg-slate-50">
-                    <User className="h-4 w-4 text-slate-500" />
-                    <span>Meu Perfil</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/doctor/settings" className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 focus:bg-slate-50">
-                    <Settings className="h-4 w-4 text-slate-500" />
-                    <span>Configurações</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-slate-100" />
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 cursor-pointer hover:bg-red-50 focus:bg-red-50 text-red-600"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Sair</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
+        {/* ─── Header: Greeting + Quick Actions ─── */}
+        <header className="mb-6 md:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div className="pl-12 md:pl-0">
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
                 Olá, Dr. {doctor.name.split(' ')[0]}
               </h1>
-              <p className="text-slate-500 mt-2 flex items-center gap-2">
+              <p className="text-slate-500 mt-1 flex items-center gap-1.5 text-[14px]">
                 <Calendar className="h-4 w-4 text-slate-400" />
                 {formattedDate}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
               <PrescriptionModal doctor={doctor} patients={patients} />
               <OnlineStatusToggle initialStatus={doctor.online || false} doctorName={doctor.name} />
             </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="relative max-w-lg shadow-sm">
+          {/* Search */}
+          <div className="relative max-w-xl mt-5">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
             <Input
               type="text"
               placeholder="Buscar paciente por nome, CPF ou prontuário..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl transition-all"
+              className="pl-12 h-12 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl text-[15px]"
             />
             {searchQuery && (
-              <Link
-                href={`/doctor/patients?search=${encodeURIComponent(searchQuery)}`}
-                className="absolute right-3 top-1/2 -translate-y-1/2"
-              >
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 w-8 p-0">
+              <Link href={`/doctor/patients?search=${encodeURIComponent(searchQuery)}`} className="absolute right-3 top-1/2 -translate-y-1/2">
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 w-8 p-0 min-h-[32px] min-w-[32px]">
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
             )}
           </div>
-        </div>
+        </header>
 
-        {/* Primary Navigation Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Link href="/doctor/patients" className="block group">
-            <Card className="h-full bg-white border-none ring-1 ring-slate-200 shadow-sm group-hover:ring-blue-300 group-hover:shadow-md transition-all rounded-2xl overflow-hidden">
-              <CardContent className="p-6 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
-                    <Users className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <span className="text-lg font-bold text-slate-900 group-hover:text-blue-700 block">Meus Pacientes</span>
-                    <p className="text-xs text-slate-500 font-medium mt-0.5">Gerenciar prontuários e exames</p>
-                  </div>
-                </div>
-                <ArrowRight className="h-5 w-5 text-slate-300 group-hover:text-blue-500 transition-transform group-hover:translate-x-1" />
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href="/doctor/history" className="block group">
-            <Card className="h-full bg-white border-none ring-1 ring-slate-200 shadow-sm group-hover:ring-indigo-300 group-hover:shadow-md transition-all rounded-2xl overflow-hidden">
-              <CardContent className="p-6 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
-                    <History className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <span className="text-lg font-bold text-slate-900 group-hover:text-indigo-700 block">Histórico Clínico</span>
-                    <p className="text-xs text-slate-500 font-medium mt-0.5">Atendimentos realizados</p>
-                  </div>
-                </div>
-                <ArrowRight className="h-5 w-5 text-slate-300 group-hover:text-indigo-500 transition-transform group-hover:translate-x-1" />
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href="/doctor/schedule" className="block group">
-            <Card className="h-full bg-white border-none ring-1 ring-slate-200 shadow-sm group-hover:ring-emerald-300 group-hover:shadow-md transition-all rounded-2xl overflow-hidden">
-              <CardContent className="p-6 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
-                    <Calendar className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <span className="text-lg font-bold text-slate-900 group-hover:text-emerald-700 block">Agenda Magistral</span>
-                    <p className="text-xs text-slate-500 font-medium mt-0.5">Planejamento e turnos</p>
-                  </div>
-                </div>
-                <ArrowRight className="h-5 w-5 text-slate-300 group-hover:text-emerald-500 transition-transform group-hover:translate-x-1" />
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
-
-        {/* Stats Grid - Now more compact and comprehensive */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          {stats.map((stat, index) => (
-            <Card
-              key={stat.title}
-              className={`group bg-white border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 ${stat.alert ? 'ring-2 ring-amber-100' : ''}`}
-            >
-              <CardContent className="p-4">
+        {/* ─── Stats Row ─── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
+          {stats.map((stat) => (
+            <Card key={stat.title} className={`bg-white border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-200 rounded-2xl ${stat.alert ? 'ring-2 ring-amber-100' : ''}`}>
+              <CardContent className="p-4 md:p-5">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className={`p-1.5 rounded-lg ${index % 6 === 0 ? 'bg-blue-50 text-blue-600' :
-                      index % 6 === 1 ? 'bg-violet-50 text-violet-600' :
-                        index % 6 === 2 ? 'bg-emerald-50 text-emerald-600' :
-                          index % 6 === 3 ? 'bg-amber-50 text-amber-600' :
-                            index % 6 === 4 ? 'bg-indigo-50 text-indigo-600' :
-                              'bg-teal-50 text-teal-600'
-                    }`}>
-                    {stat.icon}
-                  </div>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider truncate">{stat.title}</p>
+                  <div className={`p-2 rounded-xl ${stat.iconBg}`}>{stat.icon}</div>
+                  <p className="text-[11px] md:text-xs font-bold text-slate-500 uppercase tracking-wider leading-tight">{stat.title}</p>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <p className="text-xl font-extrabold text-slate-900">{stat.value}</p>
-                  {stat.alert && <span className="flex h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />}
+                  <p className="text-2xl font-extrabold text-slate-900">{stat.value}</p>
+                  {stat.alert && <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />}
                 </div>
                 {stat.trend && (
-                  <p className="text-[9px] font-bold text-emerald-600 mt-1 flex items-center gap-1 uppercase tracking-tighter">
-                    <Zap className="h-2.5 w-2.5" /> {stat.trend}
+                  <p className="text-[10px] font-semibold text-emerald-600 mt-1 flex items-center gap-1">
+                    <Zap className="h-3 w-3" /> {stat.trend}
                   </p>
                 )}
               </CardContent>
@@ -384,96 +273,316 @@ export default function DoctorDashboardImproved({
           ))}
         </div>
 
-        {/* Analytics Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          <Card className="lg:col-span-2 border-none ring-1 ring-slate-200 shadow-sm bg-white overflow-hidden rounded-2xl">
-            <CardHeader className="pb-4 border-b border-slate-50 bg-slate-50/50">
-              <CardTitle className="flex items-center gap-2 text-slate-900 text-lg font-bold">
-                <div className="p-2 rounded-xl bg-blue-100/50 text-blue-600">
-                  <TrendingUp className="h-5 w-5" />
-                </div>
+        {/* ─── Main Tabs: Meus Pacientes / Mural de Casos ─── */}
+        <Tabs defaultValue="my-patients" className="w-full mb-6 md:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+            <TabsList className="bg-white border border-slate-200 shadow-sm p-1 rounded-xl h-auto self-start">
+              <TabsTrigger
+                value="my-patients"
+                className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md px-5 py-2.5 min-h-[44px] text-[14px] font-semibold transition-all"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Meus Pacientes
+                <Badge variant="secondary" className="ml-2 bg-blue-50 text-blue-700 data-[state=active]:bg-white/20 data-[state=active]:text-white text-xs">{totalPatients}</Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                value="global-queue"
+                className="rounded-lg data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md px-5 py-2.5 min-h-[44px] text-[14px] font-semibold transition-all"
+              >
+                <Timer className="h-4 w-4 mr-2" />
+                Mural de Casos
+                {(globalPatientsCount || 0) > 0 && (
+                  <Badge variant="secondary" className="ml-2 bg-emerald-50 text-emerald-700 data-[state=active]:bg-white/20 data-[state=active]:text-white text-xs">{globalPatientsCount}</Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+            <Button variant="outline" className="bg-white text-slate-600 gap-2 font-semibold shadow-sm text-[14px] min-h-[44px] rounded-xl self-start" asChild>
+              <Link href="/doctor/patients">
+                Ver Todos <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+
+          {/* ─── Tab: Meus Pacientes ─── */}
+          <TabsContent value="my-patients" className="mt-0 outline-none">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 md:gap-6">
+
+              {/* Monitoramento Crítico */}
+              <Card className="lg:col-span-2 bg-white border-slate-100 shadow-sm rounded-2xl overflow-hidden">
+                <CardHeader className="pb-3 border-b border-slate-50 bg-slate-50/30 px-5 pt-5">
+                  <CardTitle className="flex items-center gap-2 text-slate-900 text-[16px] font-bold">
+                    <div className="p-1.5 rounded-lg bg-red-50 text-red-600"><AlertTriangle className="h-4 w-4" /></div>
+                    Monitoramento Crítico
+                  </CardTitle>
+                  <CardDescription className="text-slate-500 text-[13px]">
+                    Pacientes com alta prioridade
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <ScrollArea className="h-[340px] pr-2">
+                    {urgentCases.length > 0 ? (
+                      <div className="space-y-3">
+                        {urgentCases.map((p) => (
+                          <PatientCard
+                            key={p.id}
+                            id={p.id}
+                            name={p.name}
+                            avatar={p.avatar}
+                            priority={p.priority}
+                            pendingExams={p.pendingExams}
+                            doctor={doctor}
+                            patients={patients}
+                            linkHref={`/doctor/patients/${p.id}`}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-[280px] text-center">
+                        <div className="bg-emerald-50 p-4 rounded-full mb-3">
+                          <CheckCircle className="h-8 w-8 text-emerald-500" />
+                        </div>
+                        <p className="text-slate-900 font-bold text-[15px]">Sem urgências</p>
+                        <p className="text-xs text-slate-500 mt-1">Nenhum caso requer atenção imediata.</p>
+                      </div>
+                    )}
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+
+              {/* Agenda do Dia */}
+              <Card className="lg:col-span-3 bg-white border-slate-100 shadow-sm rounded-2xl overflow-hidden">
+                <CardHeader className="pb-3 border-b border-slate-50 bg-slate-50/30 px-5 pt-5 flex flex-row items-center justify-between flex-wrap gap-3">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-slate-900 text-[16px] font-bold">
+                      <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600"><Calendar className="h-4 w-4" /></div>
+                      Agenda do Dia
+                    </CardTitle>
+                    <CardDescription className="text-slate-500 text-[13px]">
+                      {todayAppointments.length} consulta{todayAppointments.length !== 1 ? 's' : ''} prevista{todayAppointments.length !== 1 ? 's' : ''}
+                    </CardDescription>
+                  </div>
+                  <Button variant="outline" size="sm" className="bg-white text-blue-600 border-blue-100 hover:bg-blue-50 font-semibold shadow-sm rounded-lg min-h-[40px] text-[13px]" asChild>
+                    <Link href="/doctor/schedule">Agenda Completa</Link>
+                  </Button>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <ScrollArea className="h-[340px] pr-2">
+                    {todayAppointments.length > 0 ? (
+                      <div className="space-y-3">
+                        {todayAppointments.map((appt, index) => (
+                          <div
+                            key={appt.id}
+                            className={`group flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 border active:scale-[0.99] ${index === 0
+                                ? 'bg-blue-50/60 border-blue-200 shadow-sm'
+                                : 'bg-white border-slate-100 hover:border-blue-100 hover:shadow-sm'
+                              }`}
+                          >
+                            <div className="text-center min-w-[56px]">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">hora</span>
+                              <p className={`text-lg font-extrabold ${index === 0 ? 'text-blue-700' : 'text-slate-900'}`}>
+                                {appt.time}
+                              </p>
+                            </div>
+                            <Avatar className="h-11 w-11 ring-2 ring-white shadow-sm shrink-0">
+                              <AvatarImage src={appt.patientAvatar || ''} />
+                              <AvatarFallback className="bg-blue-600 text-white font-bold text-sm">
+                                {appt.patientName.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-[15px] text-slate-900 group-hover:text-blue-700 transition-colors truncate leading-tight">{appt.patientName}</p>
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                <Badge variant="outline" className={`text-[10px] font-bold uppercase tracking-tight border-none px-2 py-0.5 ${appt.type.includes('Vídeo') ? 'text-indigo-700 bg-indigo-50' : 'text-slate-600 bg-slate-100'
+                                  }`}>
+                                  {appt.type}
+                                </Badge>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                                  <Activity className="h-3 w-3" />{appt.status}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <PrescriptionModal doctor={doctor} patients={patients} initialPatientId={appt.patientId} variant="compact" />
+                              {index === 0 && appt.type.includes('Vídeo') && (
+                                <Link href={`/doctor/video-call?patient=${appt.patientId}`}>
+                                  <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200/50 font-bold rounded-xl px-4 min-h-[44px] text-[14px]">
+                                    <Video className="h-4 w-4 mr-1.5" /> Iniciar
+                                  </Button>
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-[280px] text-center">
+                        <div className="bg-slate-50 p-4 rounded-full mb-3">
+                          <Calendar className="h-8 w-8 text-slate-300" />
+                        </div>
+                        <p className="text-slate-900 font-bold text-[15px]">Sem consultas agendadas</p>
+                        <p className="text-xs text-slate-500 mt-1">Aproveite para revisar prontuários pendentes.</p>
+                      </div>
+                    )}
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+
+            </div>
+          </TabsContent>
+
+          {/* ─── Tab: Mural de Casos (Global Queue) ─── */}
+          <TabsContent value="global-queue" className="mt-0 outline-none">
+            <Card className="bg-white border-slate-100 shadow-sm rounded-2xl overflow-hidden">
+              <CardHeader className="pb-3 border-b border-slate-50 bg-emerald-50/20 px-5 pt-5">
+                <CardTitle className="flex items-center gap-2 text-slate-900 text-[16px] font-bold">
+                  <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600"><Timer className="h-4 w-4" /></div>
+                  Pacientes no Mural
+                </CardTitle>
+                <CardDescription className="text-slate-500 text-[13px]">
+                  {globalPatientsCount || 0} pacientes aguardando triagem. Reivindique para sua fila.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-4">
+                <ScrollArea className="h-[420px] pr-2">
+                  {(globalPatients && globalPatients.length > 0) ? (
+                    <div className="space-y-3">
+                      {globalPatients.map((patient) => (
+                        <div
+                          key={patient.id}
+                          className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-2xl bg-white border border-slate-100 border-l-4 ${PRIORITY_BORDER[patient.priority] || 'border-l-slate-300'} hover:shadow-md transition-all duration-200 active:scale-[0.99]`}
+                        >
+                          <Avatar className="h-11 w-11 border-2 border-white shadow-sm shrink-0">
+                            <AvatarImage src={patient.avatar || ''} />
+                            <AvatarFallback className="bg-slate-100 text-slate-600 font-bold text-sm">
+                              {patient.name.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0 w-full">
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="font-bold text-[15px] text-slate-900 truncate">{patient.name}</p>
+                              <Badge variant="outline" className={`text-[10px] font-bold uppercase tracking-tight border-none px-2 py-0.5 shrink-0 ${PRIORITY_BG[patient.priority] || 'bg-slate-50 text-slate-600'}`}>
+                                {patient.priority}
+                              </Badge>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3 text-[13px] text-slate-500">
+                              <span className="flex items-center gap-1">
+                                <Stethoscope className="h-3.5 w-3.5" />{patient.condition}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3.5 w-3.5" />
+                                {patient.lastVisit ? new Date(patient.lastVisit).toLocaleDateString('pt-BR') : 'Nunca'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="mt-2 sm:mt-0 w-full sm:w-auto flex gap-2 shrink-0">
+                            <Button
+                              variant="outline"
+                              className="flex-1 sm:flex-none text-blue-600 border-blue-100 hover:bg-blue-50 font-semibold rounded-xl min-h-[44px] text-[14px]"
+                              asChild
+                            >
+                              <Link href={`/doctor/patients/${patient.id}`}>
+                                <Eye className="h-4 w-4 mr-1.5" /> Ver
+                              </Link>
+                            </Button>
+                            <Button
+                              className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-sm min-h-[44px] text-[14px] active:scale-95 transition-transform"
+                              onClick={async () => {
+                                const result = await claimPatientAction(patient.id, doctor.id);
+                                if (result.success) {
+                                  toast({ title: "Paciente Reivindicado", description: "O paciente agora está na sua fila." });
+                                  router.refresh();
+                                } else {
+                                  toast({ title: "Erro", description: result.message, variant: "destructive" });
+                                }
+                              }}
+                            >
+                              <UserPlus className="h-4 w-4 mr-1.5" /> Assumir
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-center py-16">
+                      <div className="bg-emerald-50 p-5 rounded-full mb-4">
+                        <UserPlus className="h-10 w-10 text-emerald-500" />
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900 mb-1">Mural Vazio</h3>
+                      <p className="text-slate-500 text-[14px]">Não há pacientes aguardando no momento.</p>
+                    </div>
+                  )}
+                </ScrollArea>
+                {(globalPatientsCount || 0) > 5 && (
+                  <div className="mt-4 flex justify-center border-t border-slate-100 pt-4">
+                    <Button variant="outline" className="text-emerald-700 border-emerald-200 hover:bg-emerald-50 font-semibold min-h-[44px] rounded-xl" asChild>
+                      <Link href="/doctor/patients?tab=global">
+                        Ver Mais ({globalPatientsCount})
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* ─── Analytics: Produtividade + Distribuição ─── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6 mb-6 md:mb-8">
+          <Card className="lg:col-span-2 bg-white border-slate-100 shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="pb-3 border-b border-slate-50 bg-slate-50/30 px-5 pt-5">
+              <CardTitle className="flex items-center gap-2 text-slate-900 text-[16px] font-bold">
+                <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600"><TrendingUp className="h-4 w-4" /></div>
                 Produtividade Clínica
               </CardTitle>
-              <CardDescription className="text-slate-500 font-medium tracking-tight">
+              <CardDescription className="text-slate-500 text-[13px]">
                 Consultas concluídas nos últimos 7 dias
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-6 h-[300px]">
+            <CardContent className="pt-5 h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={activityTrends}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis
-                    dataKey="date"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
-                    dy={10}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
-                  />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} dy={8} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} />
                   <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                    itemStyle={{ fontWeight: 700, fontSize: 12 }}
-                    labelStyle={{ fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgb(0 0 0 / 0.08)', fontSize: 13 }}
+                    itemStyle={{ fontWeight: 700 }}
+                    labelStyle={{ fontWeight: 800, color: '#0f172a' }}
                   />
-                  <Line
-                    type="monotone"
-                    dataKey="count"
-                    name="Consultas"
-                    stroke="#2563eb"
-                    strokeWidth={4}
-                    dot={{ fill: '#2563eb', strokeWidth: 2, r: 4, stroke: '#fff' }}
-                    activeDot={{ r: 6, strokeWidth: 0 }}
-                  />
+                  <Line type="monotone" dataKey="count" name="Consultas" stroke="#2563eb" strokeWidth={3} dot={{ fill: '#2563eb', strokeWidth: 2, r: 4, stroke: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          <Card className="border-none ring-1 ring-slate-200 shadow-sm bg-white overflow-hidden rounded-2xl">
-            <CardHeader className="pb-4 border-b border-slate-50 bg-slate-50/50">
-              <CardTitle className="flex items-center gap-2 text-slate-900 text-lg font-bold">
-                <div className="p-2 rounded-xl bg-violet-100/50 text-violet-600">
-                  <PieChartIcon className="h-5 w-5" />
-                </div>
+          <Card className="bg-white border-slate-100 shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="pb-3 border-b border-slate-50 bg-slate-50/30 px-5 pt-5">
+              <CardTitle className="flex items-center gap-2 text-slate-900 text-[16px] font-bold">
+                <div className="p-1.5 rounded-lg bg-violet-50 text-violet-600"><PieChartIcon className="h-4 w-4" /></div>
                 Perfil dos Pacientes
               </CardTitle>
-              <CardDescription className="text-slate-500 font-medium tracking-tight">
+              <CardDescription className="text-slate-500 text-[13px]">
                 Distribuição por risco clínico
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-6 h-[300px] flex flex-col justify-center">
-              <div className="h-full w-full">
+            <CardContent className="pt-5 flex flex-col justify-center">
+              <div className="h-[170px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie
-                      data={priorityDistribution}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
+                    <Pie data={priorityDistribution} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={4} dataKey="value">
                       {priorityDistribution.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={PRIORITY_COLORS[entry.name] || '#94a3b8'} />
                       ))}
                     </Pie>
-                    <Tooltip
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                      itemStyle={{ fontWeight: 700, fontSize: 12 }}
-                    />
+                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgb(0 0 0 / 0.08)', fontSize: 13 }} itemStyle={{ fontWeight: 700 }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="grid grid-cols-2 gap-2 mt-4">
+              <div className="grid grid-cols-2 gap-2 mt-3 px-2">
                 {priorityDistribution.map((entry) => (
                   <div key={entry.name} className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PRIORITY_COLORS[entry.name] }} />
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter truncate">
+                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PRIORITY_COLORS[entry.name] }} />
+                    <span className="text-[12px] font-semibold text-slate-600 truncate">
                       {entry.name}: {entry.value}
                     </span>
                   </div>
@@ -483,246 +592,63 @@ export default function DoctorDashboardImproved({
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          {/* Urgent Cases */}
-          <Card className={`lg:col-span-1 border-none ring-1 ring-slate-200 shadow-sm bg-white overflow-hidden rounded-2xl ${urgentCases.length > 0 ? '' : 'opacity-80'}`}>
-            <CardHeader className="pb-4 border-b border-slate-50 bg-slate-50/50">
-              <CardTitle className="flex items-center gap-2 text-slate-900 text-lg font-bold">
-                <div className="p-2 rounded-xl bg-red-100/50 text-red-600">
-                  <AlertTriangle className="h-5 w-5" />
-                </div>
-                Monitoramento Crítico
-              </CardTitle>
-              <CardDescription className="text-slate-500 font-medium">
-                Sinalizando pacientes com alta prioridade
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <ScrollArea className="h-[300px] pr-4">
-                {urgentCases.length > 0 ? (
-                  <div className="space-y-4">
-                    {urgentCases.map((patient) => (
-                      <Link
-                        key={patient.id}
-                        href={`/doctor/patients/${patient.id}`}
-                        className="block group"
-                      >
-                        <div className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-100 group-hover:bg-red-50 group-hover:border-red-200 transition-all duration-300 shadow-sm hover:shadow-md">
-                          <Avatar className="h-12 w-12 border-2 border-white shadow-sm shrink-0">
-                            <AvatarImage src={patient.avatar} />
-                            <AvatarFallback className="bg-slate-100 text-slate-600 font-bold">
-                              {patient.name.substring(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-slate-900 group-hover:text-red-700 transition-colors truncate">{patient.name}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant="outline" className={`text-[10px] font-bold uppercase tracking-tight border-none ${patient.priority === 'Crítica' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
-                                }`}>
-                                {patient.priority}
-                              </Badge>
-                              {patient.pendingExams > 0 && (
-                                <span className="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter">
-                                  {patient.pendingExams} EXAME(S)
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <PrescriptionModal
-                              doctor={doctor}
-                              patients={patients}
-                              initialPatientId={patient.id}
-                              variant="compact"
-                            />
-                            <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-red-500 transition-transform group-hover:translate-x-1" />
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-[260px] text-center">
-                    <div className="bg-emerald-50 p-4 rounded-full mb-4">
-                      <CheckCircle className="h-10 w-10 text-emerald-500 opacity-60" />
-                    </div>
-                    <p className="text-slate-900 font-bold">Protocolo Estável</p>
-                    <p className="text-xs text-slate-500 mt-1">Nenhum caso requer atenção imediata.</p>
-                  </div>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-
-          {/* Today's Schedule */}
-          <Card className="lg:col-span-2 border-none ring-1 ring-slate-200 shadow-sm bg-white overflow-hidden rounded-2xl">
-            <CardHeader className="pb-4 border-b border-slate-50 bg-slate-50/50 flex flex-row items-center justify-between flex-wrap gap-4">
-              <div>
-                <CardTitle className="flex items-center gap-2 text-slate-900 text-lg font-bold">
-                  <div className="p-2 rounded-xl bg-blue-100/50 text-blue-600">
-                    <Calendar className="h-5 w-5" />
-                  </div>
-                  Agenda Magistral
-                </CardTitle>
-                <CardDescription className="text-slate-500 font-medium">
-                  {todayAppointments.length} consultas previstas para o seu turno
-                </CardDescription>
-              </div>
-              <Button variant="outline" size="sm" className="bg-white text-blue-600 border-blue-100 hover:bg-blue-50 font-bold shadow-sm shadow-blue-50" asChild>
-                <Link href="/doctor/schedule">Módulo Agenda</Link>
-              </Button>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <ScrollArea className="h-[300px] pr-4">
-                {todayAppointments.length > 0 ? (
-                  <div className="space-y-4">
-                    {todayAppointments.map((appt, index) => (
-                      <div
-                        key={appt.id}
-                        className={`group flex items-center gap-6 p-5 rounded-2xl transition-all duration-300 border ${index === 0
-                          ? 'bg-blue-50 border-blue-200 shadow-md shadow-blue-100/50'
-                          : 'bg-white border-slate-100 hover:border-blue-200 hover:shadow-md'
-                          }`}
-                      >
-                        <div className="text-center min-w-[70px]">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">HORÁRIO</span>
-                          <p className={`text-xl font-extrabold ${index === 0 ? 'text-blue-700' : 'text-slate-900'}`}>
-                            {appt.time}
-                          </p>
-                        </div>
-                        <div className="h-10 w-px bg-slate-200 hidden sm:block"></div>
-                        <Avatar className="h-14 w-14 ring-4 ring-white shadow-sm shrink-0">
-                          <AvatarImage src={appt.patientAvatar || ''} />
-                          <AvatarFallback className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-extrabold text-lg">
-                            {appt.patientName.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-extrabold text-slate-900 group-hover:text-blue-700 transition-colors truncate text-xl leading-tight">{appt.patientName}</p>
-                          <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                            <Badge variant="outline" className={`text-[10px] font-bold uppercase tracking-tight h-6 px-3 border-none ${appt.type.includes('Vídeo') ? 'text-indigo-700 bg-indigo-100/50' : 'text-slate-600 bg-slate-100'
-                              }`}>
-                              {appt.type}
-                            </Badge>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                              <Activity className="h-3 w-3" />
-                              {appt.status}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <PrescriptionModal
-                            doctor={doctor}
-                            patients={patients}
-                            initialPatientId={appt.patientId}
-                            variant="compact"
-                          />
-                          {index === 0 && appt.type.includes('Vídeo') && (
-                            <Link href={`/doctor/video-call?patient=${appt.patientId}`}>
-                              <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 font-bold rounded-xl px-5">
-                                <Video className="h-4 w-4 mr-2" />
-                                Iniciar
-                              </Button>
-                            </Link>
-                          )}
-                          <ArrowRight className={`h-5 w-5 transition-transform group-hover:translate-x-1 ${index === 0 ? 'text-blue-400' : 'text-slate-300'}`} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-[260px] text-center">
-                    <div className="bg-slate-50 p-5 rounded-full mb-4 ring-8 ring-slate-50/50">
-                      <Calendar className="h-10 w-10 text-slate-300" />
-                    </div>
-                    <h3 className="text-xl font-bold text-slate-900">Nenhuma consulta agendada</h3>
-                    <p className="text-sm text-slate-500 mt-1">Aproveite para revisar prontuários pendentes.</p>
-                  </div>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </div>
-
-
-        {/* Recent Activity Feed */}
-        <Card className="border-none ring-1 ring-slate-200 shadow-sm bg-white overflow-hidden rounded-3xl mb-12">
-          <CardHeader className="pb-4 border-b border-slate-50 bg-slate-50/10 flex flex-row items-center justify-between">
+        {/* ─── Atividade Recente ─── */}
+        <Card className="bg-white border-slate-100 shadow-sm rounded-2xl overflow-hidden mb-10">
+          <CardHeader className="pb-3 border-b border-slate-50 bg-slate-50/30 px-5 pt-5 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2 text-slate-900 text-lg font-bold">
-                <div className="p-2 rounded-xl bg-slate-100 text-slate-600">
-                  <ClipboardList className="h-5 w-5" />
-                </div>
-                Centro de Atividade Recente
+              <CardTitle className="flex items-center gap-2 text-slate-900 text-[16px] font-bold">
+                <div className="p-1.5 rounded-lg bg-slate-100 text-slate-600"><ClipboardList className="h-4 w-4" /></div>
+                Atividade Recente
               </CardTitle>
-              <CardDescription className="text-slate-500 font-medium">
-                Acompanhe as últimas interações e eventos clínicos
+              <CardDescription className="text-slate-500 text-[13px]">
+                Últimas interações clínicas
               </CardDescription>
             </div>
-            <Button variant="ghost" size="sm" className="text-slate-400 font-bold hover:text-slate-600">
-              Limpar Registro
+            <Button variant="outline" size="sm" className="text-slate-500 font-semibold hover:text-slate-700 rounded-lg min-h-[40px] text-[13px]" asChild>
+              <Link href="/doctor/history">Ver Tudo</Link>
             </Button>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-slate-50">
               {recentActivity.length > 0 ? (
                 recentActivity.map((activity) => (
-                  <div
-                    key={activity.id}
-                    className="flex items-center gap-6 p-5 hover:bg-slate-50/50 transition-colors group cursor-default"
-                  >
-                    <div className={`p-3 rounded-2xl shrink-0 ${activity.type === 'prescription' ? 'bg-blue-50 text-blue-600' :
-                      activity.type === 'exam' ? 'bg-amber-50 text-amber-600' :
-                        'bg-violet-50 text-violet-600'
-                      } group-hover:scale-110 transition-transform duration-300`}>
-                      {activity.type === 'prescription' ? <FileText className="h-6 w-6" /> :
-                        activity.type === 'exam' ? <ShieldAlert className="h-6 w-6" /> :
-                          <Stethoscope className="h-6 w-6" />}
+                  <div key={activity.id} className="flex items-center gap-4 p-4 md:p-5 hover:bg-slate-50/50 transition-colors group">
+                    <div className={`p-2.5 rounded-xl shrink-0 transition-transform duration-200 group-hover:scale-105 ${activity.type === 'prescription' ? 'bg-blue-50 text-blue-600' :
+                        activity.type === 'exam' ? 'bg-amber-50 text-amber-600' :
+                          'bg-violet-50 text-violet-600'
+                      }`}>
+                      {activity.type === 'prescription' ? <FileText className="h-5 w-5" /> :
+                        activity.type === 'exam' ? <ShieldAlert className="h-5 w-5" /> :
+                          <Stethoscope className="h-5 w-5" />}
                     </div>
-
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="font-extrabold text-slate-900 text-lg leading-none">{activity.title}</p>
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                          <Clock className="h-3 w-3" />
-                          {getTimeAgo(activity.timestamp.toISOString())}
+                      <div className="flex items-center justify-between gap-2 mb-0.5">
+                        <p className="font-bold text-[15px] text-slate-900 truncate">{activity.title}</p>
+                        <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1 shrink-0">
+                          <Clock className="h-3 w-3" />{getTimeAgo(activity.timestamp.toISOString())}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-slate-500">
-                        <span className="text-sm font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
-                          {activity.patientName}
-                        </span>
-                        <span className="text-sm font-medium opacity-80">•</span>
-                        <span className="text-sm font-medium">{activity.subtitle}</span>
+                      <div className="flex items-center gap-2 text-slate-500 text-[13px]">
+                        <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md text-[12px]">{activity.patientName}</span>
+                        <span className="opacity-70">•</span>
+                        <span className="truncate">{activity.subtitle}</span>
                       </div>
-                    </div>
-
-                    <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button size="sm" variant="outline" className="rounded-xl border-slate-200 text-slate-600 font-bold hover:bg-white hover:border-blue-300 hover:text-blue-600 shadow-sm">
-                        Detalhes <ChevronRight className="h-4 w-4 ml-1" />
-                      </Button>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="p-12 text-center">
-                  <div className="bg-slate-50 p-6 rounded-full inline-block mb-4 ring-8 ring-slate-50/30">
-                    <Activity className="h-8 w-8 text-slate-300" />
+                <div className="p-10 text-center">
+                  <div className="bg-slate-50 p-4 rounded-full inline-block mb-3">
+                    <Activity className="h-7 w-7 text-slate-300" />
                   </div>
-                  <p className="text-slate-900 font-bold">Nenhuma atividade recente</p>
-                  <p className="text-sm text-slate-500">Seus registros clínicos aparecerão aqui conforme você atende pacientes.</p>
+                  <p className="text-slate-900 font-bold text-[15px]">Nenhuma atividade</p>
+                  <p className="text-[13px] text-slate-500 mt-1">Os registros aparecerão aqui quando iniciar atendimentos.</p>
                 </div>
               )}
             </div>
           </CardContent>
-          <div className="p-4 bg-slate-50/30 border-t border-slate-50 text-center">
-            <Link href="/doctor/history">
-              <Button variant="link" className="text-blue-600 font-bold text-sm">
-                Ver histórico completo <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
         </Card>
+
       </div>
     </div>
   );

@@ -25,6 +25,7 @@ export type Patient = {
   reportedSymptoms: string;
   examResults: string; // Summary of all results for AI context
   doctorNotes?: string; // Kept for general notes, but validation is per exam.
+  attendingDoctorId?: string | null;
   preventiveAlerts?: string[];
   healthGoals?: {
     title: string;

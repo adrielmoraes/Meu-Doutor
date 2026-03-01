@@ -229,14 +229,26 @@ export async function regeneratePatientWellnessPlan(patientId: string): Promise<
 
     // 3. Consolidate exam data
     const examSummary = exams.map((exam, index) => {
-      return `
+      let baseSummary = `
 Exame ${index + 1} (${exam.date}):
 - Tipo: ${exam.type}
+- Status: ${exam.status}
 - Diagnóstico Preliminar: ${exam.preliminaryDiagnosis}
 - Explicação: ${exam.explanation}
 - Sugestões: ${exam.suggestions}
-${exam.results ? `- Resultados: ${exam.results.map(r => `${r.name}: ${r.value} (Ref: ${r.reference})`).join(', ')}` : ''}
       `.trim();
+
+      if (exam.status === 'Validado' || exam.doctorNotes) {
+        baseSummary += `\n\n[MUITO IMPORTANTE] PARECER MÉDICO FINAL (Sobrepõe IA preliminar):
+- Notas do Médico: ${exam.doctorNotes || 'N/A'}
+- Explicação Final do Médico: ${exam.finalExplanation || 'N/A'}`;
+      }
+
+      if (exam.results) {
+        baseSummary += `\n- Resultados: ${exam.results.map(r => `${r.name}: ${r.value} (Ref: ${r.reference})`).join(', ')}`;
+      }
+
+      return baseSummary;
     }).join('\n\n---\n\n');
 
     const patientHistory = `
@@ -332,48 +344,34 @@ ${nutritionistAnalysis.recommendations}
 
     // 6. Validate and save to database
     try {
-      // Validate reminders before saving
+      // Validate reminders before saving - FAIL SOFT
+      const validIcons = ['Droplet', 'Clock', 'Coffee', 'Bed', 'Dumbbell', 'Apple', 'Heart', 'Sun', 'Moon', 'Activity', 'Utensils', 'Brain', 'Smile', 'Wind', 'Leaf'];
       for (const reminder of output.dailyReminders) {
-        const validIcons = ['Droplet', 'Clock', 'Coffee', 'Bed', 'Dumbbell',
-          'Apple', 'Heart', 'Sun', 'Moon', 'Activity',
-          'Utensils', 'Brain', 'Smile', 'Wind', 'Leaf'];
         if (!validIcons.includes(reminder.icon)) {
-          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid icon "${reminder.icon}" in reminder "${reminder.title}". Must be one of: ${validIcons.join(', ')}`);
-          console.error(`[Wellness Plan Update] Full reminder data:`, JSON.stringify(reminder, null, 2));
-          throw new Error(`Invalid reminder icon: ${reminder.icon}. Must be one of: ${validIcons.join(', ')}`);
+          console.warn(`[Wellness Plan Update] Invalid icon "${reminder.icon}" in reminder "${reminder.title}". Defaulting to 'Activity'.`);
+          reminder.icon = 'Activity';
         }
       }
 
-      // Validate weekly meal plan before saving
+      // We remove the strict throw error for prepTime to avoid silent failures due to minor formatting issues
       for (const meal of output.weeklyMealPlan) {
-        if (meal.breakfastRecipe && (meal.breakfastRecipe.prepTime.toLowerCase().includes('minute') || meal.breakfastRecipe.prepTime.toLowerCase().includes('minuto'))) {
-          // Continue if prepTime is valid
-        } else if (meal.breakfastRecipe) {
-          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid prepTime format "${meal.breakfastRecipe.prepTime}" in recipe "${meal.breakfastRecipe.title}" for day ${meal.day}. Expected format like '20 minutos' or '20 minutes'.`);
-          throw new Error(`Invalid prepTime format in recipe: ${meal.breakfastRecipe.prepTime}`);
+        if (meal.breakfastRecipe && !meal.breakfastRecipe.prepTime.toLowerCase().includes('minut')) {
+          console.warn(`[Wellness Plan Update] Invalid prepTime format "${meal.breakfastRecipe.prepTime}" in recipe "${meal.breakfastRecipe.title}".`);
         }
-
-        if (meal.lunchRecipe && (meal.lunchRecipe.prepTime.toLowerCase().includes('minute') || meal.lunchRecipe.prepTime.toLowerCase().includes('minuto'))) {
-          // Continue if prepTime is valid
-        } else if (meal.lunchRecipe) {
-          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid prepTime format "${meal.lunchRecipe.prepTime}" in recipe "${meal.lunchRecipe.title}" for day ${meal.day}. Expected format like '20 minutos' or '20 minutes'.`);
-          throw new Error(`Invalid prepTime format in recipe: ${meal.lunchRecipe.prepTime}`);
+        if (meal.lunchRecipe && !meal.lunchRecipe.prepTime.toLowerCase().includes('minut')) {
+          console.warn(`[Wellness Plan Update] Invalid prepTime format "${meal.lunchRecipe.prepTime}" in recipe "${meal.lunchRecipe.title}".`);
         }
-
-        if (meal.dinnerRecipe && (meal.dinnerRecipe.prepTime.toLowerCase().includes('minute') || meal.dinnerRecipe.prepTime.toLowerCase().includes('minuto'))) {
-          // Continue if prepTime is valid
-        } else if (meal.dinnerRecipe) {
-          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid prepTime format "${meal.dinnerRecipe.prepTime}" in recipe "${meal.dinnerRecipe.title}" for day ${meal.day}. Expected format like '20 minutos' or '20 minutes'.`);
-          throw new Error(`Invalid prepTime format in recipe: ${meal.dinnerRecipe.prepTime}`);
+        if (meal.dinnerRecipe && !meal.dinnerRecipe.prepTime.toLowerCase().includes('minut')) {
+          console.warn(`[Wellness Plan Update] Invalid prepTime format "${meal.dinnerRecipe.prepTime}" in recipe "${meal.dinnerRecipe.title}".`);
         }
       }
 
-      // Validate weekly tasks before saving
+      // Validate weekly tasks before saving - FAIL SOFT
+      const validCategories = ['nutrition', 'exercise', 'mental', 'general'];
       for (const task of output.weeklyTasks) {
-        const validCategories = ['nutrition', 'exercise', 'mental', 'general'];
         if (!validCategories.includes(task.category)) {
-          console.error(`[Wellness Plan Update] VALIDATION ERROR - Invalid category "${task.category}" in task "${task.title}". Must be one of: ${validCategories.join(', ')}`);
-          throw new Error(`Invalid task category: ${task.category}. Must be one of: ${validCategories.join(', ')}`);
+          console.warn(`[Wellness Plan Update] Invalid category "${task.category}" in task "${task.title}". Defaulting to 'general'.`);
+          task.category = 'general' as any;
         }
       }
 
