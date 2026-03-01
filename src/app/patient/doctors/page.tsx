@@ -54,167 +54,168 @@ const DoctorCard = ({ doctor, patientId }: { doctor: Doctor, patientId: string }
             </CardContent>
         </Card>
     );
+};
 
-    async function getDoctorsPageData(patientId: string): Promise<{ localDoctors: Doctor[], otherDoctors: Doctor[], patient: Patient | null, appointments: EnrichedAppointment[], error?: string, fixUrl?: string }> {
-        try {
-            console.log('[DoctorsPage Debug] Buscando dados para patientId:', patientId);
+async function getDoctorsPageData(patientId: string): Promise<{ localDoctors: Doctor[], otherDoctors: Doctor[], patient: Patient | null, appointments: EnrichedAppointment[], error?: string, fixUrl?: string }> {
+    try {
+        console.log('[DoctorsPage Debug] Buscando dados para patientId:', patientId);
 
-            const allDoctors = await getDoctors();
-            console.log('[DoctorsPage Debug] Médicos encontrados:', allDoctors.length);
+        const allDoctors = await getDoctors();
+        console.log('[DoctorsPage Debug] Médicos encontrados:', allDoctors.length);
 
-            const patient = await getPatientById(patientId);
-            console.log('[DoctorsPage Debug] Paciente encontrado:', patient ? patient.name : 'Nenhum');
+        const patient = await getPatientById(patientId);
+        console.log('[DoctorsPage Debug] Paciente encontrado:', patient ? patient.name : 'Nenhum');
 
-            const rawAppointments = await getAppointmentsForPatient(patientId);
-            console.log('[DoctorsPage Debug] Agendamentos encontrados:', rawAppointments.length);
+        const rawAppointments = await getAppointmentsForPatient(patientId);
+        console.log('[DoctorsPage Debug] Agendamentos encontrados:', rawAppointments.length);
 
-            // Enrich appointments with doctor info
-            const appointments = rawAppointments.map(appt => {
-                const doctor = allDoctors.find(d => d.id === appt.doctorId);
-                return {
-                    ...appt,
-                    doctorName: doctor?.name || 'Médico não encontrado',
-                    doctorSpecialty: doctor?.specialty || 'Especialidade não disponível'
-                };
-            });
+        // Enrich appointments with doctor info
+        const appointments = rawAppointments.map(appt => {
+            const doctor = allDoctors.find(d => d.id === appt.doctorId);
+            return {
+                ...appt,
+                doctorName: doctor?.name || 'Médico não encontrado',
+                doctorSpecialty: doctor?.specialty || 'Especialidade não disponível'
+            };
+        });
 
-            const localDoctors = patient
-                ? allDoctors.filter(d =>
-                    d.city && patient.city && d.state && patient.state &&
-                    d.city.toLowerCase() === patient.city.toLowerCase() &&
-                    d.state.toLowerCase() === patient.state.toLowerCase()
-                )
-                : [];
+        const localDoctors = patient
+            ? allDoctors.filter(d =>
+                d.city && patient.city && d.state && patient.state &&
+                d.city.toLowerCase() === patient.city.toLowerCase() &&
+                d.state.toLowerCase() === patient.state.toLowerCase()
+            )
+            : [];
 
-            const otherDoctors = patient
-                ? allDoctors.filter(d =>
-                    d.city && patient.city && d.state && patient.state && (
-                        d.city.toLowerCase() !== patient.city.toLowerCase() ||
-                        d.state.toLowerCase() !== patient.state.toLowerCase())
-                )
-                : allDoctors;
+        const otherDoctors = patient
+            ? allDoctors.filter(d =>
+                d.city && patient.city && d.state && patient.state && (
+                    d.city.toLowerCase() !== patient.city.toLowerCase() ||
+                    d.state.toLowerCase() !== patient.state.toLowerCase())
+            )
+            : allDoctors;
 
-            return { localDoctors, otherDoctors, patient, appointments };
+        return { localDoctors, otherDoctors, patient, appointments };
 
-        } catch (e: any) {
-            const errorMessage = e.message?.toLowerCase() || '';
-            const errorCode = (typeof e.code === 'string' ? e.code.toLowerCase() : '') || '';
+    } catch (e: any) {
+        const errorMessage = e.message?.toLowerCase() || '';
+        const errorCode = (typeof e.code === 'string' ? e.code.toLowerCase() : '') || '';
 
-            console.error('[DoctorsPage Debug] Erro em getDoctorsPageData:', e);
+        console.error('[DoctorsPage Debug] Erro em getDoctorsPageData:', e);
 
-            if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
-                const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
-                return {
-                    localDoctors: [], otherDoctors: [], patient: null, appointments: [],
-                    error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada ou o cliente está offline.",
-                    fixUrl: firestoreApiUrl
-                };
-            }
-            return { localDoctors: [], otherDoctors: [], patient: null, appointments: [], error: "Ocorreu um erro inesperado ao carregar a lista de médicos." };
+        if (errorMessage.includes('client is offline') || errorMessage.includes('5 not_found') || errorCode.includes('not-found')) {
+            const firestoreApiUrl = `https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`;
+            return {
+                localDoctors: [], otherDoctors: [], patient: null, appointments: [],
+                error: "Não foi possível conectar ao banco de dados. A API do Cloud Firestore pode estar desativada ou o cliente está offline.",
+                fixUrl: firestoreApiUrl
+            };
         }
+        return { localDoctors: [], otherDoctors: [], patient: null, appointments: [], error: "Ocorreu um erro inesperado ao carregar a lista de médicos." };
+    }
+}
+
+
+export default async function DoctorsPage() {
+    const session = await getSession();
+    if (!session || session.role !== 'patient') {
+        redirect('/login');
     }
 
+    const { localDoctors, otherDoctors, patient, appointments, error, fixUrl } = await getDoctorsPageData(session.userId);
 
-    export default async function DoctorsPage() {
-        const session = await getSession();
-        if (!session || session.role !== 'patient') {
-            redirect('/login');
-        }
-
-        const { localDoctors, otherDoctors, patient, appointments, error, fixUrl } = await getDoctorsPageData(session.userId);
-
-        if (error) {
-            return (
-                <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-                    <Alert variant="destructive">
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertTitle>Erro de Configuração ou Conexão</AlertTitle>
-                        <AlertDescription>
-                            {error}
-                            {fixUrl && (
-                                <p className="mt-2">
-                                    Por favor, habilite a API manualmente visitando o seguinte link e clicando em &quot;Habilitar&quot;:
-                                    <br />
-                                    <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
-                                        Habilitar API do Firestore
-                                    </Link>
-                                    <br />
-                                    <span className="text-xs">Após habilitar, aguarde alguns minutos e atualize esta página.</span>
-                                </p>
-                            )}
-                        </AlertDescription>
-                    </Alert>
-                </div>
-            )
-        }
-
+    if (error) {
         return (
             <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold tracking-tight">Consultar um Médico Humano</h1>
-                    <p className="text-muted-foreground">
-                        Conecte-se com médicos qualificados para validar seu diagnóstico.
-                    </p>
-                </div>
-
-                {/* NOVA SEÇÃO: Consultas Agendadas */}
-                {appointments.length > 0 && (
-                    <div className="mb-12">
-                        <h2 className="text-2xl font-semibold tracking-tight mb-4 flex items-center gap-2"><CalendarCheck className="h-6 w-6" /> Minhas Consultas Agendadas</h2>
-                        <div className="space-y-4">
-                            {appointments.map(appt => (
-                                <Card key={appt.id} className="p-4 flex items-center justify-between transition-all hover:shadow-md">
-                                    <div className="flex-grow">
-                                        <p className="font-bold text-lg">{appt.doctorName}</p>
-                                        <p className="text-sm text-muted-foreground">{appt.doctorSpecialty}</p>
-                                    </div>
-                                    <div className="flex-shrink-0">
-                                        <p className="font-semibold">{new Date(appt.date).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}</p>
-                                        <p className="text-muted-foreground text-right">{appt.time}</p>
-                                    </div>
-                                    <div className="ml-4 flex-shrink-0">
-                                        <CancelAppointmentButton appointment={appt} />
-                                    </div>
-                                </Card>
-                            ))}
-                        </div>
-                        <Separator className="my-8" />
-                    </div>
-                )}
-
-                {localDoctors.length > 0 && (
-                    <div className="mb-12">
-                        <h2 className="text-2xl font-semibold tracking-tight mb-4">Médicos na sua cidade ({patient?.city})</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {localDoctors.map(doctor => <DoctorCard key={doctor.id} doctor={doctor} patientId={session.userId} />)}
-                        </div>
-                    </div>
-                )}
-
-                {otherDoctors.length > 0 && (
-                    <div>
-                        <div className="relative mb-6">
-                            <Separator />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="bg-background px-4 text-sm text-muted-foreground">
-                                    {localDoctors.length > 0 ? 'Outros médicos disponíveis' : 'Médicos disponíveis'}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {otherDoctors.map(doctor => <DoctorCard key={doctor.id} doctor={doctor} patientId={session.userId} />)}
-                        </div>
-                    </div>
-                )}
-
-                {localDoctors.length === 0 && otherDoctors.length === 0 && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Nenhum médico encontrado</CardTitle>
-                            <CardDescription>Não há médicos cadastrados na plataforma no momento. Por favor, volte mais tarde.</CardDescription>
-                        </CardHeader>
-                    </Card>
-                )}
+                <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Erro de Configuração ou Conexão</AlertTitle>
+                    <AlertDescription>
+                        {error}
+                        {fixUrl && (
+                            <p className="mt-2">
+                                Por favor, habilite a API manualmente visitando o seguinte link e clicando em &quot;Habilitar&quot;:
+                                <br />
+                                <Link href={fixUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
+                                    Habilitar API do Firestore
+                                </Link>
+                                <br />
+                                <span className="text-xs">Após habilitar, aguarde alguns minutos e atualize esta página.</span>
+                            </p>
+                        )}
+                    </AlertDescription>
+                </Alert>
             </div>
-        );
+        )
     }
+
+    return (
+        <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold tracking-tight">Consultar um Médico Humano</h1>
+                <p className="text-muted-foreground">
+                    Conecte-se com médicos qualificados para validar seu diagnóstico.
+                </p>
+            </div>
+
+            {/* NOVA SEÇÃO: Consultas Agendadas */}
+            {appointments.length > 0 && (
+                <div className="mb-12">
+                    <h2 className="text-2xl font-semibold tracking-tight mb-4 flex items-center gap-2"><CalendarCheck className="h-6 w-6" /> Minhas Consultas Agendadas</h2>
+                    <div className="space-y-4">
+                        {appointments.map(appt => (
+                            <Card key={appt.id} className="p-4 flex items-center justify-between transition-all hover:shadow-md">
+                                <div className="flex-grow">
+                                    <p className="font-bold text-lg">{appt.doctorName}</p>
+                                    <p className="text-sm text-muted-foreground">{appt.doctorSpecialty}</p>
+                                </div>
+                                <div className="flex-shrink-0">
+                                    <p className="font-semibold">{new Date(appt.date).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}</p>
+                                    <p className="text-muted-foreground text-right">{appt.time}</p>
+                                </div>
+                                <div className="ml-4 flex-shrink-0">
+                                    <CancelAppointmentButton appointment={appt} />
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                    <Separator className="my-8" />
+                </div>
+            )}
+
+            {localDoctors.length > 0 && (
+                <div className="mb-12">
+                    <h2 className="text-2xl font-semibold tracking-tight mb-4">Médicos na sua cidade ({patient?.city})</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {localDoctors.map(doctor => <DoctorCard key={doctor.id} doctor={doctor} patientId={session.userId} />)}
+                    </div>
+                </div>
+            )}
+
+            {otherDoctors.length > 0 && (
+                <div>
+                    <div className="relative mb-6">
+                        <Separator />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="bg-background px-4 text-sm text-muted-foreground">
+                                {localDoctors.length > 0 ? 'Outros médicos disponíveis' : 'Médicos disponíveis'}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {otherDoctors.map(doctor => <DoctorCard key={doctor.id} doctor={doctor} patientId={session.userId} />)}
+                    </div>
+                </div>
+            )}
+
+            {localDoctors.length === 0 && otherDoctors.length === 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Nenhum médico encontrado</CardTitle>
+                        <CardDescription>Não há médicos cadastrados na plataforma no momento. Por favor, volte mais tarde.</CardDescription>
+                    </CardHeader>
+                </Card>
+            )}
+        </div>
+    );
+}
