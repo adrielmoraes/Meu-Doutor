@@ -294,34 +294,35 @@ const triagePrompt = ai.definePrompt({
   prompt: TRIAGE_PROMPT_TEMPLATE,
 });
 
-const SYNTHESIS_PROMPT_TEMPLATE = `You are Dr. Márcio Silva, an experienced General Practitioner AI and Medical Coordinator.
+const SYNTHESIS_PROMPT_TEMPLATE = `Você é o Dr. Márcio Silva, um Clínico Geral experiente e Coordenador Médico em IA.
 
-**Your Mission:**
-Create a CONCISE, ACTION-ORIENTED preliminary diagnosis. The doctor is busy and needs to scan for critical information quickly. **DO NOT WRITE NOVELS.** Use bullet points. Focus on what needs to be done.
+**Sua Missão:**
+Criar um PARECER MÉDICO PRELIMINAR profissional, claro e humanizado. Este documento será lido tanto pelo médico responsável quanto potencialmente pelo paciente. Deve ser compreensível, preciso e seguir as melhores práticas da medicina baseada em evidências.
 
-**SYNTHESIS PRINCIPLES:**
-1. **Brevity**: Be direct. Use short sentences and bullet points. Avoid flowery language.
-2. **Action-First**: Put the most critical actions and findings at the very top.
-3. **Evidence-Based**: **CITE SPECIFIC GUIDELINES** (e.g., SBC 2024, AHA, ADA, KDIGO, GOLD) for every major recommendation. This is crucial for trust.
-4. **Safety**: Flag interactions and contraindications clearly.
+**PRINCÍPIOS FUNDAMENTAIS:**
+1. **Linguagem Profissional e Acessível**: Use termos técnicos, mas sempre acompanhados de explicações em linguagem simples entre parênteses. Ex: "dislipidemia mista (alteração nos níveis de gordura no sangue)".
+2. **Formato de Documento Médico**: NÃO use emojis. Use marcadores textuais, cabeçalhos em Markdown e formatação limpa.
+3. **Baseado em Evidências**: Cite diretrizes específicas (SBC, AHA, ADA, KDIGO, etc.) para cada recomendação importante.
+4. **Tom Empático e Acolhedor**: Ao orientar o paciente, use linguagem positiva e encorajadora.
+5. **Objetividade**: Seja direto e conciso, sem textos desnecessários.
 
-**Patient Context:**
+**Contexto do Paciente:**
 
-**History:**
+**Histórico Clínico:**
 {{{patientHistory}}}
 
-**Exam Results:**
+**Resultados dos Exames:**
 {{{examResults}}}
 
-**Specialist Consultations:**
+**Pareceres dos Especialistas Consultados:**
 {{#each specialistReports}}
 ---
 **{{specialist}}**
-**Findings:** {{{findings}}}
-**Assessment:** {{clinicalAssessment}}
-**Recommendations:** {{{recommendations}}}
+**Achados:** {{{findings}}}
+**Avaliação Clínica:** {{clinicalAssessment}}
+**Recomendações:** {{{recommendations}}}
 {{#if suggestedMedications}}
-**Meds:**
+**Medicações Sugeridas:**
 {{#each suggestedMedications}}
 - {{medication}} {{dosage}} {{frequency}} ({{justification}})
 {{/each}}
@@ -329,48 +330,98 @@ Create a CONCISE, ACTION-ORIENTED preliminary diagnosis. The doctor is busy and 
 ---
 {{/each}}
 
-**Your Tasks:**
+**Suas Tarefas:**
 
-**1. SYNTHESIS (Diagnóstico Preliminar) - EXECUTIVE SUMMARY:**
+**1. SÍNTESE (campo "synthesis") — PARECER MÉDICO PRELIMINAR:**
 
-Structure strictly as follows:
+Estruture OBRIGATORIAMENTE assim (use Markdown):
 
-**🚨 AÇÕES IMEDIATAS (Action Items):**
-- List 3-5 most critical actions (medications to start, exams to order, referrals).
-- Use clear, imperative verbs (ex: "Iniciar...", "Solicitar...", "Encaminhar...").
+---
 
-**📋 Resumo do Caso:**
-- 1-2 paragraphs max summarizing the patient's status and primary diagnosis.
-- Mention severity and urgency explicitly.
+## PARECER MÉDICO PRELIMINAR
 
-**🔍 Achados Críticos (Por Sistema):**
-- Use bullet points.
-- Only list **abnormal** or **relevant** findings. Skip normal systems.
-- Example: "**Cardio**: PA 150/90 (Hipertensão E1) - *Ref: SBC 2020*"
+### 1. Resumo Clínico
 
-**2. SUGGESTIONS (Conduta e Prescrição) - GUIDELINE-BASED:**
+Escreva 2-3 parágrafos resumindo o quadro clínico do paciente de forma clara e humanizada. Inclua:
+- Perfil do paciente (idade, sexo)
+- Principais achados e sua relevância clínica
+- Classificação de risco quando aplicável
+- **Sempre que usar um termo técnico, coloque a explicação entre parênteses**
 
-**💊 Plano Medicamentoso Sugerido:**
-- List medications grouped by class.
-- **MUST CITE GUIDELINE** for main drugs (ex: "Losartana 50mg (1ª linha HAS - SBC 2020)").
-- Flag interactions clearly with "⚠️".
+### 2. Achados Relevantes
 
-**🧪 Exames Complementares:**
-- List prioritized exams with brief justification.
+Liste APENAS achados anormais ou clinicamente significativos, organizados por sistema:
 
-**👨‍⚕️ Encaminhamentos:**
-- Who needs to see this patient and why.
+**Sistema Cardiovascular / Metabólico:**
+- [Achado] — Valor: **[valor]** (Referência: [ref]) — [Interpretação em linguagem simples]
 
-**🥗 Estilo de Vida (Resumido):**
-- Bullet points for Diet, Exercise, etc.
+**Sistema Hematológico:**
+- [Achado] — Valor: **[valor]** (Referência: [ref]) — [Interpretação em linguagem simples]
 
-**⚠️ Sinais de Alerta:**
-- When to return to ER.
+(Continue apenas para sistemas com alterações. NÃO liste sistemas normais.)
 
-**LANGUAGE & FORMAT:**
-- Write in clear, professional Brazilian Portuguese.
-- Use **Bold** for key values and drug names.
-- Keep it scannable.`;
+### 3. Impressão Diagnóstica
+
+Liste os diagnósticos em ordem de prioridade:
+1. **[Diagnóstico Principal]** — [Breve justificativa baseada nos achados]
+2. **[Diagnóstico Secundário]** — [Breve justificativa]
+
+### 4. Condutas Prioritárias
+
+Liste 3-5 ações mais importantes em ordem de urgência:
+1. [Ação] — *Referência: [Diretriz]*
+2. [Ação] — *Referência: [Diretriz]*
+
+---
+
+**2. SUGESTÕES (campo "suggestions") — PLANO DE CONDUTA:**
+
+Estruture OBRIGATORIAMENTE assim:
+
+---
+
+### Exames Complementares Sugeridos
+
+Liste cada exame com justificativa breve:
+- **[Nome do Exame]** — [Por que é necessário]
+
+### Orientações Medicamentosas
+
+Se aplicável, liste medicações sugeridas:
+- **[Medicamento]** [dose] [frequência] — *[Diretriz de referência]*
+- Indique claramente se a recomendação é "iniciar tratamento" ou "aguardar reavaliação"
+
+### Encaminhamentos Especializados
+
+- **[Especialidade]** — [Motivo do encaminhamento]
+
+### Orientações de Estilo de Vida
+
+Orientações práticas e acolhedoras:
+- **Alimentação:** [Recomendações específicas]
+- **Atividade Física:** [Recomendações com referência a diretrizes]
+- **Hábitos:** [Outras orientações relevantes]
+
+### Sinais de Alerta
+
+Procure atendimento médico de urgência caso apresente:
+- [Sintoma 1]
+- [Sintoma 2]
+
+### Acompanhamento
+
+- Retorno em [prazo] para reavaliação de [item]
+- Repetir [exame] em [prazo]
+
+---
+
+**REGRAS DE FORMATAÇÃO:**
+- Escreva em Português Brasileiro claro e profissional.
+- Use **Negrito** para valores laboratoriais, nomes de medicamentos e diagnósticos.
+- Use *Itálico* para referências a diretrizes.
+- NÃO use emojis em nenhuma circunstância.
+- Mantenha o documento escaneável com bullet points e cabeçalhos.
+- Cada termo técnico DEVE ter explicação acessível entre parênteses.`;
 
 const synthesisPrompt = ai.definePrompt({
   name: 'diagnosisSynthesisPrompt',
@@ -385,7 +436,7 @@ const synthesisPrompt = ai.definePrompt({
           findings: z.string(),
           clinicalAssessment: z.string(),
           recommendations: z.union([z.string(), z.array(z.string())]).transform(val =>
-            Array.isArray(val) ? val.map(item => `- ${item}`).join('\n') : val
+            Array.isArray(val) ? val.map(item => `- ${item} `).join('\n') : val
           ),
           suggestedMedications: z.array(z.object({
             medication: z.string(),
@@ -434,7 +485,7 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
       throw new Error("Patient ID is required for diagnosis generation.");
     }
     console.log(`\n╔════════════════════════════════════════════════════════╗`);
-    console.log(`║  🏥 SISTEMA DE ANÁLISE MULTI-ESPECIALISTA INICIADO   ║`);
+    console.log(`║  🏥 SISTEMA DE ANÁLISE MULTI - ESPECIALISTA INICIADO   ║`);
     console.log(`╚════════════════════════════════════════════════════════╝\n`);
 
     // Step 1: Triage to decide which specialists to call.
@@ -465,8 +516,8 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     });
 
     console.log(`\n[Triagem] ✅ Triagem concluída`);
-    console.log(`[Triagem] Raciocínio: ${triageResult.output?.reasoning || 'N/A'}`);
-    console.log(`[Triagem] Especialistas selecionados: ${specialistsToCall.length}`);
+    console.log(`[Triagem] Raciocínio: ${triageResult.output?.reasoning || 'N/A'} `);
+    console.log(`[Triagem] Especialistas selecionados: ${specialistsToCall.length} `);
 
     if (specialistsToCall.length === 0) {
       return {
@@ -477,17 +528,17 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     }
 
     // Step 2: Call the selected specialist agents in parallel WITH VALIDATION.
-    console.log(`\n========================================`);
-    console.log(`[Orchestrator] 🎯 INICIANDO ANÁLISE MULTI-ESPECIALISTA`);
-    console.log(`[Orchestrator] Total de especialistas selecionados: ${specialistsToCall.length}`);
-    console.log(`[Orchestrator] Especialistas: ${specialistsToCall.join(', ')}`);
+    console.log(`\n ========================================`);
+    console.log(`[Orchestrator] 🎯 INICIANDO ANÁLISE MULTI - ESPECIALISTA`);
+    console.log(`[Orchestrator] Total de especialistas selecionados: ${specialistsToCall.length} `);
+    console.log(`[Orchestrator] Especialistas: ${specialistsToCall.join(', ')} `);
     console.log(`========================================\n`);
 
     const specialistPromises = specialistsToCall.map((specialistKey, index) => async () => {
       const agent = specialistAgents[specialistKey];
       const specialistName = specialistKey.charAt(0).toUpperCase() + specialistKey.slice(1);
 
-      console.log(`\n--- [Especialista ${index + 1}/${specialistsToCall.length}] ---`);
+      console.log(`\n-- - [Especialista ${index + 1}/${specialistsToCall.length}]-- - `);
       console.log(`[${specialistName}] 🩺 Iniciando análise...`);
       console.log(`[${specialistName}] 📊 Dados do exame recebidos: ${input.examResults.substring(0, 150)}...`);
 
@@ -499,22 +550,22 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
         const report = await agent(input);
 
         const analysisTime = ((Date.now() - startTime) / 1000).toFixed(2);
-        console.log(`[${specialistName}] ⏱️ Análise concluída em ${analysisTime}s`);
+        console.log(`[${specialistName}] ⏱️ Análise concluída em ${analysisTime} s`);
 
         // Log dos achados principais
-        console.log(`[${specialistName}] 📋 Achados principais:`);
-        console.log(`  - Gravidade: ${report.clinicalAssessment}`);
+        console.log(`[${specialistName}] 📋 Achados principais: `);
+        console.log(`  - Gravidade: ${report.clinicalAssessment} `);
         console.log(`  - Achados: ${report.findings.substring(0, 200)}...`);
 
         if (report.suggestedMedications && report.suggestedMedications.length > 0) {
-          console.log(`  - Medicamentos sugeridos: ${report.suggestedMedications.length}`);
+          console.log(`  - Medicamentos sugeridos: ${report.suggestedMedications.length} `);
           report.suggestedMedications.forEach((med, i) => {
-            console.log(`    ${i + 1}. ${med.medication} - ${med.dosage}`);
+            console.log(`    ${i + 1}. ${med.medication} - ${med.dosage} `);
           });
         }
 
         if (report.relevantMetrics && report.relevantMetrics.length > 0) {
-          console.log(`  - Métricas relevantes: ${report.relevantMetrics.length}`);
+          console.log(`  - Métricas relevantes: ${report.relevantMetrics.length} `);
           report.relevantMetrics.forEach((metric, i) => {
             console.log(`    ${i + 1}. ${metric.metric}: ${metric.value} (${metric.status})`);
           });
@@ -532,13 +583,13 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
 
         if (!validationResult.validated) {
           console.error(`[${specialistName}] ❌ FALHA NA VALIDAÇÃO`);
-          console.error(`[${specialistName}] Motivo: ${validationResult.error}`);
+          console.error(`[${specialistName}]Motivo: ${validationResult.error} `);
           console.error(`[${specialistName}] A análise será incluída com marcação de aviso`);
 
           // Ainda inclui o relatório, mas marca como não validado
           return {
             specialist: specialistKey,
-            findings: report.findings + `\n\n[ATENÇÃO: Esta análise não passou na validação completa. Motivo: ${validationResult.error}]`,
+            findings: report.findings + `\n\n[ATENÇÃO: Esta análise não passou na validação completa.Motivo: ${validationResult.error}]`,
             clinicalAssessment: report.clinicalAssessment,
             recommendations: report.recommendations,
             suggestedMedications: report.suggestedMedications,
@@ -550,8 +601,8 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
         }
 
         console.log(`[${specialistName}] ✅ VALIDAÇÃO APROVADA`);
-        console.log(`[${specialistName}] Status: Análise completa e validada`);
-        console.log(`--- [Fim ${specialistName}] ---\n`);
+        console.log(`[${specialistName}]Status: Análise completa e validada`);
+        console.log(`-- - [Fim ${specialistName}]-- -\n`);
 
         return {
           specialist: specialistKey,
@@ -565,7 +616,7 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
           relevantMetrics: validationResult.response.relevantMetrics,
         };
       } catch (error) {
-        console.error(`[${specialistName}] 💥 ERRO DURANTE ANÁLISE:`, error);
+        console.error(`[${specialistName}] 💥 ERRO DURANTE ANÁLISE: `, error);
         throw error;
       }
     });
@@ -574,15 +625,15 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     for (let i = 0; i < specialistsToCall.length; i++) {
       const promiseFn = specialistPromises[i];
       if (i > 0) {
-        console.log(`[Orchestrator] ⏳ Pausa de 3 segundos para evitar (Rate Limit - 429) na API do Gemini...`);
+        console.log(`[Orchestrator] ⏳ Pausa de 3 segundos para evitar(Rate Limit - 429) na API do Gemini...`);
         await new Promise(resolve => setTimeout(resolve, 3000));
       }
       specialistReports.push(await promiseFn());
     }
 
-    console.log(`\n========================================`);
-    console.log(`[Orchestrator] ✅ ANÁLISE MULTI-ESPECIALISTA CONCLUÍDA`);
-    console.log(`[Orchestrator] Total de relatórios coletados: ${specialistReports.length}`);
+    console.log(`\n ========================================`);
+    console.log(`[Orchestrator] ✅ ANÁLISE MULTI - ESPECIALISTA CONCLUÍDA`);
+    console.log(`[Orchestrator] Total de relatórios coletados: ${specialistReports.length} `);
     console.log(`========================================\n`);
 
     // Step 3: Synthesize the reports into a final diagnosis.
@@ -627,15 +678,15 @@ const generatePreliminaryDiagnosisFlow = ai.defineFlow(
     const specialistTokens = specialistCount * tokensPerSpecialist;
     const totalTokens = triageInputTokens + triageOutputTokens + specialistTokens + synthesisInputTokens + synthesisOutputTokens;
 
-    console.log(`[📊 Token Accounting] Multi-Specialist Analysis:`);
-    console.log(`  - Specialists consulted: ${specialistCount}`);
+    console.log(`[📊 Token Accounting]Multi - Specialist Analysis: `);
+    console.log(`  - Specialists consulted: ${specialistCount} `);
     console.log(`  - Triage: ${triageInputTokens} input + ${triageOutputTokens} output`);
-    console.log(`  - Specialists: ~${specialistTokens} tokens total (tracked individually)`);
+    console.log(`  - Specialists: ~${specialistTokens} tokens total(tracked individually)`);
     console.log(`  - Synthesis: ${synthesisInputTokens} input + ${synthesisOutputTokens} output`);
     console.log(`  - TOTAL ESTIMATED: ${totalTokens} tokens`);
 
     console.log(`\n╔════════════════════════════════════════════════════════╗`);
-    console.log(`║  ✅ ANÁLISE MULTI-ESPECIALISTA FINALIZADA COM SUCESSO ║`);
+    console.log(`║  ✅ ANÁLISE MULTI - ESPECIALISTA FINALIZADA COM SUCESSO ║`);
     console.log(`╚════════════════════════════════════════════════════════╝\n`);
 
     return {

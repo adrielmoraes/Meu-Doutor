@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bot, FileText, User, Pen, CheckCircle, Send, Loader2, FileWarning, Files, Sparkles, Save, AlertTriangle, ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
+import { Bot, FileText, User, Pen, CheckCircle, Send, Loader2, FileWarning, Files, Sparkles, Save, AlertTriangle, ArrowUpRight, ArrowDownRight, Minus, ChevronDownIcon, Globe, FileSearch } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Patient, Exam } from "@/types";
 import { validateExamDiagnosisAction, saveDraftNotesAction, validateMultipleExamsAction } from "@/app/doctor/patients/[id]/actions";
@@ -16,8 +16,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/colla
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
-import { generatePreliminaryDiagnosis } from "@/ai/flows/generate-preliminary-diagnosis";
-import type { GeneratePreliminaryDiagnosisOutput } from "@/ai/flows/generate-preliminary-diagnosis";
+import { generateMedicalOpinion } from "@/ai/flows/generate-medical-opinion";
+import type { GenerateMedicalOpinionOutput } from "@/ai/flows/generate-medical-opinion";
 import { Textarea } from "../ui/textarea";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -26,12 +26,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PatientTimeline from "./patient-timeline";
 import DiagnosisMacros from "./diagnosis-macros";
 import PrescriptionHelper from "./prescription-helper";
-import { Filter, ExternalLink, CheckSquare, Stethoscope, FileSignature, Eye, EyeOff, Maximize2, X, Download } from "lucide-react";
+import { Filter, ExternalLink, CheckSquare, Stethoscope, FileSignature, Eye, EyeOff, Maximize2, X, Download, ZoomIn, ZoomOut } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import SoapEvolutionModal from "./soap-evolution-modal";
 import PrescriptionModal from "./prescription-modal";
 import type { Consultation, Prescription } from "@/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 type PatientDetailViewProps = {
   patient: Patient;
@@ -39,8 +40,74 @@ type PatientDetailViewProps = {
   exams: Exam[];
   consultations: Consultation[];
   prescriptions: Prescription[];
-  doctor: { id: string };
+  doctor: { id: string; name: string; crm: string; specialty: string };
 };
+
+// Componente de Markdown médico com destaque visual para alertas
+function MedicalMarkdown({ content, className }: { content: string; className?: string }) {
+  // Pré-processar marcadores [ALERTA] e [CRÍTICO] para HTML decorado
+  const processedContent = content
+    .replace(/\[CRÍTICO\]/g, '🔴 **CRÍTICO:**')
+    .replace(/\[ALERTA\]/g, '🟠 **ALERTA:**')
+    .replace(/\[NORMAL\]/g, '🟢 **NORMAL:**');
+
+  return (
+    <div className={`prose prose-slate prose-sm max-w-none text-xs
+      prose-p:text-slate-600 prose-p:leading-snug prose-p:my-1
+      prose-strong:text-slate-900 prose-strong:font-bold
+      prose-ul:my-1 prose-ul:pl-4 prose-li:text-slate-600 prose-li:my-0.5
+      prose-ol:my-1 prose-ol:pl-4
+      prose-h3:text-sm prose-h3:font-extrabold prose-h3:text-slate-900 prose-h3:mt-3 prose-h3:mb-1.5
+      prose-h4:text-xs prose-h4:font-bold prose-h4:text-slate-700 prose-h4:mt-2 prose-h4:mb-1
+      prose-code:text-blue-700 prose-code:bg-blue-50 prose-code:px-1 prose-code:rounded
+      prose-hr:my-2 prose-hr:border-slate-200
+      [&_li]:marker:text-slate-400
+      ${className || ''}`}
+    >
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          // Destaca linhas que contêm marcadores de criticidade
+          li: ({ children, ...props }) => {
+            const text = String(children);
+            const isCritical = text.includes('🔴') || text.includes('CRÍTICO');
+            const isAlert = text.includes('🟠') || text.includes('ALERTA');
+            const isNormal = text.includes('🟢') || text.includes('NORMAL');
+
+            let borderColor = 'border-l-slate-200';
+            let bgColor = 'bg-white';
+            if (isCritical) { borderColor = 'border-l-red-500'; bgColor = 'bg-red-50/50'; }
+            else if (isAlert) { borderColor = 'border-l-amber-500'; bgColor = 'bg-amber-50/50'; }
+            else if (isNormal) { borderColor = 'border-l-emerald-400'; bgColor = 'bg-emerald-50/30'; }
+
+            return (
+              <li
+                {...props}
+                className={`pl-2 py-0.5 rounded-r border-l-2 ${borderColor} ${bgColor} list-none my-1`}
+                style={{ listStyle: 'none' }}
+              >
+                {children}
+              </li>
+            );
+          },
+          strong: ({ children, ...props }) => {
+            const text = String(children);
+            const isCritical = text.includes('CRÍTICO');
+            const isAlert = text.includes('ALERTA');
+
+            let color = 'text-slate-900';
+            if (isCritical) color = 'text-red-700 font-extrabold';
+            else if (isAlert) color = 'text-amber-700 font-extrabold';
+
+            return <strong {...props} className={color}>{children}</strong>;
+          },
+        }}
+      >
+        {processedContent}
+      </ReactMarkdown>
+    </div>
+  );
+}
 
 const getExamCategory = (type: string) => {
   const t = type.toLowerCase();
@@ -73,21 +140,10 @@ function AIAnalysisCollapsible({ exam }: { exam: Exam }) {
       <CollapsibleContent>
         <div className="p-5 bg-white border-t border-blue-50">
           <div className="max-h-[500px] overflow-y-auto pr-3 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-transparent">
-            <div className="prose prose-slate prose-sm max-w-none
-              prose-headings:text-slate-900 prose-headings:font-bold prose-headings:mt-4 prose-headings:mb-2
-              prose-h1:text-xl prose-h2:text-lg prose-h3:text-base
-              prose-p:text-slate-600 prose-p:leading-relaxed prose-p:my-2
-              prose-strong:text-slate-900 prose-strong:font-bold
-              prose-ul:my-2 prose-ul:pl-4 prose-li:text-slate-600 prose-li:my-1
-              prose-ol:my-2 prose-ol:pl-4
-              prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-              prose-code:text-blue-700 prose-code:bg-blue-50 prose-code:px-1 prose-code:rounded
-              prose-blockquote:border-l-blue-500 prose-blockquote:text-slate-500
-              prose-hr:border-slate-100">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {exam.preliminaryDiagnosis || "Nenhuma análise disponível."}
-              </ReactMarkdown>
-            </div>
+            <MedicalMarkdown
+              content={exam.preliminaryDiagnosis || "Nenhuma análise disponível."}
+              className="prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-p:leading-relaxed"
+            />
           </div>
         </div>
       </CollapsibleContent>
@@ -103,6 +159,36 @@ type ExamValidationState = {
     isGenerating: boolean;
     generatedDiagnosis: GeneratePreliminaryDiagnosisOutput | null;
   };
+};
+
+const getExamResultSeverity = (value: string) => {
+  const val = value.toLowerCase();
+  const isAbnormal = val.includes('*') || val.includes('alto') || val.includes('baixo');
+  if (!isAbnormal) return null;
+
+  const isRed = val.includes('**') || val.includes('alto') || val.includes('crítico');
+
+  if (isRed) {
+    return {
+      container: 'bg-rose-50 border-rose-200 border-l-4 border-l-rose-500',
+      indicator: 'bg-rose-500',
+      nameText: 'text-rose-900 ml-2',
+      valueText: 'text-rose-600',
+      icon: 'text-rose-500',
+      trendBg: 'bg-rose-100',
+      trendIcon: 'text-rose-600'
+    };
+  } else {
+    return {
+      container: 'bg-amber-50 border-amber-200 border-l-4 border-l-amber-500',
+      indicator: 'bg-amber-500',
+      nameText: 'text-amber-900 ml-2',
+      valueText: 'text-amber-600',
+      icon: 'text-amber-500',
+      trendBg: 'bg-amber-100',
+      trendIcon: 'text-amber-600'
+    };
+  }
 };
 
 export default function PatientDetailView({
@@ -132,8 +218,12 @@ export default function PatientDetailView({
   const [selectedExams, setSelectedExams] = useState<string[]>([]);
   const [isBulkValidating, setIsBulkValidating] = useState(false);
   const [expandedDocuments, setExpandedDocuments] = useState<Record<string, boolean>>({});
-  const [fullscreenDocument, setFullscreenDocument] = useState<{ url: string; title: string } | null>(null);
-  const [fullscreenEditor, setFullscreenEditor] = useState<{ examId: string; title: string } | null>(null);
+  const [fullscreenDocument, setFullscreenDocument] = useState<{ url: string, title?: string } | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [fullscreenEditor, setFullscreenEditor] = useState<{ examId: string, title?: string } | null>(null);
+
+  const handleZoomIn = () => setZoomLevel(prev => Math.min(prev + 0.5, 5));
+  const handleZoomOut = () => setZoomLevel(prev => Math.max(prev - 0.25, 0.5));
 
   const toggleDocumentExpand = (examId: string) => {
     setExpandedDocuments(prev => ({
@@ -157,9 +247,9 @@ export default function PatientDetailView({
     }));
   };
 
-  const handleGenerateDiagnosis = async (examId: string) => {
+  const handleGenerateDiagnosis = async (examId: string, scope: 'specific' | 'global' = 'specific') => {
     // Prevent multiple requests for the same exam
-    if (validationState[examId]?.isGenerating || validationState[examId]?.generatedDiagnosis) {
+    if (validationState[examId]?.isGenerating) {
       return;
     }
 
@@ -168,10 +258,29 @@ export default function PatientDetailView({
       const examToAnalyze = exams.find(e => e.id === examId);
       if (!examToAnalyze) throw new Error("Exam not found");
 
-      const result = await generatePreliminaryDiagnosis({
+      let examResults = examToAnalyze.preliminaryDiagnosis + "\n\n" + examToAnalyze.explanation;
+      let allFindings = examToAnalyze.specialistFindings || [];
+
+      // Se Global, consolida dados de TODOS os exames do paciente
+      if (scope === 'global') {
+        const allExamResults = exams
+          .filter(e => e.preliminaryDiagnosis || e.explanation)
+          .map(e => `--- ${e.type} ---\n${e.preliminaryDiagnosis || ''}\n${e.explanation || ''}`)
+          .join('\n\n');
+        examResults = allExamResults || examResults;
+
+        allFindings = exams
+          .flatMap(e => (e.specialistFindings || []) as any[])
+          .filter(Boolean);
+      }
+
+      const result = await generateMedicalOpinion({
         patientId: patient.id,
         patientHistory: summary,
-        examResults: examToAnalyze.preliminaryDiagnosis + "\n\n" + examToAnalyze.explanation
+        examType: examToAnalyze.type,
+        examResults,
+        analysisScope: scope,
+        specialistFindings: allFindings,
       });
 
       setValidationState(prev => ({
@@ -187,7 +296,7 @@ export default function PatientDetailView({
       console.error("Failed to generate diagnosis:", error);
       toast({
         title: "Erro ao Gerar Diagnóstico",
-        description: "Não foi possível obter a síntese da equipe de IAs.",
+        description: "Não foi possível gerar o parecer médico.",
         variant: "destructive",
       });
     } finally {
@@ -384,33 +493,44 @@ export default function PatientDetailView({
                     const state = validationState[exam.id];
                     return (
                       <AccordionItem value={exam.id} key={exam.id} className="border border-slate-100 rounded-xl overflow-hidden shadow-sm px-1 bg-white">
-                        <AccordionTrigger className="text-base font-bold hover:no-underline text-slate-900 hover:text-blue-600 px-4 py-4 transition-all">
-                          <div className="flex items-center gap-4 w-full">
-                            <div onClick={(e) => e.stopPropagation()} className="flex items-center">
+                        <div className="flex items-center justify-between px-4 py-3 bg-white transition-all hover:bg-slate-50">
+                          <div className="flex items-center gap-4 flex-1">
+                            <div onClick={(e) => e.stopPropagation()} className="flex items-center shrink-0">
                               <Checkbox
                                 checked={selectedExams.includes(exam.id)}
                                 onCheckedChange={() => toggleExamSelection(exam.id)}
                                 className="border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 h-5 w-5"
                               />
                             </div>
-                            <Files className="h-5 w-5 text-blue-500" />
-                            <span className="tracking-tight">{exam.type}</span>
-                            {exam.fileUrl && (
+
+                            {/* O AccordionTrigger agora envolve APENAS o título/ícone para expandir, não os botões extras */}
+                            <AccordionTrigger className="flex-1 py-1 hover:no-underline text-base font-bold text-slate-900 hover:text-blue-600 transition-all text-left">
+                              <div className="flex items-center gap-4 w-full">
+                                <Files className="h-5 w-5 text-blue-500 shrink-0" />
+                                <span className="tracking-tight">{exam.type}</span>
+                              </div>
+                            </AccordionTrigger>
+                          </div>
+
+                          {/* Botões de ação fora do trigger */}
+                          {exam.fileUrl && (
+                            <div className="shrink-0 ml-4 hidden sm:block">
                               <span
                                 role="button"
                                 tabIndex={0}
-                                className={`ml-auto text-xs font-bold flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-full border cursor-pointer ${expandedDocuments[exam.id]
+                                className={`text-xs font-bold flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-full border cursor-pointer select-none ${expandedDocuments[exam.id]
                                   ? 'text-white bg-blue-600 border-blue-600 hover:bg-blue-700'
                                   : 'text-blue-600 bg-blue-50 border-blue-100 hover:bg-blue-100'
                                   }`}
                                 onClick={(e) => {
+                                  e.preventDefault();
                                   e.stopPropagation();
                                   toggleDocumentExpand(exam.id);
                                 }}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter' || e.key === ' ') {
-                                    e.stopPropagation();
                                     e.preventDefault();
+                                    e.stopPropagation();
                                     toggleDocumentExpand(exam.id);
                                   }
                                 }}
@@ -418,7 +538,7 @@ export default function PatientDetailView({
                                 {expandedDocuments[exam.id] ? (
                                   <>
                                     <EyeOff className="h-3 w-3" />
-                                    Ocultar
+                                    Ocultar Original
                                   </>
                                 ) : (
                                   <>
@@ -427,9 +547,9 @@ export default function PatientDetailView({
                                   </>
                                 )}
                               </span>
-                            )}
-                          </div>
-                        </AccordionTrigger>
+                            </div>
+                          )}
+                        </div>
                         <AccordionContent className="space-y-6 pt-4 px-4 pb-6 border-t border-slate-50">
                           <div className="flex flex-col gap-6">
                             {/* Esquerda: Documento e Resultados (quando expandido) */}
@@ -452,7 +572,10 @@ export default function PatientDetailView({
                                           <Download className="h-4 w-4" />
                                         </a>
                                         <button
-                                          onClick={() => setFullscreenDocument({ url: exam.fileUrl!, title: exam.type })}
+                                          onClick={() => {
+                                            setFullscreenDocument({ url: exam.fileUrl!, title: exam.type });
+                                            setZoomLevel(1);
+                                          }}
                                           className="p-1.5 rounded-lg bg-white border border-blue-200 text-blue-600 hover:bg-blue-100 transition-colors"
                                           title="Abrir em tela cheia"
                                         >
@@ -495,24 +618,22 @@ export default function PatientDetailView({
                                     </h4>
                                     <div className="space-y-3">
                                       {exam.results.map((result, idx) => {
-                                        const isAbnormal = result.value.includes('*') ||
-                                          result.value.toLowerCase().includes('alto') ||
-                                          result.value.toLowerCase().includes('baixo');
-
+                                        const severity = getExamResultSeverity(result.value);
+                                        const isAbnormal = !!severity;
                                         const trend = isAbnormal ? (Math.random() > 0.5 ? 'up' : 'down') : 'stable';
 
                                         return (
-                                          <div key={idx} className={`grid grid-cols-4 gap-4 p-3 rounded-lg border transition-colors ${isAbnormal ? 'bg-rose-50 border-rose-200 shadow-sm relative overflow-hidden' : 'bg-white border-slate-100'}`}>
-                                            {isAbnormal && <div className="absolute left-0 top-0 bottom-0 w-1 bg-rose-500"></div>}
+                                          <div key={idx} className={`grid grid-cols-4 gap-4 p-3 rounded-lg border transition-colors ${isAbnormal ? `${severity.container} shadow-sm relative overflow-hidden` : 'bg-white border-slate-100'}`}>
+                                            {isAbnormal && <div className={`absolute left-0 top-0 bottom-0 w-1 ${severity.indicator}`}></div>}
                                             <div className="col-span-1">
                                               <p className="text-[10px] font-bold text-slate-400 uppercase">Parâmetro</p>
-                                              <p className={`text-sm font-bold ${isAbnormal ? 'text-rose-900 ml-2' : 'text-slate-800'}`}>{result.name}</p>
+                                              <p className={`text-sm font-bold ${isAbnormal ? severity.nameText : 'text-slate-800'}`}>{result.name}</p>
                                             </div>
                                             <div className="col-span-1">
                                               <p className="text-[10px] font-bold text-slate-400 uppercase">Valor</p>
                                               <div className="flex items-center gap-1.5">
-                                                <p className={`text-sm font-extrabold ${isAbnormal ? 'text-rose-600 text-base' : 'text-blue-600'}`}>{result.value}</p>
-                                                {isAbnormal && <AlertTriangle className="h-4 w-4 text-rose-500 animate-pulse" />}
+                                                <p className={`text-sm font-extrabold ${isAbnormal ? `${severity.valueText} text-base` : 'text-blue-600'}`}>{result.value}</p>
+                                                {isAbnormal && <AlertTriangle className={`h-4 w-4 ${severity.icon} animate-pulse`} />}
                                               </div>
                                             </div>
                                             <div className="col-span-1">
@@ -549,16 +670,15 @@ export default function PatientDetailView({
                                   </h4>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {exam.results.map((result, idx) => {
-                                      const isAbnormal = result.value.includes('*') ||
-                                        result.value.toLowerCase().includes('alto') ||
-                                        result.value.toLowerCase().includes('baixo');
+                                      const severity = getExamResultSeverity(result.value);
+                                      const isAbnormal = !!severity;
                                       return (
-                                        <div key={idx} className={`flex items-center justify-between p-3 rounded-lg border ${isAbnormal ? 'bg-rose-50 border-rose-200 border-l-4 border-l-rose-500' : 'bg-white border-slate-100'}`}>
+                                        <div key={idx} className={`flex items-center justify-between p-3 rounded-lg border ${isAbnormal ? severity.container : 'bg-white border-slate-100'}`}>
                                           <div className="min-w-0 pr-2">
                                             <p className="text-[10px] font-bold text-slate-400 uppercase truncate">{result.name}</p>
                                             <div className="flex items-center gap-1.5 mt-0.5">
-                                              <p className={`text-sm font-extrabold ${isAbnormal ? 'text-rose-600' : 'text-slate-800'}`}>{result.value}</p>
-                                              {isAbnormal && <AlertTriangle className="h-3.5 w-3.5 text-rose-500" />}
+                                              <p className={`text-sm font-extrabold ${isAbnormal ? severity.valueText : 'text-slate-800'}`}>{result.value}</p>
+                                              {isAbnormal && <AlertTriangle className={`h-3.5 w-3.5 ${severity.icon}`} />}
                                             </div>
                                           </div>
                                           <div className="text-right shrink-0">
@@ -589,41 +709,64 @@ export default function PatientDetailView({
                                   </Button>
                                 </div>
 
-                                <Button
-                                  onClick={() => handleGenerateDiagnosis(exam.id)}
-                                  disabled={state?.isGenerating}
-                                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md shadow-blue-200 transition-all mb-5 w-full text-base font-bold text-white border-none h-12 shrink-0"
-                                >
-                                  {state?.isGenerating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
-                                  {state?.isGenerating ? "Consultando AI..." : "Gerar Parecer (IA)"}
-                                </Button>
-
-                                {state?.generatedDiagnosis && (
-                                  <div className="p-4 bg-gradient-to-br from-blue-50/50 to-white rounded-xl mb-6 border border-blue-100 shadow-sm">
-                                    <h4 className="font-extrabold text-sm mb-3 text-blue-900 flex items-center gap-2">
-                                      <div className="bg-blue-600 p-1 rounded-md shadow-sm">
-                                        <Sparkles className="h-3.5 w-3.5 text-white" />
-                                      </div>
-                                      Insights
-                                    </h4>
-                                    <div className="space-y-3">
-                                      {state.generatedDiagnosis.structuredFindings.map(finding => (
-                                        <div key={finding.specialist} className="border border-blue-50 pl-3 py-3 bg-white rounded-lg shadow-sm border-l-2 border-l-blue-400">
-                                          <h5 className="font-bold text-blue-700 mb-1.5 truncate text-xs uppercase tracking-wider">{finding.specialist}</h5>
-                                          <div className="prose prose-slate prose-sm max-w-none text-xs
-                                                                      prose-p:text-slate-600 prose-p:leading-snug prose-p:my-0.5
-                                                                      prose-strong:text-slate-900 prose-strong:font-bold
-                                                                      prose-ul:my-0.5 prose-ul:pl-4 prose-li:text-slate-600
-                                                                      prose-code:text-blue-700 prose-code:bg-blue-50">
-                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                              {finding.findings}
-                                            </ReactMarkdown>
-                                          </div>
-                                        </div>
-                                      ))}
+                                {/* Cabeçalho Profissional do Parecer */}
+                                <div className="mb-5 p-4 bg-gradient-to-r from-slate-50 to-blue-50/30 border border-slate-200 rounded-xl">
+                                  <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-200">
+                                    <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-2 rounded-lg shadow-sm">
+                                      <Stethoscope className="h-5 w-5 text-white" />
+                                    </div>
+                                    <div>
+                                      <p className="font-extrabold text-lg text-slate-900 tracking-tight">Medi.AI</p>
+                                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Parecer Médico Digital</p>
                                     </div>
                                   </div>
+                                  <div className="grid grid-cols-2 gap-3 text-sm">
+                                    <div>
+                                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Médico Responsável</p>
+                                      <p className="font-bold text-slate-800">Dr(a). {doctor.name}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">CRM</p>
+                                      <p className="font-bold text-slate-800">{doctor.crm || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Especialidade</p>
+                                      <p className="font-bold text-slate-800">{doctor.specialty || 'Clínica Geral'}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Data do Parecer</p>
+                                      <p className="font-bold text-slate-800">{new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {state?.isGenerating ? (
+                                  <Button disabled className="bg-gradient-to-r from-blue-600 to-blue-700 shadow-md shadow-blue-200 mb-5 w-full text-base font-bold text-white border-none h-12 shrink-0">
+                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                    Consultando AI...
+                                  </Button>
+                                ) : (
+                                  <div className="flex gap-2 mb-5 w-full">
+                                    <Button
+                                      onClick={() => handleGenerateDiagnosis(exam.id, 'specific')}
+                                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md shadow-blue-200 transition-all flex-1 text-sm font-bold text-white border-none h-12"
+                                    >
+                                      <FileSearch className="mr-2 h-4 w-4" />
+                                      Parecer Deste Exame
+                                    </Button>
+                                    <Button
+                                      onClick={() => handleGenerateDiagnosis(exam.id, 'global')}
+                                      variant="outline"
+                                      className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 transition-all flex-1 text-sm font-bold h-12"
+                                    >
+                                      <Globe className="mr-2 h-4 w-4" />
+                                      Parecer Global
+                                    </Button>
+                                  </div>
                                 )}
+
+
+
 
                                 <div className="flex flex-wrap gap-2 mb-3 items-center shrink-0">
                                   <DiagnosisMacros onInsert={(text) => {
@@ -912,26 +1055,7 @@ export default function PatientDetailView({
           </DialogHeader>
           {fullscreenEditor && (
             <div className="flex-1 flex flex-col p-6 gap-4 overflow-hidden">
-              {validationState[fullscreenEditor.examId]?.generatedDiagnosis && (
-                <div className="p-4 bg-gradient-to-br from-blue-50/50 to-white rounded-xl border border-blue-100 shadow-sm shrink-0 max-h-[200px] overflow-y-auto">
-                  <h4 className="font-extrabold text-sm mb-3 text-blue-900 flex items-center gap-2">
-                    <div className="bg-blue-600 p-1 rounded-md shadow-sm">
-                      <Sparkles className="h-3.5 w-3.5 text-white" />
-                    </div>
-                    Insights da IA
-                  </h4>
-                  <div className="space-y-2">
-                    {validationState[fullscreenEditor.examId].generatedDiagnosis!.structuredFindings.map(finding => (
-                      <div key={finding.specialist} className="border border-blue-50 pl-3 py-2 bg-white rounded-lg border-l-2 border-l-blue-400">
-                        <h5 className="font-bold text-blue-700 mb-1 text-xs uppercase tracking-wider">{finding.specialist}</h5>
-                        <div className="prose prose-sm max-w-none text-xs prose-p:text-slate-600 prose-p:my-0.5">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{finding.findings}</ReactMarkdown>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+
 
               <div className="flex flex-wrap gap-2 items-center shrink-0">
                 <DiagnosisMacros onInsert={(text) => {
@@ -977,15 +1101,32 @@ export default function PatientDetailView({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!fullscreenDocument} onOpenChange={() => setFullscreenDocument(null)}>
-        <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] p-0 overflow-hidden">
-          <DialogHeader className="px-6 py-4 border-b border-slate-200 bg-slate-50">
+      <Dialog open={!!fullscreenDocument} onOpenChange={(open) => {
+        if (!open) { setFullscreenDocument(null); setZoomLevel(1); }
+      }}>
+        <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] p-0 overflow-hidden flex flex-col">
+          <DialogHeader className="px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0">
             <DialogTitle className="flex items-center justify-between">
-              <span className="flex items-center gap-3 text-lg font-bold text-slate-900">
-                <FileText className="h-5 w-5 text-blue-600" />
+              <span className="flex items-center gap-3 text-lg font-bold text-slate-900 truncate">
+                <FileText className="h-5 w-5 text-blue-600 shrink-0" />
                 {fullscreenDocument?.title || 'Documento'}
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
+                {/* Controles de Zoom para imagem */}
+                {fullscreenDocument?.url && isImageUrl(fullscreenDocument.url) && (
+                  <div className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden mr-2">
+                    <button onClick={handleZoomOut} className="p-2 text-slate-600 hover:bg-slate-100 transition-colors border-r border-slate-200" title="Reduzir zoom">
+                      <ZoomOut className="h-5 w-5" />
+                    </button>
+                    <span className="px-3 text-sm font-bold text-slate-600 min-w-[70px] text-center">
+                      {Math.round(zoomLevel * 100)}%
+                    </span>
+                    <button onClick={handleZoomIn} className="p-2 text-slate-600 hover:bg-slate-100 transition-colors border-l border-slate-200" title="Aumentar zoom">
+                      <ZoomIn className="h-5 w-5" />
+                    </button>
+                  </div>
+                )}
+
                 {fullscreenDocument?.url && (
                   <a
                     href={fullscreenDocument.url}
@@ -1008,22 +1149,30 @@ export default function PatientDetailView({
               </div>
             </DialogTitle>
           </DialogHeader>
-          <div className="flex-1 h-[calc(90vh-80px)] p-4 bg-slate-100">
-            {fullscreenDocument?.url && (
-              isImageUrl(fullscreenDocument.url) ? (
-                <img
-                  src={fullscreenDocument.url}
-                  alt={`Documento: ${fullscreenDocument.title}`}
-                  className="max-w-full h-full object-contain mx-auto rounded-lg shadow-lg"
-                />
-              ) : (
-                <iframe
-                  src={fullscreenDocument.url}
-                  className="w-full h-full rounded-lg border border-slate-200 bg-white"
-                  title={`Documento: ${fullscreenDocument.title}`}
-                />
-              )
-            )}
+          <div className="flex-1 overflow-auto bg-slate-100 relative">
+            <div className="min-h-full min-w-full flex items-center justify-center p-4">
+              {fullscreenDocument?.url && (
+                isImageUrl(fullscreenDocument.url) ? (
+                  <img
+                    src={fullscreenDocument.url}
+                    alt={`Documento: ${fullscreenDocument.title}`}
+                    className="rounded-lg shadow-lg pointer-events-auto transition-transform duration-200 ease-in-out"
+                    style={{
+                      transform: `scale(${zoomLevel})`,
+                      transformOrigin: 'center center',
+                      maxWidth: zoomLevel <= 1 ? '100%' : 'none',
+                      maxHeight: zoomLevel <= 1 ? '100%' : 'none'
+                    }}
+                  />
+                ) : (
+                  <iframe
+                    src={fullscreenDocument.url}
+                    className="w-full h-full min-h-[80vh] rounded-lg border border-slate-200 bg-white"
+                    title={`Documento: ${fullscreenDocument.title}`}
+                  />
+                )
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>

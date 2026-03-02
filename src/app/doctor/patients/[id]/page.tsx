@@ -1,6 +1,6 @@
 import { summarizePatientHistory } from "@/ai/flows/summarize-patient-history";
 import PatientDetailView from "@/components/doctor/patient-detail-view";
-import { getPatientById, getExamsByPatientId, getConsultationsByPatient } from "@/lib/db-adapter";
+import { getPatientById, getExamsByPatientId, getConsultationsByPatient, getDoctorById } from "@/lib/db-adapter";
 import { getPrescriptionsByPatient } from "@/lib/prescriptions-adapter";
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
@@ -54,6 +54,8 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
     patientId: id,
   });
 
+  const doctorData = session?.userId ? await getDoctorById(session.userId) : null;
+
 
   return (
     <PatientDetailView
@@ -62,7 +64,7 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
       exams={exams}
       consultations={consultations}
       prescriptions={prescriptions}
-      doctor={{ id: session?.userId }}
+      doctor={{ id: session?.userId, name: doctorData?.name || 'Médico', crm: doctorData?.crm || '', specialty: doctorData?.specialty || '' }}
     />
   );
 }
