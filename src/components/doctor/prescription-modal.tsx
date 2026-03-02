@@ -407,23 +407,23 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="max-w-3xl bg-white border-slate-200 text-slate-900 max-h-[90vh] overflow-y-auto shadow-xl">
+            <DialogContent className="max-w-3xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-50 max-h-[90vh] overflow-y-auto shadow-xl">
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-bold text-slate-800">Novo Documento Médico Assinado</DialogTitle>
+                    <DialogTitle className="text-xl font-bold text-slate-800 dark:text-slate-100">Novo Documento Médico Assinado</DialogTitle>
                 </DialogHeader>
 
                 {step === 'form' ? (
                     <div className="space-y-6 py-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label className="text-slate-700 font-medium">Paciente</Label>
+                                <Label className="text-slate-700 dark:text-slate-200 font-medium">Paciente</Label>
                                 <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
-                                    <SelectTrigger className="bg-white border-slate-300 text-slate-900 focus:ring-blue-500">
+                                    <SelectTrigger className="bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-50 focus:ring-blue-500">
                                         <SelectValue placeholder="Selecione o paciente..." />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-md">
+                                    <SelectContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-50 shadow-md">
                                         {patients.map(p => (
-                                            <SelectItem key={p.id} value={p.id} className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer">
+                                            <SelectItem key={p.id} value={p.id} className="hover:bg-slate-50 dark:bg-slate-950 focus:bg-slate-50 dark:bg-slate-950 cursor-pointer">
                                                 {p.name}
                                             </SelectItem>
                                         ))}
@@ -432,12 +432,12 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-slate-700 font-medium">Tipo de Documento</Label>
+                                <Label className="text-slate-700 dark:text-slate-200 font-medium">Tipo de Documento</Label>
                                 <Select value={docType} onValueChange={(v: any) => setDocType(v)}>
-                                    <SelectTrigger className="bg-white border-slate-300 text-slate-900 focus:ring-blue-500">
+                                    <SelectTrigger className="bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-50 focus:ring-blue-500">
                                         <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-md">
+                                    <SelectContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-50 shadow-md">
                                         <SelectItem value="receita">Receita Médica (Interna)</SelectItem>
                                         <SelectItem value="memed" className="text-blue-600 font-bold">💊 Prescrição Digital Memed</SelectItem>
                                         <SelectItem value="atestado">Atestado Médico</SelectItem>
@@ -450,7 +450,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
 
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                                <Label className="text-slate-700 font-medium">Título do Documento (Opcional)</Label>
+                                <Label className="text-slate-700 dark:text-slate-200 font-medium">Título do Documento (Opcional)</Label>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -473,7 +473,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                 value={docTitle}
                                 onChange={e => setDocTitle(e.target.value)}
                                 placeholder="Ex: Receita Especial, Atestado de Comparecimento..."
-                                className="bg-white border-slate-300"
+                                className="bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600"
                             />
                         </div>
 
@@ -481,7 +481,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <Label className="text-slate-700 font-medium">Medicamentos</Label>
+                                        <Label className="text-slate-700 dark:text-slate-200 font-medium">Medicamentos</Label>
                                         {validationErrors.medications && (
                                             <span className="flex items-center gap-1 text-xs text-red-600">
                                                 <AlertCircle className="h-3 w-3" />
@@ -503,7 +503,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                 </div>
 
                                 {medications.map((med, index) => (
-                                    <div key={index} className={`grid grid-cols-12 gap-3 p-4 bg-slate-50 rounded-xl border items-start shadow-sm transition-colors ${validationErrors.medications && (!med.name || !med.dosage || !med.frequency || !med.duration) ? 'border-red-300 bg-red-50/50' : 'border-slate-200 hover:border-blue-200'}`}>
+                                    <div key={index} className={`grid grid-cols-12 gap-3 p-4 bg-slate-50 dark:bg-slate-950 rounded-xl border items-start shadow-sm transition-colors ${validationErrors.medications && (!med.name || !med.dosage || !med.frequency || !med.duration) ? 'border-red-300 bg-red-50 dark:bg-red-950/30/50' : 'border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:border-blue-800'}`}>
                                         <div className="col-span-12 md:col-span-4 space-y-1 relative">
                                             <div className="relative">
                                                 <Input
@@ -512,7 +512,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                                     onChange={e => updateMedication(index, 'name', e.target.value)}
                                                     onFocus={() => setActiveSuggestionIndex(index)}
                                                     onBlur={() => setTimeout(() => setActiveSuggestionIndex(null), 200)}
-                                                    className={`bg-white border-slate-300 h-9 text-sm focus:border-blue-500 pr-8 ${!med.name && validationErrors.medications ? 'border-red-400' : ''}`}
+                                                    className={`bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 h-9 text-sm focus:border-blue-500 pr-8 ${!med.name && validationErrors.medications ? 'border-red-400' : ''}`}
                                                 />
                                                 {isSearchingMeds[index] && (
                                                     <div className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -522,20 +522,20 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                             </div>
                                             {/* Medication Suggestions Dropdown */}
                                             {activeSuggestionIndex === index && medicationSuggestions[index]?.length > 0 && (
-                                                <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                                                     {medicationSuggestions[index].map((suggestion, suggIdx) => (
                                                         <button
                                                             key={suggestion.id || suggIdx}
                                                             type="button"
                                                             onClick={() => selectMedication(index, suggestion)}
-                                                            className="w-full px-3 py-2 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none transition-colors border-b border-slate-100 last:border-0"
+                                                            className="w-full px-3 py-2 text-left hover:bg-blue-50 dark:bg-blue-950/30 focus:bg-blue-50 dark:bg-blue-950/30 focus:outline-none transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0"
                                                         >
-                                                            <div className="font-medium text-sm text-slate-800">{suggestion.name}</div>
+                                                            <div className="font-medium text-sm text-slate-800 dark:text-slate-100">{suggestion.name}</div>
                                                             {suggestion.presentation && (
-                                                                <div className="text-xs text-slate-500">{suggestion.presentation}</div>
+                                                                <div className="text-xs text-slate-500 dark:text-slate-400">{suggestion.presentation}</div>
                                                             )}
                                                             {suggestion.manufacturer && (
-                                                                <div className="text-xs text-slate-400">{suggestion.manufacturer}</div>
+                                                                <div className="text-xs text-slate-400 dark:text-slate-500">{suggestion.manufacturer}</div>
                                                             )}
                                                         </button>
                                                     ))}
@@ -543,8 +543,8 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                             )}
                                             {/* No results indicator */}
                                             {activeSuggestionIndex === index && !isSearchingMeds[index] && med.name.length >= 3 && medicationSuggestions[index]?.length === 0 && (
-                                                <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg p-3">
-                                                    <div className="flex items-center gap-2 text-sm text-slate-500">
+                                                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg p-3">
+                                                    <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                                                         <Search className="h-4 w-4" />
                                                         <span>Nenhum medicamento encontrado</span>
                                                     </div>
@@ -556,7 +556,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                                 placeholder="Dosagem *"
                                                 value={med.dosage}
                                                 onChange={e => updateMedication(index, 'dosage', e.target.value)}
-                                                className={`bg-white border-slate-300 h-9 text-sm focus:border-blue-500 ${!med.dosage && validationErrors.medications ? 'border-red-400' : ''}`}
+                                                className={`bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 h-9 text-sm focus:border-blue-500 ${!med.dosage && validationErrors.medications ? 'border-red-400' : ''}`}
                                             />
                                         </div>
                                         <div className="col-span-6 md:col-span-2 space-y-1">
@@ -564,7 +564,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                                 placeholder="Frequência *"
                                                 value={med.frequency}
                                                 onChange={e => updateMedication(index, 'frequency', e.target.value)}
-                                                className={`bg-white border-slate-300 h-9 text-sm focus:border-blue-500 ${!med.frequency && validationErrors.medications ? 'border-red-400' : ''}`}
+                                                className={`bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 h-9 text-sm focus:border-blue-500 ${!med.frequency && validationErrors.medications ? 'border-red-400' : ''}`}
                                             />
                                         </div>
                                         <div className="col-span-6 md:col-span-2 space-y-1">
@@ -572,11 +572,11 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                                 placeholder="Duração *"
                                                 value={med.duration}
                                                 onChange={e => updateMedication(index, 'duration', e.target.value)}
-                                                className={`bg-white border-slate-300 h-9 text-sm focus:border-blue-500 ${!med.duration && validationErrors.medications ? 'border-red-400' : ''}`}
+                                                className={`bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 h-9 text-sm focus:border-blue-500 ${!med.duration && validationErrors.medications ? 'border-red-400' : ''}`}
                                             />
                                         </div>
                                         <div className="col-span-6 md:col-span-2 flex justify-end items-center">
-                                            <Button variant="ghost" size="icon" onClick={() => removeMedication(index)} className="h-9 w-9 text-slate-400 hover:text-red-600 hover:bg-red-50">
+                                            <Button variant="ghost" size="icon" onClick={() => removeMedication(index)} className="h-9 w-9 text-slate-400 dark:text-slate-500 hover:text-red-600 hover:bg-red-50 dark:bg-red-950/30">
                                                 <Trash className="h-4 w-4" />
                                             </Button>
                                         </div>
@@ -585,7 +585,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                                 placeholder="Instruções adicionais (ex: tomar em jejum)"
                                                 value={med.instructions}
                                                 onChange={e => updateMedication(index, 'instructions', e.target.value)}
-                                                className="bg-white border-slate-300 h-8 text-xs text-slate-600 focus:border-blue-500"
+                                                className="bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 h-8 text-xs text-slate-600 dark:text-slate-300 dark:text-slate-600 focus:border-blue-500"
                                             />
                                         </div>
                                     </div>
@@ -596,8 +596,8 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Label className="text-slate-700 font-medium">Conteúdo do Documento / Observações</Label>
-                                    <span className="text-xs text-slate-400">(Suporta Markdown)</span>
+                                    <Label className="text-slate-700 dark:text-slate-200 font-medium">Conteúdo do Documento / Observações</Label>
+                                    <span className="text-xs text-slate-400 dark:text-slate-500">(Suporta Markdown)</span>
                                     {validationErrors.instructions && (
                                         <span className="flex items-center gap-1 text-xs text-red-600">
                                             <AlertCircle className="h-3 w-3" />
@@ -611,7 +611,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => setShowMarkdownPreview(false)}
-                                        className={`h-7 px-2 text-xs ${!showMarkdownPreview ? 'bg-slate-100 text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                                        className={`h-7 px-2 text-xs ${!showMarkdownPreview ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-50' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200'}`}
                                     >
                                         <Edit className="h-3 w-3 mr-1" />
                                         Editar
@@ -621,7 +621,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => setShowMarkdownPreview(true)}
-                                        className={`h-7 px-2 text-xs ${showMarkdownPreview ? 'bg-slate-100 text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                                        className={`h-7 px-2 text-xs ${showMarkdownPreview ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-50' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200'}`}
                                     >
                                         <Eye className="h-3 w-3 mr-1" />
                                         Preview
@@ -629,11 +629,11 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                 </div>
                             </div>
                             {showMarkdownPreview ? (
-                                <div className="bg-white border border-slate-300 rounded-md p-4 min-h-[150px] max-h-[300px] overflow-y-auto prose prose-sm prose-slate max-w-none">
+                                <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md p-4 min-h-[150px] max-h-[300px] overflow-y-auto prose prose-sm prose-slate max-w-none">
                                     {instructions ? (
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{instructions}</ReactMarkdown>
                                     ) : (
-                                        <p className="text-slate-400 italic">Nenhum conteúdo para visualizar...</p>
+                                        <p className="text-slate-400 dark:text-slate-500 italic">Nenhum conteúdo para visualizar...</p>
                                     )}
                                 </div>
                             ) : (
@@ -645,7 +645,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                             setValidationErrors(prev => ({ ...prev, instructions: undefined }));
                                         }
                                     }}
-                                    className={`bg-white border-slate-300 text-slate-900 min-h-[150px] focus:border-blue-500 font-mono text-sm ${validationErrors.instructions ? 'border-red-400' : ''}`}
+                                    className={`bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-50 min-h-[150px] focus:border-blue-500 font-mono text-sm ${validationErrors.instructions ? 'border-red-400' : ''}`}
                                     placeholder={(docType === 'receita' || docType === 'memed')
                                         ? "## Orientações\n\n- Manter dieta balanceada\n- Evitar bebidas alcoólicas\n- Retornar em 30 dias"
                                         : "## Conteúdo do Documento\n\nDescreva aqui o conteúdo do atestado ou laudo..."}
@@ -718,8 +718,8 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                     </div>
                 ) : (
                     <div className="space-y-6 py-4">
-                        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 text-center">
-                            <div className="bg-white p-3 rounded-full inline-block mb-3 shadow-sm">
+                        <div className="bg-blue-50 dark:bg-blue-950/30 p-6 rounded-xl border border-blue-100 text-center">
+                            <div className="bg-white dark:bg-slate-900 p-3 rounded-full inline-block mb-3 shadow-sm">
                                 <FileText className="h-8 w-8 text-blue-600" />
                             </div>
                             <h3 className="text-lg font-bold text-blue-900">Prescrição Gerada</h3>
@@ -727,20 +727,20 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                         </div>
 
                         <Tabs defaultValue="a1" className="w-full">
-                            <TabsList className="grid w-full grid-cols-2 bg-slate-100 p-1 rounded-lg">
-                                <TabsTrigger value="a1" className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm text-slate-600 font-medium">Certificado A1 (Arquivo)</TabsTrigger>
-                                <TabsTrigger value="cloud" className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm text-slate-600 font-medium">Nuvem (BirdID/Vidaas)</TabsTrigger>
+                            <TabsList className="grid w-full grid-cols-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                                <TabsTrigger value="a1" className="data-[state=active]:bg-white dark:bg-slate-900 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm text-slate-600 dark:text-slate-300 dark:text-slate-600 font-medium">Certificado A1 (Arquivo)</TabsTrigger>
+                                <TabsTrigger value="cloud" className="data-[state=active]:bg-white dark:bg-slate-900 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm text-slate-600 dark:text-slate-300 dark:text-slate-600 font-medium">Nuvem (BirdID/Vidaas)</TabsTrigger>
                             </TabsList>
 
                             <TabsContent value="a1" className="space-y-5 pt-4">
                                 <div className="space-y-3">
-                                    <Label className="text-slate-700 font-medium">Arquivo do Certificado (.pfx ou .p12)</Label>
+                                    <Label className="text-slate-700 dark:text-slate-200 font-medium">Arquivo do Certificado (.pfx ou .p12)</Label>
                                     <div className="flex items-center justify-center w-full">
-                                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
+                                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 dark:border-slate-600 border-dashed rounded-lg cursor-pointer bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:bg-slate-800 transition-colors">
                                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                                <Cloud className="w-8 h-8 mb-3 text-slate-400" />
-                                                <p className="mb-2 text-sm text-slate-500"><span className="font-semibold">Clique para enviar</span> ou arraste</p>
-                                                <p className="text-xs text-slate-400">PFX ou P12</p>
+                                                <Cloud className="w-8 h-8 mb-3 text-slate-400 dark:text-slate-500" />
+                                                <p className="mb-2 text-sm text-slate-500 dark:text-slate-400"><span className="font-semibold">Clique para enviar</span> ou arraste</p>
+                                                <p className="text-xs text-slate-400 dark:text-slate-500">PFX ou P12</p>
                                             </div>
                                             <Input
                                                 type="file"
@@ -751,19 +751,19 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                         </label>
                                     </div>
                                     {pfxFile && (
-                                        <div className="flex items-center gap-2 text-sm text-emerald-600 font-medium bg-emerald-50 p-2 rounded-md">
+                                        <div className="flex items-center gap-2 text-sm text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-950/30 p-2 rounded-md">
                                             <Check className="h-4 w-4" />
                                             Arquivo selecionado: {pfxFile.name}
                                         </div>
                                     )}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-slate-700 font-medium">Senha do Certificado</Label>
+                                    <Label className="text-slate-700 dark:text-slate-200 font-medium">Senha do Certificado</Label>
                                     <Input
                                         type="password"
                                         value={pfxPassword}
                                         onChange={(e) => setPfxPassword(e.target.value)}
-                                        className="bg-white border-slate-300 focus:border-blue-500"
+                                        className="bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 focus:border-blue-500"
                                         placeholder="Digite a senha do certificado..."
                                     />
                                 </div>
@@ -790,7 +790,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                             </TabsContent>
                         </Tabs>
 
-                        <Button variant="ghost" onClick={() => setStep('form')} className="w-full mt-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100">
+                        <Button variant="ghost" onClick={() => setStep('form')} className="w-full mt-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-50 hover:bg-slate-100 dark:bg-slate-800">
                             Voltar e Editar
                         </Button>
                     </div>

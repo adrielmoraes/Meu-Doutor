@@ -38,7 +38,7 @@ export default function DoctorLayout({
   }, []);
 
   return (
-    <div className="doctor-layout bg-slate-50 min-h-screen">
+    <div className="doctor-layout bg-slate-50 dark:bg-slate-950 min-h-screen">
       <DoctorSidebar />
       {/* Main Content Area: offset by sidebar width on desktop */}
       <main className="md:ml-60 transition-all duration-300 min-h-screen">

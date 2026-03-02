@@ -65,7 +65,7 @@ export default function ManageAvailability({ initialAvailability, selectedDate }
             toast({
                 title: 'Sucesso!',
                 description: state.message,
-                className: "bg-green-100 text-green-800 border-green-200",
+                className: "bg-green-100 text-green-800 border-green-200 dark:border-green-800",
             });
         } else if (state.message) {
             toast({
@@ -88,7 +88,7 @@ export default function ManageAvailability({ initialAvailability, selectedDate }
                     <div className="space-y-6">
                         <div className="flex items-center gap-2 pb-2">
                             <div className="w-1 h-4 bg-emerald-500 rounded-full"></div>
-                            <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Períodos de Atendimento</h3>
+                            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Períodos de Atendimento</h3>
                         </div>
 
                         <ToggleGroup
@@ -102,7 +102,7 @@ export default function ManageAvailability({ initialAvailability, selectedDate }
                                     key={time}
                                     value={time}
                                     aria-label={`Select time ${time}`}
-                                    className="h-10 min-w-[80px] rounded-lg border border-slate-200 bg-white text-slate-600 font-bold hover:bg-slate-50 hover:text-blue-600 data-[state=on]:bg-blue-600 data-[state=on]:text-white data-[state=on]:border-blue-600 data-[state=on]:shadow-sm transition-all"
+                                    className="h-10 min-w-[80px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:bg-slate-950 hover:text-blue-600 data-[state=on]:bg-blue-600 data-[state=on]:text-white data-[state=on]:border-blue-600 data-[state=on]:shadow-sm transition-all"
                                 >
                                     {time}
                                 </ToggleGroupItem>
@@ -115,10 +115,10 @@ export default function ManageAvailability({ initialAvailability, selectedDate }
                     </div>
                 </form>
             ) : (
-                <div className="flex flex-col items-center justify-center py-6 text-center border-2 border-dashed border-slate-100 rounded-xl bg-slate-50/50">
+                <div className="flex flex-col items-center justify-center py-6 text-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950/50">
                     <AlertTriangle className="h-8 w-8 text-amber-500 mb-2 opacity-50" />
-                    <p className="text-sm font-bold text-slate-500">Nenhuma data selecionada</p>
-                    <p className="text-xs text-slate-400">Selecione uma data no calendário acima.</p>
+                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500">Nenhuma data selecionada</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500">Selecione uma data no calendário acima.</p>
                 </div>
             )}
         </div>

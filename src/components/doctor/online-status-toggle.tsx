@@ -30,7 +30,7 @@ export function OnlineStatusToggle({ initialStatus, doctorName }: OnlineStatusTo
           description: checked
             ? 'Pacientes podem ver que você está disponível para consultas.'
             : 'Você está invisível para novos pacientes.',
-          className: checked ? 'bg-green-100 text-green-800 border-green-200' : 'bg-gray-100 text-gray-800 border-gray-200'
+          className: checked ? 'bg-green-100 text-green-800 border-green-200 dark:border-green-800' : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 border-gray-200 dark:border-gray-700'
         });
       } else {
         toast({
@@ -52,15 +52,15 @@ export function OnlineStatusToggle({ initialStatus, doctorName }: OnlineStatusTo
   };
 
   return (
-    <div className="flex items-center gap-4 px-5 py-3 rounded-2xl bg-white border border-slate-200 shadow-sm transition-all hover:border-blue-200">
-      <div className={`p-2 rounded-full ${isOnline ? 'bg-green-50 text-green-600' : 'bg-slate-50 text-slate-400'}`}>
+    <div className="flex items-center gap-4 px-5 py-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:border-blue-200 dark:border-blue-800">
+      <div className={`p-2 rounded-full ${isOnline ? 'bg-green-50 dark:bg-green-950/30 text-green-600' : 'bg-slate-50 dark:bg-slate-950 text-slate-400 dark:text-slate-500'}`}>
         <Power className="h-5 w-5" />
       </div>
       <div className="flex-1 min-w-[120px]">
-        <Label htmlFor="online-status" className="text-[13px] font-bold text-slate-900 cursor-pointer block mb-0.5">
+        <Label htmlFor="online-status" className="text-[13px] font-bold text-slate-900 dark:text-slate-50 cursor-pointer block mb-0.5">
           Status Online
         </Label>
-        <p className="text-[11px] font-medium text-slate-500 uppercase tracking-tight">
+        <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 dark:text-slate-500 uppercase tracking-tight">
           {isOnline ? 'Visível para pacientes' : 'Modo invisível'}
         </p>
       </div>

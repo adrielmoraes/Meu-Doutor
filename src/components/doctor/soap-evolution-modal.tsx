@@ -61,9 +61,9 @@ export default function SoapEvolutionModal({ patientId, patientName }: SoapEvolu
                     Nova Evolução (SOAP)
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl bg-white border-slate-200 text-slate-900 max-h-[90vh] overflow-y-auto shadow-xl">
+            <DialogContent className="max-w-2xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-50 max-h-[90vh] overflow-y-auto shadow-xl">
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <DialogTitle className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                         <Stethoscope className="h-5 w-5 text-blue-600" />
                         Evolução Clínica Livre - {patientName}
                     </DialogTitle>
@@ -72,42 +72,42 @@ export default function SoapEvolutionModal({ patientId, patientName }: SoapEvolu
                 <div className="space-y-6 py-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label className="text-slate-700 font-bold text-xs uppercase tracking-wider">S - Subjetivo</Label>
+                            <Label className="text-slate-700 dark:text-slate-200 font-bold text-xs uppercase tracking-wider">S - Subjetivo</Label>
                             <Textarea
                                 placeholder="Queixas, sintomas e histórico relatado..."
                                 value={soap.subjective}
                                 onChange={(e) => setSoap({ ...soap, subjective: e.target.value })}
-                                className="bg-slate-50 border-slate-200 focus:bg-white min-h-[100px]"
+                                className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-700 focus:bg-white dark:bg-slate-900 min-h-[100px]"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-slate-700 font-bold text-xs uppercase tracking-wider">O - Objetivo</Label>
+                            <Label className="text-slate-700 dark:text-slate-200 font-bold text-xs uppercase tracking-wider">O - Objetivo</Label>
                             <Textarea
                                 placeholder="Sinais vitais, exame físico, resultados observados..."
                                 value={soap.objective}
                                 onChange={(e) => setSoap({ ...soap, objective: e.target.value })}
-                                className="bg-slate-50 border-slate-200 focus:bg-white min-h-[100px]"
+                                className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-700 focus:bg-white dark:bg-slate-900 min-h-[100px]"
                             />
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <Label className="text-slate-700 font-bold text-xs uppercase tracking-wider">A - Avaliação (Diagnóstico/Hipótese)</Label>
+                        <Label className="text-slate-700 dark:text-slate-200 font-bold text-xs uppercase tracking-wider">A - Avaliação (Diagnóstico/Hipótese)</Label>
                         <Textarea
                             placeholder="Sua conclusão clínica sobre o quadro atual..."
                             value={soap.assessment}
                             onChange={(e) => setSoap({ ...soap, assessment: e.target.value })}
-                            className="bg-slate-50 border-slate-200 focus:bg-white min-h-[80px]"
+                            className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-700 focus:bg-white dark:bg-slate-900 min-h-[80px]"
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <Label className="text-slate-700 font-bold text-xs uppercase tracking-wider">P - Plano (Conduta)</Label>
+                        <Label className="text-slate-700 dark:text-slate-200 font-bold text-xs uppercase tracking-wider">P - Plano (Conduta)</Label>
                         <Textarea
                             placeholder="Tratamento, solicitações de exames, medicamentos, orientações e retorno..."
                             value={soap.plan}
                             onChange={(e) => setSoap({ ...soap, plan: e.target.value })}
-                            className="bg-slate-50 border-slate-200 focus:bg-white min-h-[100px]"
+                            className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-700 focus:bg-white dark:bg-slate-900 min-h-[100px]"
                         />
                     </div>
 

@@ -94,19 +94,19 @@ function SpecialtyIcon({ specialty }: { specialty: string }) {
 function getSpecialtyStyle(specialty: string): { color: string; bgColor: string } {
   switch (specialty) {
     case 'Cardiologia':
-      return { color: 'text-red-700', bgColor: 'bg-red-50' };
+      return { color: 'text-red-700', bgColor: 'bg-red-50 dark:bg-red-950/30' };
     case 'Neurologia':
-      return { color: 'text-purple-700', bgColor: 'bg-purple-50' };
+      return { color: 'text-purple-700', bgColor: 'bg-purple-50 dark:bg-purple-950/30' };
     case 'Ortopedia':
-      return { color: 'text-orange-700', bgColor: 'bg-orange-50' };
+      return { color: 'text-orange-700', bgColor: 'bg-orange-50 dark:bg-orange-950/30' };
     case 'Clínico Geral':
-      return { color: 'text-blue-700', bgColor: 'bg-blue-50' };
+      return { color: 'text-blue-700', bgColor: 'bg-blue-50 dark:bg-blue-950/30' };
     case 'Hematologia':
-      return { color: 'text-rose-700', bgColor: 'bg-rose-50' };
+      return { color: 'text-rose-700', bgColor: 'bg-rose-50 dark:bg-rose-950/30' };
     case 'Patologia':
-      return { color: 'text-teal-700', bgColor: 'bg-teal-50' };
+      return { color: 'text-teal-700', bgColor: 'bg-teal-50 dark:bg-teal-950/30' };
     default:
-      return { color: 'text-slate-700', bgColor: 'bg-slate-50' };
+      return { color: 'text-slate-700 dark:text-slate-200', bgColor: 'bg-slate-50 dark:bg-slate-950' };
   }
 }
 
@@ -115,19 +115,19 @@ const priorityMap = {
     level: 1,
     icon: <ShieldAlert className="h-4 w-4" />,
     label: 'Urgente',
-    className: 'bg-red-50 text-red-700 border-red-200 shadow-sm shadow-red-100/50'
+    className: 'bg-red-50 dark:bg-red-950/30 text-red-700 border-red-200 dark:border-red-800 shadow-sm shadow-red-100/50'
   },
   'Alta': {
     level: 2,
     icon: <ArrowUp className="h-4 w-4" />,
     label: 'Alta',
-    className: 'bg-orange-50 text-orange-700 border-orange-200 shadow-sm shadow-orange-100/50'
+    className: 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 border-orange-200 shadow-sm shadow-orange-100/50'
   },
   'Normal': {
     level: 3,
     icon: <ArrowDown className="h-4 w-4" />,
     label: 'Normal',
-    className: 'bg-blue-50 text-blue-700 border-blue-200 shadow-sm shadow-blue-100/50'
+    className: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 border-blue-200 dark:border-blue-800 shadow-sm shadow-blue-100/50'
   },
 };
 
@@ -203,14 +203,14 @@ export default async function PatientsPage() {
   const PatientTable = ({ patients, isGlobalView }: { patients: PatientWithSpecialty[], isGlobalView?: boolean }) => (
     <div className="overflow-x-auto">
       <Table>
-        <TableHeader className="bg-slate-50/50">
-          <TableRow className="border-slate-200">
-            <TableHead className="text-slate-500 font-semibold py-4">Paciente</TableHead>
-            <TableHead className="text-slate-500 font-semibold py-4">Especialidade</TableHead>
-            <TableHead className="hidden md:table-cell text-slate-500 font-semibold py-4">Idade</TableHead>
-            <TableHead className="text-slate-500 font-semibold py-4">Prioridade</TableHead>
-            <TableHead className="text-slate-500 font-semibold py-4">Status</TableHead>
-            <TableHead className="text-right text-slate-500 font-semibold py-4">Ações</TableHead>
+        <TableHeader className="bg-slate-50 dark:bg-slate-950/50">
+          <TableRow className="border-slate-200 dark:border-slate-700">
+            <TableHead className="text-slate-500 dark:text-slate-400 font-semibold py-4">Paciente</TableHead>
+            <TableHead className="text-slate-500 dark:text-slate-400 font-semibold py-4">Especialidade</TableHead>
+            <TableHead className="hidden md:table-cell text-slate-500 dark:text-slate-400 font-semibold py-4">Idade</TableHead>
+            <TableHead className="text-slate-500 dark:text-slate-400 font-semibold py-4">Prioridade</TableHead>
+            <TableHead className="text-slate-500 dark:text-slate-400 font-semibold py-4">Status</TableHead>
+            <TableHead className="text-right text-slate-500 dark:text-slate-400 font-semibold py-4">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -222,21 +222,21 @@ export default async function PatientsPage() {
             return (
               <TableRow
                 key={patient.id}
-                className={`border-slate-100 hover:bg-slate-50/80 transition-colors ${isInvalidated && priorityInfo.level === 1 ? 'bg-rose-50/30' : ''
+                className={`border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:bg-slate-950/80 transition-colors ${isInvalidated && priorityInfo.level === 1 ? 'bg-rose-50 dark:bg-rose-950/30/30' : ''
                   }`}
               >
                 <TableCell className="py-4">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 border border-slate-200 shadow-sm">
+                    <Avatar className="h-10 w-10 border border-slate-200 dark:border-slate-700 shadow-sm">
                       <AvatarImage src={patient.avatar} data-ai-hint={patient.avatarHint} />
-                      <AvatarFallback className="bg-slate-100 text-slate-600 font-medium">
+                      <AvatarFallback className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 dark:text-slate-600 font-medium">
                         {patient.name.substring(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <span className="font-semibold text-slate-900 block">{patient.name}</span>
+                      <span className="font-semibold text-slate-900 dark:text-slate-50 block">{patient.name}</span>
                       {patient.examTypes.length > 0 && (
-                        <p className="text-xs text-slate-500 mt-0.5">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                           {patient.examTypes.slice(0, 2).join(', ')}
                           {patient.examTypes.length > 2 && ` +${patient.examTypes.length - 2}`}
                         </p>
@@ -253,7 +253,7 @@ export default async function PatientsPage() {
                     {patient.specialty}
                   </Badge>
                 </TableCell>
-                <TableCell className="hidden md:table-cell text-slate-600">
+                <TableCell className="hidden md:table-cell text-slate-600 dark:text-slate-300 dark:text-slate-600">
                   {patient.age} anos
                 </TableCell>
                 <TableCell>
@@ -266,15 +266,15 @@ export default async function PatientsPage() {
                       {priorityInfo.label}
                     </Badge>
                   ) : (
-                    <span className="text-slate-400 font-medium italic">Finalizado</span>
+                    <span className="text-slate-400 dark:text-slate-500 font-medium italic">Finalizado</span>
                   )}
                 </TableCell>
                 <TableCell>
                   <Badge
                     variant="outline"
                     className={patient.status === 'Validado'
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200 px-2.5 py-1 font-medium'
-                      : 'bg-amber-50 text-amber-700 border-amber-200 px-2.5 py-1 font-medium'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 border-emerald-200 px-2.5 py-1 font-medium'
+                      : 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 border-amber-200 dark:border-amber-800 px-2.5 py-1 font-medium'
                     }
                   >
                     {patient.status}
@@ -300,7 +300,7 @@ export default async function PatientsPage() {
                             type="submit"
                             variant="outline"
                             size="sm"
-                            className="text-slate-600 hover:text-rose-600 hover:bg-rose-50 h-9"
+                            className="text-slate-600 dark:text-slate-300 dark:text-slate-600 hover:text-rose-600 hover:bg-rose-50 dark:bg-rose-950/30 h-9"
                             title="Devolver ao Mural"
                           >
                             <UserMinus className="h-4 w-4" />
@@ -331,7 +331,7 @@ export default async function PatientsPage() {
           })}
           {patients.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} className="text-center text-slate-400 py-12">
+              <TableCell colSpan={6} className="text-center text-slate-400 dark:text-slate-500 py-12">
                 Nenhum paciente encontrado.
               </TableCell>
             </TableRow>
@@ -342,40 +342,40 @@ export default async function PatientsPage() {
   );
 
   return (
-    <div className="bg-slate-50 min-h-screen relative font-sans text-slate-900">
+    <div className="bg-slate-50 dark:bg-slate-950 min-h-screen relative font-sans text-slate-900 dark:text-slate-50">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50 via-transparent to-transparent opacity-60"></div>
 
       <div className="relative z-10 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">
               Fila de Pacientes
             </h1>
-            <p className="text-slate-500 mt-2">
+            <p className="text-slate-500 dark:text-slate-400 mt-2">
               Gerencie seus pacientes ou atenda novos do mural de casos.
             </p>
           </div>
         </div>
 
         {error ? (
-          <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-800">
+          <Alert variant="destructive" className="bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 text-red-800">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Erro</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : (
           <Tabs defaultValue="meus-pacientes" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 max-w-[400px] mb-6 p-1 bg-slate-100 rounded-xl">
+            <TabsList className="grid w-full grid-cols-2 max-w-[400px] mb-6 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
               <TabsTrigger
                 value="meus-pacientes"
-                className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm transition-all"
+                className="rounded-lg data-[state=active]:bg-white dark:bg-slate-900 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm transition-all"
               >
                 <Users className="w-4 h-4 mr-2" />
                 Meus Pacientes
               </TabsTrigger>
               <TabsTrigger
                 value="mural-casos"
-                className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-sm transition-all"
+                className="rounded-lg data-[state=active]:bg-white dark:bg-slate-900 data-[state=active]:text-indigo-700 data-[state=active]:shadow-sm transition-all"
               >
                 <Globe className="w-4 h-4 mr-2" />
                 Mural de Casos
@@ -389,56 +389,56 @@ export default async function PatientsPage() {
 
             <TabsContent value="meus-pacientes" className="space-y-6 focus-visible:outline-none focus-visible:ring-0 mt-0">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card className="bg-white border-slate-200 shadow-sm transition-all hover:shadow-md">
+                <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-slate-500 font-medium">Total</p>
-                        <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total</p>
+                        <p className="text-2xl font-bold text-slate-900 dark:text-slate-50">{stats.total}</p>
                       </div>
-                      <div className="bg-blue-50 p-2 rounded-lg">
+                      <div className="bg-blue-50 dark:bg-blue-950/30 p-2 rounded-lg">
                         <Users className="h-6 w-6 text-blue-600" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-white border-slate-200 shadow-sm transition-all hover:shadow-md">
+                <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-slate-500 font-medium">Pendentes</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Pendentes</p>
                         <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
                       </div>
-                      <div className="bg-amber-50 p-2 rounded-lg">
+                      <div className="bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg">
                         <Clock className="h-6 w-6 text-amber-600" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-white border-slate-200 shadow-sm transition-all hover:shadow-md">
+                <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-slate-500 font-medium">Validados</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Validados</p>
                         <p className="text-2xl font-bold text-emerald-600">{stats.validated}</p>
                       </div>
-                      <div className="bg-emerald-50 p-2 rounded-lg">
+                      <div className="bg-emerald-50 dark:bg-emerald-950/30 p-2 rounded-lg">
                         <CheckCircle className="h-6 w-6 text-emerald-600" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-white border-slate-200 shadow-sm transition-all hover:shadow-md">
+                <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-slate-500 font-medium">Urgentes</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Urgentes</p>
                         <p className="text-2xl font-bold text-rose-600">{stats.urgent}</p>
                       </div>
-                      <div className="bg-rose-50 p-2 rounded-lg">
+                      <div className="bg-rose-50 dark:bg-rose-950/30 p-2 rounded-lg">
                         <ShieldAlert className="h-6 w-6 text-rose-600" />
                       </div>
                     </div>
@@ -446,19 +446,19 @@ export default async function PatientsPage() {
                 </Card>
               </div>
 
-              <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
+              <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
                 {myPatients && <PatientTable patients={myPatients} isGlobalView={false} />}
               </Card>
             </TabsContent>
 
             <TabsContent value="mural-casos" className="space-y-6 focus-visible:outline-none focus-visible:ring-0 mt-0">
-              <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
-                <div className="p-6 bg-slate-50 border-b border-slate-100">
-                  <h3 className="text-lg font-semibold text-slate-900 flex items-center">
+              <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                <div className="p-6 bg-slate-50 dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50 flex items-center">
                     <Globe className="h-5 w-5 text-indigo-500 mr-2" />
                     Sala de Espera Global
                   </h3>
-                  <p className="text-slate-500 mt-1">Pacientes aguardando atendimento por qualquer médico disponível.</p>
+                  <p className="text-slate-500 dark:text-slate-400 mt-1">Pacientes aguardando atendimento por qualquer médico disponível.</p>
                 </div>
                 {globalPatients && <PatientTable patients={globalPatients} isGlobalView={true} />}
               </Card>

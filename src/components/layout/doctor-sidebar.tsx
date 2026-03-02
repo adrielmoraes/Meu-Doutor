@@ -43,7 +43,7 @@ export default function DoctorSidebar() {
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className={cn(
-        "flex items-center border-b border-slate-100 shrink-0",
+        "flex items-center border-b border-slate-100 dark:border-slate-800 shrink-0",
         collapsed ? "justify-center px-2 py-5" : "px-5 py-5"
       )}>
         <MediAILogo size="sm" showText={!collapsed} />
@@ -63,13 +63,13 @@ export default function DoctorSidebar() {
                 "min-h-[44px] min-w-[44px]",
                 collapsed ? "justify-center px-3 py-3" : "px-4 py-3",
                 active
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-200/60"
-                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-200/60 dark:shadow-blue-900/40"
+                  : "text-slate-500 dark:text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"
               )}
             >
               <item.icon className={cn(
                 "h-[20px] w-[20px] shrink-0 transition-transform duration-200",
-                active ? "text-white" : "text-slate-400 group-hover:text-slate-700 group-hover:scale-110"
+                active ? "text-white" : "text-slate-400 dark:text-slate-500 dark:text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-200 group-hover:scale-110"
               )} />
               {!collapsed && (
                 <span className={cn(
@@ -80,7 +80,7 @@ export default function DoctorSidebar() {
                 </span>
               )}
               {collapsed && (
-                <span className="absolute left-full ml-3 px-2.5 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-semibold whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[60] shadow-lg pointer-events-none">
+                <span className="absolute left-full ml-3 px-2.5 py-1.5 rounded-lg bg-slate-800 dark:bg-slate-700 text-white text-xs font-semibold whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[60] shadow-lg pointer-events-none">
                   {item.label}
                 </span>
               )}
@@ -90,11 +90,11 @@ export default function DoctorSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-slate-100 px-3 py-4 space-y-1 shrink-0">
+      <div className="border-t border-slate-100 dark:border-slate-800 px-3 py-4 space-y-1 shrink-0">
         <button
           onClick={() => setCollapsed(!collapsed)}
           className={cn(
-            "hidden md:flex items-center gap-3 w-full rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all duration-200 min-h-[44px]",
+            "hidden md:flex items-center gap-3 w-full rounded-xl text-slate-400 dark:text-slate-500 dark:text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-200 min-h-[44px]",
             collapsed ? "justify-center px-3 py-3" : "px-4 py-3"
           )}
         >
@@ -104,7 +104,7 @@ export default function DoctorSidebar() {
         <button
           onClick={handleLogout}
           className={cn(
-            "flex items-center gap-3 w-full rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-all duration-200 min-h-[44px]",
+            "flex items-center gap-3 w-full rounded-xl text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-700 dark:hover:text-rose-300 transition-all duration-200 min-h-[44px]",
             collapsed ? "justify-center px-3 py-3" : "px-4 py-3"
           )}
         >
@@ -120,10 +120,10 @@ export default function DoctorSidebar() {
       {/* Mobile Toggle */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="fixed top-4 left-4 z-50 md:hidden bg-white border border-slate-200 shadow-lg rounded-xl p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-slate-50 active:scale-95 transition-all"
+        className="fixed top-4 left-4 z-50 md:hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg rounded-xl p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 transition-all"
         aria-label="Abrir menu"
       >
-        <Menu className="h-5 w-5 text-slate-700" />
+        <Menu className="h-5 w-5 text-slate-700 dark:text-slate-300" />
       </button>
 
       {/* Mobile Overlay */}
@@ -137,16 +137,16 @@ export default function DoctorSidebar() {
       {/* Mobile Drawer */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-100 shadow-2xl transition-transform duration-300 ease-in-out md:hidden",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 shadow-2xl transition-transform duration-300 ease-in-out md:hidden",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <button
           onClick={() => setMobileOpen(false)}
-          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-slate-100 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
           aria-label="Fechar menu"
         >
-          <X className="h-5 w-5 text-slate-500" />
+          <X className="h-5 w-5 text-slate-500 dark:text-slate-400 dark:text-slate-500" />
         </button>
         <NavContent />
       </aside>
@@ -154,7 +154,7 @@ export default function DoctorSidebar() {
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "hidden md:flex flex-col fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-100 transition-all duration-300 ease-in-out",
+          "hidden md:flex flex-col fixed inset-y-0 left-0 z-30 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 transition-all duration-300 ease-in-out",
           collapsed ? "w-[72px]" : "w-60"
         )}
       >

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,15 +54,15 @@ function MedicalMarkdown({ content, className }: { content: string; className?: 
 
   return (
     <div className={`prose prose-slate prose-sm max-w-none text-xs
-      prose-p:text-slate-600 prose-p:leading-snug prose-p:my-1
-      prose-strong:text-slate-900 prose-strong:font-bold
-      prose-ul:my-1 prose-ul:pl-4 prose-li:text-slate-600 prose-li:my-0.5
+      prose-p:text-slate-600 dark:text-slate-300 dark:text-slate-600 prose-p:leading-snug prose-p:my-1
+      prose-strong:text-slate-900 dark:text-slate-50 prose-strong:font-bold
+      prose-ul:my-1 prose-ul:pl-4 prose-li:text-slate-600 dark:text-slate-300 dark:text-slate-600 prose-li:my-0.5
       prose-ol:my-1 prose-ol:pl-4
-      prose-h3:text-sm prose-h3:font-extrabold prose-h3:text-slate-900 prose-h3:mt-3 prose-h3:mb-1.5
-      prose-h4:text-xs prose-h4:font-bold prose-h4:text-slate-700 prose-h4:mt-2 prose-h4:mb-1
-      prose-code:text-blue-700 prose-code:bg-blue-50 prose-code:px-1 prose-code:rounded
-      prose-hr:my-2 prose-hr:border-slate-200
-      [&_li]:marker:text-slate-400
+      prose-h3:text-sm prose-h3:font-extrabold prose-h3:text-slate-900 dark:text-slate-50 prose-h3:mt-3 prose-h3:mb-1.5
+      prose-h4:text-xs prose-h4:font-bold prose-h4:text-slate-700 dark:text-slate-200 prose-h4:mt-2 prose-h4:mb-1
+      prose-code:text-blue-700 prose-code:bg-blue-50 dark:bg-blue-950/30 prose-code:px-1 prose-code:rounded
+      prose-hr:my-2 prose-hr:border-slate-200 dark:border-slate-700
+      [&_li]:marker:text-slate-400 dark:text-slate-500
       ${className || ''}`}
     >
       <ReactMarkdown
@@ -75,10 +76,10 @@ function MedicalMarkdown({ content, className }: { content: string; className?: 
             const isNormal = text.includes('🟢') || text.includes('NORMAL');
 
             let borderColor = 'border-l-slate-200';
-            let bgColor = 'bg-white';
-            if (isCritical) { borderColor = 'border-l-red-500'; bgColor = 'bg-red-50/50'; }
-            else if (isAlert) { borderColor = 'border-l-amber-500'; bgColor = 'bg-amber-50/50'; }
-            else if (isNormal) { borderColor = 'border-l-emerald-400'; bgColor = 'bg-emerald-50/30'; }
+            let bgColor = 'bg-white dark:bg-slate-900';
+            if (isCritical) { borderColor = 'border-l-red-500'; bgColor = 'bg-red-50 dark:bg-red-950/30/50'; }
+            else if (isAlert) { borderColor = 'border-l-amber-500'; bgColor = 'bg-amber-50 dark:bg-amber-950/30/50'; }
+            else if (isNormal) { borderColor = 'border-l-emerald-400'; bgColor = 'bg-emerald-50 dark:bg-emerald-950/30/30'; }
 
             return (
               <li
@@ -95,7 +96,7 @@ function MedicalMarkdown({ content, className }: { content: string; className?: 
             const isCritical = text.includes('CRÍTICO');
             const isAlert = text.includes('ALERTA');
 
-            let color = 'text-slate-900';
+            let color = 'text-slate-900 dark:text-slate-50';
             if (isCritical) color = 'text-red-700 font-extrabold';
             else if (isAlert) color = 'text-amber-700 font-extrabold';
 
@@ -128,17 +129,17 @@ function AIAnalysisCollapsible({ exam }: { exam: Exam }) {
             <div className="bg-blue-600 p-1.5 rounded-lg">
               <Bot className="h-5 w-5 text-white" />
             </div>
-            <h4 className="font-bold text-lg text-slate-900 tracking-tight">Análise Preliminar da IA</h4>
+            <h4 className="font-bold text-lg text-slate-900 dark:text-slate-50 tracking-tight">Análise Preliminar da IA</h4>
           </div>
           {isOpen ? (
-            <ChevronUp className="h-5 w-5 text-slate-400" />
+            <ChevronUp className="h-5 w-5 text-slate-400 dark:text-slate-500" />
           ) : (
-            <ChevronDown className="h-5 w-5 text-slate-400" />
+            <ChevronDown className="h-5 w-5 text-slate-400 dark:text-slate-500" />
           )}
         </button>
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className="p-5 bg-white border-t border-blue-50">
+        <div className="p-5 bg-white dark:bg-slate-900 border-t border-blue-50">
           <div className="max-h-[500px] overflow-y-auto pr-3 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-transparent">
             <MedicalMarkdown
               content={exam.preliminaryDiagnosis || "Nenhuma análise disponível."}
@@ -170,7 +171,7 @@ const getExamResultSeverity = (value: string) => {
 
   if (isRed) {
     return {
-      container: 'bg-rose-50 border-rose-200 border-l-4 border-l-rose-500',
+      container: 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 border-l-4 border-l-rose-500',
       indicator: 'bg-rose-500',
       nameText: 'text-rose-900 ml-2',
       valueText: 'text-rose-600',
@@ -180,7 +181,7 @@ const getExamResultSeverity = (value: string) => {
     };
   } else {
     return {
-      container: 'bg-amber-50 border-amber-200 border-l-4 border-l-amber-500',
+      container: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 border-l-4 border-l-amber-500',
       indicator: 'bg-amber-500',
       nameText: 'text-amber-900 ml-2',
       valueText: 'text-amber-600',
@@ -276,6 +277,12 @@ export default function PatientDetailView({
 
       const result = await generateMedicalOpinion({
         patientId: patient.id,
+        patientName: patient.name,
+        patientAge: patient.age,
+        patientGender: patient.gender,
+        doctorName: doctor.name,
+        doctorCrm: doctor.crm,
+        doctorSpecialty: doctor.specialty,
         patientHistory: summary,
         examType: examToAnalyze.type,
         examResults,
@@ -288,7 +295,7 @@ export default function PatientDetailView({
         [examId]: {
           ...prev[examId],
           generatedDiagnosis: result,
-          notes: `${result.synthesis}\n\nSugestões:\n${result.suggestions}`
+          notes: `${result.synthesis}\n\n========================================\nSUGESTÕES DE CONDUETA E TRATAMENTO\n========================================\n\n${result.suggestions}`
         }
       }));
 
@@ -334,7 +341,7 @@ export default function PatientDetailView({
       title: result.success ? "Diagnóstico Validado" : "Erro ao Validar",
       description: result.message,
       variant: result.success ? "default" : "destructive",
-      className: result.success ? "bg-green-100 text-green-800 border-green-200" : "",
+      className: result.success ? "bg-green-100 text-green-800 border-green-200 dark:border-green-800" : "",
     });
     setValidationState(prev => ({ ...prev, [examId]: { ...prev[examId], isValidating: false } }));
   };
@@ -371,16 +378,16 @@ export default function PatientDetailView({
   const categories = Array.from(new Set(exams.map(e => getExamCategory(e.type))));
 
   return (
-    <div className="space-y-6 bg-slate-50 p-1 rounded-xl">
-      <Card className="bg-white border-slate-200 shadow-sm overflow-hidden border-none ring-1 ring-slate-200">
+    <div className="space-y-6 bg-slate-50 dark:bg-slate-950 p-1 rounded-xl">
+      <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden border-none ring-1 ring-slate-200 dark:ring-slate-700">
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-5 p-6 border-b border-slate-50">
           <Avatar className="h-24 w-24 border-4 border-white shadow-md shrink-0">
             <AvatarImage src={patient.avatar} data-ai-hint={patient.avatarHint} />
-            <AvatarFallback className="bg-slate-100 text-slate-600 text-xl font-bold">{patient.name.substring(0, 2)}</AvatarFallback>
+            <AvatarFallback className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 dark:text-slate-600 text-xl font-bold">{patient.name.substring(0, 2)}</AvatarFallback>
           </Avatar>
           <div className="flex-grow min-w-0">
-            <CardTitle className="text-4xl font-extrabold text-slate-900 tracking-tight break-words">{patient.name}</CardTitle>
-            <CardDescription className="text-slate-500 text-lg mt-1 font-medium break-words">
+            <CardTitle className="text-4xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight break-words">{patient.name}</CardTitle>
+            <CardDescription className="text-slate-500 dark:text-slate-400 text-lg mt-1 font-medium break-words">
               {patient.age} anos • {patient.gender} • Última Interação: {patient.lastVisit}
             </CardDescription>
           </div>
@@ -396,8 +403,8 @@ export default function PatientDetailView({
                 {patient.status}
               </Badge>
               {patient.priority && (
-                <Badge variant="outline" className="text-[10px] font-bold px-3 py-1 border-slate-200 text-slate-600 bg-white">
-                  Prioridade: <span className="ml-1 text-slate-900">{patient.priority}</span>
+                <Badge variant="outline" className="text-[10px] font-bold px-3 py-1 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 dark:text-slate-600 bg-white dark:bg-slate-900">
+                  Prioridade: <span className="ml-1 text-slate-900 dark:text-slate-50">{patient.priority}</span>
                 </Badge>
               )}
               {patient.attendingDoctorId === doctor.id && (
@@ -421,7 +428,7 @@ export default function PatientDetailView({
                       });
                     }
                   }}
-                  className="mt-2 text-rose-600 hover:bg-rose-50 hover:text-rose-700 border-rose-200 w-full font-bold shadow-sm"
+                  className="mt-2 text-rose-600 hover:bg-rose-50 dark:bg-rose-950/30 hover:text-rose-700 border-rose-200 w-full font-bold shadow-sm"
                 >
                   <ArrowDownRight className="w-4 h-4 mr-1" />
                   Devolver ao Mural
@@ -445,7 +452,7 @@ export default function PatientDetailView({
               variant={selectedCategory === null ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedCategory(null)}
-              className={`rounded-full h-9 px-5 text-xs font-bold shadow-sm transition-all ${selectedCategory === null ? 'bg-blue-600 hover:bg-blue-700 text-white border-transparent' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+              className={`rounded-full h-9 px-5 text-xs font-bold shadow-sm transition-all ${selectedCategory === null ? 'bg-blue-600 hover:bg-blue-700 text-white border-transparent' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 dark:text-slate-600 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-950'}`}
             >
               Todos
             </Button>
@@ -455,7 +462,7 @@ export default function PatientDetailView({
                 variant={selectedCategory === cat ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(cat)}
-                className={`rounded-full h-9 px-5 text-xs font-bold shadow-sm transition-all ${selectedCategory === cat ? 'bg-blue-600 hover:bg-blue-700 text-white border-transparent' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+                className={`rounded-full h-9 px-5 text-xs font-bold shadow-sm transition-all ${selectedCategory === cat ? 'bg-blue-600 hover:bg-blue-700 text-white border-transparent' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 dark:text-slate-600 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-950'}`}
               >
                 {cat}
               </Button>
@@ -463,9 +470,9 @@ export default function PatientDetailView({
           </div>
 
 
-          <Card className="bg-white border-slate-200 shadow-sm border-none ring-1 ring-slate-200">
+          <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm border-none ring-1 ring-slate-200 dark:ring-slate-700">
             <CardHeader className="p-6 pb-2">
-              <CardTitle className="flex items-center gap-2 text-slate-900 justify-between w-full">
+              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-slate-50 justify-between w-full">
                 <div className="flex items-center gap-3">
                   <div className="bg-amber-100 p-2 rounded-lg">
                     <FileWarning className="h-6 w-6 text-amber-600" />
@@ -484,7 +491,7 @@ export default function PatientDetailView({
                   </Button>
                 )}
               </CardTitle>
-              <CardDescription className="text-slate-500 font-medium">Revise a análise da IA e forneça seu diagnóstico final para cada exame.</CardDescription>
+              <CardDescription className="text-slate-500 dark:text-slate-400 font-medium">Revise a análise da IA e forneça seu diagnóstico final para cada exame.</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               {pendingExams.length > 0 ? (
@@ -492,19 +499,19 @@ export default function PatientDetailView({
                   {pendingExams.map(exam => {
                     const state = validationState[exam.id];
                     return (
-                      <AccordionItem value={exam.id} key={exam.id} className="border border-slate-100 rounded-xl overflow-hidden shadow-sm px-1 bg-white">
-                        <div className="flex items-center justify-between px-4 py-3 bg-white transition-all hover:bg-slate-50">
+                      <AccordionItem value={exam.id} key={exam.id} className="border border-slate-100 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm px-1 bg-white dark:bg-slate-900">
+                        <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-900 transition-all hover:bg-slate-50 dark:bg-slate-950">
                           <div className="flex items-center gap-4 flex-1">
                             <div onClick={(e) => e.stopPropagation()} className="flex items-center shrink-0">
                               <Checkbox
                                 checked={selectedExams.includes(exam.id)}
                                 onCheckedChange={() => toggleExamSelection(exam.id)}
-                                className="border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 h-5 w-5"
+                                className="border-slate-300 dark:border-slate-600 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 h-5 w-5"
                               />
                             </div>
 
                             {/* O AccordionTrigger agora envolve APENAS o título/ícone para expandir, não os botões extras */}
-                            <AccordionTrigger className="flex-1 py-1 hover:no-underline text-base font-bold text-slate-900 hover:text-blue-600 transition-all text-left">
+                            <AccordionTrigger className="flex-1 py-1 hover:no-underline text-base font-bold text-slate-900 dark:text-slate-50 hover:text-blue-600 transition-all text-left">
                               <div className="flex items-center gap-4 w-full">
                                 <Files className="h-5 w-5 text-blue-500 shrink-0" />
                                 <span className="tracking-tight">{exam.type}</span>
@@ -520,7 +527,7 @@ export default function PatientDetailView({
                                 tabIndex={0}
                                 className={`text-xs font-bold flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-full border cursor-pointer select-none ${expandedDocuments[exam.id]
                                   ? 'text-white bg-blue-600 border-blue-600 hover:bg-blue-700'
-                                  : 'text-blue-600 bg-blue-50 border-blue-100 hover:bg-blue-100'
+                                  : 'text-blue-600 bg-blue-50 dark:bg-blue-950/30 border-blue-100 hover:bg-blue-100'
                                   }`}
                                 onClick={(e) => {
                                   e.preventDefault();
@@ -556,8 +563,8 @@ export default function PatientDetailView({
                             {expandedDocuments[exam.id] && (
                               <div className="space-y-6">
                                 {exam.fileUrl && (
-                                  <div className="rounded-xl border border-blue-200 overflow-hidden bg-gradient-to-b from-blue-50/50 to-white flex flex-col h-full">
-                                    <div className="flex items-center justify-between px-4 py-3 bg-blue-50 border-b border-blue-100 shrink-0">
+                                  <div className="rounded-xl border border-blue-200 dark:border-blue-800 overflow-hidden bg-gradient-to-b from-blue-50/50 to-white flex flex-col h-full">
+                                    <div className="flex items-center justify-between px-4 py-3 bg-blue-50 dark:bg-blue-950/30 border-b border-blue-100 shrink-0">
                                       <span className="text-sm font-bold text-blue-900 flex items-center gap-2">
                                         <FileText className="h-4 w-4" />
                                         Documento Original
@@ -566,7 +573,7 @@ export default function PatientDetailView({
                                         <a
                                           href={exam.fileUrl}
                                           download
-                                          className="p-1.5 rounded-lg bg-white border border-blue-200 text-blue-600 hover:bg-blue-100 transition-colors"
+                                          className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 text-blue-600 hover:bg-blue-100 transition-colors"
                                           title="Baixar documento"
                                         >
                                           <Download className="h-4 w-4" />
@@ -576,14 +583,14 @@ export default function PatientDetailView({
                                             setFullscreenDocument({ url: exam.fileUrl!, title: exam.type });
                                             setZoomLevel(1);
                                           }}
-                                          className="p-1.5 rounded-lg bg-white border border-blue-200 text-blue-600 hover:bg-blue-100 transition-colors"
+                                          className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 text-blue-600 hover:bg-blue-100 transition-colors"
                                           title="Abrir em tela cheia"
                                         >
                                           <Maximize2 className="h-4 w-4" />
                                         </button>
                                         <button
                                           onClick={() => toggleDocumentExpand(exam.id)}
-                                          className="p-1.5 rounded-lg bg-white border border-blue-200 text-slate-600 hover:bg-slate-100 transition-colors"
+                                          className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 text-slate-600 dark:text-slate-300 dark:text-slate-600 hover:bg-slate-100 dark:bg-slate-800 transition-colors"
                                           title="Fechar visualização"
                                         >
                                           <X className="h-4 w-4" />
@@ -592,7 +599,7 @@ export default function PatientDetailView({
                                     </div>
                                     <div className="p-4 flex-1 overflow-auto min-h-[400px]">
                                       {isImageUrl(exam.fileUrl) ? (
-                                        <div className="flex justify-center items-center w-full bg-slate-50/50 rounded-lg p-2">
+                                        <div className="flex justify-center items-center w-full bg-slate-50 dark:bg-slate-950/50 rounded-lg p-2">
                                           <img
                                             src={exam.fileUrl}
                                             alt={`Documento: ${exam.type}`}
@@ -602,7 +609,7 @@ export default function PatientDetailView({
                                       ) : (
                                         <iframe
                                           src={exam.fileUrl}
-                                          className="w-full h-full min-h-[500px] rounded-lg border border-slate-200 bg-white"
+                                          className="w-full h-full min-h-[500px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
                                           title={`Documento: ${exam.type}`}
                                         />
                                       )}
@@ -611,8 +618,8 @@ export default function PatientDetailView({
                                 )}
 
                                 {exam.results && exam.results.length > 0 && (
-                                  <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl shadow-inner">
-                                    <h4 className="font-bold text-sm mb-4 text-slate-900 flex items-center gap-2">
+                                  <div className="p-5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl shadow-inner">
+                                    <h4 className="font-bold text-sm mb-4 text-slate-900 dark:text-slate-50 flex items-center gap-2">
                                       <FileText className="h-4 w-4 text-blue-600" />
                                       Resultados Laboratoriais
                                     </h4>
@@ -623,33 +630,33 @@ export default function PatientDetailView({
                                         const trend = isAbnormal ? (Math.random() > 0.5 ? 'up' : 'down') : 'stable';
 
                                         return (
-                                          <div key={idx} className={`grid grid-cols-4 gap-4 p-3 rounded-lg border transition-colors ${isAbnormal ? `${severity.container} shadow-sm relative overflow-hidden` : 'bg-white border-slate-100'}`}>
+                                          <div key={idx} className={`grid grid-cols-4 gap-4 p-3 rounded-lg border transition-colors ${isAbnormal ? `${severity.container} shadow-sm relative overflow-hidden` : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800'}`}>
                                             {isAbnormal && <div className={`absolute left-0 top-0 bottom-0 w-1 ${severity.indicator}`}></div>}
                                             <div className="col-span-1">
-                                              <p className="text-[10px] font-bold text-slate-400 uppercase">Parâmetro</p>
-                                              <p className={`text-sm font-bold ${isAbnormal ? severity.nameText : 'text-slate-800'}`}>{result.name}</p>
+                                              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Parâmetro</p>
+                                              <p className={`text-sm font-bold ${isAbnormal ? severity.nameText : 'text-slate-800 dark:text-slate-100'}`}>{result.name}</p>
                                             </div>
                                             <div className="col-span-1">
-                                              <p className="text-[10px] font-bold text-slate-400 uppercase">Valor</p>
+                                              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Valor</p>
                                               <div className="flex items-center gap-1.5">
                                                 <p className={`text-sm font-extrabold ${isAbnormal ? `${severity.valueText} text-base` : 'text-blue-600'}`}>{result.value}</p>
                                                 {isAbnormal && <AlertTriangle className={`h-4 w-4 ${severity.icon} animate-pulse`} />}
                                               </div>
                                             </div>
                                             <div className="col-span-1">
-                                              <p className="text-[10px] font-bold text-slate-400 uppercase">Tendência</p>
+                                              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Tendência</p>
                                               <div className="flex items-center gap-2">
-                                                <div className={`p-1 rounded-full ${trend === 'up' ? 'bg-rose-100' : trend === 'down' ? 'bg-emerald-100' : 'bg-slate-100'}`}>
+                                                <div className={`p-1 rounded-full ${trend === 'up' ? 'bg-rose-100' : trend === 'down' ? 'bg-emerald-100' : 'bg-slate-100 dark:bg-slate-800'}`}>
                                                   {trend === 'up' && <ArrowUpRight className="h-3 w-3 text-rose-600" />}
                                                   {trend === 'down' && <ArrowDownRight className="h-3 w-3 text-emerald-600" />}
-                                                  {trend === 'stable' && <Minus className="h-3 w-3 text-slate-500" />}
+                                                  {trend === 'stable' && <Minus className="h-3 w-3 text-slate-500 dark:text-slate-400" />}
                                                 </div>
-                                                <span className="text-[11px] font-bold text-slate-600 truncate">{trend === 'up' ? 'Aumento' : trend === 'down' ? 'Queda' : 'Estável'}</span>
+                                                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 dark:text-slate-600 truncate">{trend === 'up' ? 'Aumento' : trend === 'down' ? 'Queda' : 'Estável'}</span>
                                               </div>
                                             </div>
                                             <div className="col-span-1">
-                                              <p className="text-[10px] font-bold text-slate-400 uppercase">Ref</p>
-                                              <p className="text-xs font-semibold text-slate-500 truncate" title={result.reference}>{result.reference}</p>
+                                              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Ref</p>
+                                              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate" title={result.reference}>{result.reference}</p>
                                             </div>
                                           </div>
                                         );
@@ -663,8 +670,8 @@ export default function PatientDetailView({
                             {/* Direita (ou Centro): IA e Parecer */}
                             <div className="space-y-6 flex flex-col">
                               {!expandedDocuments[exam.id] && exam.results && exam.results.length > 0 && (
-                                <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl shadow-inner">
-                                  <h4 className="font-bold text-sm mb-4 text-slate-900 flex items-center gap-2">
+                                <div className="p-5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl shadow-inner">
+                                  <h4 className="font-bold text-sm mb-4 text-slate-900 dark:text-slate-50 flex items-center gap-2">
                                     <FileText className="h-4 w-4 text-blue-600" />
                                     Resultados Laboratoriais
                                   </h4>
@@ -673,17 +680,17 @@ export default function PatientDetailView({
                                       const severity = getExamResultSeverity(result.value);
                                       const isAbnormal = !!severity;
                                       return (
-                                        <div key={idx} className={`flex items-center justify-between p-3 rounded-lg border ${isAbnormal ? severity.container : 'bg-white border-slate-100'}`}>
+                                        <div key={idx} className={`flex items-center justify-between p-3 rounded-lg border ${isAbnormal ? severity.container : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800'}`}>
                                           <div className="min-w-0 pr-2">
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase truncate">{result.name}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase truncate">{result.name}</p>
                                             <div className="flex items-center gap-1.5 mt-0.5">
-                                              <p className={`text-sm font-extrabold ${isAbnormal ? severity.valueText : 'text-slate-800'}`}>{result.value}</p>
+                                              <p className={`text-sm font-extrabold ${isAbnormal ? severity.valueText : 'text-slate-800 dark:text-slate-100'}`}>{result.value}</p>
                                               {isAbnormal && <AlertTriangle className={`h-3.5 w-3.5 ${severity.icon}`} />}
                                             </div>
                                           </div>
                                           <div className="text-right shrink-0">
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase">Ref</p>
-                                            <p className="text-xs font-semibold text-slate-500 truncate max-w-[80px]" title={result.reference}>{result.reference}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Ref</p>
+                                            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate max-w-[80px]" title={result.reference}>{result.reference}</p>
                                           </div>
                                         </div>
                                       );
@@ -694,14 +701,14 @@ export default function PatientDetailView({
 
                               <AIAnalysisCollapsible exam={exam} />
 
-                              <div className="p-6 border border-slate-200 rounded-xl bg-white shadow-sm ring-1 ring-slate-100 flex-1 flex flex-col">
+                              <div className="p-6 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 shadow-sm ring-1 ring-slate-100 dark:ring-slate-800 flex-1 flex flex-col">
                                 <div className="flex items-center justify-between mb-4">
-                                  <h3 className="font-extrabold text-xl text-slate-900 tracking-tight">Parecer Médico Final</h3>
+                                  <h3 className="font-extrabold text-xl text-slate-900 dark:text-slate-50 tracking-tight">Parecer Médico Final</h3>
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => setFullscreenEditor({ examId: exam.id, title: exam.type })}
-                                    className="text-slate-500 hover:text-blue-600 hover:bg-blue-50 border-slate-200 h-9 px-3 font-bold gap-1.5"
+                                    className="text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:bg-blue-950/30 border-slate-200 dark:border-slate-700 h-9 px-3 font-bold gap-1.5"
                                     title="Expandir editor em tela cheia"
                                   >
                                     <Maximize2 className="h-4 w-4" />
@@ -710,32 +717,37 @@ export default function PatientDetailView({
                                 </div>
 
                                 {/* Cabeçalho Profissional do Parecer */}
-                                <div className="mb-5 p-4 bg-gradient-to-r from-slate-50 to-blue-50/30 border border-slate-200 rounded-xl">
-                                  <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-200">
-                                    <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-2 rounded-lg shadow-sm">
-                                      <Stethoscope className="h-5 w-5 text-white" />
+                                <div className="mb-5 p-4 bg-gradient-to-r from-slate-50 to-blue-50/30 border border-slate-200 dark:border-slate-700 rounded-xl">
+                                  <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-200 dark:border-slate-700">
+                                    <div className="relative h-10 w-10 shrink-0">
+                                      <Image
+                                        src="/logo.svg"
+                                        alt="MediAI Logo"
+                                        fill
+                                        className="object-contain"
+                                      />
                                     </div>
                                     <div>
-                                      <p className="font-extrabold text-lg text-slate-900 tracking-tight">Medi.AI</p>
-                                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Parecer Médico Digital</p>
+                                      <p className="font-extrabold text-lg text-slate-900 dark:text-slate-50 tracking-tight">Medi.AI</p>
+                                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">Parecer Médico Digital</p>
                                     </div>
                                   </div>
                                   <div className="grid grid-cols-2 gap-3 text-sm">
                                     <div>
-                                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Médico Responsável</p>
-                                      <p className="font-bold text-slate-800">Dr(a). {doctor.name}</p>
+                                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Médico Responsável</p>
+                                      <p className="font-bold text-slate-800 dark:text-slate-100">Dr(a). {doctor.name}</p>
                                     </div>
                                     <div>
-                                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">CRM</p>
-                                      <p className="font-bold text-slate-800">{doctor.crm || 'N/A'}</p>
+                                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">CRM</p>
+                                      <p className="font-bold text-slate-800 dark:text-slate-100">{doctor.crm || 'N/A'}</p>
                                     </div>
                                     <div>
-                                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Especialidade</p>
-                                      <p className="font-bold text-slate-800">{doctor.specialty || 'Clínica Geral'}</p>
+                                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Especialidade</p>
+                                      <p className="font-bold text-slate-800 dark:text-slate-100">{doctor.specialty || 'Clínica Geral'}</p>
                                     </div>
                                     <div>
-                                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Data do Parecer</p>
-                                      <p className="font-bold text-slate-800">{new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Data do Parecer</p>
+                                      <p className="font-bold text-slate-800 dark:text-slate-100">{new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
                                     </div>
                                   </div>
                                 </div>
@@ -757,7 +769,7 @@ export default function PatientDetailView({
                                     <Button
                                       onClick={() => handleGenerateDiagnosis(exam.id, 'global')}
                                       variant="outline"
-                                      className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 transition-all flex-1 text-sm font-bold h-12"
+                                      className="border-blue-200 dark:border-blue-800 text-blue-700 hover:bg-blue-50 dark:bg-blue-950/30 hover:text-blue-800 transition-all flex-1 text-sm font-bold h-12"
                                     >
                                       <Globe className="mr-2 h-4 w-4" />
                                       Parecer Global
@@ -785,7 +797,7 @@ export default function PatientDetailView({
                                   placeholder="Edite o diagnóstico e adicione sua prescrição oficial aqui..."
                                   value={state?.notes || ''}
                                   onChange={(e) => handleNotesChange(exam.id, e.target.value)}
-                                  className="bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus:ring-blue-500 focus:border-blue-500 rounded-xl p-4 text-base leading-relaxed flex-1 min-h-[150px] resize-y"
+                                  className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:text-slate-500 focus:ring-blue-500 focus:border-blue-500 rounded-xl p-4 text-base leading-relaxed flex-1 min-h-[150px] resize-y"
                                 />
 
                                 <div className="flex flex-col sm:flex-row gap-3 mt-6 shrink-0">
@@ -793,7 +805,7 @@ export default function PatientDetailView({
                                     onClick={() => handleSaveDraft(exam.id)}
                                     disabled={state?.isSaving || !state?.notes}
                                     variant="outline"
-                                    className="flex-1 bg-white border-slate-200 hover:bg-slate-50 text-slate-700 font-bold h-11 shadow-sm"
+                                    className="flex-1 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-200 font-bold h-11 shadow-sm"
                                   >
                                     {state?.isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                                     {state?.isSaving ? "Salvando..." : "Salvar Rascunho"}
@@ -816,18 +828,18 @@ export default function PatientDetailView({
                   })}
                 </Accordion>
               ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                <div className="flex flex-col items-center justify-center py-12 text-slate-400 dark:text-slate-500">
                   <CheckCircle className="h-12 w-12 text-emerald-100 mb-3" />
-                  <p className="font-medium text-slate-500">Nenhum exame pendente de validação.</p>
+                  <p className="font-medium text-slate-500 dark:text-slate-400">Nenhum exame pendente de validação.</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
 
-          <Card className="bg-white border-slate-200 shadow-sm border-none ring-1 ring-slate-200">
+          <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm border-none ring-1 ring-slate-200 dark:ring-slate-700">
             <CardHeader className="p-6">
-              <CardTitle className="flex items-center gap-3 text-slate-900">
+              <CardTitle className="flex items-center gap-3 text-slate-900 dark:text-slate-50">
                 <div className="bg-emerald-100 p-2 rounded-lg">
                   <CheckCircle className="h-6 w-6 text-emerald-600" />
                 </div>
@@ -838,13 +850,13 @@ export default function PatientDetailView({
               {validatedExams.length > 0 ? (
                 <Accordion type="single" collapsible className="w-full space-y-3">
                   {validatedExams.map(exam => (
-                    <AccordionItem value={exam.id} key={exam.id} className="border border-slate-100 rounded-xl px-1 bg-white">
-                      <AccordionTrigger className="text-sm font-bold hover:no-underline text-slate-800 hover:text-blue-600 px-4 py-3">
+                    <AccordionItem value={exam.id} key={exam.id} className="border border-slate-100 dark:border-slate-800 rounded-xl px-1 bg-white dark:bg-slate-900">
+                      <AccordionTrigger className="text-sm font-bold hover:no-underline text-slate-800 dark:text-slate-100 hover:text-blue-600 px-4 py-3">
                         <div className="flex items-center gap-4 w-full">
                           <Files className="h-5 w-5 text-emerald-500" />
                           <div className="text-left flex-grow">
                             <p className="font-bold">{exam.type}</p>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{new Date(exam.date).toLocaleDateString('pt-BR')}</p>
+                            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">{new Date(exam.date).toLocaleDateString('pt-BR')}</p>
                           </div>
                           {exam.fileUrl && (
                             <span
@@ -852,7 +864,7 @@ export default function PatientDetailView({
                               tabIndex={0}
                               className={`ml-auto text-xs font-bold flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-full border cursor-pointer ${expandedDocuments[exam.id]
                                 ? 'text-white bg-emerald-600 border-emerald-600 hover:bg-emerald-700'
-                                : 'text-blue-600 bg-blue-50 border-blue-100 hover:bg-blue-100'
+                                : 'text-blue-600 bg-blue-50 dark:bg-blue-950/30 border-blue-100 hover:bg-blue-100'
                                 }`}
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -881,10 +893,10 @@ export default function PatientDetailView({
                           )}
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="space-y-4 pt-4 px-4 pb-4 border-t border-slate-50 bg-slate-50/30">
+                      <AccordionContent className="space-y-4 pt-4 px-4 pb-4 border-t border-slate-50 bg-slate-50 dark:bg-slate-950/30">
                         {exam.fileUrl && expandedDocuments[exam.id] && (
                           <div className="rounded-xl border border-emerald-200 overflow-hidden bg-gradient-to-b from-emerald-50/50 to-white">
-                            <div className="flex items-center justify-between px-4 py-3 bg-emerald-50 border-b border-emerald-100">
+                            <div className="flex items-center justify-between px-4 py-3 bg-emerald-50 dark:bg-emerald-950/30 border-b border-emerald-100">
                               <span className="text-sm font-bold text-emerald-900 flex items-center gap-2">
                                 <FileText className="h-4 w-4" />
                                 Documento Original
@@ -893,21 +905,21 @@ export default function PatientDetailView({
                                 <a
                                   href={exam.fileUrl}
                                   download
-                                  className="p-1.5 rounded-lg bg-white border border-emerald-200 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                                  className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-emerald-200 text-emerald-600 hover:bg-emerald-100 transition-colors"
                                   title="Baixar documento"
                                 >
                                   <Download className="h-4 w-4" />
                                 </a>
                                 <button
                                   onClick={() => setFullscreenDocument({ url: exam.fileUrl!, title: exam.type })}
-                                  className="p-1.5 rounded-lg bg-white border border-emerald-200 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                                  className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-emerald-200 text-emerald-600 hover:bg-emerald-100 transition-colors"
                                   title="Abrir em tela cheia"
                                 >
                                   <Maximize2 className="h-4 w-4" />
                                 </button>
                                 <button
                                   onClick={() => toggleDocumentExpand(exam.id)}
-                                  className="p-1.5 rounded-lg bg-white border border-emerald-200 text-slate-600 hover:bg-slate-100 transition-colors"
+                                  className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-emerald-200 text-slate-600 dark:text-slate-300 dark:text-slate-600 hover:bg-slate-100 dark:bg-slate-800 transition-colors"
                                   title="Fechar visualização"
                                 >
                                   <X className="h-4 w-4" />
@@ -924,13 +936,13 @@ export default function PatientDetailView({
                               ) : isPdfUrl(exam.fileUrl) ? (
                                 <iframe
                                   src={exam.fileUrl}
-                                  className="w-full h-[500px] rounded-lg border border-slate-200"
+                                  className="w-full h-[500px] rounded-lg border border-slate-200 dark:border-slate-700"
                                   title={`Documento: ${exam.type}`}
                                 />
                               ) : (
                                 <iframe
                                   src={exam.fileUrl}
-                                  className="w-full h-[500px] rounded-lg border border-slate-200"
+                                  className="w-full h-[500px] rounded-lg border border-slate-200 dark:border-slate-700"
                                   title={`Documento: ${exam.type}`}
                                 />
                               )}
@@ -938,41 +950,41 @@ export default function PatientDetailView({
                           </div>
                         )}
                         {exam.results && exam.results.length > 0 && (
-                          <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
+                          <div className="p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl shadow-sm">
                             <h4 className="font-bold text-[10px] uppercase tracking-wider mb-3 text-emerald-700 flex items-center gap-2">
                               <FileText className="h-3 w-3" />
                               Valores de Referência
                             </h4>
                             <div className="space-y-2">
                               {exam.results.map((result, idx) => (
-                                <div key={idx} className="grid grid-cols-3 gap-4 p-2.5 bg-slate-50/50 rounded-lg border border-slate-100">
+                                <div key={idx} className="grid grid-cols-3 gap-4 p-2.5 bg-slate-50 dark:bg-slate-950/50 rounded-lg border border-slate-100 dark:border-slate-800">
                                   <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Parâmetro</p>
-                                    <p className="text-xs font-bold text-slate-700">{result.name}</p>
+                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Parâmetro</p>
+                                    <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{result.name}</p>
                                   </div>
                                   <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Resultado</p>
+                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Resultado</p>
                                     <p className="text-xs font-extrabold text-emerald-600">{result.value}</p>
                                   </div>
                                   <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Ref.</p>
-                                    <p className="text-xs font-semibold text-slate-500">{result.reference}</p>
+                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Ref.</p>
+                                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{result.reference}</p>
                                   </div>
                                 </div>
                               ))}
                             </div>
                           </div>
                         )}
-                        <div className="p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                        <div className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
                           <h4 className="font-bold text-[10px] uppercase tracking-wider mb-2 text-blue-600">Parecer Médico Validado</h4>
-                          <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{exam.doctorNotes}</p>
+                          <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">{exam.doctorNotes}</p>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
                   ))}
                 </Accordion>
               ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                <div className="flex flex-col items-center justify-center py-12 text-slate-400 dark:text-slate-500">
                   <p className="text-sm font-medium">Nenhum exame validado ainda.</p>
                 </div>
               )}
@@ -982,42 +994,42 @@ export default function PatientDetailView({
 
         <div className="lg:col-span-1">
           <Tabs defaultValue="summary" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-slate-100/50 p-1 rounded-xl h-11 border border-slate-200">
-              <TabsTrigger value="summary" className="rounded-lg font-bold text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm">Resumo Clínico</TabsTrigger>
-              <TabsTrigger value="timeline" className="rounded-lg font-bold text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm">Linha do Tempo</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl h-11 border border-slate-200 dark:border-slate-700">
+              <TabsTrigger value="summary" className="rounded-lg font-bold text-xs data-[state=active]:bg-white dark:bg-slate-900 data-[state=active]:shadow-sm">Resumo Clínico</TabsTrigger>
+              <TabsTrigger value="timeline" className="rounded-lg font-bold text-xs data-[state=active]:bg-white dark:bg-slate-900 data-[state=active]:shadow-sm">Linha do Tempo</TabsTrigger>
             </TabsList>
 
             <TabsContent value="summary">
-              <Card className="bg-white border-slate-200 shadow-sm mt-3 overflow-hidden border-none ring-1 ring-slate-200">
-                <CardHeader className="bg-slate-50/50 border-b border-slate-100">
-                  <CardTitle className="flex items-center gap-3 text-lg font-bold text-slate-900">
+              <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm mt-3 overflow-hidden border-none ring-1 ring-slate-200 dark:ring-slate-700">
+                <CardHeader className="bg-slate-50 dark:bg-slate-950/50 border-b border-slate-100 dark:border-slate-800">
+                  <CardTitle className="flex items-center gap-3 text-lg font-bold text-slate-900 dark:text-slate-50">
                     <div className="bg-blue-600 p-1.5 rounded-lg">
                       <User className="h-5 w-5 text-white" />
                     </div>
                     Perfil do Paciente
                   </CardTitle>
-                  <CardDescription className="text-xs text-slate-500 font-medium">
+                  <CardDescription className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                     Síntese gerada por IA a partir do histórico clínico.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="max-h-[350px] overflow-y-auto pr-3 scrollbar-thin scrollbar-thumb-slate-200">
                     <div className="prose prose-slate prose-sm max-w-none
-                                prose-headings:text-slate-900 prose-headings:font-bold prose-headings:mt-4 prose-headings:mb-2
+                                prose-headings:text-slate-900 dark:text-slate-50 prose-headings:font-bold prose-headings:mt-4 prose-headings:mb-2
                                 prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
-                                prose-p:text-slate-600 prose-p:leading-relaxed prose-p:my-2
-                                prose-strong:text-slate-900 prose-strong:font-bold
-                                prose-ul:my-2 prose-ul:pl-4 prose-li:text-slate-600 prose-li:my-1
+                                prose-p:text-slate-600 dark:text-slate-300 dark:text-slate-600 prose-p:leading-relaxed prose-p:my-2
+                                prose-strong:text-slate-900 dark:text-slate-50 prose-strong:font-bold
+                                prose-ul:my-2 prose-ul:pl-4 prose-li:text-slate-600 dark:text-slate-300 dark:text-slate-600 prose-li:my-1
                                 prose-ol:my-2 prose-ol:pl-4">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {summary || "Nenhum resumo disponível."}
                       </ReactMarkdown>
                     </div>
                   </div>
-                  <Separator className="my-5 bg-slate-100" />
-                  <h4 className="font-bold mb-3 text-[10px] uppercase tracking-wider text-slate-400">Dados do Prontuário</h4>
+                  <Separator className="my-5 bg-slate-100 dark:bg-slate-800" />
+                  <h4 className="font-bold mb-3 text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500">Dados do Prontuário</h4>
                   <div className="max-h-[250px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200">
-                    <pre className="p-4 bg-slate-50 rounded-xl text-xs text-slate-600 overflow-x-auto leading-relaxed border border-slate-100 shadow-inner italic">
+                    <pre className="p-4 bg-slate-50 dark:bg-slate-950 rounded-xl text-xs text-slate-600 dark:text-slate-300 dark:text-slate-600 overflow-x-auto leading-relaxed border border-slate-100 dark:border-slate-800 shadow-inner italic">
                       <code>{patient.examResults || "Nenhum dado bruto registrado."}</code>
                     </pre>
                   </div>
@@ -1040,15 +1052,20 @@ export default function PatientDetailView({
       {/* Dialog do Editor em Tela Cheia */}
       <Dialog open={!!fullscreenEditor} onOpenChange={() => setFullscreenEditor(null)}>
         <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] p-0 overflow-hidden flex flex-col">
-          <DialogHeader className="px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white shrink-0">
-            <DialogTitle className="flex items-center gap-3 text-lg font-bold text-slate-900">
-              <div className="bg-blue-600 p-2 rounded-lg shadow-sm">
-                <Pen className="h-5 w-5 text-white" />
+          <DialogHeader className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-white shrink-0">
+            <DialogTitle className="flex items-center gap-3 text-lg font-bold text-slate-900 dark:text-slate-50">
+              <div className="relative h-10 w-10 shrink-0">
+                <Image
+                  src="/logo.svg"
+                  alt="MediAI Logo"
+                  fill
+                  className="object-contain"
+                />
               </div>
               <div>
                 <span>Parecer Médico Final</span>
                 {fullscreenEditor && (
-                  <p className="text-sm font-medium text-slate-500 mt-0.5">{fullscreenEditor.title}</p>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">{fullscreenEditor.title}</p>
                 )}
               </div>
             </DialogTitle>
@@ -1074,7 +1091,7 @@ export default function PatientDetailView({
                 placeholder="Edite o diagnóstico e adicione sua prescrição oficial aqui..."
                 value={validationState[fullscreenEditor.examId]?.notes || ''}
                 onChange={(e) => handleNotesChange(fullscreenEditor.examId, e.target.value)}
-                className="bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus:ring-blue-500 focus:border-blue-500 rounded-xl p-5 text-base leading-relaxed flex-1 min-h-0 resize-none"
+                className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:text-slate-500 focus:ring-blue-500 focus:border-blue-500 rounded-xl p-5 text-base leading-relaxed flex-1 min-h-0 resize-none"
               />
 
               <div className="flex flex-col sm:flex-row gap-3 shrink-0">
@@ -1082,7 +1099,7 @@ export default function PatientDetailView({
                   onClick={() => { handleSaveDraft(fullscreenEditor.examId); }}
                   disabled={validationState[fullscreenEditor.examId]?.isSaving || !validationState[fullscreenEditor.examId]?.notes}
                   variant="outline"
-                  className="flex-1 bg-white border-slate-200 hover:bg-slate-50 text-slate-700 font-bold h-12 shadow-sm"
+                  className="flex-1 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-200 font-bold h-12 shadow-sm"
                 >
                   {validationState[fullscreenEditor.examId]?.isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                   {validationState[fullscreenEditor.examId]?.isSaving ? "Salvando..." : "Salvar Rascunho"}
@@ -1105,23 +1122,23 @@ export default function PatientDetailView({
         if (!open) { setFullscreenDocument(null); setZoomLevel(1); }
       }}>
         <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] p-0 overflow-hidden flex flex-col">
-          <DialogHeader className="px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0">
+          <DialogHeader className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 shrink-0">
             <DialogTitle className="flex items-center justify-between">
-              <span className="flex items-center gap-3 text-lg font-bold text-slate-900 truncate">
+              <span className="flex items-center gap-3 text-lg font-bold text-slate-900 dark:text-slate-50 truncate">
                 <FileText className="h-5 w-5 text-blue-600 shrink-0" />
                 {fullscreenDocument?.title || 'Documento'}
               </span>
               <div className="flex items-center gap-2 shrink-0">
                 {/* Controles de Zoom para imagem */}
                 {fullscreenDocument?.url && isImageUrl(fullscreenDocument.url) && (
-                  <div className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden mr-2">
-                    <button onClick={handleZoomOut} className="p-2 text-slate-600 hover:bg-slate-100 transition-colors border-r border-slate-200" title="Reduzir zoom">
+                  <div className="flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden mr-2">
+                    <button onClick={handleZoomOut} className="p-2 text-slate-600 dark:text-slate-300 dark:text-slate-600 hover:bg-slate-100 dark:bg-slate-800 transition-colors border-r border-slate-200 dark:border-slate-700" title="Reduzir zoom">
                       <ZoomOut className="h-5 w-5" />
                     </button>
-                    <span className="px-3 text-sm font-bold text-slate-600 min-w-[70px] text-center">
+                    <span className="px-3 text-sm font-bold text-slate-600 dark:text-slate-300 dark:text-slate-600 min-w-[70px] text-center">
                       {Math.round(zoomLevel * 100)}%
                     </span>
-                    <button onClick={handleZoomIn} className="p-2 text-slate-600 hover:bg-slate-100 transition-colors border-l border-slate-200" title="Aumentar zoom">
+                    <button onClick={handleZoomIn} className="p-2 text-slate-600 dark:text-slate-300 dark:text-slate-600 hover:bg-slate-100 dark:bg-slate-800 transition-colors border-l border-slate-200 dark:border-slate-700" title="Aumentar zoom">
                       <ZoomIn className="h-5 w-5" />
                     </button>
                   </div>
@@ -1131,7 +1148,7 @@ export default function PatientDetailView({
                   <a
                     href={fullscreenDocument.url}
                     download
-                    className="p-2 rounded-lg bg-white border border-slate-200 text-blue-600 hover:bg-blue-50 transition-colors"
+                    className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-blue-600 hover:bg-blue-50 dark:bg-blue-950/30 transition-colors"
                     title="Baixar documento"
                   >
                     <Download className="h-5 w-5" />
@@ -1141,7 +1158,7 @@ export default function PatientDetailView({
                   href={fullscreenDocument?.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors"
+                  className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 dark:text-slate-600 hover:bg-slate-100 dark:bg-slate-800 transition-colors"
                   title="Abrir em nova aba"
                 >
                   <ExternalLink className="h-5 w-5" />
@@ -1149,7 +1166,7 @@ export default function PatientDetailView({
               </div>
             </DialogTitle>
           </DialogHeader>
-          <div className="flex-1 overflow-auto bg-slate-100 relative">
+          <div className="flex-1 overflow-auto bg-slate-100 dark:bg-slate-800 relative">
             <div className="min-h-full min-w-full flex items-center justify-center p-4">
               {fullscreenDocument?.url && (
                 isImageUrl(fullscreenDocument.url) ? (
@@ -1167,7 +1184,7 @@ export default function PatientDetailView({
                 ) : (
                   <iframe
                     src={fullscreenDocument.url}
-                    className="w-full h-full min-h-[80vh] rounded-lg border border-slate-200 bg-white"
+                    className="w-full h-full min-h-[80vh] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
                     title={`Documento: ${fullscreenDocument.title}`}
                   />
                 )

@@ -20,6 +20,12 @@ import { generateWithFallback } from '@/lib/ai-resilience';
 
 const GenerateMedicalOpinionInputSchema = z.object({
     patientId: z.string().describe('The ID of the patient.'),
+    patientName: z.string().optional().describe('Full name of the patient.'),
+    patientAge: z.number().optional().describe('Age of the patient in years.'),
+    patientGender: z.string().optional().describe('Gender of the patient.'),
+    doctorName: z.string().optional().describe('Full name of the doctor signing the opinion.'),
+    doctorCrm: z.string().optional().describe('CRM registration number of the doctor.'),
+    doctorSpecialty: z.string().optional().describe('Medical specialty of the doctor.'),
     patientHistory: z.string().optional().describe('Summary of patient history (used primarily in global scope).'),
     examType: z.string().optional().describe('The type/name of the current exam being analyzed.'),
     examResults: z.string().describe('The raw exam results text or preliminary diagnosis.'),
@@ -41,22 +47,30 @@ const GenerateMedicalOpinionOutputSchema = z.object({
 
 export type GenerateMedicalOpinionOutput = z.infer<typeof GenerateMedicalOpinionOutputSchema>;
 
-// --- Prompt for SPECIFIC exam (focused, scannable, technical) ---
+// --- Prompt for SPECIFIC exam (focused, complete, professional) ---
 
-const SPECIFIC_EXAM_PROMPT = `Você é um médico especialista revisor de exames clínicos. Seu papel é gerar um **LAUDO TÉCNICO** conciso e altamente escaneável sobre UM ÚNICO exame clínico.
+const SPECIFIC_EXAM_PROMPT = `Você é um médico especialista sênior. Gere um PARECER MÉDICO COMPLETO e PROFISSIONAL sobre UM ÚNICO exame clínico — um documento formal que o médico assistente poderá revisar, editar e assinar.
 
-**PÚBLICO-ALVO:** Médico clínico que precisa ler este laudo em menos de 30 segundos.
+EXAME: {{{examType}}}
 
-**EXAME EM ANÁLISE:** {{{examType}}}
+PACIENTE:
+- Nome: {{patientName}}
+- Idade: {{patientAge}} anos
+- Sexo: {{patientGender}}
 
-**DADOS DO EXAME:**
+MÉDICO RESPONSÁVEL:
+- Nome: {{doctorName}}
+- CRM: {{doctorCrm}}
+- Especialidade: {{doctorSpecialty}}
+
+RESULTADOS DO EXAME:
 {{{examResults}}}
 
 {{#if specialistReports.length}}
-**PARECERES DOS ESPECIALISTAS:**
+PARECERES DOS ESPECIALISTAS:
 {{#each specialistReports}}
 ---
-**{{specialist}}**
+ESPECIALISTA: {{specialist}}
 Achados: {{{findings}}}
 Avaliação: {{clinicalAssessment}}
 Recomendações: {{{recommendations}}}
@@ -64,75 +78,123 @@ Recomendações: {{{recommendations}}}
 {{/each}}
 {{/if}}
 
-**INSTRUÇÕES DE FORMATAÇÃO — OBRIGATÓRIAS:**
+INSTRUÇÕES DE FORMATAÇÃO — OBRIGATÓRIAS:
 
-**1. SÍNTESE (campo "synthesis"):**
+1. CAMPO "synthesis" — LAUDO TÉCNICO:
 
-Estruture EXATAMENTE assim, em texto puro (SEM asteriscos, SEM hashtags):
+Gere o documento EXATAMENTE neste formato (texto puro, sem asteriscos, sem hashtags, sem emojis):
 
-LAUDO: [Nome do Exame]
+========================================
+PLATAFORMA MEDI.AI — PARECER MÉDICO
+========================================
+Data de Emissão: [data de hoje no formato DD/MM/AAAA]
+Médico Responsável: {{doctorName}}
+CRM: {{doctorCrm}}
+Especialidade: {{doctorSpecialty}}
+----------------------------------------
+PACIENTE: {{patientName}}
+Idade: {{patientAge}} anos
+Sexo: {{patientGender}}
+========================================
 
-CONCLUSÃO GERAL: [Normal / Alterado / Significativamente Alterado]
+LAUDO: [Nome Completo do Exame]
+
+CONCLUSÃO GERAL: [Normal / Discretamente Alterado / Alterado / Significativamente Alterado / Crítico]
 
 VALORES ALTERADOS:
-Para CADA valor fora da normalidade, use EXATAMENTE este formato (um por linha):
-- [ALERTA] [Nome do Parâmetro]: [Valor encontrado] (Ref: [referência]) — [Interpretação]
+Para cada achado fora da normalidade, use este formato (um por linha):
+- [ALERTA] [Parâmetro]: [Valor encontrado] (Ref: [faixa normal]) — [Interpretação clínica objetiva]
 
-Se for crítico/urgente:
-- [CRÍTICO] [Nome do Parâmetro]: [Valor encontrado] (Ref: [referência]) — [Interpretação]
+Se requer ação imediata:
+- [CRÍTICO] [Parâmetro]: [Valor encontrado] (Ref: [faixa normal]) — [Interpretação e urgência]
 
 VALORES NORMAIS RELEVANTES:
-Normais: [Parâmetro1], [Parâmetro2]...
+Normais: [Parâmetro1], [Parâmetro2], [Parâmetro3]
 
 IMPRESSÃO DIAGNÓSTICA:
-1. [Diagnóstico principal] — [Justificativa em 1 linha]
-2. [Diagnóstico secundário] — [Justificativa em 1 linha]
-
-**(NÃO inclua sugestões, condutas ou recomendações aqui nesta seção "synthesis")**
-
----
-
-**2. SUGESTÕES (campo "suggestions"):**
-(Coloque NESTE campo exames e condutas, em texto puro)
-
-CONDUTAS RECOMENDADAS:
-- [Ação 1] — [Diretriz]
-- [Ação 2] — [Diretriz]
-
-EXAMES COMPLEMENTARES:
-- [Exame] — [Justificativa]
-
-RETORNO:
-- Reavaliar [item] em [prazo]
+1. [Diagnóstico principal] — [Fundamentação baseada nos achados]
+2. [Diagnóstico diferencial] — [Por que deve ser considerado]
+3. [Diagnóstico adicional] — [Se aplicável]
 
 ---
 
-**REGRAS:**
-- Escreva em Português Brasileiro.
-- NÃO use emojis.
-- NÃO use caracteres de Markdown como asteriscos (**) ou hashtags (###). O texto deve ser 100% limpo, apenas com letras maiúsculas para títulos e traços (-) para listas.
-- Marque obrigatoriamente [ALERTA] ou [CRÍTICO] antes de cada valor alterado.
-- Cada item deve caber em NO MÁXIMO 2 linhas.`;
+2. CAMPO "suggestions" — PLANO TERAPÊUTICO E CONDUTA:
 
-// --- Prompt for GLOBAL analysis (comprehensive) ---
+(Texto puro, sem Markdown)
 
-const GLOBAL_ANALYSIS_PROMPT = `Você é o Dr. Márcio Silva, Clínico Geral e Coordenador Médico em IA.
+TRATAMENTO FARMACOLÓGICO PROPOSTO:
 
-**Sua Missão:** Criar uma SÍNTESE CLÍNICA GLOBAL do paciente, integrando os achados de MÚLTIPLOS exames.
+Classe do Medicamento 1: [Ex: Corticosteroide Nasal / Anti-histamínico / IECA]
+- Medicamento: [Nome genérico (nome comercial)]
+- Posologia: [dose, frequência e via de administração]
+- Duração: [prazo ou critério de continuidade]
+- Objetivo: [desfecho esperado com este medicamento]
 
-**PÚBLICO-ALVO:** Médico que quer uma visão panorâmica do paciente.
+Classe do Medicamento 2: [Se aplicável]
+- Medicamento: [Nome genérico (nome comercial)]
+- Posologia: [dose, frequência e via de administração]
+- Duração: [prazo]
+- Objetivo: [benefício esperado]
 
-**Histórico do Paciente:**
+MEDIDAS NÃO FARMACOLÓGICAS:
+- [Medida 1]: [Instrução objetiva para o paciente]
+- [Medida 2]: [Ex: higiene nasal, controle ambiental, dieta, exercício]
+
+CONDUTAS E ENCAMINHAMENTOS:
+- [Ação clínica 1] — [Fundamentação ou diretriz]
+- [Especialidade]: [Motivo e urgência — imediato / eletivo / rotina]
+
+EXAMES COMPLEMENTARES RECOMENDADOS:
+- [Exame]: [Justificativa e prazo sugerido]
+
+CRITÉRIOS PARA ESCALONAMENTO / CIRURGIA:
+- [Condição]: [Quando indicar abordagem mais invasiva]
+(Omita se não aplicável ao caso)
+
+RETORNO E ACOMPANHAMENTO:
+- Retorno em [prazo] para [objetivo da consulta de retorno]
+- Reavaliar [parâmetro/exame] em [prazo]
+- Critérios de melhora esperados: [o que monitorar]
+- Sinais de alerta para retorno imediato: [sintomas que exigem reavaliação urgente]
+
+---
+
+REGRAS ABSOLUTAS:
+- Português Brasileiro. Sem emojis. Sem asteriscos (**) ou hashtags (###).
+- Texto 100% limpo: letras maiúsculas para seções, traços para listas.
+- Use DUAS QUEBRAS DE LINHA (Enter duas vezes) entre cada seção principal (LAUDO, CONCLUSÃO, etc.).
+- Marque obrigatoriamente [ALERTA] ou [CRÍTICO] em cada achado alterado.
+- Para medicamentos: nome genérico + posologia completa (dose + frequência + via) + duração.
+- Cite diretrizes (SBC, SBO, ARIA, AHA, ADA, NICE, etc.) quando aplicável.
+- O cabeçalho com MEDI.AI, nome do médico, CRM, e dados do paciente é OBRIGATÓRIO.`;
+
+// --- Prompt for GLOBAL analysis (comprehensive, integrated) ---
+
+const GLOBAL_ANALYSIS_PROMPT = `Você é o Dr. Márcio Silva, Clínico Geral e Coordenador Médico Sênior em IA.
+
+Sua Missão: Criar uma SÍNTESE CLÍNICA GLOBAL completa do paciente, integrando os achados de MÚLTIPLOS exames e propondo um plano de tratamento integrado e coerente — um documento formal que o médico assistente poderá revisar, editar e assinar.
+
+PACIENTE:
+- Nome: {{patientName}}
+- Idade: {{patientAge}} anos
+- Sexo: {{patientGender}}
+
+MÉDICO RESPONSÁVEL:
+- Nome: {{doctorName}}
+- CRM: {{doctorCrm}}
+- Especialidade: {{doctorSpecialty}}
+
+HISTÓRICO DO PACIENTE:
 {{{patientHistory}}}
 
-**Resultados Consolidados:**
+RESULTADOS CONSOLIDADOS DE TODOS OS EXAMES:
 {{{examResults}}}
 
 {{#if specialistReports.length}}
-**Pareceres dos Especialistas (todos os exames):**
+PARECERES DOS ESPECIALISTAS (todos os exames):
 {{#each specialistReports}}
 ---
-**{{specialist}}**
+ESPECIALISTA: {{specialist}}
 Achados: {{{findings}}}
 Avaliação: {{clinicalAssessment}}
 Recomendações: {{{recommendations}}}
@@ -140,54 +202,122 @@ Recomendações: {{{recommendations}}}
 {{/each}}
 {{/if}}
 
-**INSTRUÇÕES DE FORMATAÇÃO — OBRIGATÓRIAS:**
+INSTRUÇÕES DE FORMATAÇÃO — OBRIGATÓRIAS:
 
-**1. SÍNTESE (campo "synthesis"):**
+1. CAMPO "synthesis" — LAUDO CLÍNICO GLOBAL:
 
-Estruture EXATAMENTE assim, em texto puro (SEM asteriscos, SEM hashtags):
+Gere o documento EXATAMENTE neste formato (texto puro, sem asteriscos, sem hashtags, sem emojis):
+
+========================================
+PLATAFORMA MEDI.AI — PARECER MÉDICO GLOBAL
+========================================
+Data de Emissão: [data de hoje no formato DD/MM/AAAA]
+Médico Responsável: {{doctorName}}
+CRM: {{doctorCrm}}
+Especialidade: {{doctorSpecialty}}
+----------------------------------------
+PACIENTE: {{patientName}}
+Idade: {{patientAge}} anos
+Sexo: {{patientGender}}
+========================================
 
 SÍNTESE CLÍNICA GLOBAL
 
-PERFIL: [Idade, sexo, principais condições em 1 linha]
+PERFIL DO PACIENTE: [Nome, idade, sexo, principais condições e contexto clínico em 1-2 linhas]
 
 ACHADOS CRÍTICOS (AÇÃO IMEDIATA):
-- [CRÍTICO] [Achado]: [Valor] — [O que fazer agora]
+- [CRÍTICO] [Achado]: [Valor] — [Ação imediata recomendada]
+(Se não houver: Nenhum achado crítico identificado nesta revisão.)
 
 ACHADOS ALTERADOS (MONITORAMENTO):
-- [ALERTA] [Achado]: [Valor] — [Significado clínico resumido]
+- [ALERTA] [Achado]: [Valor] — [Significado clínico e relevância]
 
 CORRELAÇÕES ENTRE EXAMES:
-- [Conexão clínica 1 entre exames diferentes]
-- [Conexão clínica 2]
+- [Conexão clínica entre dois ou mais exames e o que ela significa clinicamente]
+- [Outra correlação relevante]
 
 IMPRESSÃO DIAGNÓSTICA INTEGRADA:
-1. [Diagnóstico] — [Baseado em quais exames]
-2. [Diagnóstico] — [Baseado em quais exames]
+1. [Diagnóstico principal] — [Sustentado por quais exames/achados]
+2. [Condição associada] — [Relação com diagnóstico principal]
+3. [Diagnóstico diferencial ou secundário] — [Se aplicável]
 
 ---
 
-**2. SUGESTÕES (campo "suggestions"):**
+2. CAMPO "suggestions" — PLANO TERAPÊUTICO INTEGRADO:
 
-PLANO DE CONDUTA PRIORITÁRIO:
-1. [Ação mais urgente] — [Diretriz]
-2. [Ação 2] — [Diretriz]
+(Texto puro, sem Markdown)
 
-ENCAMINHAMENTOS:
-- [Especialidade] — [Motivo]
+TRATAMENTO FARMACOLÓGICO INTEGRADO:
+(Organize por prioridade clínica — trate primeiro o que é mais urgente)
 
-ACOMPANHAMENTO:
-- Retorno em [prazo] para [objetivo]
-- Repetir [exames] em [prazo]
+Condição 1: [Nome da condição mais urgente]
+  Classe: [Classe farmacológica indicada]
+  - Medicamento: [Nome genérico (nome comercial)]
+  - Posologia: [dose, frequência, via de administração]
+  - Duração: [prazo ou critério de continuidade]
+  - Objetivo: [desfecho esperado]
+
+Condição 2: [Nome da próxima condição]
+  Classe: [Classe farmacológica indicada]
+  - Medicamento: [Nome genérico (nome comercial)]
+  - Posologia: [dose, frequência, via de administração]
+  - Duração: [prazo]
+  - Objetivo: [desfecho esperado]
+
+[Repita para todas as condições que necessitam de farmacoterapia]
+
+INTERAÇÕES MEDICAMENTOSAS A MONITORAR:
+- [Medicamento A] + [Medicamento B]: [Risco e como monitorar]
+(Se não houver: Não foram identificadas interações clinicamente relevantes entre os medicamentos propostos.)
+
+MEDIDAS NÃO FARMACOLÓGICAS:
+- [Medida 1]: [Instrução objetiva]
+- [Medida 2]: [Ex: dieta, exercício, higiene do sono, controle ambiental]
+
+ENCAMINHAMENTOS PRIORITÁRIOS:
+- [Especialidade 1] — [Motivo e urgência: imediato / eletivo / rotina]
+- [Especialidade 2] — [Motivo]
+
+EXAMES COMPLEMENTARES RECOMENDADOS:
+- [Exame]: [Justificativa e prazo para realização]
+- [Exame 2]: [Justificativa]
+
+ACOMPANHAMENTO E RETORNO:
+- Retorno em [prazo] para [objetivo da consulta de retorno]
+- Reavaliar [exame/parâmetro] em [prazo]
+- Metas terapêuticas: [valores-alvo esperados para os parâmetros mais importantes]
+- Sinais de alerta para retorno imediato: [sintomas que exigem reavaliação urgente]
 
 ---
 
-**REGRAS:**
-- Português Brasileiro. Sem emojis.
-- Formato de TÓPICOS, não parágrafos. Máximo 2 linhas por item.
-- NÃO use caracteres de Markdown como asteriscos (**) ou hashtags (###). O texto deve ser 100% limpo.
+REGRAS ABSOLUTAS:
+- Português Brasileiro. Sem emojis. Sem asteriscos ou hashtags.
+- Formato de tópicos, não parágrafos.
+- Use DUAS QUEBRAS DE LINHA (Enter duas vezes) entre cada seção principal (SÍNTESE, ACHADOS, etc.).
+- Para medicamentos: nome genérico + posologia completa (dose + frequência + via) + duração.
 - Marque [CRÍTICO] e [ALERTA] obrigatoriamente.
-- Cite diretrizes (SBC, AHA, ADA, etc.) quando aplicável.
-- Foque em integrar dados entre exames — esse é o diferencial do parecer global.`;
+- Cite diretrizes (SBC, AHA, ADA, ARIA, NICE, UpToDate, etc.) quando aplicável.
+- Considere sinergias e conflitos entre tratamentos de diferentes condições.
+- O cabeçalho com MEDI.AI, nome do médico, CRM e dados do paciente é OBRIGATÓRIO.`;
+
+// --- Shared specialist reports schema ---
+const specialistReportSchema = z.array(
+    z.object({
+        specialist: z.string(),
+        findings: z.string(),
+        clinicalAssessment: z.string(),
+        recommendations: z.string(),
+    })
+);
+
+const headerSchema = z.object({
+    patientName: z.string(),
+    patientAge: z.number(),
+    patientGender: z.string(),
+    doctorName: z.string(),
+    doctorCrm: z.string(),
+    doctorSpecialty: z.string(),
+});
 
 // --- Prompt Definitions ---
 
@@ -198,15 +328,8 @@ const specificPrompt = ai.definePrompt({
         schema: z.object({
             examType: z.string(),
             examResults: z.string(),
-            specialistReports: z.array(
-                z.object({
-                    specialist: z.string(),
-                    findings: z.string(),
-                    clinicalAssessment: z.string(),
-                    recommendations: z.string(),
-                })
-            ),
-        }),
+            specialistReports: specialistReportSchema,
+        }).merge(headerSchema),
     },
     output: { schema: z.object({ synthesis: z.string(), suggestions: z.string() }) },
     prompt: SPECIFIC_EXAM_PROMPT,
@@ -219,19 +342,58 @@ const globalPrompt = ai.definePrompt({
         schema: z.object({
             patientHistory: z.string(),
             examResults: z.string(),
-            specialistReports: z.array(
-                z.object({
-                    specialist: z.string(),
-                    findings: z.string(),
-                    clinicalAssessment: z.string(),
-                    recommendations: z.string(),
-                })
-            ),
-        }),
+            specialistReports: specialistReportSchema,
+        }).merge(headerSchema),
     },
     output: { schema: z.object({ synthesis: z.string(), suggestions: z.string() }) },
     prompt: GLOBAL_ANALYSIS_PROMPT,
 });
+
+/**
+ * Sanitizes and formats the medical opinion text to ensure proper line breaks and spacing.
+ * This acts as a safety layer if the AI fails to follow formating instructions.
+ */
+function formatMedicalOpinionText(text: string): string {
+    if (!text) return "";
+
+    let formatted = text
+        // Ensure line breaks after separator lines
+        .replace(/([=]{5,40})\s*/g, "$1\n")
+        .replace(/([-]{5,40})\s*/g, "$1\n")
+        // Ensure header fields are on their own lines
+        .replace(/(Médico Responsável:)/g, "\n$1")
+        .replace(/(CRM:)/g, "\n$1")
+        .replace(/(Especialidade:)/g, "\n$1")
+        .replace(/(PACIENTE:)/g, "\n$1")
+        .replace(/(Idade:)/g, "\n$1")
+        .replace(/(Sexo:)/g, "\n$1")
+        .replace(/(Data de Emissão:)/g, "\n$1")
+        // Add double spacing before major sections
+        .replace(/\n\s*(LAUDO:)/g, "\n\n$1")
+        .replace(/\n\s*(CONCLUSÃO GERAL:)/g, "\n\n$1")
+        .replace(/\n\s*(VALORES ALTERADOS:)/g, "\n\n$1")
+        .replace(/\n\s*(IMPRESSÃO DIAGNÓSTICA:)/g, "\n\n$1")
+        .replace(/\n\s*(SÍNTESE CLÍNICA GLOBAL)/g, "\n\n$1")
+        .replace(/\n\s*(ACHADOS CRÍTICOS)/g, "\n\n$1")
+        .replace(/\n\s*(ACHADOS ALTERADOS)/g, "\n\n$1")
+        .replace(/\n\s*(CORRELAÇÕES ENTRE EXAMES:)/g, "\n\n$1")
+        .replace(/\n\s*(IMPRESSÃO DIAGNÓSTICA INTEGRADA:)/g, "\n\n$1")
+        .replace(/\n\s*(TRATAMENTO FARMACOLÓGICO)/g, "\n\n$1")
+        .replace(/\n\s*(MEDIDAS NÃO FARMACOLÓGICAS:)/g, "\n\n$1")
+        .replace(/\n\s*(CONDUTAS E ENCAMINHAMENTOS:)/g, "\n\n$1")
+        .replace(/\n\s*(EXAMES COMPLEMENTARES RECOMENDADOS:)/g, "\n\n$1")
+        .replace(/\n\s*(ACOMPANHAMENTO E RETORNO:)/g, "\n\n$1")
+        .replace(/\n\s*(RETORNO E ACOMPANHAMENTO:)/g, "\n\n$1")
+        .replace(/\n\s*(SIGNATURE:)/g, "\n\n$1")
+        // Remove markdown bold/italic/header symbols if AI accidentally included them
+        .replace(/\*\*/g, "")
+        .replace(/###\s*/g, "")
+        // Clean up multiple consecutive newlines (max 2)
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+
+    return formatted;
+}
 
 // --- Flow Definition ---
 
@@ -259,12 +421,23 @@ const generateMedicalOpinionFlow = ai.defineFlow(
                 : sf.recommendations,
         }));
 
+        // Common header data
+        const headerData = {
+            patientName: input.patientName || 'Não informado',
+            patientAge: input.patientAge ?? 0,
+            patientGender: input.patientGender || 'Não informado',
+            doctorName: input.doctorName || 'Não informado',
+            doctorCrm: input.doctorCrm || 'Não informado',
+            doctorSpecialty: input.doctorSpecialty || 'Clínica Geral',
+        };
+
         let promptToUse: any;
         let synthesisInput: any;
 
         if (scope === 'specific') {
             promptToUse = specificPrompt;
             synthesisInput = {
+                ...headerData,
                 examType: input.examType || 'Exame Clínico',
                 examResults: input.examResults,
                 specialistReports,
@@ -272,6 +445,7 @@ const generateMedicalOpinionFlow = ai.defineFlow(
         } else {
             promptToUse = globalPrompt;
             synthesisInput = {
+                ...headerData,
                 patientHistory: input.patientHistory || 'Não disponível',
                 examResults: input.examResults,
                 specialistReports,
@@ -306,8 +480,8 @@ const generateMedicalOpinionFlow = ai.defineFlow(
         console.log(`[Parecer Médico] Tokens: ${inputTokens} input + ${outputTokens} output`);
 
         return {
-            synthesis: result.output!.synthesis,
-            suggestions: result.output!.suggestions,
+            synthesis: formatMedicalOpinionText(result.output!.synthesis),
+            suggestions: formatMedicalOpinionText(result.output!.suggestions),
         };
     }
 );

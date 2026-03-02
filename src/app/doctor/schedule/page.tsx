@@ -136,16 +136,16 @@ export default async function SchedulePage() {
 
 
     return (
-        <div className="bg-slate-50 min-h-screen relative font-sans text-slate-900">
+        <div className="bg-slate-50 dark:bg-slate-950 min-h-screen relative font-sans text-slate-900 dark:text-slate-50">
             {/* Background Decor - Subtle & Clean */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50 via-transparent to-transparent opacity-60"></div>
 
             <div className="relative z-10 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
                 <div className="mb-8">
-                    <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
+                    <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">
                         Agenda e Disponibilidade
                     </h1>
-                    <p className="text-slate-500 mt-2">
+                    <p className="text-slate-500 dark:text-slate-400 mt-2">
                         Visualize suas consultas e gerencie seus horários de atendimento.
                     </p>
                 </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -90,6 +90,13 @@ export default function DoctorSettingsPage() {
   const { toast } = useToast();
   const { setTheme: setNextTheme } = useTheme();
 
+  // Ref estável para evitar que o useEffect re-execute ao mudar o tema
+  const setThemeRef = useRef(setNextTheme);
+  useEffect(() => {
+    setThemeRef.current = setNextTheme;
+  }, [setNextTheme]);
+
+  // Carregar configurações apenas uma vez na montagem
   useEffect(() => {
     async function loadSettings() {
       try {
@@ -103,9 +110,9 @@ export default function DoctorSettingsPage() {
             appearance: { ...defaultSettings.appearance, ...result.settings.appearance },
           };
           setSettings(merged);
-          // Sincronizar o tema salvo no banco com o next-themes
+          // Sincronizar o tema salvo no banco com o next-themes (apenas na montagem inicial)
           if (merged.appearance.theme) {
-            setNextTheme(merged.appearance.theme);
+            setThemeRef.current(merged.appearance.theme);
           }
         }
       } catch (error) {
@@ -115,7 +122,7 @@ export default function DoctorSettingsPage() {
       }
     }
     loadSettings();
-  }, [setNextTheme]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateSetting = <K extends keyof FullDoctorSettings>(
     category: K,

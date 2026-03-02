@@ -55,21 +55,21 @@ export default function DiagnosisMacros({ onInsert }: DiagnosisMacrosProps) {
     <div className="flex flex-wrap gap-2 mb-2">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="h-7 text-xs border-dashed border-slate-300 bg-white hover:bg-slate-50 text-slate-600 shadow-sm">
+          <Button variant="outline" size="sm" className="h-7 text-xs border-dashed border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 shadow-sm">
             <Plus className="h-3 w-3 mr-1" />
             Modelos Rápidos
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56 bg-white border-slate-200 text-slate-700 shadow-lg">
+        <DropdownMenuContent className="w-56 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 shadow-lg">
           {macros.map((category, idx) => (
             <div key={category.category}>
-              {idx > 0 && <DropdownMenuSeparator className="bg-slate-100" />}
+              {idx > 0 && <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />}
               <DropdownMenuLabel className="text-blue-600 text-[10px] uppercase tracking-wider font-bold">{category.category}</DropdownMenuLabel>
               {category.items.map((item) => (
                 <DropdownMenuItem
                   key={item.label}
                   onClick={() => onInsert(item.text)}
-                  className="cursor-pointer focus:bg-blue-50 focus:text-blue-700 font-medium"
+                  className="cursor-pointer focus:bg-blue-50 dark:bg-blue-950/30 focus:text-blue-700 font-medium"
                 >
                   <span className="truncate">{item.label}</span>
                 </DropdownMenuItem>
@@ -93,7 +93,7 @@ export default function DiagnosisMacros({ onInsert }: DiagnosisMacrosProps) {
       <Button
         variant="ghost"
         size="sm"
-        className="h-7 text-xs text-amber-700 hover:text-amber-800 hover:bg-amber-50 font-medium"
+        className="h-7 text-xs text-amber-700 hover:text-amber-800 hover:bg-amber-50 dark:bg-amber-950/30 font-medium"
         onClick={() => onInsert("Atenção aos valores alterados. Recomendado repetir exame em 30 dias.")}
       >
         <AlertTriangle className="h-3 w-3 mr-1" />
@@ -103,7 +103,7 @@ export default function DiagnosisMacros({ onInsert }: DiagnosisMacrosProps) {
       <Button
         variant="ghost"
         size="sm"
-        className="h-7 text-xs text-blue-700 hover:text-blue-800 hover:bg-blue-50 font-medium"
+        className="h-7 text-xs text-blue-700 hover:text-blue-800 hover:bg-blue-50 dark:bg-blue-950/30 font-medium"
         onClick={() => onInsert("Manter medicação vigente.")}
       >
         <Pill className="h-3 w-3 mr-1" />
