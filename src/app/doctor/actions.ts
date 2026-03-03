@@ -33,7 +33,11 @@ export async function toggleDoctorOnlineStatus(online: boolean) {
   }
 }
 
-export async function generateDocumentDraftAction(patientId: string, documentType: 'receita' | 'atestado' | 'laudo' | 'outro') {
+export async function generateDocumentDraftAction(
+  patientId: string,
+  documentType: 'receita' | 'atestado' | 'laudo' | 'outro',
+  doctor: { name: string; crm: string }
+) {
   const session = await getSession();
   if (!session || session.role !== 'doctor') {
     throw new Error("Não autorizado");
@@ -46,6 +50,7 @@ export async function generateDocumentDraftAction(patientId: string, documentTyp
     const draft = await generateDocumentDraftFlow({
       patientId,
       documentType,
+      doctor,
       patientContext
     });
 

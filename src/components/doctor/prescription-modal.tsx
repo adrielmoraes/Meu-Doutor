@@ -2,16 +2,18 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash, FileSignature, Cloud, FileText, Loader2, Check, Sparkles, ExternalLink, Eye, Edit, Search, AlertCircle } from "lucide-react";
+import { Plus, Trash, FileSignature, Cloud, FileText, Loader2, Check, Sparkles, ExternalLink, Eye, Edit, Search, AlertCircle, Maximize2, Minimize2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateDocumentDraftAction, searchMemedMedicinesAction, createMemedDocumentAction } from "@/app/doctor/actions";
 import MemedPrescriptionWidget from './memed-prescription-widget';
+import MediAILogo from '../layout/mediai-logo';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -63,6 +65,9 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
     const [activeSuggestionIndex, setActiveSuggestionIndex] = useState<number | null>(null);
     const [isSearchingMeds, setIsSearchingMeds] = useState<{ [key: number]: boolean }>({});
     const searchTimeoutRef = useRef<{ [key: number]: NodeJS.Timeout }>({});
+
+    // Fullscreen Editor State
+    const [isFullscreen, setIsFullscreen] = useState(false);
 
     // Validation State
     const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
@@ -195,7 +200,11 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
 
         setIsGeneratingIA(true);
         try {
-            const result = await generateDocumentDraftAction(selectedPatientId, docType === 'memed' ? 'receita' : docType);
+            const result = await generateDocumentDraftAction(
+                selectedPatientId,
+                docType === 'memed' ? 'receita' : (docType as any),
+                { name: doctor.name, crm: doctor.crm || doctor.registrationNumber || 'Não informado' }
+            );
             if (result.success && result.draft) {
                 if (result.draft.title) setDocTitle(result.draft.title);
                 if (result.draft.medications && result.draft.medications.length > 0) {
@@ -407,8 +416,11 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                     </Button>
                 )}
             </DialogTrigger>
-            <DialogContent className="max-w-3xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-50 max-h-[90vh] overflow-y-auto shadow-xl">
-                <DialogHeader>
+            <DialogContent className={cn(
+                "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-50 shadow-xl transition-all duration-300",
+                isFullscreen ? "fixed inset-0 left-0 top-0 translate-x-0 translate-y-0 max-w-none w-screen h-screen m-0 rounded-none z-[9999] p-0 overflow-hidden" : "max-w-3xl max-h-[90vh] overflow-y-auto"
+            )}>
+                <DialogHeader className={isFullscreen ? "sr-only" : ""}>
                     <DialogTitle className="text-xl font-bold text-slate-800 dark:text-slate-100">Novo Documento Médico Assinado</DialogTitle>
                 </DialogHeader>
 
@@ -626,6 +638,16 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                         <Eye className="h-3 w-3 mr-1" />
                                         Preview
                                     </Button>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setIsFullscreen(true)}
+                                        className="h-7 px-2 text-xs text-slate-500 hover:text-blue-600 dark:hover:text-blue-400"
+                                        title="Expandir Editor"
+                                    >
+                                        <Maximize2 className="h-3 w-3" />
+                                    </Button>
                                 </div>
                             </div>
                             {showMarkdownPreview ? (
@@ -651,70 +673,155 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                         : "## Conteúdo do Documento\n\nDescreva aqui o conteúdo do atestado ou laudo..."}
                                 />
                             )}
-                        </div>
 
-                        {docType === 'memed' && selectedPatientId && (
-                            <div className="mt-4 border-t pt-6">
-                                <MemedPrescriptionWidget
-                                    doctor={doctor}
-                                    patient={patients.find(p => p.id === selectedPatientId)}
-                                    onSuccess={handleMemedSuccess}
-                                />
-                            </div>
-                        )}
+                            {docType === 'memed' && selectedPatientId && (
+                                <div className="mt-4 border-t pt-6">
+                                    <MemedPrescriptionWidget
+                                        doctor={doctor}
+                                        patient={patients.find(p => p.id === selectedPatientId)}
+                                        onSuccess={handleMemedSuccess}
+                                    />
+                                </div>
+                            )}
 
-                        {memedPdfUrl && (
-                            <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-400 rounded-xl">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex-shrink-0 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                                        <Check className="h-6 w-6 text-white" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-bold text-green-900 mb-1">Documento Criado!</h4>
-                                        <p className="text-sm text-green-800 mb-2">O documento foi gerado com sucesso pela Memed.</p>
-                                        <a
-                                            href={memedPdfUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
-                                        >
-                                            <ExternalLink className="h-4 w-4" />
-                                            Abrir PDF
-                                        </a>
+                            {memedPdfUrl && (
+                                <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-400 rounded-xl">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-shrink-0 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                                            <Check className="h-6 w-6 text-white" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className="font-bold text-green-900 mb-1">Documento Criado!</h4>
+                                            <p className="text-sm text-green-800 mb-2">O documento foi gerado com sucesso pela Memed.</p>
+                                            <a
+                                                href={memedPdfUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                                            >
+                                                <ExternalLink className="h-4 w-4" />
+                                                Abrir PDF
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {docType !== 'memed' && !memedPdfUrl && (
-                            <div className="space-y-3">
-                                <Button
-                                    onClick={handleCreateMemedDocument}
-                                    disabled={isCreatingMemed || !selectedPatientId}
-                                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold shadow-lg transition-all"
-                                >
-                                    {isCreatingMemed ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                            Criando documento...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Cloud className="h-4 w-4 mr-2" />
-                                            Criar com Memed
-                                        </>
-                                    )}
-                                </Button>
-                                <Button
-                                    onClick={handleGenerateDraft}
-                                    disabled={loading}
-                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-md transition-colors border border-emerald-700"
-                                >
-                                    {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
-                                    Revisar e Assinar Localmente
-                                </Button>
-                            </div>
-                        )}
+                            {/* Fullscreen Overlay */}
+                            {isFullscreen && (
+                                <div className="fixed inset-0 z-[9999] bg-white dark:bg-slate-950 flex flex-col animate-in fade-in duration-200">
+                                    <div className="w-full flex flex-col h-full bg-white dark:bg-slate-900 overflow-hidden">
+                                        {/* Fullscreen Header */}
+                                        <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+                                            <div className="flex items-center gap-4">
+                                                <MediAILogo size="sm" showText={false} />
+                                                <div>
+                                                    <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-lg">
+                                                        Editor Profissional
+                                                        <span className="text-xs font-bold px-3 py-1 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 rounded-full animate-pulse">
+                                                            MODO IMERSIVO
+                                                        </span>
+                                                    </h3>
+                                                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{docType.toUpperCase()} — {patients.find(p => p.id === selectedPatientId)?.name}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="hidden md:flex flex-col items-end text-right mr-4 text-xs text-slate-400">
+                                                    <span className="font-bold text-slate-500">Medi.AI Protect</span>
+                                                    <span>Draft Auto-save On</span>
+                                                </div>
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={() => setIsFullscreen(false)}
+                                                    className="rounded-xl shadow-lg hover:shadow-red-500/20 transition-all font-bold px-6"
+                                                >
+                                                    <Minimize2 className="h-4 w-4 mr-2" />
+                                                    FECHAR TELA CHEIA
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        {/* Editor Area Fullscreen */}
+                                        <div className="flex-1 flex flex-col p-6 overflow-hidden">
+                                            <div className="mb-4 flex flex-wrap gap-4 text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-semibold text-slate-900 dark:text-slate-200">Médico:</span> {doctor.name} | {doctor.crm || doctor.registrationNumber}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-semibold text-slate-900 dark:text-slate-200">Paciente:</span> {patients.find(p => p.id === selectedPatientId)?.name}
+                                                </div>
+                                                <div className="ml-auto flex gap-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => setShowMarkdownPreview(!showMarkdownPreview)}
+                                                        className="h-8"
+                                                    >
+                                                        {showMarkdownPreview ? <Edit className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+                                                        {showMarkdownPreview ? 'Editar' : 'Visualizar'}
+                                                    </Button>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex-1 min-h-0 bg-slate-50 dark:bg-slate-950/20 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-inner overflow-hidden flex flex-col">
+                                                {showMarkdownPreview ? (
+                                                    <div className="flex-1 bg-white dark:bg-slate-900 p-10 md:p-16 overflow-y-auto prose prose-slate max-w-none dark:prose-invert">
+                                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{instructions}</ReactMarkdown>
+                                                    </div>
+                                                ) : (
+                                                    <textarea
+                                                        value={instructions}
+                                                        onChange={e => setInstructions(e.target.value)}
+                                                        className="flex-1 w-full bg-white dark:bg-slate-900 p-10 md:p-16 font-serif text-xl md:text-2xl leading-relaxed resize-none focus:outline-none text-slate-800 dark:text-slate-200"
+                                                        placeholder="Comece a digitar o documento aqui..."
+                                                        spellCheck={false}
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Footer Fullscreen */}
+                                        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/50 flex justify-between items-center text-xs text-slate-400 italic">
+                                            <span>As alterações são salvas automaticamente no rascunho principal.</span>
+                                            <div className="flex gap-4">
+                                                <span>{instructions.length} caracteres</span>
+                                                <span>{instructions.split(/\s+/).filter(Boolean).length} palavras</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            {docType !== 'memed' && !memedPdfUrl && (
+                                <div className="space-y-3">
+                                    <Button
+                                        onClick={handleCreateMemedDocument}
+                                        disabled={isCreatingMemed || !selectedPatientId}
+                                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold shadow-lg transition-all"
+                                    >
+                                        {isCreatingMemed ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                                Criando documento...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Cloud className="h-4 w-4 mr-2" />
+                                                Criar com Memed
+                                            </>
+                                        )}
+                                    </Button>
+                                    <Button
+                                        onClick={handleGenerateDraft}
+                                        disabled={loading}
+                                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-md transition-colors border border-emerald-700"
+                                    >
+                                        {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
+                                        Revisar e Assinar Localmente
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 ) : (
                     <div className="space-y-6 py-4">

@@ -27,10 +27,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PatientTimeline from "./patient-timeline";
 import DiagnosisMacros from "./diagnosis-macros";
 import PrescriptionHelper from "./prescription-helper";
-import { Filter, ExternalLink, CheckSquare, Stethoscope, FileSignature, Eye, EyeOff, Maximize2, X, Download, ZoomIn, ZoomOut } from "lucide-react";
+import { Filter, ExternalLink, CheckSquare, Stethoscope, FileSignature, Eye, EyeOff, Maximize2, Minimize2, X, Download, ZoomIn, ZoomOut } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import SoapEvolutionModal from "./soap-evolution-modal";
 import PrescriptionModal from "./prescription-modal";
+import MediAILogo from "../layout/mediai-logo";
+import { cn } from "@/lib/utils";
 import type { Consultation, Prescription } from "@/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -220,8 +222,9 @@ export default function PatientDetailView({
   const [isBulkValidating, setIsBulkValidating] = useState(false);
   const [expandedDocuments, setExpandedDocuments] = useState<Record<string, boolean>>({});
   const [fullscreenDocument, setFullscreenDocument] = useState<{ url: string, title?: string } | null>(null);
+  const [isParecerFullscreen, setIsParecerFullscreen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
-  const [fullscreenEditor, setFullscreenEditor] = useState<{ examId: string, title?: string } | null>(null);
+  const [fullscreenEditor, setFullscreenEditor] = useState<{ examId: string, title: string } | null>(null);
 
   const handleZoomIn = () => setZoomLevel(prev => Math.min(prev + 0.5, 5));
   const handleZoomOut = () => setZoomLevel(prev => Math.max(prev - 0.25, 0.5));
@@ -707,7 +710,10 @@ export default function PatientDetailView({
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setFullscreenEditor({ examId: exam.id, title: exam.type })}
+                                    onClick={() => {
+                                      setFullscreenEditor({ examId: exam.id, title: exam.type });
+                                      setIsParecerFullscreen(true);
+                                    }}
                                     className="text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:bg-blue-950/30 border-slate-200 dark:border-slate-700 h-9 px-3 font-bold gap-1.5"
                                     title="Expandir editor em tela cheia"
                                   >
@@ -1050,9 +1056,19 @@ export default function PatientDetailView({
       </div>
 
       {/* Dialog do Editor em Tela Cheia */}
-      <Dialog open={!!fullscreenEditor} onOpenChange={() => setFullscreenEditor(null)}>
-        <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] p-0 overflow-hidden flex flex-col">
-          <DialogHeader className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-white shrink-0">
+      <Dialog open={!!fullscreenEditor} onOpenChange={(open) => {
+        if (!open) {
+          setFullscreenEditor(null);
+          setIsParecerFullscreen(false);
+        }
+      }}>
+        <DialogContent className={cn(
+          "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-50 shadow-xl transition-all duration-300 flex flex-col p-0 overflow-hidden",
+          isParecerFullscreen
+            ? "fixed inset-0 left-0 top-0 translate-x-0 translate-y-0 max-w-none w-screen h-screen m-0 rounded-none z-[9999]"
+            : "max-w-[95vw] w-[95vw] h-[90vh]"
+        )}>
+          <DialogHeader className={isParecerFullscreen ? "sr-only" : "px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-white shrink-0"}>
             <DialogTitle className="flex items-center gap-3 text-lg font-bold text-slate-900 dark:text-slate-50">
               <div className="relative h-10 w-10 shrink-0">
                 <Image
@@ -1070,6 +1086,33 @@ export default function PatientDetailView({
               </div>
             </DialogTitle>
           </DialogHeader>
+
+          {isParecerFullscreen && (
+            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shadow-2xl z-10">
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 flex items-center justify-center bg-white/10 rounded-xl backdrop-blur-sm border border-white/20">
+                  <MediAILogo size="sm" showText={false} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black tracking-tight leading-none">PARECER MÉDICO FINAL</h2>
+                  <div className="flex items-center gap-3 mt-1.5 overflow-hidden">
+                    <span className="text-[10px] bg-blue-500 font-bold px-2 py-0.5 rounded uppercase tracking-wider whitespace-nowrap">EDIÇÃO IMERSIVA</span>
+                    <span className="text-[11px] font-medium text-slate-400 truncate max-w-[200px] border-l border-slate-700 pl-3">Paciente: {patient.name}</span>
+                    <span className="text-[11px] font-medium text-slate-400 truncate max-w-[200px] border-l border-slate-700 pl-3">Médico: {doctor.name}</span>
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                variant="ghost"
+                onClick={() => setIsParecerFullscreen(false)}
+                className="text-white hover:bg-white/10 font-bold border border-white/20 rounded-xl px-4 h-10 gap-2 transition-all"
+              >
+                <Minimize2 className="h-4 w-4" />
+                SAIR DA TELA CHEIA
+              </Button>
+            </div>
+          )}
           {fullscreenEditor && (
             <div className="flex-1 flex flex-col p-6 gap-4 overflow-hidden">
 
@@ -1091,7 +1134,10 @@ export default function PatientDetailView({
                 placeholder="Edite o diagnóstico e adicione sua prescrição oficial aqui..."
                 value={validationState[fullscreenEditor.examId]?.notes || ''}
                 onChange={(e) => handleNotesChange(fullscreenEditor.examId, e.target.value)}
-                className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:text-slate-500 focus:ring-blue-500 focus:border-blue-500 rounded-xl p-5 text-base leading-relaxed flex-1 min-h-0 resize-none"
+                className={cn(
+                  "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:text-slate-500 focus:ring-blue-500 focus:border-blue-500 rounded-xl flex-1 min-h-0 resize-none transition-all",
+                  isParecerFullscreen ? "p-12 text-xl font-serif leading-relaxed shadow-inner" : "p-5 text-base leading-relaxed"
+                )}
               />
 
               <div className="flex flex-col sm:flex-row gap-3 shrink-0">

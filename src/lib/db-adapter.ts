@@ -170,21 +170,28 @@ export async function getPatientMedicalContext(patientId: string) {
   const patient = await getPatientById(patientId);
   if (!patient) return null;
 
-  const recentExams = await db
+  const allExams = await db
     .select()
     .from(exams)
     .where(eq(exams.patientId, patientId))
     .orderBy(desc(exams.createdAt))
-    .limit(3);
+    .limit(10);
 
   const recentConsultations = await db
     .select()
     .from(consultations)
     .where(eq(consultations.patientId, patientId))
     .orderBy(desc(consultations.createdAt))
-    .limit(3);
+    .limit(5);
 
-  const examSummary = recentExams.map(e => `${e.type} (${e.date}): ${e.preliminaryDiagnosis}`).join('\n');
+  const examSummary = allExams.map(e => {
+    const statusTag = e.status === 'Requer Validação' ? '[PENDENTE DE VALIDAÇÃO MÉDICA]' : '[VALIDADO]';
+    return `${statusTag} ${e.type} (${e.date}):
+    - Diagnóstico Preliminar: ${e.preliminaryDiagnosis}
+    - Explicação Técnica: ${e.explanation}
+    - Sugestões Iniciais: ${e.suggestions}`;
+  }).join('\n\n');
+
   const consultationSummary = recentConsultations.map(c => `${c.date}: ${c.summary}`).join('\n');
 
   return {

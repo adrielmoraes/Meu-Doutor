@@ -8,6 +8,10 @@ import { trackAIUsage } from '@/lib/usage-tracker';
 const GenerateDocumentDraftInputSchema = z.object({
     patientId: z.string(),
     documentType: z.enum(['receita', 'atestado', 'laudo', 'outro']),
+    doctor: z.object({
+        name: z.string(),
+        crm: z.string(),
+    }),
     patientContext: z.object({
         name: z.string(),
         age: z.number(),
@@ -34,58 +38,53 @@ const generateDocumentDraftPrompt = ai.definePrompt({
     name: 'generateDocumentDraftPrompt',
     input: { schema: GenerateDocumentDraftInputSchema },
     output: { schema: GenerateDocumentDraftOutputSchema },
-    prompt: `Você é um assistente médico especializado em redigir documentos clínicos. 
-Sua tarefa é gerar um rascunho de {{documentType}} para o paciente {{patientContext.name}} ({{patientContext.age}} anos, {{patientContext.gender}}).
+    prompt: `Você é um assistente médico de alto nível, especializado em suporte à decisão clínica e redação de documentos. 
+Sua tarefa é gerar um rascunho de {{documentType}} para o paciente {{patientContext.name}} ({{patientContext.age}} anos, {{patientContext.gender}}), integrando de forma inteligente os dados clínicos fornecidos.
 
-CONTEXTO DO PACIENTE:
-- SINTOMAS: {{patientContext.reportedSymptoms}}
-- EXAMES: {{patientContext.examResults}}
+CONTEXTO CLÍNICO DO PACIENTE:
+- SINTOMAS RELATADOS: {{patientContext.reportedSymptoms}}
+- HISTÓRICO DE EXAMES (Incluindo Pendentes): 
+{{patientContext.examResults}}
 - CONSULTAS RECENTES: {{patientContext.recentConsultations}}
 
-INSTRUÇÕES OBRIGATÓRIAS PARA O DOCUMENTO:
+DIRETRIZES DE ANÁLISE (CRÍTICO):
+1. PRIORIZE EXAMES [PENDENTE DE VALIDAÇÃO MÉDICA]: Use as "Sugestões Iniciais" desses exames para basear suas recomendações de medicamentos e condutas.
+2. CORRELAÇÃO CLÍNICA: Formule o documento correlacionando os sintomas relatados com os achados dos exames.
+3. SEGURANÇA: Seja preciso nas dosagens e frequências usuais.
+
+CABEÇALHO OBRIGATÓRIO (TODOS OS DOCUMENTOS):
+O campo 'instructions' **DEVE** começar rigorosamente com este cabeçalho formatado em Markdown:
+========================================
+**PLATAFORMA MEDI.AI** — {{documentType}} (ESCREVA O TIPO EM MAIÚSCULAS)
+**Médico Responsável**: {{doctor.name}} | **CRM**: {{doctor.crm}}
+**Paciente**: {{patientContext.name}} | **Idade**: {{patientContext.age}} anos | **Sexo**: {{patientContext.gender}}
+========================================
+
+INSTRUÇÕES ESPECÍFICAS POR TIPO DE DOCUMENTO:
 
 ## RECEITA (documentType = "receita"):
-É OBRIGATÓRIO preencher TODOS os campos abaixo:
-- **title**: Título descritivo (ex: "Receita para Tratamento de Hipertensão")
-- **medications**: Lista de medicamentos com TODOS os campos preenchidos:
-  - name: Nome comercial ou genérico do medicamento (ex: "Losartana 50mg")
-  - dosage: Dosagem por administração (ex: "1 comprimido", "10ml", "2 cápsulas")
-  - frequency: Frequência de uso (ex: "1x ao dia", "8/8 horas", "de manhã e à noite")
-  - duration: Duração do tratamento (ex: "30 dias", "uso contínuo", "7 dias")
-  - instructions: Instruções específicas (ex: "Tomar em jejum", "Após as refeições", "Evitar álcool")
-- **instructions**: Observações gerais em formato Markdown com orientações de estilo de vida e cuidados
+- **title**: Título focado na condição tratada (ex: "Protocolo Terapêutico para Rinite Alérgica").
+- **medications**: Preencha a lista estruturada com TODOS os campos.
+- **instructions (CORPO DA RECEITA)**: Após o cabeçalho obrigatório, inclua:
+  1. Cabeçalho breve confirmando o objetivo (ex: "Uso Interno/Oral").
+  2. **LISTA DE MEDICAMENTOS**: Escreva cada medicamento da lista 'medications' com sua respectiva posologia e modo de uso detalhado.
+  3. Orientações não farmacológicas (higiene, dieta, repouso).
+  4. Orientações gerais e sinais de alerta.
 
 ## ATESTADO (documentType = "atestado"):
-É OBRIGATÓRIO preencher:
-- **title**: Título do atestado (ex: "Atestado Médico de Comparecimento")
-- **instructions**: Texto formal em Markdown com:
-  - Identificação do paciente
-  - Motivo do atestado (afastamento, comparecimento, aptidão)
-  - Período quando aplicável
-  - CID se necessário
+- **title**: Título formal (ex: "Atestado Médico de Afastamento").
+- **instructions**: Após o cabeçalho obrigatório, redija o texto padrão profissional incluindo o motivo (afastamento/comparecimento), período sugerido e CID se aplicável.
 
 ## LAUDO (documentType = "laudo"):
-É OBRIGATÓRIO preencher:
-- **title**: Título do laudo (ex: "Laudo de Avaliação Cardiológica")
-- **instructions**: Análise técnica em Markdown com:
-  - Histórico clínico resumido
-  - Exames analisados
-  - Achados e diagnóstico
-  - Conclusão e recomendações
+- **title**: Nome do Laudo (ex: "Laudo de Avaliação Clínica").
+- **instructions**: Após o cabeçalho obrigatório, sintetize achados, diagnóstico e plano de conduta.
 
-## OUTRO (documentType = "outro"):
-Preencha title e instructions conforme o contexto.
+REGRAS DE FORMATAÇÃO E ESTILO:
+- Linguagem: Português Brasileiro, técnica e profissional.
+- Markdown: Use negrito para nomes de medicamentos e listas para posologias.
+- **IMPORTANTE**: No caso de RECEITA, o campo 'instructions' DEVE conter os medicamentos e como tomá-los, para que apareçam visualmente no editor para o médico.
 
-REGRAS CRÍTICAS:
-- TODOS os campos devem ser preenchidos - nunca deixe campos vazios
-- Para receitas, SEMPRE inclua pelo menos 1 medicamento com TODOS os 5 campos
-- Use terminologia médica correta, mas clara
-- O campo 'instructions' DEVE estar em formato Markdown para melhor legibilidade
-- Seja conciso e profissional
-- Responda em Português Brasileiro
-- Isso é APENAS UM RASCUNHO que será revisado por um médico humano
-
-Gere o rascunho estruturado no formato JSON definido:`,
+Gere o rascunho em JSON rigorosamente estruturado:`,
 });
 
 export const generateDocumentDraftFlow = ai.defineFlow(
