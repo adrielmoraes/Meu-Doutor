@@ -375,16 +375,16 @@ ${nutritionistAnalysis.recommendations}
         }
       }
 
-      // Preserve existing audio URIs - they're stored in Blob and remain valid
-      // Users can regenerate audio on-demand if the plan content changes significantly
-      const existingWellnessPlan = patient.wellnessPlan;
+      // Clear old audio URIs when plan content is regenerated.
+      // The audio playback component will generate fresh audio on-demand
+      // to match the updated text content.
       const wellnessPlanData = {
         preliminaryAnalysis: output.preliminaryAnalysis,
         exercisePlan: output.exercisePlan,
         mentalWellnessPlan: output.mentalWellnessPlan,
-        preliminaryAnalysisAudioUri: existingWellnessPlan?.preliminaryAnalysisAudioUri,
-        exercisePlanAudioUri: existingWellnessPlan?.exercisePlanAudioUri,
-        mentalWellnessPlanAudioUri: existingWellnessPlan?.mentalWellnessPlanAudioUri,
+        preliminaryAnalysisAudioUri: undefined,
+        exercisePlanAudioUri: undefined,
+        mentalWellnessPlanAudioUri: undefined,
         dailyReminders: output.dailyReminders,
         weeklyMealPlan: output.weeklyMealPlan,
         weeklyTasks: output.weeklyTasks,
