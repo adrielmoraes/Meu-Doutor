@@ -26,6 +26,8 @@ const GenerateMedicalOpinionInputSchema = z.object({
     doctorName: z.string().optional().describe('Full name of the doctor signing the opinion.'),
     doctorCrm: z.string().optional().describe('CRM registration number of the doctor.'),
     doctorSpecialty: z.string().optional().describe('Medical specialty of the doctor.'),
+    currentDate: z.string().optional().describe('The current date in DD/MM/AAAA format.'),
+    currentTime: z.string().optional().describe('The current time in HH:mm format (Brasília time).'),
     patientHistory: z.string().optional().describe('Summary of patient history (used primarily in global scope).'),
     examType: z.string().optional().describe('The type/name of the current exam being analyzed.'),
     examResults: z.string().describe('The raw exam results text or preliminary diagnosis.'),
@@ -63,6 +65,10 @@ MÉDICO RESPONSÁVEL:
 - CRM: {{doctorCrm}}
 - Especialidade: {{doctorSpecialty}}
 
+DATA/HORA ATUAL (BRASÍLIA):
+- Data: {{currentDate}}
+- Hora: {{currentTime}}
+
 RESULTADOS DO EXAME:
 {{{examResults}}}
 
@@ -87,7 +93,7 @@ Gere o documento EXATAMENTE neste formato (texto puro, sem asteriscos, sem hasht
 ========================================
 PLATAFORMA MEDI.AI — PARECER MÉDICO
 ========================================
-Data de Emissão: [data de hoje no formato DD/MM/AAAA]
+Data de Emissão: {{currentDate}} às {{currentTime}} (Horário de Brasília)
 Médico Responsável: {{doctorName}}
 CRM: {{doctorCrm}}
 Especialidade: {{doctorSpecialty}}
@@ -184,6 +190,10 @@ MÉDICO RESPONSÁVEL:
 - CRM: {{doctorCrm}}
 - Especialidade: {{doctorSpecialty}}
 
+DATA/HORA ATUAL (BRASÍLIA):
+- Data: {{currentDate}}
+- Hora: {{currentTime}}
+
 HISTÓRICO DO PACIENTE:
 {{{patientHistory}}}
 
@@ -211,7 +221,7 @@ Gere o documento EXATAMENTE neste formato (texto puro, sem asteriscos, sem hasht
 ========================================
 PLATAFORMA MEDI.AI — PARECER MÉDICO GLOBAL
 ========================================
-Data de Emissão: [data de hoje no formato DD/MM/AAAA]
+Data de Emissão: {{currentDate}} às {{currentTime}} (Horário de Brasília)
 Médico Responsável: {{doctorName}}
 CRM: {{doctorCrm}}
 Especialidade: {{doctorSpecialty}}
@@ -317,6 +327,8 @@ const headerSchema = z.object({
     doctorName: z.string(),
     doctorCrm: z.string(),
     doctorSpecialty: z.string(),
+    currentDate: z.string(),
+    currentTime: z.string(),
 });
 
 // --- Prompt Definitions ---
@@ -429,6 +441,8 @@ const generateMedicalOpinionFlow = ai.defineFlow(
             doctorName: input.doctorName || 'Não informado',
             doctorCrm: input.doctorCrm || 'Não informado',
             doctorSpecialty: input.doctorSpecialty || 'Clínica Geral',
+            currentDate: input.currentDate || new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+            currentTime: input.currentTime || new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }),
         };
 
         let promptToUse: any;

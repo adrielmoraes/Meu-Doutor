@@ -20,6 +20,8 @@ const GenerateDocumentDraftInputSchema = z.object({
         examResults: z.string().optional(),
         recentConsultations: z.string().optional(),
     }),
+    currentDate: z.string().optional(),
+    currentTime: z.string().optional(),
 });
 
 const GenerateDocumentDraftOutputSchema = z.object({
@@ -56,6 +58,7 @@ CABEÇALHO OBRIGATÓRIO (TODOS OS DOCUMENTOS):
 O campo 'instructions' **DEVE** começar rigorosamente com este cabeçalho formatado em Markdown:
 ========================================
 **PLATAFORMA MEDI.AI** — {{documentType}} (ESCREVA O TIPO EM MAIÚSCULAS)
+**Emissão**: {{currentDate}} às {{currentTime}} (Horário de Brasília)
 **Médico Responsável**: {{doctor.name}} | **CRM**: {{doctor.crm}}
 **Paciente**: {{patientContext.name}} | **Idade**: {{patientContext.age}} anos | **Sexo**: {{patientContext.gender}}
 ========================================
@@ -96,7 +99,13 @@ export const generateDocumentDraftFlow = ai.defineFlow(
     async (input) => {
         const inputTokens = countTextTokens(JSON.stringify(input.patientContext));
 
-        const result = await generateDocumentDraftPrompt(input);
+        const enhancedInput = {
+            ...input,
+            currentDate: input.currentDate || new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+            currentTime: input.currentTime || new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }),
+        };
+
+        const result = await generateDocumentDraftPrompt(enhancedInput as any);
         const draft = result.output;
 
         if (!draft) throw new Error("Falha ao gerar rascunho do documento.");
