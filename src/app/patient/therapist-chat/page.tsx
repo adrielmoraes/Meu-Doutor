@@ -5,7 +5,7 @@ import TherapistChat from '@/components/patient/therapist-chat';
 
 export default async function TherapistChatPage() {
   const session = await getSession();
-  
+
   if (!session || session.role !== 'patient') {
     redirect('/login');
   }
@@ -16,10 +16,24 @@ export default async function TherapistChatPage() {
     redirect('/patient/dashboard');
   }
 
+  // Parse persisted conversation history (JSON format)
+  let initialHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+  if (patient.conversationHistory) {
+    try {
+      const parsed = JSON.parse(patient.conversationHistory);
+      if (Array.isArray(parsed)) {
+        initialHistory = parsed;
+      }
+    } catch {
+      // Legacy text format — ignore, start fresh
+    }
+  }
+
   return (
-    <TherapistChat 
-      patientId={session.userId} 
+    <TherapistChat
+      patientId={session.userId}
       patientName={patient.name}
+      initialHistory={initialHistory}
     />
   );
 }

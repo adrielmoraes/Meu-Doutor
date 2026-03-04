@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
-import { Mic, MicOff, Send, ArrowLeft } from 'lucide-react';
+import { Mic, MicOff, Send, ArrowLeft, History } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
@@ -19,14 +19,16 @@ type Message = {
   isAudio: boolean;
   audioDataUri?: string;
   timestamp: Date;
+  isHistory?: boolean; // Flag for visually differentiating old messages
 };
 
 interface TherapistChatProps {
   patientId: string;
   patientName: string;
+  initialHistory?: Array<{ role: 'user' | 'assistant'; content: string }>;
 }
 
-export default function TherapistChat({ patientId, patientName }: TherapistChatProps) {
+export default function TherapistChat({ patientId, patientName, initialHistory = [] }: TherapistChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -40,14 +42,35 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
   const { toast } = useToast();
 
   useEffect(() => {
-    setMessages([{
-      id: '1',
+    const loadedMessages: Message[] = [];
+
+    // Load persisted history
+    if (initialHistory.length > 0) {
+      for (let i = 0; i < initialHistory.length; i++) {
+        loadedMessages.push({
+          id: `history-${i}`,
+          role: initialHistory[i].role,
+          content: initialHistory[i].content,
+          isAudio: false,
+          timestamp: new Date(), // We don't have exact timestamps from history
+          isHistory: true,
+        });
+      }
+    }
+
+    // Always add the greeting at the end
+    loadedMessages.push({
+      id: 'greeting',
       role: 'assistant',
-      content: `Olá, ${patientName.split(' ')[0]}! Sou sua terapeuta IA e assistente pessoal. Estou aqui para apoiar você em sua jornada de saúde e bem-estar. Como posso ajudar hoje?`,
+      content: initialHistory.length > 0
+        ? `Olá novamente, ${patientName.split(' ')[0]}! Que bom te ver de volta. Lembro da nossa conversa anterior. Como posso te ajudar hoje?`
+        : `Olá, ${patientName.split(' ')[0]}! Sou sua terapeuta IA e assistente pessoal. Estou aqui para apoiar você em sua jornada de saúde e bem-estar. Como posso ajudar hoje?`,
       isAudio: false,
       timestamp: new Date(),
-    }]);
-  }, [patientName]);
+    });
+
+    setMessages(loadedMessages);
+  }, [patientName, initialHistory]);
 
   useEffect(() => {
     return () => {
@@ -68,7 +91,6 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
   // Helper function to simulate human-like typing
   const simulateTypingAndSend = async (fullText: string, audioUri?: string) => {
     // 1. Split text into chunks (sentences)
-    // Regex matches sentences ending in . ! ? or newlines, keeping the delimiter
     const rawChunks = fullText.match(/[^.!?\n]+[.!?\n]+|[^.!?\n]+$/g) || [fullText];
 
     // Merge very short chunks with previous ones to avoid weird pacing
@@ -77,7 +99,6 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
 
     for (const chunk of rawChunks) {
       if ((currentChunk + chunk).length < 20 && chunks.length > 0) {
-        // If current accumulation is too short, keep adding
         currentChunk += chunk;
       } else {
         if (currentChunk) chunks.push(currentChunk);
@@ -87,29 +108,36 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
     if (currentChunk) chunks.push(currentChunk);
 
     // 2. Send chunks sequentially
-    setIsProcessing(true); // Maintain typing state
+    setIsProcessing(true);
 
     for (let i = 0; i < chunks.length; i++) {
       const textChunk = chunks[i].trim();
       if (!textChunk) continue;
 
-      // Calculate delay: random between 5s and 10s
       const delay = Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000;
-
-      // Wait for the delay
       await new Promise(resolve => setTimeout(resolve, delay));
 
       const assistantMessage: Message = {
         id: (Date.now() + i).toString(),
         role: 'assistant',
         content: textChunk,
-        isAudio: i === chunks.length - 1 && !!audioUri, // Only attach audio to the last chunk if present
+        isAudio: i === chunks.length - 1 && !!audioUri,
         audioDataUri: (i === chunks.length - 1) ? audioUri : undefined,
         timestamp: new Date(),
       };
 
       setMessages(prev => [...prev, assistantMessage]);
     }
+  };
+
+  // Build the conversation context for the API (current session + history)
+  const getConversationContext = () => {
+    return messages
+      .filter(m => m.id !== 'greeting') // Don't send the greeting as context
+      .map(m => ({
+        role: m.role,
+        content: m.content,
+      }));
   };
 
   const sendTextMessage = async () => {
@@ -135,10 +163,7 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
           patientId,
           message: inputText,
           isAudioRequest: false,
-          conversationHistory: messages.map(m => ({
-            role: m.role,
-            content: m.content
-          }))
+          conversationHistory: getConversationContext(),
         }),
       });
 
@@ -148,7 +173,6 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
         throw new Error(data.error || 'Erro ao enviar mensagem');
       }
 
-      // Use the new human-like simulation
       await simulateTypingAndSend(data.response);
 
     } catch (error: any) {
@@ -254,10 +278,7 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
           patientId,
           message: transcript,
           isAudioRequest: true,
-          conversationHistory: messages.map(m => ({
-            role: m.role,
-            content: m.content
-          }))
+          conversationHistory: getConversationContext(),
         }),
       });
 
@@ -267,19 +288,17 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
         throw new Error(data.error || 'Erro ao processar mensagem de voz');
       }
 
-      // Se for resposta de áudio (input foi áudio), não mostrar texto simulado, apenas tocar o áudio e mostrar o player
       if (data.audioDataUri) {
-         const assistantMessage: Message = {
+        const assistantMessage: Message = {
           id: Date.now().toString(),
           role: 'assistant',
-          content: 'Mensagem de voz', // Placeholder content
+          content: 'Mensagem de voz',
           isAudio: true,
           audioDataUri: data.audioDataUri,
           timestamp: new Date(),
         };
         setMessages(prev => [...prev, assistantMessage]);
       } else {
-        // Fallback para comportamento antigo se não vier áudio (não deve acontecer com a mudança na API)
         await simulateTypingAndSend(data.response, data.audioDataUri);
       }
 
@@ -299,6 +318,10 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
     return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Find the index where history ends and new messages begin
+  const historyEndIndex = messages.findLastIndex(m => m.isHistory);
+  const hasHistory = historyEndIndex >= 0;
+
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-pink-50 via-pink-100 to-pink-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       {/* Header */}
@@ -314,38 +337,65 @@ export default function TherapistChat({ patientId, patientName }: TherapistChatP
             <h2 className="text-sm md:text-lg font-semibold text-foreground truncate">Terapeuta IA</h2>
             <p className="text-xs md:text-sm text-muted-foreground truncate">Assistente pessoal de saúde</p>
           </div>
+          {hasHistory && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
+              <History className="h-3 w-3" />
+              <span className="hidden sm:inline">{initialHistory.length} msgs salvas</span>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Messages */}
       <ScrollArea className="flex-1 p-3 md:p-4" ref={scrollAreaRef}>
         <div className="space-y-3 md:space-y-4 max-w-4xl mx-auto">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
+          {/* History separator */}
+          {hasHistory && (
+            <div className="flex items-center gap-3 py-2">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-xs text-muted-foreground font-medium px-2 flex items-center gap-1.5">
+                <History className="h-3 w-3" />
+                Conversas anteriores
+              </span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+          )}
+
+          {messages.map((message, index) => (
+            <div key={message.id}>
+              {/* Separator between history and new messages */}
+              {hasHistory && index === historyEndIndex + 1 && !message.isHistory && (
+                <div className="flex items-center gap-3 py-3 mb-3">
+                  <div className="flex-1 h-px bg-primary/30" />
+                  <span className="text-xs text-primary font-semibold px-2">Sessão atual</span>
+                  <div className="flex-1 h-px bg-primary/30" />
+                </div>
+              )}
               <div
-                className={`rounded-2xl px-4 py-3 shadow-md ${message.role === 'user'
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} ${message.isHistory ? 'opacity-70' : ''}`}
+              >
+                <div
+                  className={`rounded-2xl px-4 py-3 shadow-md ${message.role === 'user'
                     ? 'bg-gradient-to-br from-pink-500 to-pink-600 dark:from-primary dark:to-primary/90 text-white'
                     : 'bg-card text-foreground border border-border'
-                  } ${message.isAudio ? 'min-w-[250px] max-w-[85%] md:min-w-[300px] md:max-w-[80%]' : 'max-w-[85%] md:max-w-[75%]'}`}
-              >
-                {message.isAudio && message.audioDataUri ? (
-                  <AudioMessage
-                    audioDataUri={message.audioDataUri}
-                    isUser={message.role === 'user'}
-                    timestamp={formatTime(message.timestamp)}
-                  />
-                ) : (
-                  <div className="flex-1">
-                    <p className="text-[15px] md:text-[17px] leading-[1.4] whitespace-pre-wrap break-words">{message.content}</p>
-                    <p className={`text-[11px] md:text-xs mt-1.5 ${message.role === 'user' ? 'text-white/70' : 'text-muted-foreground'
-                      }`}>
-                      {formatTime(message.timestamp)}
-                    </p>
-                  </div>
-                )}
+                    } ${message.isAudio ? 'min-w-[250px] max-w-[85%] md:min-w-[300px] md:max-w-[80%]' : 'max-w-[85%] md:max-w-[75%]'}`}
+                >
+                  {message.isAudio && message.audioDataUri ? (
+                    <AudioMessage
+                      audioDataUri={message.audioDataUri}
+                      isUser={message.role === 'user'}
+                      timestamp={formatTime(message.timestamp)}
+                    />
+                  ) : (
+                    <div className="flex-1">
+                      <p className="text-[15px] md:text-[17px] leading-[1.4] whitespace-pre-wrap break-words">{message.content}</p>
+                      <p className={`text-[11px] md:text-xs mt-1.5 ${message.role === 'user' ? 'text-white/70' : 'text-muted-foreground'
+                        }`}>
+                        {message.isHistory ? 'sessão anterior' : formatTime(message.timestamp)}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}

@@ -3,6 +3,8 @@ import { therapistChat } from '@/ai/flows/therapist-chat-flow';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { getPatientById, updatePatient, trackUsage } from '@/lib/db-adapter';
 
+const MAX_HISTORY_MESSAGES = 40; // 20 interações = 40 mensagens (user + assistant)
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -28,11 +30,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // ── Save conversation history as JSON (limited to 20 interactions) ──
     const patient = await getPatientById(patientId);
     if (patient) {
-      const updatedHistory = `${patient.conversationHistory || ''}\n[${new Date().toISOString()}]\nPaciente: ${message}\nTerapeuta IA: ${chatResponse.response}`;
+      // Parse existing history (handle legacy text format)
+      let existingHistory: Array<{ role: string; content: string }> = [];
+      if (patient.conversationHistory) {
+        try {
+          const parsed = JSON.parse(patient.conversationHistory);
+          if (Array.isArray(parsed)) {
+            existingHistory = parsed;
+          }
+        } catch {
+          // Legacy format: ignore old text, start fresh JSON
+          existingHistory = [];
+        }
+      }
+
+      // Append user message and assistant response
+      existingHistory.push(
+        { role: 'user', content: message },
+        { role: 'assistant', content: chatResponse.response }
+      );
+
+      // Keep only the last 20 interactions (40 messages)
+      if (existingHistory.length > MAX_HISTORY_MESSAGES) {
+        existingHistory = existingHistory.slice(-MAX_HISTORY_MESSAGES);
+      }
+
+      // Save as JSON string
       await updatePatient(patientId, {
-        conversationHistory: updatedHistory.substring(0, 10000),
+        conversationHistory: JSON.stringify(existingHistory),
       });
     }
 
@@ -43,7 +71,7 @@ export async function POST(req: NextRequest) {
       model: 'gemini-2.5-flash',
       inputText: message,
       outputText: chatResponse.response,
-      metadata: { 
+      metadata: {
         conversationHistoryLength: conversationHistory?.length || 0,
         messageType: 'therapist_chat'
       },
@@ -53,7 +81,7 @@ export async function POST(req: NextRequest) {
 
     if (isAudioRequest) {
       const audioResponse = await textToSpeech({ text: chatResponse.response });
-      
+
       if (audioResponse && audioResponse.audioDataUri) {
         // Track TTS usage with real cost calculation
         trackUsage({
@@ -65,9 +93,9 @@ export async function POST(req: NextRequest) {
         }).catch(error => {
           console.error('[Usage Tracking] Failed to track TTS:', error);
         });
-        
+
         return NextResponse.json({
-          response: chatResponse.response, // Still return text for logging/debugging but client will ignore for display
+          response: chatResponse.response,
           audioDataUri: audioResponse.audioDataUri,
         });
       }
