@@ -21,6 +21,8 @@ export type Patient = {
   avatar: string;
   avatarHint: string;
   gender: string;
+  weight?: string | null; // Peso em kg (ex: "75.5")
+  height?: string | null; // Altura em cm (ex: "175")
   conversationHistory: string;
   reportedSymptoms: string;
   examResults: string; // Summary of all results for AI context

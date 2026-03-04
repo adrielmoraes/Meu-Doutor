@@ -23,6 +23,8 @@ const GenerateMedicalOpinionInputSchema = z.object({
     patientName: z.string().optional().describe('Full name of the patient.'),
     patientAge: z.number().optional().describe('Age of the patient in years.'),
     patientGender: z.string().optional().describe('Gender of the patient.'),
+    patientIMC: z.string().optional().describe('IMC/BMI data string (weight, height, classification).'),
+    patientSymptoms: z.string().optional().describe('Current symptoms/complaints reported by the patient.'),
     doctorName: z.string().optional().describe('Full name of the doctor signing the opinion.'),
     doctorCrm: z.string().optional().describe('CRM registration number of the doctor.'),
     doctorSpecialty: z.string().optional().describe('Medical specialty of the doctor.'),
@@ -60,6 +62,17 @@ PACIENTE:
 - Idade: {{patientAge}} anos
 - Sexo: {{patientGender}}
 
+{{#if patientIMC}}
+DADOS ANTROPOMÉTRICOS DO PACIENTE:
+{{{patientIMC}}}
+{{/if}}
+
+{{#if patientSymptoms}}
+QUEIXAS ATUAIS RELATADAS PELO PACIENTE:
+{{{patientSymptoms}}}
+IMPORTANTE: Considere as queixas relatadas pelo paciente ao elaborar a impressão diagnóstica e as recomendações. Correlacione sintomas com achados nos exames quando aplicável.
+{{/if}}
+
 MÉDICO RESPONSÁVEL:
 - Nome: {{doctorName}}
 - CRM: {{doctorCrm}}
@@ -71,6 +84,13 @@ DATA/HORA ATUAL (BRASÍLIA):
 
 RESULTADOS DO EXAME:
 {{{examResults}}}
+
+{{#if patientHistory}}
+CONTEXTO CLÍNICO ADICIONAL (outros exames e histórico):
+{{{patientHistory}}}
+
+IMPORTANTE: Use este contexto para CORRELACIONAR achados entre exames. Se um exame anterior mostra resultados relevantes para o exame atual, MENCIONE a correlação na impressão diagnóstica.
+{{/if}}
 
 {{#if specialistReports.length}}
 PARECERES DOS ESPECIALISTAS:
@@ -340,6 +360,7 @@ const specificPrompt = ai.definePrompt({
         schema: z.object({
             examType: z.string(),
             examResults: z.string(),
+            patientHistory: z.string().optional(),
             specialistReports: specialistReportSchema,
         }).merge(headerSchema),
     },
@@ -369,39 +390,87 @@ function formatMedicalOpinionText(text: string): string {
     if (!text) return "";
 
     let formatted = text
-        // Ensure line breaks after separator lines
-        .replace(/([=]{5,40})\s*/g, "$1\n")
-        .replace(/([-]{5,40})\s*/g, "$1\n")
-        // Ensure header fields are on their own lines
-        .replace(/(Médico Responsável:)/g, "\n$1")
-        .replace(/(CRM:)/g, "\n$1")
-        .replace(/(Especialidade:)/g, "\n$1")
-        .replace(/(PACIENTE:)/g, "\n$1")
-        .replace(/(Idade:)/g, "\n$1")
-        .replace(/(Sexo:)/g, "\n$1")
+        // STEP 1: Ensure line breaks BEFORE and AFTER separator lines (=== and ---)
+        // The AI often concatenates text directly into separators
+        .replace(/([^=\n])([=]{5,})/g, "$1\n$2")
+        .replace(/([=]{5,})([^=\n])/g, "$1\n$2")
+        .replace(/([^-\n])([-]{5,})/g, "$1\n$2")
+        .replace(/([-]{5,})([^-\n])/g, "$1\n$2")
+
+        // STEP 2: Ensure header fields are ALWAYS on their own lines
+        // Use lookahead/lookbehind-free approach: insert \n before these keywords
         .replace(/(Data de Emissão:)/g, "\n$1")
-        // Add double spacing before major sections
-        .replace(/\n\s*(LAUDO:)/g, "\n\n$1")
-        .replace(/\n\s*(CONCLUSÃO GERAL:)/g, "\n\n$1")
-        .replace(/\n\s*(VALORES ALTERADOS:)/g, "\n\n$1")
-        .replace(/\n\s*(IMPRESSÃO DIAGNÓSTICA:)/g, "\n\n$1")
-        .replace(/\n\s*(SÍNTESE CLÍNICA GLOBAL)/g, "\n\n$1")
-        .replace(/\n\s*(ACHADOS CRÍTICOS)/g, "\n\n$1")
-        .replace(/\n\s*(ACHADOS ALTERADOS)/g, "\n\n$1")
-        .replace(/\n\s*(CORRELAÇÕES ENTRE EXAMES:)/g, "\n\n$1")
-        .replace(/\n\s*(IMPRESSÃO DIAGNÓSTICA INTEGRADA:)/g, "\n\n$1")
-        .replace(/\n\s*(TRATAMENTO FARMACOLÓGICO)/g, "\n\n$1")
-        .replace(/\n\s*(MEDIDAS NÃO FARMACOLÓGICAS:)/g, "\n\n$1")
-        .replace(/\n\s*(CONDUTAS E ENCAMINHAMENTOS:)/g, "\n\n$1")
-        .replace(/\n\s*(EXAMES COMPLEMENTARES RECOMENDADOS:)/g, "\n\n$1")
-        .replace(/\n\s*(ACOMPANHAMENTO E RETORNO:)/g, "\n\n$1")
-        .replace(/\n\s*(RETORNO E ACOMPANHAMENTO:)/g, "\n\n$1")
-        .replace(/\n\s*(SIGNATURE:)/g, "\n\n$1")
-        // Remove markdown bold/italic/header symbols if AI accidentally included them
+        .replace(/(Médico Responsável:)/g, "\n$1")
+        .replace(/([^\n])(CRM:)/g, "$1\n$2")
+        .replace(/([^\n])(Especialidade:)/g, "$1\n$2")
+        .replace(/([^\n])(PACIENTE:)/g, "$1\n$2")
+        .replace(/([^\n])(Idade:)/g, "$1\n$2")
+        .replace(/([^\n])(Sexo:)/g, "$1\n$2")
+
+        // STEP 3: Double line break before ALL major section headers
+        // These patterns match even when there's NO preceding newline
+        .replace(/(LAUDO:)/g, "\n\n$1")
+        .replace(/(CONCLUSÃO GERAL:)/g, "\n\n$1")
+        .replace(/(VALORES ALTERADOS:)/g, "\n\n$1")
+        .replace(/(VALORES NORMAIS RELEVANTES:)/g, "\n\n$1")
+        .replace(/(IMPRESSÃO DIAGNÓSTICA:)/g, "\n\n$1")
+        .replace(/(IMPRESSÃO DIAGNÓSTICA INTEGRADA:)/g, "\n\n$1")
+        .replace(/(SÍNTESE CLÍNICA GLOBAL)/g, "\n\n$1")
+        .replace(/(PERFIL DO PACIENTE:)/g, "\n\n$1")
+        .replace(/(ACHADOS CRÍTICOS)/g, "\n\n$1")
+        .replace(/(ACHADOS ALTERADOS)/g, "\n\n$1")
+        .replace(/(CORRELAÇÕES ENTRE EXAMES:)/g, "\n\n$1")
+        .replace(/(TRATAMENTO FARMACOLÓGICO[^:]*:?)/g, "\n\n$1")
+        .replace(/(MEDIDAS NÃO FARMACOLÓGICAS:)/g, "\n\n$1")
+        .replace(/(CONDUTAS E ENCAMINHAMENTOS:)/g, "\n\n$1")
+        .replace(/(ENCAMINHAMENTOS PRIORITÁRIOS:)/g, "\n\n$1")
+        .replace(/(EXAMES COMPLEMENTARES RECOMENDADOS:)/g, "\n\n$1")
+        .replace(/(CRITÉRIOS PARA ESCALONAMENTO[^:]*:?)/g, "\n\n$1")
+        .replace(/(ACOMPANHAMENTO E RETORNO:)/g, "\n\n$1")
+        .replace(/(RETORNO E ACOMPANHAMENTO:)/g, "\n\n$1")
+        .replace(/(INTERAÇÕES MEDICAMENTOSAS[^:]*:?)/g, "\n\n$1")
+
+        // STEP 4: Line break before medication class headers (Classe do Medicamento, Condição)
+        .replace(/(Classe do Medicamento \d+:)/g, "\n\n$1")
+        .replace(/(Condição \d+:)/g, "\n\n$1")
+        .replace(/([^\n])(Classe:)/g, "$1\n  $2")
+
+        // STEP 5: Line break before bullet points that are stuck to previous text
+        .replace(/([^\n])(- \[ALERTA\])/g, "$1\n$2")
+        .replace(/([^\n])(- \[CRÍTICO\])/g, "$1\n$2")
+        .replace(/([^\n])(- Medicamento:)/g, "$1\n$2")
+        .replace(/([^\n])(- Posologia:)/g, "$1\n$2")
+        .replace(/([^\n])(- Duração:)/g, "$1\n$2")
+        .replace(/([^\n])(- Objetivo:)/g, "$1\n$2")
+        .replace(/([^\n])(- Retorno)/g, "$1\n$2")
+        .replace(/([^\n])(- Reavaliar)/g, "$1\n$2")
+        .replace(/([^\n])(- Critérios)/g, "$1\n$2")
+        .replace(/([^\n])(- Sinais de alerta)/g, "$1\n$2")
+        .replace(/([^\n])(- Metas)/g, "$1\n$2")
+        .replace(/([^\n])(- Higiene)/g, "$1\n$2")
+        .replace(/([^\n])(- Controle)/g, "$1\n$2")
+        .replace(/([^\n])(- Dieta)/g, "$1\n$2")
+
+        // Generic: any "- " bullet stuck to prior text (but NOT at start of string)
+        .replace(/([.)\]a-záéíóú])(- [A-Z])/g, "$1\n$2")
+
+        // STEP 6: Line break before numbered items (1. 2. 3.) stuck to prior text
+        .replace(/([.)\]a-záéíóú])(\d+\.\s+[A-Z])/g, "$1\n$2")
+
+        // STEP 7: Line break before "Normais:" in VALORES NORMAIS
+        .replace(/([^\n])(Normais:)/g, "$1\n$2")
+
+        // STEP 8: Line break before "Especialidade:" in encaminhamentos
+        .replace(/([.)\n])\s*(Especialidade:)/g, "$1\n$2")
+
+        // STEP 9: Remove markdown bold/italic/header symbols if AI accidentally included them
         .replace(/\*\*/g, "")
         .replace(/###\s*/g, "")
-        // Clean up multiple consecutive newlines (max 2)
+
+        // STEP 10: Clean up excessive newlines (max 2 consecutive)
         .replace(/\n{3,}/g, "\n\n")
+        // Remove leading/trailing whitespace on each line
+        .split('\n').map(line => line.trimEnd()).join('\n')
         .trim();
 
     return formatted;
@@ -454,6 +523,7 @@ const generateMedicalOpinionFlow = ai.defineFlow(
                 ...headerData,
                 examType: input.examType || 'Exame Clínico',
                 examResults: input.examResults,
+                patientHistory: input.patientHistory || '',
                 specialistReports,
             };
         } else {

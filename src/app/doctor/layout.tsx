@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 import DoctorSidebar from '@/components/layout/doctor-sidebar';
 import { getDoctorSettingsAction } from './actions';
 
@@ -9,6 +10,8 @@ export default function DoctorLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   useEffect(() => {
     async function initNotifications() {
       try {
@@ -38,10 +41,13 @@ export default function DoctorLayout({
   }, []);
 
   return (
-    <div className="doctor-layout bg-slate-50 dark:bg-slate-950 min-h-screen">
-      <DoctorSidebar />
+    <div className="doctor-layout bg-slate-50 dark:bg-slate-950 min-h-screen border-r">
+      <DoctorSidebar onCollapseChange={setSidebarCollapsed} />
       {/* Main Content Area: offset by sidebar width on desktop */}
-      <main className="md:ml-60 transition-all duration-300 min-h-screen">
+      <main className={cn(
+        "transition-all duration-300 min-h-screen",
+        sidebarCollapsed ? "md:ml-[72px]" : "md:ml-60"
+      )}>
         {children}
       </main>
     </div>

@@ -186,21 +186,62 @@ export async function getPatientMedicalContext(patientId: string) {
 
   const examSummary = allExams.map(e => {
     const statusTag = e.status === 'Requer Validação' ? '[PENDENTE DE VALIDAÇÃO MÉDICA]' : '[VALIDADO]';
-    return `${statusTag} ${e.type} (${e.date}):
+    let summary = `${statusTag} ${e.type} (${e.date}):
     - Diagnóstico Preliminar: ${e.preliminaryDiagnosis}
     - Explicação Técnica: ${e.explanation}
     - Sugestões Iniciais: ${e.suggestions}`;
+
+    // Include doctor notes from validated exams for cross-referencing
+    if (e.status === 'Validado' && e.doctorNotes) {
+      summary += `\n    - [PARECER MÉDICO VALIDADO]: ${e.doctorNotes}`;
+    }
+    if (e.finalExplanation) {
+      summary += `\n    - Explicação Final do Médico: ${e.finalExplanation}`;
+    }
+
+    return summary;
   }).join('\n\n');
 
   const consultationSummary = recentConsultations.map(c => `${c.date}: ${c.summary}`).join('\n');
+
+  // Include signed documents (prescriptions, reports) for cross-referencing
+  let signedDocsSummary = '';
+  try {
+    const signedDocs = await getSignedDocumentsForWellnessPlan(patientId);
+    if (signedDocs.length > 0) {
+      signedDocsSummary = signedDocs.map((doc, i) => {
+        return `Documento ${i + 1} (${doc.type} - ${doc.createdAt.toLocaleDateString('pt-BR')}):
+    - Título: ${doc.title || 'N/A'}
+    - Orientações: ${doc.instructions || 'N/A'}`;
+      }).join('\n\n');
+    }
+  } catch (e) {
+    // silently ignore if documents can't be fetched
+  }
+
+  // Calculate IMC if weight and height are available
+  let imcInfo = 'Não informado';
+  if (patient.weight && patient.height) {
+    const w = parseFloat(patient.weight.replace(',', '.'));
+    const h = parseFloat(patient.height.replace(',', '.'));
+    if (!isNaN(w) && !isNaN(h) && w > 0 && h > 0) {
+      const imc = w / ((h / 100) ** 2);
+      const imcLabel = imc < 18.5 ? 'Abaixo do Peso' : imc < 25 ? 'Peso Normal' : imc < 30 ? 'Sobrepeso' : imc < 35 ? 'Obesidade Grau I' : imc < 40 ? 'Obesidade Grau II' : 'Obesidade Grau III (Mórbida)';
+      imcInfo = `Peso: ${patient.weight}kg | Altura: ${patient.height}cm | IMC: ${imc.toFixed(1)} (${imcLabel})`;
+    }
+  }
 
   return {
     name: patient.name,
     age: patient.age,
     gender: patient.gender,
+    weight: patient.weight || 'Não informado',
+    height: patient.height || 'Não informado',
+    imc: imcInfo,
     reportedSymptoms: patient.reportedSymptoms || 'Não reportado',
     examResults: examSummary || 'Nenhum exame recente',
-    recentConsultations: consultationSummary || 'Nenhuma consulta recente'
+    recentConsultations: consultationSummary || 'Nenhuma consulta recente',
+    signedDocuments: signedDocsSummary || 'Nenhum documento assinado',
   };
 }
 

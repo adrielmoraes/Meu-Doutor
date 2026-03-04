@@ -51,7 +51,8 @@ export async function generateDocumentDraftAction(
       patientId,
       documentType,
       doctor,
-      patientContext
+      patientContext,
+      signedDocuments: patientContext.signedDocuments,
     });
 
     return { success: true, draft };

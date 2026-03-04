@@ -35,6 +35,8 @@ export const patients = pgTable('patients', {
   avatar: text('avatar').notNull(),
   avatarHint: text('avatar_hint'),
   gender: text('gender').notNull(),
+  weight: text('weight'), // Peso em kg (ex: "75.5")
+  height: text('height'), // Altura em cm (ex: "175")
   conversationHistory: text('conversation_history').default(''),
   reportedSymptoms: text('reported_symptoms').default(''),
   examResults: text('exam_results').default(''),

@@ -164,18 +164,67 @@ type ExamValidationState = {
   };
 };
 
-const getExamResultSeverity = (value: string) => {
+const getExamResultSeverity = (value: string, reference?: string) => {
   const val = value.toLowerCase();
-  const isAbnormal = val.includes('*') || val.includes('alto') || val.includes('baixo');
-  if (!isAbnormal) return null;
 
-  const isRed = val.includes('**') || val.includes('alto') || val.includes('crítico');
+  // 1. Explicit text markers for abnormality (fallback/override)
+  const isRedText = val.includes('**') || val.includes('crítico');
+  const isAmberText = val.includes('*') || val.includes('alto') || val.includes('baixo') || val.includes('reagente') || val.includes('positivo');
+  const isNormalText = val.includes('normal') || val.includes('não reagente') || val.includes('negativo') || val.includes('ausente');
+
+  let isAbnormal = isRedText || isAmberText;
+  let isRed = isRedText;
+
+  // 2. Numerical parsing and comparison against reference range
+  if (!isAbnormal && !isNormalText && reference) {
+    // Extract the main number from the result value (e.g., "45,20 mg/dL" -> 45.20)
+    const valMatch = value.match(/(-?\d+(?:[.,]\d+)?)/);
+
+    if (valMatch) {
+      const numValue = parseFloat(valMatch[0].replace(',', '.'));
+
+      // Try to extract min and max from the reference string
+      // Common formats: "70 a 99", "10 - 20", "Até 200", "> 50", "< 150", "De 0,60 a 1,20"
+      const refStr = reference.toLowerCase().replace(/,/g, '.');
+      const numbers = [...refStr.matchAll(/(-?\d+(?:\.\d+)?)/g)].map(m => parseFloat(m[0]));
+
+      if (numbers.length >= 2 && refStr.match(/(a|até|-|e|to)/)) {
+        // Range: min to max
+        const min = Math.min(numbers[0], numbers[1]);
+        const max = Math.max(numbers[0], numbers[1]);
+
+        if (numValue < min || numValue > max) {
+          isAbnormal = true;
+          // Determine if it's way out of bounds (arbitrary >20% deviation for red)
+          const range = max - min;
+          if (numValue > max + (range * 0.2) || numValue < min - (range * 0.2)) {
+            isRed = true;
+          }
+        }
+      } else if (numbers.length === 1) {
+        // Single threshold: "< 200", "> 50", "Até 100", "Inferior a 5"
+        const refNum = numbers[0];
+        const isLessThanTarget = refStr.includes('<') || refStr.includes('até') || refStr.includes('inferior') || refStr.includes('menor');
+        const isGreaterThanTarget = refStr.includes('>') || refStr.includes('acima') || refStr.includes('superior') || refStr.includes('maior');
+
+        if (isLessThanTarget && numValue > refNum) {
+          isAbnormal = true;
+          if (numValue > refNum * 1.2) isRed = true; // >20% above max limit
+        } else if (isGreaterThanTarget && numValue < refNum) {
+          isAbnormal = true;
+          if (numValue < refNum * 0.8) isRed = true; // >20% below min limit
+        }
+      }
+    }
+  }
+
+  if (!isAbnormal) return null;
 
   if (isRed) {
     return {
       container: 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 border-l-4 border-l-rose-500',
       indicator: 'bg-rose-500',
-      nameText: 'text-rose-900 ml-2',
+      nameText: 'text-rose-900',
       valueText: 'text-rose-600',
       icon: 'text-rose-500',
       trendBg: 'bg-rose-100',
@@ -185,7 +234,7 @@ const getExamResultSeverity = (value: string) => {
     return {
       container: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 border-l-4 border-l-amber-500',
       indicator: 'bg-amber-500',
-      nameText: 'text-amber-900 ml-2',
+      nameText: 'text-amber-900',
       valueText: 'text-amber-600',
       icon: 'text-amber-500',
       trendBg: 'bg-amber-100',
@@ -264,12 +313,32 @@ export default function PatientDetailView({
 
       let examResults = examToAnalyze.preliminaryDiagnosis + "\n\n" + examToAnalyze.explanation;
       let allFindings = examToAnalyze.specialistFindings || [];
+      let enrichedHistory = summary || '';
 
-      // Se Global, consolida dados de TODOS os exames do paciente
-      if (scope === 'global') {
+      if (scope === 'specific') {
+        // CRUZAMENTO DE DADOS: incluir resumo dos outros exames para correlação
+        const otherExams = exams.filter(e => e.id !== examId && (e.preliminaryDiagnosis || e.explanation));
+        if (otherExams.length > 0) {
+          const otherExamsSummary = otherExams.map(e => {
+            let desc = `- ${e.type} (${e.status}): ${e.preliminaryDiagnosis || 'Sem diagnóstico'}`;
+            if (e.status === 'Validado' && e.doctorNotes) {
+              desc += `\n  PARECER MÉDICO VALIDADO: ${e.doctorNotes}`;
+            }
+            return desc;
+          }).join('\n');
+          enrichedHistory += `\n\nOUTROS EXAMES DO PACIENTE (para correlação clínica):\n${otherExamsSummary}`;
+        }
+      } else {
+        // Global: consolida dados de TODOS os exames com notas médicas
         const allExamResults = exams
           .filter(e => e.preliminaryDiagnosis || e.explanation)
-          .map(e => `--- ${e.type} ---\n${e.preliminaryDiagnosis || ''}\n${e.explanation || ''}`)
+          .map(e => {
+            let desc = `--- ${e.type} (${e.status}) ---\n${e.preliminaryDiagnosis || ''}\n${e.explanation || ''}`;
+            if (e.status === 'Validado' && e.doctorNotes) {
+              desc += `\n\n[PARECER MÉDICO VALIDADO]:\n${e.doctorNotes}`;
+            }
+            return desc;
+          })
           .join('\n\n');
         examResults = allExamResults || examResults;
 
@@ -278,15 +347,29 @@ export default function PatientDetailView({
           .filter(Boolean);
       }
 
+      // Build IMC info string
+      let patientIMC: string | undefined;
+      if (patient.weight && patient.height) {
+        const w = parseFloat(patient.weight.replace(',', '.'));
+        const h = parseFloat(patient.height.replace(',', '.'));
+        if (!isNaN(w) && !isNaN(h) && w > 0 && h > 0) {
+          const imc = w / ((h / 100) ** 2);
+          const imcLabel = imc < 18.5 ? 'Abaixo do Peso' : imc < 25 ? 'Peso Normal' : imc < 30 ? 'Sobrepeso' : imc < 35 ? 'Obesidade Grau I' : imc < 40 ? 'Obesidade Grau II' : 'Obesidade Grau III (Mórbida)';
+          patientIMC = `Peso: ${patient.weight}kg | Altura: ${patient.height}cm | IMC: ${imc.toFixed(1)} (${imcLabel})`;
+        }
+      }
+
       const result = await generateMedicalOpinion({
         patientId: patient.id,
         patientName: patient.name,
         patientAge: patient.age,
         patientGender: patient.gender,
+        patientIMC,
+        patientSymptoms: patient.reportedSymptoms || undefined,
         doctorName: doctor.name,
         doctorCrm: doctor.crm,
         doctorSpecialty: doctor.specialty,
-        patientHistory: summary,
+        patientHistory: enrichedHistory,
         examType: examToAnalyze.type,
         examResults,
         analysisScope: scope,
@@ -393,6 +476,44 @@ export default function PatientDetailView({
             <CardDescription className="text-slate-500 dark:text-slate-400 text-lg mt-1 font-medium break-words">
               {patient.age} anos • {patient.gender} • Última Interação: {patient.lastVisit}
             </CardDescription>
+            {/* Dados Antropométricos - Peso, Altura, IMC */}
+            {(patient.weight || patient.height) && (() => {
+              const w = parseFloat((patient.weight || '').replace(',', '.'));
+              const h = parseFloat((patient.height || '').replace(',', '.'));
+              const hasIMC = !isNaN(w) && !isNaN(h) && w > 0 && h > 0;
+              const imc = hasIMC ? w / ((h / 100) ** 2) : 0;
+              const imcLabel = imc < 18.5 ? 'Abaixo do Peso' : imc < 25 ? 'Peso Normal' : imc < 30 ? 'Sobrepeso' : imc < 35 ? 'Obesidade I' : imc < 40 ? 'Obesidade II' : 'Obesidade III';
+              const imcColor = imc < 18.5 ? 'text-amber-600 bg-amber-50 border-amber-200' : imc < 25 ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : imc < 30 ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-red-600 bg-red-50 border-red-200';
+              return (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {patient.weight && (
+                    <Badge variant="outline" className="text-xs font-semibold border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50">
+                      Peso: {patient.weight} kg
+                    </Badge>
+                  )}
+                  {patient.height && (
+                    <Badge variant="outline" className="text-xs font-semibold border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50">
+                      Altura: {patient.height} cm
+                    </Badge>
+                  )}
+                  {hasIMC && (
+                    <Badge variant="outline" className={`text-xs font-bold border ${imcColor}`}>
+                      IMC: {imc.toFixed(1)} — {imcLabel}
+                    </Badge>
+                  )}
+                </div>
+              );
+            })()}
+            {/* Alerta de Queixas Recentes */}
+            {patient.reportedSymptoms && patient.reportedSymptoms.trim() && (
+              <div className="mt-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200">
+                <p className="text-xs font-bold uppercase tracking-wide mb-1 flex items-center gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  Queixas Relatadas pelo Paciente
+                </p>
+                <p className="text-sm leading-relaxed">{patient.reportedSymptoms}</p>
+              </div>
+            )}
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
             <SoapEvolutionModal patientId={patient.id} patientName={patient.name} />

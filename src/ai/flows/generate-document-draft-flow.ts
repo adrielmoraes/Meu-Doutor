@@ -22,6 +22,7 @@ const GenerateDocumentDraftInputSchema = z.object({
     }),
     currentDate: z.string().optional(),
     currentTime: z.string().optional(),
+    signedDocuments: z.string().optional().describe('Resumo de documentos médicos assinados anteriores (receitas, laudos, atestados)'),
 });
 
 const GenerateDocumentDraftOutputSchema = z.object({
@@ -53,6 +54,12 @@ DIRETRIZES DE ANÁLISE (CRÍTICO):
 1. PRIORIZE EXAMES [PENDENTE DE VALIDAÇÃO MÉDICA]: Use as "Sugestões Iniciais" desses exames para basear suas recomendações de medicamentos e condutas.
 2. CORRELAÇÃO CLÍNICA: Formule o documento correlacionando os sintomas relatados com os achados dos exames.
 3. SEGURANÇA: Seja preciso nas dosagens e frequências usuais.
+4. CRUZAMENTO DE DADOS: Se houver documentos médicos anteriores, verifique consistência e evite prescrições conflitantes.
+
+{{#if signedDocuments}}
+DOCUMENTOS MÉDICOS ANTERIORES (para referência e cruzamento):
+{{signedDocuments}}
+{{/if}}
 
 CABEÇALHO OBRIGATÓRIO (TODOS OS DOCUMENTOS):
 O campo 'instructions' **DEVE** começar rigorosamente com este cabeçalho formatado em Markdown:
@@ -103,6 +110,7 @@ export const generateDocumentDraftFlow = ai.defineFlow(
             ...input,
             currentDate: input.currentDate || new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
             currentTime: input.currentTime || new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }),
+            signedDocuments: input.signedDocuments || (input.patientContext as any)?.signedDocuments || '',
         };
 
         const result = await generateDocumentDraftPrompt(enhancedInput as any);

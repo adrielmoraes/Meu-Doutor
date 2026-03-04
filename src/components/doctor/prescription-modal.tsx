@@ -435,7 +435,7 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                     </SelectTrigger>
                                     <SelectContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-50 shadow-md">
                                         {patients.map(p => (
-                                            <SelectItem key={p.id} value={p.id} className="hover:bg-slate-50 dark:bg-slate-950 focus:bg-slate-50 dark:bg-slate-950 cursor-pointer">
+                                            <SelectItem key={p.id} value={p.id} className="hover:bg-slate-50 hover:text-slate-900 focus:bg-slate-50 focus:text-slate-900 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-950 dark:focus:bg-slate-950 cursor-pointer">
                                                 {p.name}
                                             </SelectItem>
                                         ))}
@@ -450,11 +450,11 @@ export default function PrescriptionModal({ doctor, patients, initialPatientId, 
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-50 shadow-md">
-                                        <SelectItem value="receita">Receita Médica (Interna)</SelectItem>
-                                        <SelectItem value="memed" className="text-blue-600 font-bold">💊 Prescrição Digital Memed</SelectItem>
-                                        <SelectItem value="atestado">Atestado Médico</SelectItem>
-                                        <SelectItem value="laudo">Laudo Clínico</SelectItem>
-                                        <SelectItem value="outro">Outro Documento</SelectItem>
+                                        <SelectItem value="receita" className="hover:bg-slate-50 hover:text-slate-900 focus:bg-slate-50 focus:text-slate-900 dark:text-slate-100">Receita Médica (Interna)</SelectItem>
+                                        <SelectItem value="memed" className="hover:bg-slate-50 focus:bg-slate-50 text-blue-600 dark:text-blue-400 font-bold focus:text-blue-700">💊 Prescrição Digital Memed</SelectItem>
+                                        <SelectItem value="atestado" className="hover:bg-slate-50 hover:text-slate-900 focus:bg-slate-50 focus:text-slate-900 dark:text-slate-100">Atestado Médico</SelectItem>
+                                        <SelectItem value="laudo" className="hover:bg-slate-50 hover:text-slate-900 focus:bg-slate-50 focus:text-slate-900 dark:text-slate-100">Laudo Clínico</SelectItem>
+                                        <SelectItem value="outro" className="hover:bg-slate-50 hover:text-slate-900 focus:bg-slate-50 focus:text-slate-900 dark:text-slate-100">Outro Documento</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

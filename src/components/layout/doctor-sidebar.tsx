@@ -19,7 +19,7 @@ const NAV_ITEMS = [
   { href: '/doctor/settings', label: 'Configurações', icon: Settings },
 ];
 
-export default function DoctorSidebar() {
+export default function DoctorSidebar({ onCollapseChange }: { onCollapseChange?: (collapsed: boolean) => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -92,7 +92,11 @@ export default function DoctorSidebar() {
       {/* Footer */}
       <div className="border-t border-slate-100 dark:border-slate-800 px-3 py-4 space-y-1 shrink-0">
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={() => {
+            const newState = !collapsed;
+            setCollapsed(newState);
+            if (onCollapseChange) onCollapseChange(newState);
+          }}
           className={cn(
             "hidden md:flex items-center gap-3 w-full rounded-xl text-slate-400 dark:text-slate-500 dark:text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-200 min-h-[44px]",
             collapsed ? "justify-center px-3 py-3" : "px-4 py-3"

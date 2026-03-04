@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useLiveKitWarmup } from '@/hooks/use-livekit-warmup';
 import IncomingCallBanner from './incoming-call-banner';
 import PrivacyConsentManager from './privacy-consent-manager'; // Import component
+import HealthCheckinCard from './health-checkin-card';
 
 
 
@@ -313,6 +314,16 @@ export default function PatientDashboardImproved({ patient, examCount = 0, upcom
                 </div>
               </CardContent>
             </Card>
+
+            {/* Health Check-in Card */}
+            <div className="mt-6">
+              <HealthCheckinCard
+                patientId={patient.id}
+                initialWeight={patient.weight}
+                initialHeight={patient.height}
+                initialSymptoms={patient.reportedSymptoms || ''}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="exams" className="space-y-6 mt-6">
