@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Play, Pause, Headphones, Loader2, Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
-// Certifique-se que estas actions existem e apontam para a função 'generateHealthPodcast'
 import { generatePodcastAction, getPodcastAction } from '@/components/patient/actions';
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -31,12 +30,76 @@ export default function HealthPodcastPage() {
     ];
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const pollingRef = useRef<NodeJS.Timeout | null>(null);
+    const isPollingRef = useRef(false);
     const { toast } = useToast();
 
-    // Função para carregar podcasts
-    const loadPodcasts = async () => {
+    // Função de polling estável que não depende de state no useEffect
+    const pollPodcastStatus = useCallback(async () => {
+        if (isPollingRef.current) return; // Evitar chamadas sobrepostas
+        isPollingRef.current = true;
+
         try {
-            // Obter sessão atual
+            const session = await getSessionOnClient();
+            if (!session?.userId) return;
+
+            const result = await getPodcastAction(session.userId);
+            console.log('[Podcast Poll] Status:', result.latestPodcast?.status);
+
+            if (result.success && result.latestPodcast) {
+                if (result.latestPodcast.status === 'completed' || !result.latestPodcast.status) {
+                    // Podcast concluído! Parar polling e atualizar UI
+                    stopPolling();
+                    setIsLoading(false);
+                    setAudioUrl(result.latestPodcast.audioUrl);
+                    setPodcastDate(result.latestPodcast.generatedAt || null);
+                    setHasNewExams(!!result.hasNewExams);
+                    if (result.history) setPodcastHistory(result.history);
+                    toast({
+                        title: "Podcast Pronto! 🎧",
+                        description: "Seu episódio personalizado está pronto para ouvir.",
+                        className: "bg-green-500 text-white border-none"
+                    });
+                } else if (result.latestPodcast.status === 'failed') {
+                    // Podcast falhou, parar polling
+                    stopPolling();
+                    setIsLoading(false);
+                    setHasNewExams(true); // Permitir tentar novamente
+                    toast({
+                        variant: "destructive",
+                        title: "Erro na geração",
+                        description: "Houve um problema ao gerar o podcast. Tente novamente.",
+                    });
+                }
+                // Se status === 'processing', o polling continua automaticamente
+            }
+        } catch (error) {
+            console.error('[Podcast Poll] Error:', error);
+        } finally {
+            isPollingRef.current = false;
+        }
+    }, [toast]);
+
+    const startPolling = useCallback(() => {
+        // Limpar qualquer polling anterior
+        if (pollingRef.current) clearInterval(pollingRef.current);
+        console.log('[Podcast Poll] Iniciando polling a cada 8s...');
+        pollingRef.current = setInterval(() => {
+            pollPodcastStatus();
+        }, 8000);
+    }, [pollPodcastStatus]);
+
+    const stopPolling = useCallback(() => {
+        if (pollingRef.current) {
+            console.log('[Podcast Poll] Parando polling.');
+            clearInterval(pollingRef.current);
+            pollingRef.current = null;
+        }
+    }, []);
+
+    // Função para carregar podcasts na montagem inicial
+    const loadPodcasts = useCallback(async () => {
+        try {
             const session = await getSessionOnClient();
 
             if (!session?.userId) {
@@ -44,30 +107,26 @@ export default function HealthPodcastPage() {
                 return;
             }
 
-            // Buscar podcast salvo
             const result = await getPodcastAction(session.userId);
 
             if (result.success && result.latestPodcast) {
-                // Verificar status
                 if (result.latestPodcast.status === 'processing') {
+                    // Podcast em geração — ativar loading e iniciar polling
                     setIsLoading(true);
                     setAudioUrl(null);
+                    startPolling();
                 } else if (result.latestPodcast.status === 'completed' || !result.latestPodcast.status) {
                     setIsLoading(false);
                     setAudioUrl(result.latestPodcast.audioUrl);
                     setPodcastDate(result.latestPodcast.generatedAt || null);
                 } else if (result.latestPodcast.status === 'failed') {
                     setIsLoading(false);
-                    setHasNewExams(true); // Permitir tentar novamente
+                    setHasNewExams(true);
                 }
 
-                // Lógica para verificar se há novos exames desde o último podcast
                 setHasNewExams(!!result.hasNewExams);
-                if (result.history) {
-                    setPodcastHistory(result.history);
-                }
+                if (result.history) setPodcastHistory(result.history);
             } else {
-                // Sem podcast, habilitar geração
                 setHasNewExams(true);
                 setIsLoading(false);
             }
@@ -77,25 +136,13 @@ export default function HealthPodcastPage() {
         } finally {
             setIsLoadingExisting(false);
         }
-    };
+    }, [startPolling]);
 
-    // Polling para verificar status quando estiver carregando
-    useEffect(() => {
-        let interval: NodeJS.Timeout;
-        if (isLoading) {
-            interval = setInterval(() => {
-                loadPodcasts();
-            }, 10000); // Verificar a cada 10 segundos
-        }
-        return () => {
-            if (interval) clearInterval(interval);
-        };
-    }, [isLoading]);
-
-    // Carregar podcast existente ao montar
+    // Carregar podcast existente ao montar e limpar polling ao desmontar
     useEffect(() => {
         loadPodcasts();
-    }, []);
+        return () => stopPolling();
+    }, [loadPodcasts, stopPolling]);
 
     const formatTime = (time: number) => {
         const minutes = Math.floor(time / 60);
@@ -115,21 +162,18 @@ export default function HealthPodcastPage() {
                 throw new Error('Usuário não autenticado');
             }
 
-            // Chama Server Action que internamente chama 'generateHealthPodcast'
             const result = await generatePodcastAction(userId);
 
             if (result.success) {
                 if (result.status === 'processing') {
-                    setIsLoading(true);
                     toast({
                         title: "Geração Iniciada",
                         description: "Você pode sair desta tela. O podcast continuará sendo gerado em segundo plano.",
                         className: "bg-blue-500 text-white border-none"
                     });
-                    // Atualiza estado local
-                    await loadPodcasts();
+                    // Iniciar polling estável
+                    startPolling();
                 } else if (result.audioUrl) {
-                    // Fallback para caso síncrono (não deve ocorrer com a mudança atual, mas bom manter)
                     await loadPodcasts();
                     setIsPlaying(false);
                     toast({
@@ -144,6 +188,7 @@ export default function HealthPodcastPage() {
         } catch (error: any) {
             console.error(error);
             setIsLoading(false);
+            stopPolling();
             toast({
                 variant: "destructive",
                 title: "Não foi possível gerar",
@@ -359,20 +404,19 @@ export default function HealthPodcastPage() {
                                             // Simulação de visualização baseada no progresso
                                             const progress = duration > 0 ? currentTime / duration : 0;
                                             const isActive = i / 40 <= progress;
-                                            
+
                                             // Altura aleatória para simular onda, mas consistente
-                                            const baseHeight = 20 + Math.random() * 40; 
+                                            const baseHeight = 20 + Math.random() * 40;
                                             // Animação quando tocando
                                             const animationDelay = `${i * 0.05}s`;
-                                            
+
                                             return (
                                                 <div
                                                     key={i}
-                                                    className={`w-1.5 rounded-full transition-all duration-300 ${
-                                                        isActive 
-                                                            ? 'bg-gradient-to-t from-purple-600 to-pink-500 dark:from-cyan-500 dark:to-blue-500' 
-                                                            : 'bg-slate-200 dark:bg-slate-700'
-                                                    } ${isPlaying ? 'animate-music-bar' : ''}`}
+                                                    className={`w-1.5 rounded-full transition-all duration-300 ${isActive
+                                                        ? 'bg-gradient-to-t from-purple-600 to-pink-500 dark:from-cyan-500 dark:to-blue-500'
+                                                        : 'bg-slate-200 dark:bg-slate-700'
+                                                        } ${isPlaying ? 'animate-music-bar' : ''}`}
                                                     style={{
                                                         height: isPlaying ? `${Math.max(20, Math.random() * 80)}%` : `${30 + Math.sin(i * 0.5) * 20}%`,
                                                         animationDelay: isPlaying ? `-${Math.random()}s` : '0s',
@@ -385,7 +429,7 @@ export default function HealthPodcastPage() {
 
                                     {/* Barra de Progresso Interativa */}
                                     <div className="flex flex-col gap-2">
-                                        <div 
+                                        <div
                                             className="w-full h-2 bg-slate-100 rounded-full dark:bg-slate-800 cursor-pointer relative group"
                                             onClick={(e) => {
                                                 if (audioRef.current && duration) {
@@ -395,14 +439,14 @@ export default function HealthPodcastPage() {
                                                 }
                                             }}
                                         >
-                                            <div 
+                                            <div
                                                 className="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-500 to-pink-500 dark:from-cyan-500 dark:to-blue-600 rounded-full transition-all duration-100"
                                                 style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
                                             >
                                                 <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-pink-500 dark:border-cyan-500 rounded-full shadow-lg scale-0 group-hover:scale-100 transition-transform" />
                                             </div>
                                         </div>
-                                        
+
                                         <div className="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
                                             <span>{formatTime(currentTime)}</span>
                                             <span>{formatTime(duration)}</span>
@@ -489,7 +533,7 @@ export default function HealthPodcastPage() {
                         </div>
                     )}
                 </div>
-                
+
                 {/* Elemento de Áudio Oculto */}
                 <audio
                     ref={audioRef}

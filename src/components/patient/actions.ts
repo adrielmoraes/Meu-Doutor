@@ -483,7 +483,8 @@ export async function getPodcastAction(patientId: string): Promise<{
             .orderBy(desc(healthPodcasts.generatedAt));
 
         const latestPodcastRecord = podcasts[0];
-        const history = podcasts; // Include all podcasts in history, including the latest one
+        // Filtrar histórico para mostrar apenas podcasts concluídos
+        const completedPodcasts = podcasts.filter(p => (p.status || 'completed') === 'completed' && p.audioUrl);
 
         // Get latest exam
         const latestExams = await db
@@ -504,19 +505,21 @@ export async function getPodcastAction(patientId: string): Promise<{
             };
         }
 
-        // Check if there are new exams since last podcast
-        const hasNewExams = latestExam &&
-            new Date(latestExam.createdAt) > new Date(latestPodcastRecord.generatedAt);
+        // Check if there are new exams since last completed podcast
+        const lastCompleted = completedPodcasts[0];
+        const hasNewExams = latestExam && lastCompleted
+            ? new Date(latestExam.createdAt) > new Date(lastCompleted.generatedAt)
+            : !!latestExam;
 
         return {
             success: true,
             latestPodcast: {
                 id: latestPodcastRecord.id,
                 audioUrl: latestPodcastRecord.audioUrl,
-                status: latestPodcastRecord.status || 'completed', // Fallback for old records
+                status: latestPodcastRecord.status || 'completed',
                 generatedAt: latestPodcastRecord.generatedAt.toISOString()
             },
-            history: history.map(p => ({
+            history: completedPodcasts.map(p => ({
                 id: p.id,
                 audioUrl: p.audioUrl,
                 status: p.status || 'completed',
