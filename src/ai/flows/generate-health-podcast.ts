@@ -261,7 +261,7 @@ async function generateAudio(scriptItems: { speaker: string; text: string }[]): 
     // 1. Agrupar falas consecutivas do mesmo speaker para reduzir chamadas
     // e aplicar limite de tamanho por chunk
     const chunks: { speaker: string; text: string }[] = [];
-    const MAX_CHUNK_LENGTH = 800; 
+    const MAX_CHUNK_LENGTH = 800;
 
     let currentSpeaker = "";
     let currentBuffer = "";
@@ -270,11 +270,11 @@ async function generateAudio(scriptItems: { speaker: string; text: string }[]): 
         // Se mudou o speaker, fecha o chunk anterior
         if (item.speaker !== currentSpeaker && currentSpeaker !== "") {
             if (currentBuffer.trim()) {
-                 chunks.push({ speaker: currentSpeaker, text: currentBuffer.trim() });
+                chunks.push({ speaker: currentSpeaker, text: currentBuffer.trim() });
             }
             currentSpeaker = item.speaker;
             currentBuffer = item.text;
-        } 
+        }
         // Se o speaker é o mesmo, verifica se estourou o limite
         else if ((currentBuffer + " " + item.text).length > MAX_CHUNK_LENGTH) {
             if (currentBuffer.trim()) {
@@ -302,7 +302,7 @@ async function generateAudio(scriptItems: { speaker: string; text: string }[]): 
     for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
         let chunkSuccess = false;
-        
+
         // Definir voz baseada no speaker
         // Nathália (Host) -> Aoede (Feminina)
         // Dr. Daniel (Especialista) -> Puck (Masculina)
@@ -329,7 +329,7 @@ async function generateAudio(scriptItems: { speaker: string; text: string }[]): 
                             },
                         ],
                         generationConfig: {
-                            responseModalities: ["audio"],
+                            responseModalities: ["AUDIO"],
                             speechConfig: {
                                 voiceConfig: {
                                     prebuiltVoiceConfig: { voiceName: voiceName },
@@ -347,9 +347,9 @@ async function generateAudio(scriptItems: { speaker: string; text: string }[]): 
                 }
 
                 const data = await response.json();
-                
+
                 const inlineData = data.candidates?.[0]?.content?.parts?.[0]?.inlineData;
-                
+
                 if (!inlineData?.data) {
                     throw new PodcastGenerationError(
                         "Nenhum áudio retornado pelo modelo",
@@ -378,7 +378,7 @@ async function generateAudio(scriptItems: { speaker: string; text: string }[]): 
                 }
             }
         }
-        
+
         if (!chunkSuccess) {
             throw lastError || new Error(`Falha ao gerar chunk ${i + 1}`);
         }
@@ -387,7 +387,7 @@ async function generateAudio(scriptItems: { speaker: string; text: string }[]): 
     // Concatenar todos os buffers PCM
     const totalRawAudio = Buffer.concat(audioBuffers);
     const wavHeader = createWavHeader(totalRawAudio.length, TTS_CONFIG);
-    
+
     return Buffer.concat([wavHeader, totalRawAudio]);
 }
 
@@ -460,22 +460,22 @@ const healthPodcastFlow = ai.defineFlow(
         }
 
         // 3. Preparar texto formatado
-    const minLines = Math.max(5, Math.floor(context.targetLines * 0.5));
-    // Aumentar margem de segurança para garantir que o final não seja cortado
-    const maxLines = Math.ceil(context.targetLines * 1.2) + 5; 
-    // Aumentado significativamente para evitar cortes em explicações médicas
-    const maxLineChars = 1000; 
+        const minLines = Math.max(5, Math.floor(context.targetLines * 0.5));
+        // Aumentar margem de segurança para garantir que o final não seja cortado
+        const maxLines = Math.ceil(context.targetLines * 1.2) + 5;
+        // Aumentado significativamente para evitar cortes em explicações médicas
+        const maxLineChars = 1000;
 
-    const cleanedScript = output.script.map((s) => ({
-        speaker: s.speaker,
-        text: s.text.replace(/\s+/g, " ").trim(),
-    }));
+        const cleanedScript = output.script.map((s) => ({
+            speaker: s.speaker,
+            text: s.text.replace(/\s+/g, " ").trim(),
+        }));
 
-    const limitedScript = cleanedScript.slice(0, maxLines).map((s) => ({
-        speaker: s.speaker,
-        // Usar truncate apenas como safeguard extremo, não como regra de formatação
-        text: truncateText(s.text, maxLineChars),
-    }));
+        const limitedScript = cleanedScript.slice(0, maxLines).map((s) => ({
+            speaker: s.speaker,
+            // Usar truncate apenas como safeguard extremo, não como regra de formatação
+            text: truncateText(s.text, maxLineChars),
+        }));
 
         if (limitedScript.length < minLines) {
             throw new PodcastGenerationError(
