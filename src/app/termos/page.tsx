@@ -40,29 +40,30 @@ export default function TermosPage() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-[#070e24] to-slate-950 text-white">
       <Header />
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative w-full py-20 md:py-32 overflow-hidden">
+        <section className="relative w-full py-16 md:py-24 overflow-hidden border-b border-white/10">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
           <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
+          <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse pointer-events-none"></div>
 
           <div className="container px-4 md:px-6 relative z-10">
             <div className="max-w-4xl mx-auto text-center space-y-6">
-              <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center mb-6">
-                <FileText className="h-10 w-10 text-cyan-400" />
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mb-4">
+                <FileText className="h-8 w-8 text-cyan-400" />
               </div>
-              <h1 className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold bg-gradient-to-r from-white via-cyan-100 to-blue-200 bg-clip-text text-transparent">
                 Termos de Uso
               </h1>
-              <p className="text-xl md:text-2xl text-blue-200/80 leading-relaxed">
-                Condições legais para uso da plataforma MediAI
+              <p className="text-lg md:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto">
+                Condições gerais e diretrizes legais para utilização da plataforma MediAI
               </p>
-              <p className="text-sm text-blue-300/60">
-                Última atualização: {LAST_UPDATED}
-              </p>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-slate-400">
+                <span>Última atualização: {LAST_UPDATED}</span>
+              </div>
             </div>
           </div>
         </section>
@@ -72,25 +73,25 @@ export default function TermosPage() {
             {/* Table of Contents - Sticky Sidebar */}
             <aside className="lg:col-span-1">
               <div className="sticky top-24">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
-                  <CardContent className="p-6">
-                    <h2 className="text-lg font-bold text-cyan-300 mb-4 flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Índice
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-xl">
+                  <CardContent className="p-5">
+                    <h2 className="text-base font-bold text-cyan-300 mb-4 flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Índice do Documento
                     </h2>
-                    <nav className="space-y-2">
+                    <nav className="space-y-1.5">
                       {sections.map((section) => (
                         <button
                           key={section.id}
                           onClick={() => scrollToSection(section.id)}
-                          className={`w-full text-left text-sm py-2 px-3 rounded-lg transition-all duration-200 flex items-center gap-2 ${
+                          className={`w-full text-left text-xs sm:text-sm py-2 px-3 rounded-xl transition-all duration-200 flex items-center gap-2 ${
                             activeSection === section.id
-                              ? "bg-cyan-500/20 text-cyan-300 font-semibold"
-                              : "text-blue-200/70 hover:bg-cyan-500/10 hover:text-cyan-300"
+                              ? "bg-cyan-500/15 text-cyan-300 font-semibold border border-cyan-500/30"
+                              : "text-slate-400 hover:bg-white/5 hover:text-white"
                           }`}
                         >
-                          <ChevronRight className="h-4 w-4 flex-shrink-0" />
-                          <span className="line-clamp-2">{section.title}</span>
+                          <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span className="line-clamp-1">{section.title}</span>
                         </button>
                       ))}
                     </nav>
@@ -103,7 +104,7 @@ export default function TermosPage() {
             <div className="lg:col-span-3 space-y-8">
               {/* Aceitação */}
               <section id="aceitacao">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">1. Aceitação dos Termos</h2>
                     <p className="text-blue-100/80 leading-relaxed">
@@ -129,7 +130,7 @@ export default function TermosPage() {
 
               {/* Definições */}
               <section id="definicoes">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">2. Definições</h2>
                     <div className="space-y-3">
@@ -160,7 +161,7 @@ export default function TermosPage() {
 
               {/* Descrição dos Serviços */}
               <section id="descricao-servicos">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">3. Descrição dos Serviços</h2>
                     <p className="text-blue-100/80 leading-relaxed">
@@ -258,7 +259,7 @@ export default function TermosPage() {
 
               {/* Cadastro */}
               <section id="cadastro">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">5. Cadastro e Conta</h2>
 
@@ -291,7 +292,7 @@ export default function TermosPage() {
 
               {/* Responsabilidades do Usuário */}
               <section id="responsabilidades-usuario">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">6. Responsabilidades do Usuário</h2>
 
@@ -328,7 +329,7 @@ export default function TermosPage() {
 
               {/* Responsabilidades da Plataforma */}
               <section id="responsabilidades-plataforma">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">7. Responsabilidades da Plataforma</h2>
 
@@ -360,7 +361,7 @@ export default function TermosPage() {
 
               {/* Assinaturas e Pagamentos */}
               <section id="assinaturas">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4 flex items-center gap-3">
                       <CreditCard className="h-8 w-8" />
@@ -409,7 +410,7 @@ export default function TermosPage() {
 
               {/* Cancelamento e Reembolso */}
               <section id="cancelamento">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">9. Cancelamento e Reembolso</h2>
 
@@ -452,7 +453,7 @@ export default function TermosPage() {
 
               {/* Propriedade Intelectual */}
               <section id="propriedade-intelectual">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">10. Propriedade Intelectual</h2>
 
@@ -491,7 +492,7 @@ export default function TermosPage() {
 
               {/* Limitações de Responsabilidade */}
               <section id="limitacoes">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">11. Limitações de Responsabilidade</h2>
 
@@ -543,7 +544,7 @@ export default function TermosPage() {
 
               {/* Privacidade */}
               <section id="privacidade">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4 flex items-center gap-3">
                       <Shield className="h-8 w-8" />
@@ -575,7 +576,7 @@ export default function TermosPage() {
 
               {/* Modificações */}
               <section id="modificacoes">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">13. Modificações nos Termos</h2>
 
@@ -600,7 +601,7 @@ export default function TermosPage() {
 
               {/* Rescisão */}
               <section id="rescisao">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">14. Rescisão e Suspensão</h2>
 
@@ -632,7 +633,7 @@ export default function TermosPage() {
 
               {/* Lei Aplicável */}
               <section id="lei-aplicavel">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">15. Lei Aplicável e Jurisdição</h2>
 
@@ -660,27 +661,27 @@ export default function TermosPage() {
 
               {/* Contato */}
               <section id="contato">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20 shadow-2xl">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">16. Contato</h2>
 
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Para dúvidas, sugestões ou reclamações sobre estes Termos de Uso:
+                    <p className="text-slate-300 leading-relaxed">
+                      Para dúvidas, sugestões ou solicitações sobre estes Termos de Uso:
                     </p>
 
                     <div className="grid md:grid-cols-2 gap-6 mt-6">
-                      <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6">
+                      <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-2xl p-6">
                         <h3 className="font-semibold text-cyan-300 mb-4">Contato Geral</h3>
-                        <div className="space-y-2 text-blue-100/80 text-sm">
+                        <div className="space-y-2 text-slate-300 text-sm">
                           <p><strong>Email:</strong> <a href="mailto:contato@appmediai.com" className="text-cyan-400 hover:text-cyan-300">contato@appmediai.com</a></p>
                           <p><strong>Suporte:</strong> <a href="mailto:suporte@appmediai.com" className="text-cyan-400 hover:text-cyan-300">suporte@appmediai.com</a></p>
                           <p><strong>Telefone:</strong> (91) 99390-5869</p>
                         </div>
                       </div>
 
-                      <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-6">
+                      <div className="bg-purple-500/10 border border-purple-500/20 rounded-2xl p-6">
                         <h3 className="font-semibold text-purple-300 mb-4">Dados da Empresa</h3>
-                        <div className="space-y-1 text-blue-100/80 text-sm">
+                        <div className="space-y-1 text-slate-300 text-sm">
                           <p><strong>Razão Social:</strong> MediAI Tecnologia em Saúde Ltda.</p>
                           <p><strong>CNPJ:</strong> XX.XXX.XXX/0001-XX</p>
                           <p><strong>Endereço:</strong> Rd. Arthur Bernardes, Pss Novo Continente - nº 34A</p>
@@ -693,19 +694,19 @@ export default function TermosPage() {
               </section>
 
               {/* Footer Info */}
-              <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-2xl p-8 text-center">
-                <p className="text-blue-100/80 mb-4 leading-relaxed">
+              <div className="bg-slate-900/70 border border-white/10 rounded-2xl p-8 text-center backdrop-blur-xl shadow-xl">
+                <p className="text-slate-300 mb-4 leading-relaxed max-w-2xl mx-auto text-sm">
                   Ao usar a plataforma MediAI, você confirma que leu, compreendeu e concordou com estes Termos de Uso 
                   e com nossa Política de Privacidade.
                 </p>
-                <p className="text-sm text-blue-300/60">
+                <p className="text-xs text-slate-500">
                   Última atualização: {LAST_UPDATED}
                 </p>
-                <div className="flex justify-center gap-4 mt-6">
-                  <Button asChild variant="outline" className="border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/10">
+                <div className="flex flex-wrap justify-center gap-4 mt-6">
+                  <Button asChild variant="outline" className="border-white/10 text-slate-200 hover:text-white hover:bg-white/10 bg-slate-900/50 rounded-xl">
                     <Link href="/privacidade">Ver Política de Privacidade</Link>
                   </Button>
-                  <Button asChild variant="outline" className="border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/10">
+                  <Button asChild className="bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-500 text-white font-semibold shadow-lg shadow-cyan-500/20 border-0 rounded-xl">
                     <Link href="/contato">Entrar em Contato</Link>
                   </Button>
                 </div>
@@ -715,8 +716,8 @@ export default function TermosPage() {
         </div>
       </main>
 
-      <footer className="relative w-full border-t border-cyan-500/20 bg-gradient-to-b from-slate-950 to-black py-8">
-        <div className="container px-4 md:px-6 text-center text-sm text-blue-200/50">
+      <footer className="relative w-full border-t border-white/10 bg-slate-950 py-8">
+        <div className="container px-4 md:px-6 text-center text-sm text-slate-500">
           <p>&copy; {new Date().getFullYear()} MediAI. Todos os direitos reservados.</p>
         </div>
       </footer>

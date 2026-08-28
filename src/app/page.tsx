@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/header";
 import Link from "next/link";
 import Image from "next/image";
+import MediAILogo from "@/components/layout/mediai-logo";
 import {
   Stethoscope,
   ShieldCheck,
@@ -81,7 +82,7 @@ export default function LandingPage() {
   }, [router]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white overflow-x-hidden">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-[#070e24] to-slate-950 text-white overflow-x-hidden">
       <Header />
       <main className="flex-1">
         {/* Hero Section - Ultra Futuristic */}
@@ -948,18 +949,13 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="relative w-full border-t border-cyan-500/20 bg-gradient-to-b from-slate-950 to-black">
+      <footer className="relative w-full border-t border-white/10 bg-slate-950">
         <div className="container px-4 md:px-6 py-16">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
-                  <HeartPulse className="h-6 w-6 text-white" />
-                </div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">MediAI</span>
-              </div>
-              <p className="text-blue-200/60 leading-relaxed">
-                O futuro da saúde impulsionado por inteligência artificial de última geração.
+            <div className="space-y-4">
+              <MediAILogo size="md" />
+              <p className="text-slate-400 text-sm leading-relaxed">
+                O futuro da saúde impulsionado por inteligência artificial avançada e medicina de precisão.
               </p>
             </div>
             <div className="space-y-4">

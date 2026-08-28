@@ -37,29 +37,30 @@ export default function PrivacidadePage() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-[#070e24] to-slate-950 text-white">
       <Header />
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative w-full py-20 md:py-32 overflow-hidden">
+        <section className="relative w-full py-16 md:py-24 overflow-hidden border-b border-white/10">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
           <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
+          <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse pointer-events-none"></div>
 
           <div className="container px-4 md:px-6 relative z-10">
             <div className="max-w-4xl mx-auto text-center space-y-6">
-              <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center mb-6">
-                <Shield className="h-10 w-10 text-cyan-400" />
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mb-4">
+                <Shield className="h-8 w-8 text-cyan-400" />
               </div>
-              <h1 className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold bg-gradient-to-r from-white via-cyan-100 to-blue-200 bg-clip-text text-transparent">
                 Política de Privacidade
               </h1>
-              <p className="text-xl md:text-2xl text-blue-200/80 leading-relaxed">
-                Conformidade total com LGPD e proteção dos seus dados
+              <p className="text-lg md:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto">
+                Conformidade total com a LGPD e máxima segurança para seus dados de saúde
               </p>
-              <p className="text-sm text-blue-300/60">
-                Última atualização: {LAST_UPDATED}
-              </p>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-slate-400">
+                <span>Última atualização: {LAST_UPDATED}</span>
+              </div>
             </div>
           </div>
         </section>
@@ -69,25 +70,25 @@ export default function PrivacidadePage() {
             {/* Table of Contents - Sticky Sidebar */}
             <aside className="lg:col-span-1">
               <div className="sticky top-24">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
-                  <CardContent className="p-6">
-                    <h2 className="text-lg font-bold text-cyan-300 mb-4 flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Índice
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-xl">
+                  <CardContent className="p-5">
+                    <h2 className="text-base font-bold text-cyan-300 mb-4 flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Índice da Política
                     </h2>
-                    <nav className="space-y-2">
+                    <nav className="space-y-1.5">
                       {sections.map((section) => (
                         <button
                           key={section.id}
                           onClick={() => scrollToSection(section.id)}
-                          className={`w-full text-left text-sm py-2 px-3 rounded-lg transition-all duration-200 flex items-center gap-2 ${
+                          className={`w-full text-left text-xs sm:text-sm py-2 px-3 rounded-xl transition-all duration-200 flex items-center gap-2 ${
                             activeSection === section.id
-                              ? "bg-cyan-500/20 text-cyan-300 font-semibold"
-                              : "text-blue-200/70 hover:bg-cyan-500/10 hover:text-cyan-300"
+                              ? "bg-cyan-500/15 text-cyan-300 font-semibold border border-cyan-500/30"
+                              : "text-slate-400 hover:bg-white/5 hover:text-white"
                           }`}
                         >
-                          <ChevronRight className="h-4 w-4 flex-shrink-0" />
-                          <span className="line-clamp-2">{section.title}</span>
+                          <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span className="line-clamp-1">{section.title}</span>
                         </button>
                       ))}
                     </nav>
@@ -100,7 +101,7 @@ export default function PrivacidadePage() {
             <div className="lg:col-span-3 space-y-8">
               {/* Introduction */}
               <section id="introducao">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">1. Introdução e Escopo</h2>
                     <p className="text-blue-100/80 leading-relaxed">
@@ -134,7 +135,7 @@ export default function PrivacidadePage() {
 
               {/* Dados Coletados */}
               <section id="dados-coletados">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">2. Dados Coletados</h2>
 
@@ -186,7 +187,7 @@ export default function PrivacidadePage() {
 
               {/* Base Legal */}
               <section id="base-legal">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">3. Base Legal para Processamento</h2>
                     <p className="text-blue-100/80 leading-relaxed">
@@ -231,7 +232,7 @@ export default function PrivacidadePage() {
 
               {/* Uso dos Dados */}
               <section id="uso-dados">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">4. Como Usamos os Dados</h2>
 
@@ -284,7 +285,7 @@ export default function PrivacidadePage() {
 
               {/* Compartilhamento */}
               <section id="compartilhamento">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">5. Compartilhamento com Terceiros</h2>
 
@@ -343,7 +344,7 @@ export default function PrivacidadePage() {
 
               {/* Direitos dos Titulares */}
               <section id="direitos-titulares">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">6. Direitos dos Titulares de Dados</h2>
                     <p className="text-blue-100/80 leading-relaxed">
@@ -425,7 +426,7 @@ export default function PrivacidadePage() {
 
               {/* Retenção */}
               <section id="retencao">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">7. Retenção de Dados</h2>
 
@@ -471,7 +472,7 @@ export default function PrivacidadePage() {
 
               {/* Segurança */}
               <section id="seguranca">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4 flex items-center gap-3">
                       <Lock className="h-8 w-8" />
@@ -533,7 +534,7 @@ export default function PrivacidadePage() {
 
               {/* Cookies */}
               <section id="cookies">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">9. Cookies e Tecnologias de Rastreamento</h2>
 
@@ -582,7 +583,7 @@ export default function PrivacidadePage() {
 
               {/* Menores */}
               <section id="menores">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">10. Dados de Crianças e Adolescentes</h2>
 
@@ -612,7 +613,7 @@ export default function PrivacidadePage() {
 
               {/* Transferência Internacional */}
               <section id="transferencia">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">11. Transferência Internacional de Dados</h2>
 
@@ -637,7 +638,7 @@ export default function PrivacidadePage() {
 
               {/* Alterações */}
               <section id="alteracoes">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
+                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
                   <CardContent className="p-8 space-y-4">
                     <h2 className="text-3xl font-bold text-cyan-300 mb-4">12. Alterações nesta Política</h2>
 
@@ -646,84 +647,86 @@ export default function PrivacidadePage() {
                       práticas, legislação ou serviços.
                     </p>
 
-                    <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-6 mt-6">
-                      <h3 className="font-semibold text-purple-300 mb-2">Notificação de Alterações</h3>
-                      <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                        <li>Alterações significativas serão notificadas por email</li>
-                        <li>Alterações menores serão publicadas na plataforma</li>
-                        <li>Data da última atualização sempre visível no topo da política</li>
-                        <li>Versões anteriores disponíveis mediante solicitação</li>
-                        <li>Uso contínuo após alterações constitui aceitação das mudanças</li>
-                      </ul>
-                    </div>
-                  </CardContent>
-                </Card>
-              </section>
-
-              {/* Contato e DPO */}
-              <section id="contato">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20 shadow-2xl">
-                  <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-cyan-300 mb-4 flex items-center gap-3">
-                      <Mail className="h-8 w-8" />
-                      13. Contato e Encarregado de Dados (DPO)
-                    </h2>
-
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Para dúvidas, solicitações ou reclamações sobre esta Política de Privacidade ou sobre o tratamento 
-                      dos seus dados pessoais:
-                    </p>
-
-                    <div className="grid md:grid-cols-2 gap-6 mt-6">
-                      <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6">
-                        <h3 className="font-semibold text-cyan-300 mb-4">Encarregado de Proteção de Dados (DPO)</h3>
-                        <div className="space-y-2 text-blue-100/80">
-                          <p><strong>Email:</strong> <a href="mailto:dpo@appmediai.com" className="text-cyan-400 hover:text-cyan-300">dpo@appmediai.com</a></p>
-                          <p><strong>Prazo de resposta:</strong> 15 dias úteis</p>
-                        </div>
+                      <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-6 mt-6">
+                        <h3 className="font-semibold text-purple-300 mb-2">Notificação de Alterações</h3>
+                        <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
+                          <li>Alterações significativas serão notificadas por email</li>
+                          <li>Alterações menores serão publicadas na plataforma</li>
+                          <li>Data da última atualização sempre visível no topo da política</li>
+                          <li>Versões anteriores disponíveis mediante solicitação</li>
+                          <li>Uso contínuo após alterações constitui aceitação das mudanças</li>
+                        </ul>
                       </div>
+                    </CardContent>
+                  </Card>
+                </section>
 
-                      <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-6">
-                        <h3 className="font-semibold text-purple-300 mb-4">Dados da Empresa</h3>
-                        <div className="space-y-1 text-blue-100/80 text-sm">
-                          <p><strong>Razão Social:</strong> MediAI Tecnologia em Saúde Ltda.</p>
-                          <p><strong>CNPJ:</strong> XX.XXX.XXX/0001-XX</p>
-                          <p><strong>Endereço:</strong> Rd. Arthur Bernardes, Pss Novo Continente - nº 34A</p>
-                          <p>Belém - PA</p>
-                        </div>
-                      </div>
-                    </div>
+                {/* DPO / Encarregado */}
+                <section id="dpo">
+                  <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
+                    <CardContent className="p-8 space-y-4">
+                      <h2 className="text-3xl font-bold text-cyan-300 mb-4 flex items-center gap-3">
+                        <Mail className="h-8 w-8" />
+                        13. Encarregado de Proteção de Dados (DPO) e Contato
+                      </h2>
 
-                    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-6 mt-6">
-                      <h3 className="font-semibold text-emerald-300 mb-2">Autoridade Nacional de Proteção de Dados (ANPD)</h3>
-                      <p className="text-blue-200/70 text-sm">
-                        Você também pode entrar em contato com a ANPD para questões relacionadas à proteção de dados:
-                        <br />
-                        <a href="https://www.gov.br/anpd" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300">
-                          www.gov.br/anpd
-                        </a>
+                      <p className="text-slate-300 leading-relaxed">
+                        Em cumprimento ao Art. 41 da LGPD, a MediAI nomeou um Encarregado de Proteção de Dados (DPO) 
+                        para atuar como canal de comunicação entre a empresa, os titulares dos dados e a Autoridade Nacional 
+                        de Proteção de Dados (ANPD).
                       </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </section>
 
-              {/* Footer Info */}
-              <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-2xl p-8 text-center">
-                <p className="text-blue-100/80 mb-4 leading-relaxed">
-                  Esta Política de Privacidade foi elaborada em conformidade com a Lei Geral de Proteção de Dados 
-                  (Lei nº 13.709/2018) e legislação brasileira aplicável.
-                </p>
-                <p className="text-sm text-blue-300/60">
-                  Última atualização: {LAST_UPDATED}
-                </p>
-                <div className="flex justify-center gap-4 mt-6">
-                  <Button asChild variant="outline" className="border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/10">
-                    <Link href="/termos">Ver Termos de Uso</Link>
-                  </Button>
-                  <Button asChild variant="outline" className="border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/10">
-                    <Link href="/contato">Entrar em Contato</Link>
-                  </Button>
+                      <div className="grid md:grid-cols-2 gap-6 mt-6">
+                        <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-2xl p-6">
+                          <h3 className="font-semibold text-cyan-300 mb-4">Canal do Titular (DPO)</h3>
+                          <div className="space-y-2 text-slate-300 text-sm">
+                            <p><strong>Encarregado:</strong> DPO MediAI</p>
+                            <p><strong>Email direto:</strong> <a href="mailto:privacidade@appmediai.com" className="text-cyan-400 hover:text-cyan-300">privacidade@appmediai.com</a></p>
+                            <p><strong>Prazo de resposta:</strong> Até 15 dias úteis</p>
+                          </div>
+                        </div>
+
+                        <div className="bg-purple-500/10 border border-purple-500/20 rounded-2xl p-6">
+                          <h3 className="font-semibold text-purple-300 mb-4">Informações do Controlador</h3>
+                          <div className="space-y-1 text-slate-300 text-sm">
+                            <p><strong>Razão Social:</strong> MediAI Tecnologia em Saúde Ltda.</p>
+                            <p><strong>CNPJ:</strong> XX.XXX.XXX/0001-XX</p>
+                            <p><strong>Endereço:</strong> Rd. Arthur Bernardes, Pss Novo Continente - nº 34A</p>
+                            <p>Belém - PA</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mt-6">
+                        <h3 className="font-semibold text-white mb-2">Autoridade Nacional de Proteção de Dados (ANPD)</h3>
+                        <p className="text-slate-400 text-sm">
+                          Você também pode entrar em contato com a ANPD para questões relacionadas à proteção de dados:
+                          <br />
+                          <a href="https://www.gov.br/anpd" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300">
+                            www.gov.br/anpd
+                          </a>
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </section>
+
+                {/* Footer Info */}
+                <div className="bg-slate-900/70 border border-white/10 rounded-2xl p-8 text-center backdrop-blur-xl shadow-xl">
+                  <p className="text-slate-300 mb-4 leading-relaxed max-w-2xl mx-auto text-sm">
+                    Esta Política de Privacidade foi elaborada em estrita conformidade com a Lei Geral de Proteção de Dados 
+                    (Lei nº 13.709/2018) e legislação brasileira aplicável.
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Última atualização: {LAST_UPDATED}
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-4 mt-6">
+                    <Button asChild variant="outline" className="border-white/10 text-slate-200 hover:text-white hover:bg-white/10 bg-slate-900/50 rounded-xl">
+                      <Link href="/termos">Ver Termos de Uso</Link>
+                    </Button>
+                    <Button asChild className="bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-500 text-white font-semibold shadow-lg shadow-cyan-500/20 border-0 rounded-xl">
+                      <Link href="/contato">Entrar em Contato</Link>
+                    </Button>
                 </div>
               </div>
             </div>
@@ -731,8 +734,8 @@ export default function PrivacidadePage() {
         </div>
       </main>
 
-      <footer className="relative w-full border-t border-cyan-500/20 bg-gradient-to-b from-slate-950 to-black py-8">
-        <div className="container px-4 md:px-6 text-center text-sm text-blue-200/50">
+      <footer className="relative w-full border-t border-white/10 bg-slate-950 py-8">
+        <div className="container px-4 md:px-6 text-center text-sm text-slate-500">
           <p>&copy; {new Date().getFullYear()} MediAI. Todos os direitos reservados.</p>
         </div>
       </footer>
