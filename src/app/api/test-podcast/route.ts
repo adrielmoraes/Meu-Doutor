@@ -26,8 +26,9 @@ export async function GET() {
 
         return NextResponse.json({
             patient: patient.name,
-            transcript: result.transcript,
-            audioLength: result.audioUrl.length
+            podcastId: result.podcastId,
+            status: result.status,
+            message: "Podcast generation started in background"
         });
     } catch (error: any) {
         return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500 });

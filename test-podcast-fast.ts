@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { db } from './src/server/storage';
+import { db } from './server/storage';
 import { patients } from './shared/schema';
 import { generateHealthPodcast } from './src/ai/flows/generate-health-podcast';
 import { eq } from 'drizzle-orm';

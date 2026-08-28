@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { db } from './src/server/storage';
+import { db } from './server/storage';
 import { patients, exams, appointments } from './shared/schema';
 import { eq, gte, and } from 'drizzle-orm';
 import { getPatientById, getRecentExamsForPodcast } from './src/lib/db-adapter';

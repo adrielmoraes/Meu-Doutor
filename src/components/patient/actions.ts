@@ -475,15 +475,28 @@ export async function getPodcastAction(patientId: string): Promise<{
         const { healthPodcasts, exams } = await import('../../../shared/schema');
         const { eq, desc } = await import('drizzle-orm');
 
-        // Get podcasts ordered by date desc
+        // Check podcasts ordered by date desc
         const podcasts = await db
             .select()
             .from(healthPodcasts)
             .where(eq(healthPodcasts.patientId, patientId))
             .orderBy(desc(healthPodcasts.generatedAt));
 
-        const latestPodcastRecord = podcasts[0];
-        // Filtrar histórico para mostrar apenas podcasts concluídos
+        let latestPodcastRecord = podcasts[0];
+
+        // Verificar e auto-recuperar registros presos em 'processing' por mais de 5 minutos
+        if (latestPodcastRecord && latestPodcastRecord.status === 'processing') {
+            const ageMs = Date.now() - new Date(latestPodcastRecord.generatedAt).getTime();
+            if (ageMs > 5 * 60 * 1000) {
+                console.log(`[getPodcastAction] Marcando como failed podcast travado em processing ${latestPodcastRecord.id} (${Math.round(ageMs / 1000)}s)`);
+                latestPodcastRecord.status = 'failed';
+                await db.update(healthPodcasts)
+                    .set({ status: 'failed' })
+                    .where(eq(healthPodcasts.id, latestPodcastRecord.id));
+            }
+        }
+
+        // Filtrar histórico para mostrar apenas podcasts concluídos com áudio válido
         const completedPodcasts = podcasts.filter(p => (p.status || 'completed') === 'completed' && p.audioUrl);
 
         // Get latest exam
@@ -511,13 +524,23 @@ export async function getPodcastAction(patientId: string): Promise<{
             ? new Date(latestExam.createdAt) > new Date(lastCompleted.generatedAt)
             : !!latestExam;
 
+        // Se o registro mais recente falhou mas o paciente já possui episódios anteriores concluídos,
+        // manter a URL do último concluído acessível
+        const activeAudioUrl = (latestPodcastRecord.status === 'completed' || !latestPodcastRecord.status)
+            ? latestPodcastRecord.audioUrl
+            : (lastCompleted ? lastCompleted.audioUrl : "");
+
+        const activeDate = (latestPodcastRecord.status === 'completed' || !latestPodcastRecord.status)
+            ? latestPodcastRecord.generatedAt.toISOString()
+            : (lastCompleted ? lastCompleted.generatedAt.toISOString() : latestPodcastRecord.generatedAt.toISOString());
+
         return {
             success: true,
             latestPodcast: {
                 id: latestPodcastRecord.id,
-                audioUrl: latestPodcastRecord.audioUrl,
+                audioUrl: activeAudioUrl,
                 status: latestPodcastRecord.status || 'completed',
-                generatedAt: latestPodcastRecord.generatedAt.toISOString()
+                generatedAt: activeDate
             },
             history: completedPodcasts.map(p => ({
                 id: p.id,
@@ -525,7 +548,7 @@ export async function getPodcastAction(patientId: string): Promise<{
                 status: p.status || 'completed',
                 generatedAt: p.generatedAt.toISOString()
             })),
-            hasNewExams: hasNewExams || false,
+            hasNewExams: hasNewExams || (latestPodcastRecord.status === 'failed'),
         };
     } catch (error: any) {
         console.error('Failed to get podcast:', error);

@@ -85,6 +85,7 @@ export async function saveFileBuffer(buffer: Buffer, originalName: string, folde
   
   const ext = path.extname(originalName) || '.bin';
   const fileName = `${folder}/${randomUUID()}${ext}`;
+  const contentType = getContentTypeFromExtension(ext) || 'application/octet-stream';
 
   if (token) {
     try {
@@ -93,7 +94,7 @@ export async function saveFileBuffer(buffer: Buffer, originalName: string, folde
       const blob = await put(fileName, buffer, {
         access: 'public',
         token: token,
-        contentType: getContentTypeFromExtension(ext) || undefined,
+        contentType: contentType,
       } as any);
       
       console.log(`[Storage] Buffer uploaded successfully: ${blob.url}`);
@@ -104,15 +105,23 @@ export async function saveFileBuffer(buffer: Buffer, originalName: string, folde
   }
 
   // Fallback: Local Storage
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads', folder);
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+  try {
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads', folder);
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const localFileName = `${randomUUID()}${ext}`;
+    const filePath = path.join(uploadDir, localFileName);
+
+    fs.writeFileSync(filePath, buffer);
+
+    return `/uploads/${folder}/${localFileName}`;
+  } catch (fsError) {
+    console.warn(`[Storage] Local write failed (${fsError}), using Data URI fallback.`);
+    // Se falhar a gravação em disco (ex: filesystem read-only em serverless), retorna como Data URI
+    const base64 = buffer.toString('base64');
+    return `data:${contentType};base64,${base64}`;
   }
-
-  const localFileName = `${randomUUID()}${ext}`;
-  const filePath = path.join(uploadDir, localFileName);
-
-  fs.writeFileSync(filePath, buffer);
-
-  return `/uploads/${folder}/${localFileName}`;
 }
+

@@ -32,7 +32,8 @@ const SPEAKERS = {
 } as const;
 
 const TTS_CONFIG = {
-    model: "gemini-2.5-pro-preview-tts",
+    primaryModel: "gemini-2.5-flash-preview-tts",
+    fallbackModels: ["gemini-2.0-flash", "gemini-2.5-pro-preview-tts"],
     sampleRate: 24000,
     numChannels: 1,
     bitsPerSample: 16,
@@ -90,11 +91,26 @@ export async function generateHealthPodcast(
         );
     }
 
-    // 1. Criar registro inicial no banco
+    // 1. Limpar / marcar como falhas eventuais sessões anteriores travadas em 'processing'
+    try {
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        await db.update(healthPodcasts)
+            .set({ status: 'failed' })
+            .where(
+                and(
+                    eq(healthPodcasts.patientId, input.patientId),
+                    eq(healthPodcasts.status, 'processing'),
+                )
+            );
+    } catch (cleanupErr) {
+        console.warn("[Health Podcast] Aviso ao limpar registros anteriores:", cleanupErr);
+    }
+
+    // 2. Criar registro inicial no banco
     const podcastId = randomUUID();
     await createInitialPodcastRecord(podcastId, input.patientId);
 
-    // 2. Disparar geração em background (fire-and-forget)
+    // 3. Disparar geração em background (fire-and-forget)
     runBackgroundGeneration(podcastId, validatedInput.data).catch(err => {
         console.error(`[Health Podcast] Erro crítico ao iniciar background job: ${err}`);
         failPodcastRecord(podcastId).catch(e => console.error("Falha ao marcar como failed:", e));
@@ -115,10 +131,25 @@ async function runBackgroundGeneration(podcastId: string, input: HealthPodcastIn
     }
 }
 
+function formatSafeDate(dateVal: string | Date | null | undefined): string {
+    if (!dateVal) return "Sem data";
+    if (typeof dateVal === 'string') {
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateVal)) return dateVal;
+    }
+    try {
+        const d = new Date(dateVal);
+        if (isNaN(d.getTime())) return String(dateVal);
+        return d.toLocaleDateString("pt-BR");
+    } catch {
+        return String(dateVal);
+    }
+}
+
 // --- CONTEXTO DO PACIENTE (OTIMIZADO) ---
 async function getPatientContext(patientId: string) {
     // Execução paralela
     const now = new Date().toISOString();
+    const todayStr = now.split('T')[0];
     const [patient, examsData, upcomingAppointments] = await Promise.all([
         getPatientById(patientId),
         getRecentExamsForPodcast(patientId, 7),
@@ -128,7 +159,6 @@ async function getPatientContext(patientId: string) {
                 and(
                     eq(appointments.patientId, patientId),
                     eq(appointments.status, 'Agendada'),
-                    gte(appointments.date, now.split('T')[0])
                 )
             )
             .orderBy(appointments.date)
@@ -147,7 +177,7 @@ async function getPatientContext(patientId: string) {
         ? examsData
             .map(
                 (e) =>
-                    `Exame: ${e.type} (${e.date ? new Date(e.date).toLocaleDateString("pt-BR") : "Sem data"})\nResultado: ${truncateText((e.preliminaryDiagnosis || e.result || "Sem análise").toString(), 600)}`
+                    `Exame: ${e.type} (${formatSafeDate(e.date)})\nResultado: ${truncateText((e.preliminaryDiagnosis || e.result || "Sem análise").toString(), 600)}`
             )
             .join("\n\n")
         : "Nenhum exame registrado recentemente.";
@@ -157,7 +187,7 @@ async function getPatientContext(patientId: string) {
         : "Sem plano de bem-estar no momento.";
 
     const agendaContext = upcomingAppointments.length > 0
-        ? upcomingAppointments.map(a => `- ${a.type} com Dr(a). ${a.patientName.includes('Dr') ? a.patientName : 'Médico'} em ${new Date(a.date).toLocaleDateString('pt-BR')} às ${a.time}`).join('\n')
+        ? upcomingAppointments.map(a => `- ${a.type} agendado para ${formatSafeDate(a.date)} às ${a.time}`).join('\n')
         : "Nenhum compromisso agendado.";
 
     const limitInfo = await canUseResource(patientId, 'podcastMinutes');
@@ -182,35 +212,65 @@ async function getPatientContext(patientId: string) {
 }
 
 const PODCAST_PROMPT_TEMPLATE = `
-**SUA MISSÃO:** Criar o roteiro para um episódio do "Podcast MediAI", um programa educacional e personalizado que explica a saúde do paciente de forma clara, didática e acolhedora.
+**SUA MISSÃO:** Criar o roteiro para um episódio do "Podcast MediAI", um programa educacional, personalizado e altamente empático que explica a saúde do paciente de forma clara, didática e calorosa.
 
 **PERSONAGENS (USE EXATAMENTE ESTES NOMES):**
-1. **${SPEAKERS.HOST}** (Apresentadora): Curiosa, empática e organizada. Ela representa a voz do paciente, fazendo perguntas fundamentais que ele provavelmente teria. Ela garante que nenhum termo técnico fique sem explicação.
-2. **${SPEAKERS.SPECIALIST}** (Especialista Convidado): Uma autoridade médica renomada, mas com uma didática excepcional. Ele não apenas informa, ele *ensina*. Ele detalha mecanismos das doenças, o "porquê" dos tratamentos e como os medicamentos agem no corpo.
+1. **${SPEAKERS.HOST}** (Apresentadora): Curiosa, empática e acolhedora. Ela representa a voz do paciente, faz perguntas cotidianas, reage com entusiasmo, surpresa e interesse genuíno, e garante que nenhum termo técnico fique sem explicação simples.
+2. **${SPEAKERS.SPECIALIST}** (Especialista Convidado): Uma autoridade médica renomada, extremamente didático, humano e próximo. Ele não apenas informa, ele *ensina*. Usa metáforas acessíveis, detalha o funcionamento do corpo, o porquê dos tratamentos e como os hábitos impactam o bem-estar.
 
-**ESTRUTURA SUGERIDA (ADAPTAR CONFORME NECESSÁRIO):**
-1. **Abertura Calorosa:** ${SPEAKERS.HOST} recebe o paciente {{{patientName}}} pelo nome, criando um ambiente seguro, e introduz o ${SPEAKERS.SPECIALIST} com credibilidade.
+---
+
+### 🎙️ REQUISITO CRUCIAL: NUANCES PARALINGUÍSTICAS E VOCALIZAÇÕES DA FALA
+Em uma conversa real de podcast em estúdio, a fala é viva, fluida e pontuada por pequenas vocalizações naturais. **VOCÊ DEVE INCLUIR NATURALMENTE AO LONGO DE TODO O ROTEIRO AS SEGUINTES NUANCES E EXPRESSÕES:**
+
+1. **Sons de Concordância e Escuta Ativa (Backchanneling):**
+   - *“Uhum…”*, *“Hum-hum”*, *“Aham”*, *“Arrã”*, *“Sim, com certeza”*, *“Isso!”*, *“Exatamente”*, *“É…”*, *“Pois é…”*, *“Com certeza!”*.
+   - Exemplo: "${SPEAKERS.HOST}: Uhum… e quando a taxa de glicose sobe, o que o corpo sente na prática?"
+   - Exemplo: "${SPEAKERS.SPECIALIST}: Exatamente, Nathália! É… o que acontece é que as células começam a pedir energia."
+
+2. **Sons de Hesitação Reflexiva e Pensamento:**
+   - *“Hum…”*, *“Ééé…”*, *“Ah…”*, *“Aaa…”*, *“Hmm…”*, *“Tipo…”*, *“Assim…”*, *“Então…”*, *“Veja bem…”*.
+   - Exemplo: "${SPEAKERS.SPECIALIST}: Hum… veja bem, o colesterol em si não é um vilão. Ééé… na verdade, ele é essencial para a produção de hormônios."
+
+3. **Reações Espontâneas e Descobertas:**
+   - *“Ah!”*, *“Nossa!”*, *“Uau!”*, *“Eita!”*, *“Caramba!”*, *“Hmm! Interessante!”*, *“Oh!”*, *“Ô!”*, *“Que alívio!”*.
+   - Exemplo: "${SPEAKERS.HOST}: Eita! Então mesmo sem nenhum sintoma, a pressão alta pode estar sobrecarregando o coração?"
+   - Exemplo: "${SPEAKERS.SPECIALIST}: Ah! Exatamente isso. Por isso a prevenção é o melhor remédio."
+
+4. **Risadas e Vocalizações Leves de Descontração:**
+   - *“Haha”*, *“Hahaha”*, *“Hehe”*, *“hmm-haha”*, *“hehe…”* (ao comentar desafios cotidianos como resistir à sobremesa, preguiça de caminhar, etc).
+   - Exemplo: "${SPEAKERS.HOST}: Haha, pois é! A gente sempre promete começar os exercícios na segunda-feira, né?"
+   - Exemplo: "${SPEAKERS.SPECIALIST}: Hehe… clássico! Mas começar aos poucos, com 15 minutinhos, já transforma o metabolismo."
+
+5. **Marcadores Conversacionais e Conexão Interpessoal:**
+   - *“Né?”*, *“Tá?”*, *“Entendeu?”*, *“Certo?”*, *“Sabe?”*, *“Olha…”*, *“Bom…”*, *“Então…”*, *“Veja bem…”*.
+
+6. **Cadência, Pontuação e Alternância Dinâmica:**
+   - Use reticências (\`...\`) para indicar pausas reflexivas naturais de fala e respiração.
+   - Use interrogações e exclamações para expressar entonação dinâmica e acolhedora.
+   - Intercale falas curtas e reativas da apresentadora enquanto o médico explica, dando sensação de estúdio e diálogo autêntico.
+
+---
+
+**ESTRUTURA SUGERIDA DO EPISÓDIO:**
+1. **Abertura Calorosa:** ${SPEAKERS.HOST} recebe o paciente {{{patientName}}} pelo nome com muito carinho, criando um ambiente seguro e convidativo, e introduz o ${SPEAKERS.SPECIALIST}.
 2. **Análise Profunda dos Exames:**
-   - ${SPEAKERS.HOST} traz um resultado específico.
-   - ${SPEAKERS.SPECIALIST} explica o que aquele marcador significa biologicamente (ex: "O colesterol não é apenas gordura, é...").
-   - Se houver alterações, ${SPEAKERS.SPECIALIST} explica as **CAUSAS** possíveis (estilo de vida, genética, etc) e as consequências se não tratado.
-3. **Educação sobre Condições/Doenças:**
-   - Se houver diagnóstico ou risco, dedique tempo para explicar a doença. O que acontece no corpo? Quais os sintomas silenciosos?
-4. **Tratamento e Medicamentos (O "Como" e o "Porquê"):**
-   - Ao discutir o plano de bem-estar, não liste apenas tarefas.
-   - ${SPEAKERS.SPECIALIST} deve explicar o **MECANISMO DE AÇÃO**. Ex: "Este medicamento ajuda a relaxar os vasos sanguíneos..." ou "Comer fibras ajuda a 'varrer' o colesterol...".
-   - Detalhe tipos de tratamento (mudanças de hábito vs. medicamentoso).
-5. **Plano de Ação Prático:** ${SPEAKERS.HOST} recapitula os passos práticos do dia a dia.
-6. **Mensagem Final Inspiradora:** Encerramento motivacional focado na capacidade do paciente de melhorar sua saúde.
+   - ${SPEAKERS.HOST} traz um resultado ou marcador específico.
+   - ${SPEAKERS.SPECIALIST} explica o significado biológico daquele marcador (ex: colesterol, glicemia, hemograma, etc).
+   - Se houver alterações, ${SPEAKERS.SPECIALIST} explica as **CAUSAS** possíveis (estilo de vida, genética, alimentação) e as soluções práticas.
+3. **Educação sobre Condições e Mecanismos:**
+   - Explica o que acontece no corpo de maneira clara e sem alarmismo.
+4. **Tratamento e Hábitos (O "Como" e o "Porquê"):**
+   - Ao discutir o plano de bem-estar, explica o **MECANISMO DE AÇÃO** (ex: como as fibras ajudam a 'varrer' o excesso de lipídios, como a água melhora a filtração renal, etc).
+5. **Plano de Ação Prático:** ${SPEAKERS.HOST} recapitula os passos práticos da semana e lembra de compromissos agendados.
+6. **Mensagem Final Inspiradora:** Encerramento motivador, reforçando a capacidade do paciente em transformar sua saúde dia a dia.
 
 **REGRAS DE OURO PARA O CONTEÚDO:**
-- **FRASES COMPLETAS:** Jamais deixe uma frase pela metade. Certifique-se de que cada fala tenha início, meio e fim claros. Se precisar explicar algo complexo, divida em duas falas ou simplifique, mas nunca corte o raciocínio.
+- **FRASES COMPLETAS:** Jamais deixe uma fala pela metade. Cada fala deve ter raciocínio completo com início, meio e fim.
 - **ESTRUTURA COMPLETA:** O episódio OBRIGATORIAMENTE deve ter Início (boas-vindas), Meio (análise e explicações) e Fim (despedida e motivação).
-- **SEJA CLARO E DIRETO:** Explique termos técnicos com exemplos simples.
-- **EXPLIQUE CAUSAS E EFEITOS:** Conecte os pontos para o paciente. "Isso acontece porque..." -> "Isso pode levar a...".
-- **TRATAMENTOS:** Se houver menção a medicamentos ou terapias no contexto, explique como eles funcionam. Se for mudança de estilo de vida, explique a biologia por trás da mudança (ex: como o exercício baixa a glicose).
-- **TOM:** Profissional, mas extremamente humano, paciente e encorajador. Evite alarmismo, foque em soluções.
-- **DURAÇÃO:** Gere um roteiro detalhado com aproximadamente **{{{targetLines}}} falas**. É fundamental manter o ritmo da conversa e cobrir todos os pontos sem pressa.
+- **SEJA CLARO E DIRETO:** Explique termos técnicos com exemplos simples do dia a dia.
+- **TOM:** Profissional, caloroso, paciente e extremamente encorajador. Evite alarmismo, foque em soluções.
+- **DURAÇÃO:** Gere um roteiro detalhado com aproximadamente **{{{targetLines}}} falas**.
 
 **DADOS DO PACIENTE (USE ESTAS INFORMAÇÕES COMO BASE):**
 - Paciente: {{{patientName}}}
@@ -219,13 +279,13 @@ const PODCAST_PROMPT_TEMPLATE = `
 - Próximas Consultas Agendadas: {{{agendaContext}}}
 
 **IMPORTANTE:**
-- NÃO invente medicamentos específicos que não estejam no contexto, mas pode falar sobre *classes* de medicamentos se apropriado para a condição (ex: "estatinas" para colesterol) como exemplo educativo, deixando claro que o médico prescreve o melhor.
+- NÃO invente medicamentos específicos que não estejam no contexto, mas pode citar classes gerais (ex: "estatinas", "anti-hipertensivos") como exemplo educativo, reforçando que o médico prescreve a melhor dosagem.
 - Se o contexto for escasso, foque na educação sobre saúde preventiva baseada nos dados disponíveis.
 
 Gere o roteiro como um array JSON válido.
 `;
 
-// --- PROMPT DO ROTEIRO (CORRIGIDO) ---
+// --- PROMPT DO ROTEIRO ---
 const podcastScriptPrompt = ai.definePrompt({
     name: "healthPodcastScriptPrompt",
     input: {
@@ -244,7 +304,7 @@ const podcastScriptPrompt = ai.definePrompt({
     model: "googleai/gemini-2.5-flash",
 });
 
-// --- GERAÇÃO DE ÁUDIO ---
+// --- GERAÇÃO DE ÁUDIO COM SUPORTE A FALLBACK E PACING ---
 async function generateAudio(scriptItems: { speaker: string; text: string }[]): Promise<Buffer> {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -255,65 +315,66 @@ async function generateAudio(scriptItems: { speaker: string; text: string }[]): 
         );
     }
 
-    const MAX_ATTEMPTS = 3;
+    const MAX_ATTEMPTS = 4;
     let lastError: any;
 
-    // 1. Agrupar falas consecutivas do mesmo speaker para reduzir chamadas
-    // e aplicar limite de tamanho por chunk
+    // 1. Agrupar falas consecutivas do mesmo speaker para otimizar chamadas
+    // e aplicar limite seguro de tamanho por chunk (~500 chars)
     const chunks: { speaker: string; text: string }[] = [];
-    const MAX_CHUNK_LENGTH = 800;
+    const MAX_CHUNK_LENGTH = 550;
 
     let currentSpeaker = "";
     let currentBuffer = "";
 
     for (const item of scriptItems) {
-        // Se mudou o speaker, fecha o chunk anterior
         if (item.speaker !== currentSpeaker && currentSpeaker !== "") {
             if (currentBuffer.trim()) {
                 chunks.push({ speaker: currentSpeaker, text: currentBuffer.trim() });
             }
             currentSpeaker = item.speaker;
             currentBuffer = item.text;
-        }
-        // Se o speaker é o mesmo, verifica se estourou o limite
-        else if ((currentBuffer + " " + item.text).length > MAX_CHUNK_LENGTH) {
+        } else if ((currentBuffer + " " + item.text).length > MAX_CHUNK_LENGTH) {
             if (currentBuffer.trim()) {
                 chunks.push({ speaker: currentSpeaker, text: currentBuffer.trim() });
             }
-            // Começa novo chunk com o mesmo speaker
-            currentSpeaker = item.speaker; // Redundante mas claro
+            currentSpeaker = item.speaker;
             currentBuffer = item.text;
-        }
-        // Mesmo speaker e cabe no buffer
-        else {
-            if (currentSpeaker === "") currentSpeaker = item.speaker; // Primeira iteração
+        } else {
+            if (currentSpeaker === "") currentSpeaker = item.speaker;
             currentBuffer = currentBuffer ? currentBuffer + " " + item.text : item.text;
         }
     }
-    // Adicionar o último
     if (currentBuffer.trim()) {
         chunks.push({ speaker: currentSpeaker || scriptItems[0]?.speaker || "Host", text: currentBuffer.trim() });
     }
 
-    console.log(`[Health Podcast] Gerando áudio para ${chunks.length} turnos de fala.`);
+    console.log(`[Health Podcast] Gerando áudio para ${chunks.length} turnos de fala agrupados.`);
 
     const audioBuffers: Buffer[] = [];
+    const modelsToTry = [TTS_CONFIG.primaryModel, ...TTS_CONFIG.fallbackModels];
 
     for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
         let chunkSuccess = false;
 
         // Definir voz baseada no speaker
-        // Nathália (Host) -> Aoede (Feminina)
-        // Dr. Daniel (Especialista) -> Puck (Masculina)
+        // Nathália (Host) -> Aoede (Feminina calorosa)
+        // Dr. Daniel (Especialista) -> Puck (Masculina didática e encorpada)
         const speakerName = chunk.speaker.toLowerCase();
-        const isFemale = speakerName.includes("nathália") || speakerName.includes("nathalia") || speakerName.includes("ana");
-        const voiceName = isFemale ? "Aoede" : "Puck"; // Puck é voz masculina profunda
+        const isFemale = speakerName.includes("nathália") || speakerName.includes("nathalia") || speakerName.includes("ana") || speakerName.includes("host");
+        const voiceName = isFemale ? "Aoede" : "Puck";
 
         for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            // Selecionar modelo (começa com primário, tenta fallbacks se necessário)
+            const modelToUse = modelsToTry[Math.min(attempt - 1, modelsToTry.length - 1)];
+
             try {
-                // Using raw fetch to control caching and timeout explicitly
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${TTS_CONFIG.model}:generateContent?key=${apiKey}`;
+                // Pacing: pequena pausa de 250ms entre chunks para prevenir rate-limit HTTP 429
+                if (i > 0 || attempt > 1) {
+                    await new Promise(resolve => setTimeout(resolve, 250));
+                }
+
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${apiKey}`;
 
                 const response = await fetch(url, {
                     method: "POST",
@@ -338,21 +399,20 @@ async function generateAudio(scriptItems: { speaker: string; text: string }[]): 
                         },
                     }),
                     cache: "no-store",
-                    signal: AbortSignal.timeout(120000), // 120s timeout
+                    signal: AbortSignal.timeout(90000), // 90s timeout por chunk
                 });
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    throw new Error(`Gemini API Error ${response.status}: ${errorText}`);
+                    throw new Error(`Gemini API Error ${response.status} (${modelToUse}): ${errorText}`);
                 }
 
                 const data = await response.json();
-
                 const inlineData = data.candidates?.[0]?.content?.parts?.[0]?.inlineData;
 
                 if (!inlineData?.data) {
                     throw new PodcastGenerationError(
-                        "Nenhum áudio retornado pelo modelo",
+                        "Nenhum áudio retornado pelo modelo Gemini",
                         "NO_AUDIO_DATA",
                         true
                     );
@@ -361,18 +421,20 @@ async function generateAudio(scriptItems: { speaker: string; text: string }[]): 
                 const rawAudio = Buffer.from(inlineData.data, "base64");
                 audioBuffers.push(rawAudio);
                 chunkSuccess = true;
-                break; // Sucesso, próximo chunk
+                break; // Sucesso no chunk atual!
 
             } catch (error: any) {
-                console.warn(`[Health Podcast] Audio chunk ${i + 1}/${chunks.length} (${chunk.speaker}) attempt ${attempt} failed:`, error.message || error);
+                console.warn(`[Health Podcast] Chunk ${i + 1}/${chunks.length} (${chunk.speaker}) tentativa ${attempt} falhou:`, error.message || error);
 
                 const msg = error.message || String(error);
-                if (msg.includes("403") || msg.includes("API_KEY") || msg.includes("MODEL_NOT_FOUND") || msg.includes("400")) {
-                    throw error;
+                if (msg.includes("403") || msg.includes("API_KEY_INVALID")) {
+                    throw error; // Erros de chave inválida não adianta tentar novamente
                 }
 
                 if (attempt < MAX_ATTEMPTS) {
-                    await new Promise(resolve => setTimeout(resolve, 2000 * Math.pow(2, attempt - 1)));
+                    const backoffMs = Math.min(8000, 1500 * Math.pow(2, attempt - 1));
+                    console.log(`[Health Podcast] Aguardando ${backoffMs}ms antes de retentar chunk ${i + 1}...`);
+                    await new Promise(resolve => setTimeout(resolve, backoffMs));
                 } else {
                     lastError = error;
                 }
@@ -380,11 +442,11 @@ async function generateAudio(scriptItems: { speaker: string; text: string }[]): 
         }
 
         if (!chunkSuccess) {
-            throw lastError || new Error(`Falha ao gerar chunk ${i + 1}`);
+            throw lastError || new Error(`Falha definitiva ao gerar áudio para o chunk ${i + 1}`);
         }
     }
 
-    // Concatenar todos os buffers PCM
+    // Concatenar todos os buffers PCM gerados
     const totalRawAudio = Buffer.concat(audioBuffers);
     const wavHeader = createWavHeader(totalRawAudio.length, TTS_CONFIG);
 
@@ -520,7 +582,7 @@ const healthPodcastFlow = ai.defineFlow(
         trackAIUsage({
             patientId: input.patientId,
             usageType: "tts",
-            model: TTS_CONFIG.model,
+            model: TTS_CONFIG.primaryModel,
             inputTokens: countTextTokens(dialogText),
             outputTokens: estimatedAudioTokens,
             metadata: {

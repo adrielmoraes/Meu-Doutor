@@ -22,17 +22,28 @@ export default function HealthPodcastPage() {
     const [podcastHistory, setPodcastHistory] = useState<Array<{ id: string; audioUrl: string; generatedAt: string }>>([]);
     const [loadingHintIndex, setLoadingHintIndex] = useState(0);
     const LOADING_HINTS = [
-        "Preparando roteiro personalizado...",
-        "Analisando seus últimos exames...",
-        "Organizando recomendações práticas...",
-        "Gerando áudio de alta qualidade...",
-        "Finalizando seu episódio. Quase lá..."
+        "Criando roteiro empático e personalizado...",
+        "Adicionando nuances e vocalizações naturais de fala...",
+        "Analisando seus últimos exames e plano de saúde...",
+        "Sintetizando vozes em estúdio com IA (Nathália & Dr. Daniel)...",
+        "Finalizando e equalizando seu episódio. Quase pronto..."
     ];
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const pollingRef = useRef<NodeJS.Timeout | null>(null);
     const isPollingRef = useRef(false);
+    const pollStartTimeRef = useRef<number | null>(null);
     const { toast } = useToast();
+
+    // Interromper polling de forma segura
+    const stopPolling = useCallback(() => {
+        if (pollingRef.current) {
+            console.log('[Podcast Poll] Parando polling.');
+            clearInterval(pollingRef.current);
+            pollingRef.current = null;
+        }
+        pollStartTimeRef.current = null;
+    }, []);
 
     // Função de polling estável que não depende de state no useEffect
     const pollPodcastStatus = useCallback(async () => {
@@ -40,6 +51,20 @@ export default function HealthPodcastPage() {
         isPollingRef.current = true;
 
         try {
+            // Watchdog: se o polling estiver rodando há mais de 5 minutos, interromper
+            if (pollStartTimeRef.current && (Date.now() - pollStartTimeRef.current > 5 * 60 * 1000)) {
+                console.warn('[Podcast Poll] Timeout de 5 minutos atingido no polling.');
+                stopPolling();
+                setIsLoading(false);
+                setHasNewExams(true);
+                toast({
+                    variant: "destructive",
+                    title: "Tempo limite excedido",
+                    description: "A geração demorou mais que o esperado. Você pode tentar gerar novamente.",
+                });
+                return;
+            }
+
             const session = await getSessionOnClient();
             if (!session?.userId) return;
 
@@ -47,7 +72,7 @@ export default function HealthPodcastPage() {
             console.log('[Podcast Poll] Status:', result.latestPodcast?.status);
 
             if (result.success && result.latestPodcast) {
-                if (result.latestPodcast.status === 'completed' || !result.latestPodcast.status) {
+                if (result.latestPodcast.status === 'completed' || (!result.latestPodcast.status && result.latestPodcast.audioUrl)) {
                     // Podcast concluído! Parar polling e atualizar UI
                     stopPolling();
                     setIsLoading(false);
@@ -65,10 +90,13 @@ export default function HealthPodcastPage() {
                     stopPolling();
                     setIsLoading(false);
                     setHasNewExams(true); // Permitir tentar novamente
+                    if (result.latestPodcast.audioUrl) {
+                        setAudioUrl(result.latestPodcast.audioUrl);
+                    }
                     toast({
                         variant: "destructive",
-                        title: "Erro na geração",
-                        description: "Houve um problema ao gerar o podcast. Tente novamente.",
+                        title: "Não foi possível concluir a geração",
+                        description: "Ocorreu uma instabilidade ao gerar o áudio. Por favor, tente novamente.",
                     });
                 }
                 // Se status === 'processing', o polling continua automaticamente
@@ -78,24 +106,17 @@ export default function HealthPodcastPage() {
         } finally {
             isPollingRef.current = false;
         }
-    }, [toast]);
+    }, [stopPolling, toast]);
 
     const startPolling = useCallback(() => {
         // Limpar qualquer polling anterior
         if (pollingRef.current) clearInterval(pollingRef.current);
-        console.log('[Podcast Poll] Iniciando polling a cada 8s...');
+        pollStartTimeRef.current = Date.now();
+        console.log('[Podcast Poll] Iniciando polling a cada 6s...');
         pollingRef.current = setInterval(() => {
             pollPodcastStatus();
-        }, 8000);
+        }, 6000);
     }, [pollPodcastStatus]);
-
-    const stopPolling = useCallback(() => {
-        if (pollingRef.current) {
-            console.log('[Podcast Poll] Parando polling.');
-            clearInterval(pollingRef.current);
-            pollingRef.current = null;
-        }
-    }, []);
 
     // Função para carregar podcasts na montagem inicial
     const loadPodcasts = useCallback(async () => {
@@ -113,7 +134,6 @@ export default function HealthPodcastPage() {
                 if (result.latestPodcast.status === 'processing') {
                     // Podcast em geração — ativar loading e iniciar polling
                     setIsLoading(true);
-                    setAudioUrl(null);
                     startPolling();
                 } else if (result.latestPodcast.status === 'completed' || !result.latestPodcast.status) {
                     setIsLoading(false);
@@ -122,6 +142,10 @@ export default function HealthPodcastPage() {
                 } else if (result.latestPodcast.status === 'failed') {
                     setIsLoading(false);
                     setHasNewExams(true);
+                    if (result.latestPodcast.audioUrl) {
+                        setAudioUrl(result.latestPodcast.audioUrl);
+                        setPodcastDate(result.latestPodcast.generatedAt || null);
+                    }
                 }
 
                 setHasNewExams(!!result.hasNewExams);
@@ -150,6 +174,17 @@ export default function HealthPodcastPage() {
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     };
 
+    // Cancelar espera ativa manualmente
+    const handleCancelLoading = () => {
+        stopPolling();
+        setIsLoading(false);
+        setHasNewExams(true);
+        toast({
+            title: "Geração em segundo plano",
+            description: "Você cancelou a espera na tela. O áudio continuará sendo processado no servidor.",
+        });
+    };
+
     // Gerar novo podcast
     const handleGenerate = async () => {
         setIsLoading(true);
@@ -165,23 +200,12 @@ export default function HealthPodcastPage() {
             const result = await generatePodcastAction(userId);
 
             if (result.success) {
-                if (result.status === 'processing') {
-                    toast({
-                        title: "Geração Iniciada",
-                        description: "Você pode sair desta tela. O podcast continuará sendo gerado em segundo plano.",
-                        className: "bg-blue-500 text-white border-none"
-                    });
-                    // Iniciar polling estável
-                    startPolling();
-                } else if (result.audioUrl) {
-                    await loadPodcasts();
-                    setIsPlaying(false);
-                    toast({
-                        title: "Podcast Gerado com Sucesso!",
-                        description: "Seu resumo de saúde personalizado está pronto para ouvir.",
-                        className: "bg-green-500 text-white border-none"
-                    });
-                }
+                toast({
+                    title: "Geração Iniciada 🎙️",
+                    description: "Seu episódio está sendo preparado com vozes realistas e nuances conversacionais.",
+                    className: "bg-blue-600 text-white border-none"
+                });
+                startPolling();
             } else {
                 throw new Error(result.message || 'Erro ao gerar o podcast.');
             }
@@ -202,7 +226,7 @@ export default function HealthPodcastPage() {
         if (isLoading) {
             interval = setInterval(() => {
                 setLoadingHintIndex((prev) => (prev + 1) % LOADING_HINTS.length);
-            }, 3000);
+            }, 3500);
         } else {
             setLoadingHintIndex(0);
         }
@@ -351,8 +375,18 @@ export default function HealthPodcastPage() {
                                                 Tempo médio estimado: 3 a 5 minutos
                                             </p>
                                             <p className="text-[10px] text-slate-500 text-center dark:text-blue-200/50">
-                                                (O processo leva cerca de 1 minuto para cada minuto de áudio gerado)
+                                                (O áudio é processado em segundo plano com vozes de estúdio)
                                             </p>
+                                        </div>
+                                        <div className="text-center mt-3">
+                                            <Button
+                                                onClick={handleCancelLoading}
+                                                variant="ghost"
+                                                size="sm"
+                                                className="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white underline"
+                                            >
+                                                Parar de aguardar nesta tela
+                                            </Button>
                                         </div>
                                     </div>
                                 )}
