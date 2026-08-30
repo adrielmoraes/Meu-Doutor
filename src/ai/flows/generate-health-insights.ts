@@ -8,6 +8,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { trackAIUsage } from '@/lib/usage-tracker';
 import { countTextTokens } from '@/lib/token-counter';
+import { isOpenRouterConfigured, openRouterGenerateStructured } from '@/lib/openrouter';
 
 // --- SCHEMAS ---
 
@@ -127,11 +128,62 @@ const generateHealthInsightsFlow = ai.defineFlow(
                     continue;
                 }
 
-                console.error(`[HealthCoach] ❌ Error generating insights:`, error);
-                throw error;
+                console.error(`[HealthCoach] ⚠️ Error generating insights on attempt ${attempt + 1}:`, error.message);
+                break;
             }
         }
-        throw new Error("[HealthCoach] Maximum retries exceeded");
+
+        // Fallback para OpenRouter se o Gemini direto falhar
+        if (isOpenRouterConfigured()) {
+            try {
+                console.log(`[HealthCoach] 🔄 Tentando gerar insights via OpenRouter (google/gemini-2.5-flash)...`);
+                const renderedPrompt = HEALTH_INSIGHTS_PROMPT_TEMPLATE
+                    .replace('{{{patientHistory}}}', input.patientHistory || '')
+                    .replace('{{{validatedDiagnosis}}}', input.validatedDiagnosis || '');
+
+                const openRouterRes = await openRouterGenerateStructured<GenerateHealthInsightsOutput>({
+                    prompt: renderedPrompt,
+                    model: 'google/gemini-2.5-flash',
+                    systemPrompt: 'Você é um assistente de saúde preventiva. Responda exclusivamente em formato JSON com campos preventiveAlerts, healthGoals e coachComment.',
+                });
+
+                if (openRouterRes.data && openRouterRes.data.coachComment) {
+                    console.log(`[HealthCoach] ✅ Insights gerados com sucesso via OpenRouter!`);
+                    return openRouterRes.data;
+                }
+            } catch (orErr: any) {
+                console.warn(`[HealthCoach] Fallback OpenRouter falhou:`, orErr.message || orErr);
+            }
+        }
+
+        // Fallback seguro caso todos os modelos estejam indisponíveis
+        console.warn(`[HealthCoach] ℹ️ Usando fallback seguro para insights de saúde.`);
+        return {
+            preventiveAlerts: [
+                {
+                    alert: "Mantenha o acompanhamento médico e realize seus exames de rotina regularmente.",
+                    severity: "low",
+                    category: "general",
+                }
+            ],
+            healthGoals: [
+                {
+                    title: "Hidratação diária",
+                    description: "Beba pelo menos 2 litros de água ao longo do dia.",
+                    category: "lifestyle",
+                    progress: 0,
+                    targetDate: "30 dias",
+                },
+                {
+                    title: "Caminhada leve",
+                    description: "Pratique pelo menos 20 minutos de caminhada 3 vezes por semana.",
+                    category: "exercise",
+                    progress: 0,
+                    targetDate: "30 dias",
+                }
+            ],
+            coachComment: "Pequenos passos diários trazem grandes transformações para a sua saúde e bem-estar!",
+        };
     }
 );
 

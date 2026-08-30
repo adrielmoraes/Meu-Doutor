@@ -12,6 +12,7 @@ import { GoogleGenAI } from "@google/genai";
 import { z } from "genkit";
 import wav from "wav";
 import { trackTTS } from "@/lib/usage-tracker";
+import { isOpenRouterConfigured, openRouterTextToSpeech } from "@/lib/openrouter";
 
 const TextToSpeechInputSchema = z.object({
   text: z.string().describe("The text to be converted to speech."),
@@ -124,8 +125,49 @@ export async function textToSpeech(
     return {
       audioDataUri: "data:audio/wav;base64," + wavBase64,
     };
-  } catch (error) {
-    console.error("[TTS Flow] TTS generation failed:", error);
+  } catch (error: any) {
+    console.warn("[TTS Flow] Google Gemini TTS falhou, tentando fallback:", error.message || error);
+
+    // Fallback para OpenRouter Audio API
+    if (isOpenRouterConfigured()) {
+      try {
+        console.log("[TTS Flow] 🔄 Gerando áudio via OpenRouter Audio API (openai/gpt-audio-mini)...");
+        const pcmBuffer = await openRouterTextToSpeech({
+          text: input.text,
+          voice: 'coral',
+          model: 'openai/gpt-audio-mini',
+        });
+
+        if (pcmBuffer && pcmBuffer.length > 0) {
+          const wavBase64 = await new Promise<string>((resolve, reject) => {
+            const writer = new wav.Writer({
+              channels: 1,
+              sampleRate: 24000,
+              bitDepth: 16,
+            });
+            const bufs: any[] = [];
+            writer.on("data", (chunk) => bufs.push(chunk));
+            writer.on("end", () => resolve(Buffer.concat(bufs).toString("base64")));
+            writer.on("error", reject);
+            writer.end(pcmBuffer);
+          });
+
+          console.log("[TTS Flow] ✅ Áudio gerado com sucesso via OpenRouter!");
+
+          if (input.returnBuffer) {
+            return {
+              audioBuffer: Buffer.from(wavBase64, 'base64'),
+            };
+          }
+
+          return {
+            audioDataUri: "data:audio/wav;base64," + wavBase64,
+          };
+        }
+      } catch (orErr: any) {
+        console.error("[TTS Flow] Fallback OpenRouter TTS falhou:", orErr.message || orErr);
+      }
+    }
 
     if (error instanceof Error) {
       if (

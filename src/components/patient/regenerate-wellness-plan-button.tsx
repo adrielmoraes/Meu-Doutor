@@ -43,15 +43,6 @@ export default function RegenerateWellnessPlanButton({ patientId, lastUpdated }:
   }, [lastUpdated]);
 
   const handleRegenerate = async () => {
-    if (!canRegenerate) {
-      toast({
-        variant: "destructive",
-        title: "Aguarde um pouco",
-        description: `Você poderá gerar um novo plano a partir de ${nextAvailableDate}.`,
-      });
-      return;
-    }
-
     setIsRegenerating(true);
     try {
       const result = await regenerateWellnessPlanAction(patientId);
@@ -87,39 +78,12 @@ export default function RegenerateWellnessPlanButton({ patientId, lastUpdated }:
       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       Atualizando...
     </>
-  ) : !canRegenerate ? (
-    <>
-      <Clock className="mr-2 h-4 w-4" />
-      Disponível em {nextAvailableDate}
-    </>
   ) : (
     <>
       <RefreshCw className="mr-2 h-4 w-4" />
       Atualizar Plano
     </>
   );
-
-  if (!canRegenerate && !isRegenerating) {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              onClick={handleRegenerate}
-              disabled={true}
-              className="h-9 text-xs px-3 sm:h-10 sm:text-sm sm:px-4 bg-gradient-to-r from-slate-500 to-slate-600 text-white font-semibold shadow-lg shadow-slate-500/20 transition-all cursor-not-allowed"
-            >
-              {buttonContent}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent className="bg-slate-800 border-cyan-500/30 text-slate-100">
-            <p className="text-sm">O plano pode ser atualizado uma vez por semana.</p>
-            <p className="text-xs text-slate-400 mt-1">Próxima atualização: {nextAvailableDate}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  }
 
   return (
     <Button

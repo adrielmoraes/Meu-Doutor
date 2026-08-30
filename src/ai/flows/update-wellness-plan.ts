@@ -12,6 +12,7 @@ import { z } from 'genkit';
 import { trackWellnessPlan } from '@/lib/usage-tracker';
 import { countTextTokens } from '@/lib/token-counter';
 import { generateWithFallback } from '@/lib/ai-resilience';
+import { isOpenRouterConfigured, openRouterGenerateStructured } from '@/lib/openrouter';
 
 const RecipeSchema = z.object({
   title: z.string().describe("Nome da receita"),
@@ -315,20 +316,68 @@ ${nutritionistAnalysis.clinicalAssessment}
 ${nutritionistAnalysis.recommendations}
     `.trim();
 
-    const { output } = await generateWithFallback({
-      prompt: wellnessPlanSynthesisPrompt,
-      input: {
-        nutritionistReport,
-        patientHistory,
+    let finalOutput: z.infer<typeof GenerateWellnessPlanFromExamsOutputSchema> | undefined;
+
+    try {
+      const genResult = await generateWithFallback({
+        prompt: wellnessPlanSynthesisPrompt,
+        input: {
+          nutritionistReport,
+          patientHistory,
+        }
+      });
+      finalOutput = genResult.output;
+    } catch (genError: any) {
+      console.warn(`[Wellness Plan Update] ⚠️ Geração direta via Gemini falhou:`, genError.message || genError);
+    }
+
+    // Se o Gemini falhou ou não retornou output, acionar OpenRouter
+    if (!finalOutput && isOpenRouterConfigured()) {
+      try {
+        console.log(`[Wellness Plan Update] 🔄 Acionando Fallback para OpenRouter (google/gemini-2.5-flash)...`);
+        const renderedPrompt = `Você é um especialista em saúde holística e nutrição criando um plano de bem-estar personalizado em português brasileiro.
+
+RELATÓRIO DO NUTRICIONISTA:
+${nutritionistReport}
+
+HISTÓRICO DO PACIENTE:
+${patientHistory}
+
+Crie um plano completo em JSON com as 6 seções obrigatórias:
+1. preliminaryAnalysis (string formatada em markdown)
+2. exercisePlan (string formatada em markdown)
+3. mentalWellnessPlan (string formatada em markdown)
+4. dailyReminders (array com 3 a 4 objetos { icon, title, description }, onde icon deve ser Droplet, Clock, Coffee, Bed, Dumbbell, Apple, Heart, Sun, Moon, Activity, Utensils, Brain, Smile, Wind ou Leaf)
+5. weeklyMealPlan (array com 7 dias Segunda a Domingo, com breakfast, lunch, dinner, snacks e receitas com title, ingredients, instructions, prepTime)
+6. weeklyTasks (array de 7 a 10 tarefas com id 'task-1' a 'task-7', category 'nutrition'|'exercise'|'mental'|'general', title, description, dayOfWeek, completed: false)
+
+Retorne EXCLUSIVAMENTE um objeto JSON válido.`;
+
+        const openRouterRes = await openRouterGenerateStructured<z.infer<typeof GenerateWellnessPlanFromExamsOutputSchema>>({
+          prompt: renderedPrompt,
+          model: 'google/gemini-2.5-flash',
+          systemPrompt: 'Você é um assistente de saúde preventiva avançado. Responda exclusivamente em formato JSON válido.',
+        });
+
+        if (openRouterRes.data && (openRouterRes.data.preliminaryAnalysis || openRouterRes.data.exercisePlan)) {
+          finalOutput = openRouterRes.data;
+          console.log(`[Wellness Plan Update] ✅ Plano de bem-estar gerado com sucesso via OpenRouter!`);
+        }
+      } catch (orErr: any) {
+        console.error(`[Wellness Plan Update] Fallback OpenRouter falhou:`, orErr.message || orErr);
       }
-    });
+    }
+
+    const output = finalOutput;
 
     // Track wellness plan synthesis LLM usage
-    const synthesisInputText = [nutritionistReport, patientHistory].filter(Boolean).join('\n\n');
-    const synthesisInputTokens = countTextTokens(synthesisInputText);
-    const synthesisOutputTokens = countTextTokens(JSON.stringify(output || {}));
-    trackWellnessPlan(patientId, synthesisInputTokens, synthesisOutputTokens, 'gemini-3-flash-preview')
-      .catch(err => console.error('[Wellness Plan Update] Synthesis tracking error:', err));
+    if (output) {
+      const synthesisInputText = [nutritionistReport, patientHistory].filter(Boolean).join('\n\n');
+      const synthesisInputTokens = countTextTokens(synthesisInputText);
+      const synthesisOutputTokens = countTextTokens(JSON.stringify(output || {}));
+      trackWellnessPlan(patientId, synthesisInputTokens, synthesisOutputTokens, 'gemini-2.5-flash')
+        .catch(err => console.error('[Wellness Plan Update] Synthesis tracking error:', err));
+    }
 
     if (!output) {
       console.error(`[Wellness Plan Update] Failed to generate wellness plan`);

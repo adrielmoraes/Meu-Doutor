@@ -19,6 +19,7 @@ import {
 } from "./specialist-agent-types";
 import { countTextTokens } from '@/lib/token-counter';
 import { trackAIUsage } from '@/lib/usage-tracker';
+import { isOpenRouterConfigured, openRouterGenerateStructured } from '@/lib/openrouter';
 
 const NUTRITIONIST_PROMPT = `You are **Dra. Laura Mendes, RD, MSc** - Registered Dietitian and Clinical Nutritionist specializing in medical nutrition therapy, sports nutrition, and metabolic diseases.
 
@@ -135,6 +136,29 @@ async function executeWithRetry(
             }
             const delay = errorStatus === 503 ? 5000 : 2000;
             await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+    }
+
+    // Fallback para OpenRouter se o Gemini direto falhar
+    if (isOpenRouterConfigured()) {
+        try {
+            console.log(`[Nutritionist Agent] 🔄 Tentando via OpenRouter (google/gemini-2.5-flash)...`);
+            const renderedPrompt = NUTRITIONIST_PROMPT
+                .replace('{{examResults}}', input.examResults || '')
+                .replace('{{patientHistory}}', input.patientHistory || '');
+
+            const openRouterRes = await openRouterGenerateStructured<SpecialistAgentOutput>({
+                prompt: renderedPrompt,
+                model: 'google/gemini-2.5-flash',
+                systemPrompt: 'Você é a Dra. Laura Mendes, nutricionista clínica. Responda exclusivamente em formato JSON válido sem markdown.',
+            });
+
+            if (openRouterRes.data && openRouterRes.data.findings) {
+                console.log(`[Nutritionist Agent] ✅ Sucesso com OpenRouter (${openRouterRes.model})`);
+                return openRouterRes.data;
+            }
+        } catch (orErr: any) {
+            console.warn(`[Nutritionist Agent] Fallback OpenRouter falhou:`, orErr.message || orErr);
         }
     }
 
