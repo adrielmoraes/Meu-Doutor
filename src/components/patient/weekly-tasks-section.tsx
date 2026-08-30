@@ -131,7 +131,7 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
       </Card>
 
       {Object.entries(groupedTasks).map(([category, categoryTasks]) => {
-        const config = categoryConfig[category as keyof typeof categoryConfig];
+        const config = categoryConfig[category as keyof typeof categoryConfig] || categoryConfig.general;
         const CategoryIcon = config.icon;
         
         return (
@@ -155,38 +155,45 @@ export default function WeeklyTasksSection({ patientId, tasks }: WeeklyTasksSect
               </div>
 
               <div className="space-y-3">
-                {categoryTasks.map(task => (
-                  <div
-                    key={task.id}
-                    className={`flex items-start gap-3 p-4 rounded-lg bg-muted/30 border-2 border-border/50 transition-all hover:border-border ${
-                      task.completed ? 'opacity-60' : ''
-                    }`}
-                  >
-                    <Checkbox
-                      id={task.id}
-                      checked={task.completed}
-                      onCheckedChange={() => handleToggleTask(task.id, task.completed)}
-                      className="mt-1 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                    />
-                    
-                    <div className="flex-1 space-y-1">
-                      <label
-                        htmlFor={task.id}
-                        className={`block font-medium cursor-pointer ${
-                          task.completed ? 'line-through text-foreground/70 dark:text-muted-foreground' : 'text-foreground/60 dark:text-foreground'
-                        }`}
-                      >
-                        {task.title}
-                      </label>
-                      <p className="text-sm text-foreground/70 dark:text-muted-foreground">{task.description}</p>
-                      {task.dayOfWeek && task.dayOfWeek.trim() && (
-                        <span className="inline-block mt-1 text-xs px-2 py-1 rounded bg-primary/10 text-primary border-2 border-primary/30">
-                          {task.dayOfWeek.split('|')[0].trim()}
-                        </span>
-                      )}
+                {categoryTasks.filter(Boolean).map((task: any, taskIdx: number) => {
+                  const title = typeof task.title === 'string' ? task.title : (typeof task === 'object' ? task.title || task.name || 'Tarefa' : String(task));
+                  const description = typeof task.description === 'string' ? task.description : (typeof task === 'object' ? task.description || task.text || '' : '');
+                  const dayOfWeek = typeof task.dayOfWeek === 'string' ? task.dayOfWeek : (typeof task.dayOfWeek === 'object' ? task.dayOfWeek.name || '' : '');
+                  const taskId = task.id || `task-${taskIdx}`;
+
+                  return (
+                    <div
+                      key={taskId}
+                      className={`flex items-start gap-3 p-4 rounded-lg bg-muted/30 border-2 border-border/50 transition-all hover:border-border ${
+                        task.completed ? 'opacity-60' : ''
+                      }`}
+                    >
+                      <Checkbox
+                        id={taskId}
+                        checked={Boolean(task.completed)}
+                        onCheckedChange={() => handleToggleTask(taskId, Boolean(task.completed))}
+                        className="mt-1 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                      />
+                      
+                      <div className="flex-1 space-y-1">
+                        <label
+                          htmlFor={taskId}
+                          className={`block font-medium cursor-pointer ${
+                            task.completed ? 'line-through text-foreground/70 dark:text-muted-foreground' : 'text-foreground/60 dark:text-foreground'
+                          }`}
+                        >
+                          {title}
+                        </label>
+                        {description && <p className="text-sm text-foreground/70 dark:text-muted-foreground">{description}</p>}
+                        {dayOfWeek && dayOfWeek.trim() && (
+                          <span className="inline-block mt-1 text-xs px-2 py-1 rounded bg-primary/10 text-primary border-2 border-primary/30">
+                            {dayOfWeek.split('|')[0].trim()}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </Card>

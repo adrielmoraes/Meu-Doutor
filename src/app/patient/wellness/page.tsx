@@ -18,7 +18,33 @@ import WellnessReminderToasts from "@/components/patient/wellness-reminder-toast
 
 // --- INTERNAL COMPONENTS (To avoid new files) ---
 
-function CoachMessage({ message }: { message: string }) {
+function renderStringOrRecipe(value: any): string {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'object') {
+        if (typeof value.title === 'string') return value.title;
+        if (typeof value.name === 'string') return value.name;
+        if (typeof value.description === 'string') return value.description;
+        if (typeof value.message === 'string') return value.message;
+        if (typeof value.text === 'string') return value.text;
+        return '';
+    }
+    return String(value);
+}
+
+function extractRecipe(mealVal: any, recipeVal: any) {
+    if (recipeVal && typeof recipeVal === 'object') {
+        return recipeVal;
+    }
+    if (mealVal && typeof mealVal === 'object' && (mealVal.ingredients || mealVal.instructions || mealVal.title)) {
+        return mealVal;
+    }
+    return null;
+}
+
+function CoachMessage({ message }: { message: any }) {
+    const text = typeof message === 'string' ? message : (typeof message === 'object' ? (message.message || message.text || message.title || '') : String(message || ''));
+    if (!text) return null;
     return (
         <div className="bg-indigo-50 dark:bg-indigo-950/30 border-l-4 border-indigo-500 dark:border-indigo-400 p-4 rounded-r-lg shadow-sm my-6">
             <div className="flex items-center gap-2 mb-2">
@@ -27,7 +53,7 @@ function CoachMessage({ message }: { message: string }) {
                 </div>
                 <span className="font-bold text-indigo-700 dark:text-indigo-300">Insight do Dr. Health</span>
             </div>
-            <p className="text-indigo-900 dark:text-indigo-100 italic text-lg leading-relaxed">&ldquo;{message}&rdquo;</p>
+            <p className="text-indigo-900 dark:text-indigo-100 italic text-lg leading-relaxed">&ldquo;{text}&rdquo;</p>
         </div>
     );
 }
@@ -312,140 +338,154 @@ export default async function WellnessPlanPage() {
                 </div>
             </div>
 
-            {wellnessPlan.weeklyMealPlan && wellnessPlan.weeklyMealPlan.length > 0 && (
+            {wellnessPlan.weeklyMealPlan && Array.isArray(wellnessPlan.weeklyMealPlan) && wellnessPlan.weeklyMealPlan.length > 0 && (
                 <div className="mt-8">
                     <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent flex items-center gap-2">
                         <ChefHat className="h-7 w-7 text-primary/60 dark:text-primary" />
                         Plano Semanal de Refeições
                     </h2>
                     <div className="space-y-6">
-                        {wellnessPlan.weeklyMealPlan.map((dayPlan) => (
-                            <Card key={dayPlan.day} className="bg-card/80 backdrop-blur-xl border-2 border-primary/20 overflow-hidden">
-                                <details className="group">
-                                    <summary className="cursor-pointer list-none outline-none">
-                                        <CardHeader className="flex flex-row items-center justify-between p-6 group-hover:bg-primary/5 transition-colors">
-                                            <CardTitle className="text-xl text-primary flex items-center gap-2">
-                                                {dayPlan.day}
-                                                <span className="text-xs font-normal text-muted-foreground ml-2 px-2 py-0.5 rounded-full border bg-background/50 hidden group-open:inline-block">
-                                                    Expandido
-                                                </span>
-                                            </CardTitle>
-                                            <ChevronDown className="h-5 w-5 text-primary/60 transition-transform duration-300 group-open:rotate-180" />
-                                        </CardHeader>
-                                    </summary>
+                        {wellnessPlan.weeklyMealPlan.map((dayPlan, dayIdx) => {
+                            const dayName = typeof dayPlan.day === 'string' ? dayPlan.day : (dayPlan.day ? renderStringOrRecipe(dayPlan.day) : `Dia ${dayIdx + 1}`);
+                            const breakfastText = renderStringOrRecipe(dayPlan.breakfast);
+                            const breakfastRecipe = extractRecipe(dayPlan.breakfast, dayPlan.breakfastRecipe);
 
-                                    <CardContent className="space-y-6 pt-0 px-6 pb-6 border-t border-primary/10 animate-in slide-in-from-top-2 duration-200">
-                                        <div className="pt-6">
-                                            {/* Café da Manhã */}
-                                            <div className="p-4 bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/30 rounded-lg mb-6">
-                                                <p className="text-sm font-semibold text-amber-600 dark:text-amber-400 mb-2 flex items-center gap-2">
-                                                    ☀️ Café da Manhã
-                                                </p>
-                                                <p className="text-sm text-foreground mb-3">{dayPlan.breakfast}</p>
-                                                {dayPlan.breakfastRecipe && (
-                                                    <div className="mt-3 p-3 bg-card/50 rounded border border-amber-500/20">
-                                                        <h4 className="font-semibold text-sm mb-2 text-amber-700 dark:text-amber-300">
-                                                            📖 {dayPlan.breakfastRecipe.title}
-                                                        </h4>
-                                                        {dayPlan.breakfastRecipe.prepTime && <p className="text-xs text-muted-foreground mb-2">⏱️ {dayPlan.breakfastRecipe.prepTime}</p>}
-                                                        {Array.isArray(dayPlan.breakfastRecipe.ingredients) && dayPlan.breakfastRecipe.ingredients.length > 0 && (
-                                                            <div className="mb-2">
-                                                                <p className="text-xs font-semibold mb-1">Ingredientes:</p>
-                                                                <ul className="text-xs text-muted-foreground space-y-1 ml-4">
-                                                                    {dayPlan.breakfastRecipe.ingredients.map((ing, idx) => (
-                                                                        <li key={idx}>• {ing}</li>
-                                                                    ))}
-                                                                </ul>
-                                                            </div>
-                                                        )}
-                                                        {dayPlan.breakfastRecipe.instructions && (
-                                                            <div>
-                                                                <p className="text-xs font-semibold mb-1">Modo de Preparo:</p>
-                                                                <p className="text-xs text-muted-foreground whitespace-pre-line">{dayPlan.breakfastRecipe.instructions}</p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
+                            const lunchText = renderStringOrRecipe(dayPlan.lunch);
+                            const lunchRecipe = extractRecipe(dayPlan.lunch, dayPlan.lunchRecipe);
 
-                                            {/* Almoço */}
-                                            <div className="p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-2 border-green-500/30 rounded-lg mb-6">
-                                                <p className="text-sm font-semibold text-green-600 dark:text-green-400 mb-2 flex items-center gap-2">
-                                                    🍽️ Almoço
-                                                </p>
-                                                <p className="text-sm text-foreground mb-3">{dayPlan.lunch}</p>
-                                                {dayPlan.lunchRecipe && (
-                                                    <div className="mt-3 p-3 bg-card/50 rounded border border-green-500/20">
-                                                        <h4 className="font-semibold text-sm mb-2 text-green-700 dark:text-green-300">
-                                                            📖 {dayPlan.lunchRecipe.title}
-                                                        </h4>
-                                                        {dayPlan.lunchRecipe.prepTime && <p className="text-xs text-muted-foreground mb-2">⏱️ {dayPlan.lunchRecipe.prepTime}</p>}
-                                                        {Array.isArray(dayPlan.lunchRecipe.ingredients) && dayPlan.lunchRecipe.ingredients.length > 0 && (
-                                                            <div className="mb-2">
-                                                                <p className="text-xs font-semibold mb-1">Ingredientes:</p>
-                                                                <ul className="text-xs text-muted-foreground space-y-1 ml-4">
-                                                                    {dayPlan.lunchRecipe.ingredients.map((ing, idx) => (
-                                                                        <li key={idx}>• {ing}</li>
-                                                                    ))}
-                                                                </ul>
-                                                            </div>
-                                                        )}
-                                                        {dayPlan.lunchRecipe.instructions && (
-                                                            <div>
-                                                                <p className="text-xs font-semibold mb-1">Modo de Preparo:</p>
-                                                                <p className="text-xs text-muted-foreground whitespace-pre-line">{dayPlan.lunchRecipe.instructions}</p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
+                            const dinnerText = renderStringOrRecipe(dayPlan.dinner);
+                            const dinnerRecipe = extractRecipe(dayPlan.dinner, dayPlan.dinnerRecipe);
 
-                                            {/* Jantar */}
-                                            <div className="p-4 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-2 border-blue-500/30 rounded-lg mb-6">
-                                                <p className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2 flex items-center gap-2">
-                                                    🌙 Jantar
-                                                </p>
-                                                <p className="text-sm text-foreground mb-3">{dayPlan.dinner}</p>
-                                                {dayPlan.dinnerRecipe && (
-                                                    <div className="mt-3 p-3 bg-card/50 rounded border border-blue-500/20">
-                                                        <h4 className="font-semibold text-sm mb-2 text-blue-700 dark:text-blue-300">
-                                                            📖 {dayPlan.dinnerRecipe.title}
-                                                        </h4>
-                                                        {dayPlan.dinnerRecipe.prepTime && <p className="text-xs text-muted-foreground mb-2">⏱️ {dayPlan.dinnerRecipe.prepTime}</p>}
-                                                        {Array.isArray(dayPlan.dinnerRecipe.ingredients) && dayPlan.dinnerRecipe.ingredients.length > 0 && (
-                                                            <div className="mb-2">
-                                                                <p className="text-xs font-semibold mb-1">Ingredientes:</p>
-                                                                <ul className="text-xs text-muted-foreground space-y-1 ml-4">
-                                                                    {dayPlan.dinnerRecipe.ingredients.map((ing, idx) => (
-                                                                        <li key={idx}>• {ing}</li>
-                                                                    ))}
-                                                                </ul>
-                                                            </div>
-                                                        )}
-                                                        {dayPlan.dinnerRecipe.instructions && (
-                                                            <div>
-                                                                <p className="text-xs font-semibold mb-1">Modo de Preparo:</p>
-                                                                <p className="text-xs text-muted-foreground whitespace-pre-line">{dayPlan.dinnerRecipe.instructions}</p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
+                            const snacksText = renderStringOrRecipe(dayPlan.snacks);
 
-                                            {/* Lanches */}
-                                            {dayPlan.snacks && (
-                                                <div className="p-4 bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-500/30 rounded-lg">
-                                                    <p className="text-sm font-semibold text-purple-600 dark:text-purple-400 mb-2 flex items-center gap-2">
-                                                        🍎 Lanches
+                            return (
+                                <Card key={dayName || dayIdx} className="bg-card/80 backdrop-blur-xl border-2 border-primary/20 overflow-hidden">
+                                    <details className="group">
+                                        <summary className="cursor-pointer list-none outline-none">
+                                            <CardHeader className="flex flex-row items-center justify-between p-6 group-hover:bg-primary/5 transition-colors">
+                                                <CardTitle className="text-xl text-primary flex items-center gap-2">
+                                                    {dayName}
+                                                    <span className="text-xs font-normal text-muted-foreground ml-2 px-2 py-0.5 rounded-full border bg-background/50 hidden group-open:inline-block">
+                                                        Expandido
+                                                    </span>
+                                                </CardTitle>
+                                                <ChevronDown className="h-5 w-5 text-primary/60 transition-transform duration-300 group-open:rotate-180" />
+                                            </CardHeader>
+                                        </summary>
+
+                                        <CardContent className="space-y-6 pt-0 px-6 pb-6 border-t border-primary/10 animate-in slide-in-from-top-2 duration-200">
+                                            <div className="pt-6">
+                                                {/* Café da Manhã */}
+                                                <div className="p-4 bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/30 rounded-lg mb-6">
+                                                    <p className="text-sm font-semibold text-amber-600 dark:text-amber-400 mb-2 flex items-center gap-2">
+                                                        ☀️ Café da Manhã
                                                     </p>
-                                                    <p className="text-sm text-foreground">{dayPlan.snacks}</p>
+                                                    {breakfastText && <p className="text-sm text-foreground mb-3">{breakfastText}</p>}
+                                                    {breakfastRecipe && (
+                                                        <div className="mt-3 p-3 bg-card/50 rounded border border-amber-500/20">
+                                                            <h4 className="font-semibold text-sm mb-2 text-amber-700 dark:text-amber-300">
+                                                                📖 {renderStringOrRecipe(breakfastRecipe.title)}
+                                                            </h4>
+                                                            {breakfastRecipe.prepTime && <p className="text-xs text-muted-foreground mb-2">⏱️ {renderStringOrRecipe(breakfastRecipe.prepTime)}</p>}
+                                                            {Array.isArray(breakfastRecipe.ingredients) && breakfastRecipe.ingredients.length > 0 && (
+                                                                <div className="mb-2">
+                                                                    <p className="text-xs font-semibold mb-1">Ingredientes:</p>
+                                                                    <ul className="text-xs text-muted-foreground space-y-1 ml-4">
+                                                                        {breakfastRecipe.ingredients.map((ing: any, idx: number) => (
+                                                                            <li key={idx}>• {renderStringOrRecipe(ing)}</li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </div>
+                                                            )}
+                                                            {breakfastRecipe.instructions && (
+                                                                <div>
+                                                                    <p className="text-xs font-semibold mb-1">Modo de Preparo:</p>
+                                                                    <p className="text-xs text-muted-foreground whitespace-pre-line">{renderStringOrRecipe(breakfastRecipe.instructions)}</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            )}
-                                        </div>
-                                    </CardContent>
-                                </details>
-                            </Card>
-                        ))}
+
+                                                {/* Almoço */}
+                                                <div className="p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-2 border-green-500/30 rounded-lg mb-6">
+                                                    <p className="text-sm font-semibold text-green-600 dark:text-green-400 mb-2 flex items-center gap-2">
+                                                        🍽️ Almoço
+                                                    </p>
+                                                    {lunchText && <p className="text-sm text-foreground mb-3">{lunchText}</p>}
+                                                    {lunchRecipe && (
+                                                        <div className="mt-3 p-3 bg-card/50 rounded border border-green-500/20">
+                                                            <h4 className="font-semibold text-sm mb-2 text-green-700 dark:text-green-300">
+                                                                📖 {renderStringOrRecipe(lunchRecipe.title)}
+                                                            </h4>
+                                                            {lunchRecipe.prepTime && <p className="text-xs text-muted-foreground mb-2">⏱️ {renderStringOrRecipe(lunchRecipe.prepTime)}</p>}
+                                                            {Array.isArray(lunchRecipe.ingredients) && lunchRecipe.ingredients.length > 0 && (
+                                                                <div className="mb-2">
+                                                                    <p className="text-xs font-semibold mb-1">Ingredientes:</p>
+                                                                    <ul className="text-xs text-muted-foreground space-y-1 ml-4">
+                                                                        {lunchRecipe.ingredients.map((ing: any, idx: number) => (
+                                                                            <li key={idx}>• {renderStringOrRecipe(ing)}</li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </div>
+                                                            )}
+                                                            {lunchRecipe.instructions && (
+                                                                <div>
+                                                                    <p className="text-xs font-semibold mb-1">Modo de Preparo:</p>
+                                                                    <p className="text-xs text-muted-foreground whitespace-pre-line">{renderStringOrRecipe(lunchRecipe.instructions)}</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Jantar */}
+                                                <div className="p-4 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-2 border-blue-500/30 rounded-lg mb-6">
+                                                    <p className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2 flex items-center gap-2">
+                                                        🌙 Jantar
+                                                    </p>
+                                                    {dinnerText && <p className="text-sm text-foreground mb-3">{dinnerText}</p>}
+                                                    {dinnerRecipe && (
+                                                        <div className="mt-3 p-3 bg-card/50 rounded border border-blue-500/20">
+                                                            <h4 className="font-semibold text-sm mb-2 text-blue-700 dark:text-blue-300">
+                                                                📖 {renderStringOrRecipe(dinnerRecipe.title)}
+                                                            </h4>
+                                                            {dinnerRecipe.prepTime && <p className="text-xs text-muted-foreground mb-2">⏱️ {renderStringOrRecipe(dinnerRecipe.prepTime)}</p>}
+                                                            {Array.isArray(dinnerRecipe.ingredients) && dinnerRecipe.ingredients.length > 0 && (
+                                                                <div className="mb-2">
+                                                                    <p className="text-xs font-semibold mb-1">Ingredientes:</p>
+                                                                    <ul className="text-xs text-muted-foreground space-y-1 ml-4">
+                                                                        {dinnerRecipe.ingredients.map((ing: any, idx: number) => (
+                                                                            <li key={idx}>• {renderStringOrRecipe(ing)}</li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </div>
+                                                            )}
+                                                            {dinnerRecipe.instructions && (
+                                                                <div>
+                                                                    <p className="text-xs font-semibold mb-1">Modo de Preparo:</p>
+                                                                    <p className="text-xs text-muted-foreground whitespace-pre-line">{renderStringOrRecipe(dinnerRecipe.instructions)}</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Lanches */}
+                                                {snacksText && (
+                                                    <div className="p-4 bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-500/30 rounded-lg">
+                                                        <p className="text-sm font-semibold text-purple-600 dark:text-purple-400 mb-2 flex items-center gap-2">
+                                                            🍎 Lanches
+                                                        </p>
+                                                        <p className="text-sm text-foreground">{snacksText}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </CardContent>
+                                    </details>
+                                </Card>
+                            );
+                        })}
                     </div>
                 </div>
             )}

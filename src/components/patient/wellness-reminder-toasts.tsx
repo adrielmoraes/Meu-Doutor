@@ -140,12 +140,17 @@ export default function WellnessReminderToasts({ reminders, healthGoals }: Welln
         if (!reminders || reminders.length === 0) return;
 
         const triggerReminder = () => {
-            const currentReminder = reminders[currentReminderIndexRef.current];
+            if (!reminders || reminders.length === 0) return;
+            const currentReminder = reminders[currentReminderIndexRef.current % reminders.length];
+            if (!currentReminder) return;
             playSound();
 
+            const title = typeof currentReminder.title === 'string' ? currentReminder.title : (typeof currentReminder.title === 'object' ? (currentReminder.title as any).title || (currentReminder.title as any).name || 'Lembrete' : String(currentReminder.title || 'Lembrete'));
+            const description = typeof currentReminder.description === 'string' ? currentReminder.description : (typeof currentReminder.description === 'object' ? (currentReminder.description as any).description || (currentReminder.description as any).text || '' : '');
+
             toast({
-                title: currentReminder.title,
-                description: currentReminder.description,
+                title,
+                description,
                 action: iconMap[currentReminder.icon] || <Bell className="h-5 w-5 text-indigo-500" />,
                 duration: 30000,
             });

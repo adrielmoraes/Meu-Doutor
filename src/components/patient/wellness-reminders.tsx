@@ -49,17 +49,23 @@ export default function WellnessReminders({ reminders }: WellnessRemindersProps)
             </CardHeader>
             <CardContent>
                 <ul className="space-y-4">
-                    {(reminders || []).map(reminder => (
-                        <li key={reminder.title} className="flex items-start gap-4">
-                            <div className="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-muted">
-                                {iconMap[reminder.icon] || <Bell className="h-5 w-5" />}
-                            </div>
-                            <div>
-                                <p className="font-semibold text-foreground dark:text-foreground">{reminder.title}</p>
-                                <p className="text-sm text-black dark:text-muted-foreground">{reminder.description}</p>
-                            </div>
-                        </li>
-                    ))}
+                    {(reminders || []).filter(Boolean).map((reminder: any, idx: number) => {
+                        const title = typeof reminder.title === 'string' ? reminder.title : (typeof reminder === 'object' ? reminder.title || reminder.name || 'Lembrete' : String(reminder));
+                        const description = typeof reminder.description === 'string' ? reminder.description : (typeof reminder === 'object' ? reminder.description || reminder.text || '' : '');
+                        const iconKey = typeof reminder.icon === 'string' ? reminder.icon : 'Activity';
+
+                        return (
+                            <li key={title || idx} className="flex items-start gap-4">
+                                <div className="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-muted">
+                                    {iconMap[iconKey] || <Bell className="h-5 w-5" />}
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-foreground dark:text-foreground">{title}</p>
+                                    {description && <p className="text-sm text-black dark:text-muted-foreground">{description}</p>}
+                                </div>
+                            </li>
+                        );
+                    })}
                 </ul>
             </CardContent>
         </Card>
