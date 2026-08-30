@@ -32,8 +32,25 @@ function CoachMessage({ message }: { message: string }) {
     );
 }
 
+function formatDateSafe(dateVal: any): string {
+    if (!dateVal) return 'Data não disponível';
+    try {
+        const d = new Date(dateVal);
+        if (isNaN(d.getTime())) return 'Data não disponível';
+        return d.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch {
+        return 'Data não disponível';
+    }
+}
+
 function PreventiveAlertsList({ alerts }: { alerts: any[] }) {
-    if (!alerts || alerts.length === 0) return null;
+    if (!alerts || !Array.isArray(alerts) || alerts.length === 0) return null;
 
     const styles: any = {
         high: "bg-red-100 dark:bg-red-950/30 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800",
@@ -49,15 +66,17 @@ function PreventiveAlertsList({ alerts }: { alerts: any[] }) {
             </div>
             <CardContent className="p-0">
                 <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                    {alerts.map((item, index) => (
+                    {alerts.filter(Boolean).map((item, index) => (
                         <div key={index} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                             <div className="flex justify-between items-start gap-3">
-                                <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{item.alert}</p>
-                                <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${styles[item.severity] || styles.low}`}>
-                                    {item.severity}
-                                </span>
+                                <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{item?.alert || (typeof item === 'string' ? item : JSON.stringify(item))}</p>
+                                {item?.severity && (
+                                    <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${styles[item.severity] || styles.low}`}>
+                                        {item.severity}
+                                    </span>
+                                )}
                             </div>
-                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 capitalize">Categoria: {item.category}</p>
+                            {item?.category && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 capitalize">Categoria: {item.category}</p>}
                         </div>
                     ))}
                 </div>
@@ -67,26 +86,31 @@ function PreventiveAlertsList({ alerts }: { alerts: any[] }) {
 }
 
 function HealthGoalsList({ goals }: { goals: any[] }) {
-    if (!goals || goals.length === 0) return null;
+    if (!goals || !Array.isArray(goals) || goals.length === 0) return null;
     return (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-            {goals.map((goal, index) => (
-                <div key={index} className="flex flex-col justify-between p-5 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all">
-                    <div className="flex justify-between items-start mb-3">
-                        <span className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">{goal.category}</span>
-                        {goal.targetDate && (
-                            <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded-full">
-                                <Calendar className="w-3 h-3" /><span>{goal.targetDate}</span>
-                            </div>
-                        )}
+            {goals.filter(Boolean).map((goal, index) => {
+                const progress = typeof goal.progress === 'number' ? goal.progress : 0;
+                return (
+                    <div key={index} className="flex flex-col justify-between p-5 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all">
+                        <div className="flex justify-between items-start mb-3">
+                            {goal.category && (
+                                <span className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">{goal.category}</span>
+                            )}
+                            {goal.targetDate && (
+                                <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded-full">
+                                    <Calendar className="w-3 h-3" /><span>{goal.targetDate}</span>
+                                </div>
+                            )}
+                        </div>
+                        <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">{goal.title || "Meta de Saúde"}</h4>
+                        <div className="mt-2">
+                            <div className="flex justify-between text-xs mb-1.5 font-medium"><span className="text-gray-500 dark:text-gray-400">Progresso</span><span className="text-primary">{progress}%</span></div>
+                            <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden"><div className="bg-primary h-full rounded-full" style={{ width: `${progress}%` }}></div></div>
+                        </div>
                     </div>
-                    <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">{goal.title}</h4>
-                    <div className="mt-2">
-                        <div className="flex justify-between text-xs mb-1.5 font-medium"><span className="text-gray-500 dark:text-gray-400">Progresso</span><span className="text-primary">{goal.progress}%</span></div>
-                        <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden"><div className="bg-primary h-full rounded-full" style={{ width: `${goal.progress}%` }}></div></div>
-                    </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 }
@@ -96,10 +120,7 @@ function HealthGoalsList({ goals }: { goals: any[] }) {
 async function getWellnessPageData(patientId: string): Promise<{ patient: Patient | null, error?: string }> {
     try {
         const patient = await getPatientById(patientId);
-        if (!patient) {
-            notFound();
-        }
-        return { patient };
+        return { patient: patient || null };
     } catch (e: any) {
         console.error("Unexpected error fetching patient for wellness page:", e);
         return { patient: null, error: "Ocorreu um erro inesperado ao carregar os dados para o plano de bem-estar." };
@@ -190,15 +211,7 @@ export default async function WellnessPlanPage() {
         );
     }
 
-    const lastUpdated = wellnessPlan.lastUpdated
-        ? new Date(wellnessPlan.lastUpdated).toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        })
-        : 'Data não disponível';
+    const lastUpdated = formatDateSafe(wellnessPlan.lastUpdated);
 
     const planSections: Array<{
         title: string;
@@ -213,7 +226,7 @@ export default async function WellnessPlanPage() {
             {
                 title: "Análise Preliminar",
                 icon: <FileText className="h-6 w-6 text-white" />,
-                content: wellnessPlan.preliminaryAnalysis || "",
+                content: typeof wellnessPlan.preliminaryAnalysis === 'string' ? wellnessPlan.preliminaryAnalysis : "",
                 section: 'dietary',
                 audioUri: wellnessPlan.preliminaryAnalysisAudioUri,
                 border: "border-blue-500/30",
@@ -223,7 +236,7 @@ export default async function WellnessPlanPage() {
             {
                 title: "Plano de Exercícios",
                 icon: <Dumbbell className="h-6 w-6 text-white" />,
-                content: wellnessPlan.exercisePlan,
+                content: typeof wellnessPlan.exercisePlan === 'string' ? wellnessPlan.exercisePlan : "",
                 section: 'exercise',
                 audioUri: wellnessPlan.exercisePlanAudioUri,
                 border: "border-orange-500/30",
@@ -233,7 +246,7 @@ export default async function WellnessPlanPage() {
             {
                 title: "Bem-Estar Mental",
                 icon: <BrainCircuit className="h-6 w-6 text-white" />,
-                content: wellnessPlan.mentalWellnessPlan,
+                content: typeof wellnessPlan.mentalWellnessPlan === 'string' ? wellnessPlan.mentalWellnessPlan : "",
                 section: 'mental',
                 audioUri: wellnessPlan.mentalWellnessPlanAudioUri,
                 border: "border-purple-500/30",
@@ -334,19 +347,23 @@ export default async function WellnessPlanPage() {
                                                         <h4 className="font-semibold text-sm mb-2 text-amber-700 dark:text-amber-300">
                                                             📖 {dayPlan.breakfastRecipe.title}
                                                         </h4>
-                                                        <p className="text-xs text-muted-foreground mb-2">⏱️ {dayPlan.breakfastRecipe.prepTime}</p>
-                                                        <div className="mb-2">
-                                                            <p className="text-xs font-semibold mb-1">Ingredientes:</p>
-                                                            <ul className="text-xs text-muted-foreground space-y-1 ml-4">
-                                                                {dayPlan.breakfastRecipe.ingredients.map((ing, idx) => (
-                                                                    <li key={idx}>• {ing}</li>
-                                                                ))}
-                                                            </ul>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-xs font-semibold mb-1">Modo de Preparo:</p>
-                                                            <p className="text-xs text-muted-foreground whitespace-pre-line">{dayPlan.breakfastRecipe.instructions}</p>
-                                                        </div>
+                                                        {dayPlan.breakfastRecipe.prepTime && <p className="text-xs text-muted-foreground mb-2">⏱️ {dayPlan.breakfastRecipe.prepTime}</p>}
+                                                        {Array.isArray(dayPlan.breakfastRecipe.ingredients) && dayPlan.breakfastRecipe.ingredients.length > 0 && (
+                                                            <div className="mb-2">
+                                                                <p className="text-xs font-semibold mb-1">Ingredientes:</p>
+                                                                <ul className="text-xs text-muted-foreground space-y-1 ml-4">
+                                                                    {dayPlan.breakfastRecipe.ingredients.map((ing, idx) => (
+                                                                        <li key={idx}>• {ing}</li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        )}
+                                                        {dayPlan.breakfastRecipe.instructions && (
+                                                            <div>
+                                                                <p className="text-xs font-semibold mb-1">Modo de Preparo:</p>
+                                                                <p className="text-xs text-muted-foreground whitespace-pre-line">{dayPlan.breakfastRecipe.instructions}</p>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
@@ -362,19 +379,23 @@ export default async function WellnessPlanPage() {
                                                         <h4 className="font-semibold text-sm mb-2 text-green-700 dark:text-green-300">
                                                             📖 {dayPlan.lunchRecipe.title}
                                                         </h4>
-                                                        <p className="text-xs text-muted-foreground mb-2">⏱️ {dayPlan.lunchRecipe.prepTime}</p>
-                                                        <div className="mb-2">
-                                                            <p className="text-xs font-semibold mb-1">Ingredientes:</p>
-                                                            <ul className="text-xs text-muted-foreground space-y-1 ml-4">
-                                                                {dayPlan.lunchRecipe.ingredients.map((ing, idx) => (
-                                                                    <li key={idx}>• {ing}</li>
-                                                                ))}
-                                                            </ul>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-xs font-semibold mb-1">Modo de Preparo:</p>
-                                                            <p className="text-xs text-muted-foreground whitespace-pre-line">{dayPlan.lunchRecipe.instructions}</p>
-                                                        </div>
+                                                        {dayPlan.lunchRecipe.prepTime && <p className="text-xs text-muted-foreground mb-2">⏱️ {dayPlan.lunchRecipe.prepTime}</p>}
+                                                        {Array.isArray(dayPlan.lunchRecipe.ingredients) && dayPlan.lunchRecipe.ingredients.length > 0 && (
+                                                            <div className="mb-2">
+                                                                <p className="text-xs font-semibold mb-1">Ingredientes:</p>
+                                                                <ul className="text-xs text-muted-foreground space-y-1 ml-4">
+                                                                    {dayPlan.lunchRecipe.ingredients.map((ing, idx) => (
+                                                                        <li key={idx}>• {ing}</li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        )}
+                                                        {dayPlan.lunchRecipe.instructions && (
+                                                            <div>
+                                                                <p className="text-xs font-semibold mb-1">Modo de Preparo:</p>
+                                                                <p className="text-xs text-muted-foreground whitespace-pre-line">{dayPlan.lunchRecipe.instructions}</p>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
@@ -390,19 +411,23 @@ export default async function WellnessPlanPage() {
                                                         <h4 className="font-semibold text-sm mb-2 text-blue-700 dark:text-blue-300">
                                                             📖 {dayPlan.dinnerRecipe.title}
                                                         </h4>
-                                                        <p className="text-xs text-muted-foreground mb-2">⏱️ {dayPlan.dinnerRecipe.prepTime}</p>
-                                                        <div className="mb-2">
-                                                            <p className="text-xs font-semibold mb-1">Ingredientes:</p>
-                                                            <ul className="text-xs text-muted-foreground space-y-1 ml-4">
-                                                                {dayPlan.dinnerRecipe.ingredients.map((ing, idx) => (
-                                                                    <li key={idx}>• {ing}</li>
-                                                                ))}
-                                                            </ul>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-xs font-semibold mb-1">Modo de Preparo:</p>
-                                                            <p className="text-xs text-muted-foreground whitespace-pre-line">{dayPlan.dinnerRecipe.instructions}</p>
-                                                        </div>
+                                                        {dayPlan.dinnerRecipe.prepTime && <p className="text-xs text-muted-foreground mb-2">⏱️ {dayPlan.dinnerRecipe.prepTime}</p>}
+                                                        {Array.isArray(dayPlan.dinnerRecipe.ingredients) && dayPlan.dinnerRecipe.ingredients.length > 0 && (
+                                                            <div className="mb-2">
+                                                                <p className="text-xs font-semibold mb-1">Ingredientes:</p>
+                                                                <ul className="text-xs text-muted-foreground space-y-1 ml-4">
+                                                                    {dayPlan.dinnerRecipe.ingredients.map((ing, idx) => (
+                                                                        <li key={idx}>• {ing}</li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        )}
+                                                        {dayPlan.dinnerRecipe.instructions && (
+                                                            <div>
+                                                                <p className="text-xs font-semibold mb-1">Modo de Preparo:</p>
+                                                                <p className="text-xs text-muted-foreground whitespace-pre-line">{dayPlan.dinnerRecipe.instructions}</p>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
