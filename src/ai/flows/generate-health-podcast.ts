@@ -23,6 +23,7 @@ import { saveFileBuffer } from "@/lib/file-storage";
 import { appointments, healthPodcasts, exams } from "@/shared/schema";
 import { eq, desc, and, gte } from "drizzle-orm";
 import { randomUUID } from "crypto";
+import { isOpenRouterConfigured, openRouterGenerateStructured, openRouterTextToSpeech } from "@/lib/openrouter";
 
 
 // --- CONSTANTES ---
@@ -32,8 +33,8 @@ const SPEAKERS = {
 } as const;
 
 const TTS_CONFIG = {
-    primaryModel: "gemini-2.5-flash-preview-tts",
-    fallbackModels: ["gemini-2.0-flash", "gemini-2.5-pro-preview-tts"],
+    primaryModel: "gemini-3.1-flash-tts-preview",
+    fallbackModels: ["gemini-2.5-flash-preview-tts"],
     sampleRate: 24000,
     numChannels: 1,
     bitsPerSample: 16,
@@ -194,9 +195,9 @@ async function getPatientContext(patientId: string) {
 
     // Mapear duração sugerida baseada na cota do plano e solicitação do usuário
     // 10 falas ~= 1 minuto de áudio (Gemini TTS)
-    let targetLines = 25; // Default/Trial (~2.5 min)
-    if (limitInfo.limit > 5 && limitInfo.limit <= 10) targetLines = 40; // Básico (~4 min)
-    else if (limitInfo.limit > 10) targetLines = 75; // Premium/Familiar (Up to ~8 min)
+    let targetLines = 22; // Alta qualidade com diálogo dinâmico (~2.5 min)
+    if (limitInfo.limit > 5 && limitInfo.limit <= 10) targetLines = 35; // Básico (~3.5 min)
+    else if (limitInfo.limit > 10) targetLines = 60; // Premium/Familiar (~6 min)
 
     // Capped by GenAI typical limits and costs
     targetLines = Math.min(targetLines, 85);
@@ -301,12 +302,12 @@ const podcastScriptPrompt = ai.definePrompt({
         schema: PodcastScriptSchema,
     },
     prompt: PODCAST_PROMPT_TEMPLATE,
-    model: "googleai/gemini-2.5-flash",
+    model: "googleai/gemini-3.5-flash",
 });
 
 // --- GERAÇÃO DE ÁUDIO COM SUPORTE A FALLBACK E PACING ---
 async function generateAudio(scriptItems: { speaker: string; text: string }[]): Promise<Buffer> {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY;
     if (!apiKey) {
         throw new PodcastGenerationError(
             "GEMINI_API_KEY não configurada",
@@ -315,13 +316,12 @@ async function generateAudio(scriptItems: { speaker: string; text: string }[]): 
         );
     }
 
-    const MAX_ATTEMPTS = 4;
     let lastError: any;
 
     // 1. Agrupar falas consecutivas do mesmo speaker para otimizar chamadas
-    // e aplicar limite seguro de tamanho por chunk (~500 chars)
+    // e aplicar limite seguro de tamanho por chunk (~1500 chars para reduzir requisições à API)
     const chunks: { speaker: string; text: string }[] = [];
-    const MAX_CHUNK_LENGTH = 550;
+    const MAX_CHUNK_LENGTH = 1500;
 
     let currentSpeaker = "";
     let currentBuffer = "";
@@ -348,10 +348,10 @@ async function generateAudio(scriptItems: { speaker: string; text: string }[]): 
         chunks.push({ speaker: currentSpeaker || scriptItems[0]?.speaker || "Host", text: currentBuffer.trim() });
     }
 
-    console.log(`[Health Podcast] Gerando áudio para ${chunks.length} turnos de fala agrupados.`);
+    console.log(`[Health Podcast] Gerando áudio para ${chunks.length} blocos de fala agrupados.`);
 
     const audioBuffers: Buffer[] = [];
-    const modelsToTry = [TTS_CONFIG.primaryModel, ...TTS_CONFIG.fallbackModels];
+    const MAX_ATTEMPTS = 8;
 
     for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
@@ -364,14 +364,15 @@ async function generateAudio(scriptItems: { speaker: string; text: string }[]): 
         const isFemale = speakerName.includes("nathália") || speakerName.includes("nathalia") || speakerName.includes("ana") || speakerName.includes("host");
         const voiceName = isFemale ? "Aoede" : "Puck";
 
+        const modelsToTry = [TTS_CONFIG.primaryModel, ...TTS_CONFIG.fallbackModels];
+
         for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-            // Selecionar modelo (começa com primário, tenta fallbacks se necessário)
-            const modelToUse = modelsToTry[Math.min(attempt - 1, modelsToTry.length - 1)];
+            const modelToUse = modelsToTry[(attempt - 1) % modelsToTry.length];
 
             try {
-                // Pacing: pequena pausa de 250ms entre chunks para prevenir rate-limit HTTP 429
+                // Pacing: pausa de 1200ms entre chunks para prevenir rate-limit HTTP 429
                 if (i > 0 || attempt > 1) {
-                    await new Promise(resolve => setTimeout(resolve, 250));
+                    await new Promise(resolve => setTimeout(resolve, 1200));
                 }
 
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${apiKey}`;
@@ -424,17 +425,60 @@ async function generateAudio(scriptItems: { speaker: string; text: string }[]): 
                 break; // Sucesso no chunk atual!
 
             } catch (error: any) {
-                console.warn(`[Health Podcast] Chunk ${i + 1}/${chunks.length} (${chunk.speaker}) tentativa ${attempt} falhou:`, error.message || error);
-
                 const msg = error.message || String(error);
+                console.warn(`[Health Podcast] Bloco ${i + 1}/${chunks.length} (${chunk.speaker}) tentativa ${attempt} falhou:`, msg);
+
                 if (msg.includes("403") || msg.includes("API_KEY_INVALID")) {
                     throw error; // Erros de chave inválida não adianta tentar novamente
                 }
 
+                // Fallback imediato para OpenRouter Audio API se disponível
+                if (isOpenRouterConfigured()) {
+                    try {
+                        console.log(`[Health Podcast] 🔄 Acionando Fallback de Áudio via OpenRouter (openai/gpt-audio-mini) para bloco ${i + 1}/${chunks.length}...`);
+                        const openRouterVoice = isFemale ? 'coral' : 'ash';
+                        const openRouterAudio = await openRouterTextToSpeech({
+                            text: chunk.text,
+                            voice: openRouterVoice,
+                            model: 'openai/gpt-audio-mini',
+                        });
+                        if (openRouterAudio && openRouterAudio.length > 0) {
+                            audioBuffers.push(openRouterAudio);
+                            chunkSuccess = true;
+                            console.log(`[Health Podcast] ✅ Áudio do bloco ${i + 1} gerado com sucesso via OpenRouter (${openRouterVoice})!`);
+                            break;
+                        }
+                    } catch (orAudioErr: any) {
+                        console.warn(`[Health Podcast] Fallback OpenRouter áudio falhou:`, orAudioErr?.message || orAudioErr);
+                    }
+                }
+
                 if (attempt < MAX_ATTEMPTS) {
-                    const backoffMs = Math.min(8000, 1500 * Math.pow(2, attempt - 1));
-                    console.log(`[Health Podcast] Aguardando ${backoffMs}ms antes de retentar chunk ${i + 1}...`);
-                    await new Promise(resolve => setTimeout(resolve, backoffMs));
+                    const isRateLimit = msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED") || msg.includes("Quota exceeded");
+                    const is503 = msg.includes("503") || msg.includes("UNAVAILABLE") || msg.includes("high demand");
+
+                    let waitMs = 3000;
+                    if (isRateLimit) {
+                        // Extrai dinamicamente os segundos solicitados pelo Google (ex: 29s, 17s) ou aguarda 10s
+                        let parsedDelay = 10000;
+                        const retryMatch = msg.match(/retryDelay[^0-9]+(\d+)/i) || msg.match(/Please retry in\s+(\d+(?:\.\d+)?)/i);
+                        if (retryMatch && retryMatch[1]) {
+                            const sec = Math.ceil(parseFloat(retryMatch[1]));
+                            if (!isNaN(sec) && sec > 0) {
+                                parsedDelay = (sec + 2) * 1000;
+                            }
+                        }
+                        waitMs = parsedDelay;
+                        console.log(`[Health Podcast] ⏳ Cota temporária (429). Google solicitou espera de ${(waitMs / 1000).toFixed(0)}s. Aplicando Espera Inteligente antes de retentar bloco ${i + 1}/${chunks.length}...`);
+                    } else if (is503) {
+                        waitMs = 6000 + Math.floor(Math.random() * 3000); // 6s a 9s para 503
+                        console.log(`[Health Podcast] ⏳ Servidor Google em alta demanda (503). Aguardando ${(waitMs / 1000).toFixed(0)}s antes de retentar bloco ${i + 1}/${chunks.length}...`);
+                    } else {
+                        waitMs = Math.min(10000, 2000 * Math.pow(2, attempt - 1));
+                        console.log(`[Health Podcast] ⏳ Aguardando ${(waitMs / 1000).toFixed(0)}s antes de retentar bloco ${i + 1}...`);
+                    }
+
+                    await new Promise(resolve => setTimeout(resolve, waitMs));
                 } else {
                     lastError = error;
                 }
@@ -442,7 +486,7 @@ async function generateAudio(scriptItems: { speaker: string; text: string }[]): 
         }
 
         if (!chunkSuccess) {
-            throw lastError || new Error(`Falha definitiva ao gerar áudio para o chunk ${i + 1}`);
+            throw lastError || new Error(`Falha definitiva ao gerar áudio para o bloco ${i + 1}`);
         }
     }
 
@@ -469,15 +513,83 @@ const healthPodcastFlow = ai.defineFlow(
         const context = await getPatientContext(input.patientId);
         const contextMs = Date.now() - tContextStart;
 
-        // 2. Gerar Roteiro
+        // 2. Gerar Roteiro com Retry e Resiliência (prevenção contra 503 / picos de tráfego) e Fallback para OpenRouter
         const tScriptStart = Date.now();
-        const { output } = await podcastScriptPrompt({
-            patientName: context.patientName,
-            examContext: context.examContext,
-            wellnessContext: context.wellnessContext,
-            agendaContext: context.agendaContext,
-            targetLines: context.targetLines,
-        });
+        let output: any = null;
+        let usedScriptModel = "gemini-3.5-flash";
+        const maxScriptAttempts = 3;
+        for (let attempt = 1; attempt <= maxScriptAttempts; attempt++) {
+            try {
+                const response = await podcastScriptPrompt({
+                    patientName: context.patientName,
+                    examContext: context.examContext,
+                    wellnessContext: context.wellnessContext,
+                    agendaContext: context.agendaContext,
+                    targetLines: context.targetLines,
+                });
+                output = response.output;
+                if (output?.script && output.script.length >= 5) {
+                    usedScriptModel = "gemini-3.5-flash";
+                    break;
+                }
+            } catch (err: any) {
+                console.warn(`[Health Podcast] Tentativa ${attempt} de roteiro falhou:`, err?.message || err);
+
+                // Fallback automático para OpenRouter se configurado
+                if (isOpenRouterConfigured()) {
+                    try {
+                        console.log(`[Health Podcast] 🔄 Acionando Fallback para OpenRouter (DeepSeek / Claude)...`);
+                        const fallbackPrompt = `
+Você é o roteirista do Podcast MediAI.
+Nome do paciente: ${context.patientName}
+Contexto dos exames: ${context.examContext}
+Contexto de estilo de vida e bem-estar: ${context.wellnessContext}
+Agenda / Próximas consultas: ${context.agendaContext}
+Meta de falas: ~${context.targetLines} turnos de conversa.
+
+Gere um roteiro estruturado com duas vozes: "Nathália" (Apresentadora calorosa) e "Dr. Daniel" (Médico especialista didático).
+Retorne em formato JSON no schema:
+{
+  "episodeTitle": string,
+  "theme": string,
+  "overview": string,
+  "script": [
+     { "speaker": "Nathália" | "Dr. Daniel", "text": string }
+  ],
+  "practicalTips": string[]
+}
+`;
+                        const openRouterRes = await openRouterGenerateStructured<{
+                            episodeTitle: string;
+                            theme: string;
+                            overview: string;
+                            script: Array<{ speaker: string; text: string }>;
+                            practicalTips: string[];
+                        }>({
+                            prompt: fallbackPrompt,
+                            systemPrompt: PODCAST_PROMPT_TEMPLATE,
+                            model: process.env.OPENROUTER_DEFAULT_MODEL || "deepseek/deepseek-chat",
+                        });
+
+                        if (openRouterRes.data?.script && openRouterRes.data.script.length >= 5) {
+                            output = openRouterRes.data;
+                            usedScriptModel = openRouterRes.model;
+                            console.log(`[Health Podcast] ✅ Roteiro gerado com sucesso via OpenRouter (${usedScriptModel})!`);
+                            break;
+                        }
+                    } catch (openRouterErr: any) {
+                        console.warn(`[Health Podcast] Fallback OpenRouter falhou:`, openRouterErr?.message || openRouterErr);
+                    }
+                }
+
+                if (attempt < maxScriptAttempts) {
+                    const delay = 1500 * attempt;
+                    await new Promise(r => setTimeout(r, delay));
+                } else if (!output?.script) {
+                    throw err;
+                }
+            }
+        }
         const scriptMs = Date.now() - tScriptStart;
 
         // Rastrear uso do LLM (Script)
@@ -498,7 +610,7 @@ const healthPodcastFlow = ai.defineFlow(
         trackAIUsage({
             patientId: input.patientId,
             usageType: "podcast_script",
-            model: "gemini-2.5-flash",
+            model: usedScriptModel,
             inputTokens: totalInputTokens,
             outputTokens,
             metadata: {

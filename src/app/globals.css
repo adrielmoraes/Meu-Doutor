@@ -26,48 +26,48 @@
 }
 
 @layer base {
-  :root { /* Light theme - Rosa vibrante #f774c0 */
-    --background: 325 85% 95%; /* Rosa claro base (#f774c0 clarinho) */
-    --foreground: 0 0% 0%; /* Texto preto */
-    --card: 325 60% 97%; /* Rosa muito claro para cards */
-    --card-foreground: 0 0% 0%; /* Texto preto em cards */
-    --popover: 325 70% 98%;
-    --popover-foreground: 0 0% 0%; /* Texto preto em popovers */
-    --primary: 325 89% 71%; /* Rosa vibrante #f774c0 */
+  :root { /* Light theme - Clinical Cyan / Slate Design System */
+    --background: 210 40% 98%; /* slate-50 */
+    --foreground: 222 47% 11%; /* slate-950 */
+    --card: 0 0% 100%; /* white */
+    --card-foreground: 222 47% 11%; /* slate-950 */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 188 86% 40%; /* cyan-500 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 325 70% 92%; /* Rosa claro */
-    --secondary-foreground: 0 0% 0%; /* Texto preto */
-    --muted: 325 50% 93%;
-    --muted-foreground: 0 0% 0%; /* Texto preto para muted */
-    --accent: 320 85% 65%; /* Rosa intenso para destaques */
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 70% 50%; /* Vermelho para ações destrutivas */
+    --secondary: 210 40% 96%; /* slate-100 */
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%; /* slate-500 */
+    --accent: 188 86% 94%; /* cyan-50 */
+    --accent-foreground: 198 90% 15%; /* cyan-950 (Texto escuro e legível no hover!) */
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 98%;
-    --border: 325 40% 88%; /* Borda rosa suave */
-    --input: 325 50% 94%;
-    --ring: 325 89% 71%; /* Anel rosa vibrante */
+    --border: 214 32% 91%; /* slate-200 */
+    --input: 214 32% 91%;
+    --ring: 188 86% 40%; /* cyan-500 */
     --radius: 0.75rem;
     
-    /* Chart colors para tema claro */
-    --chart-1: 325 89% 71%;
-    --chart-2: 320 85% 65%;
-    --chart-3: 330 80% 60%;
-    --chart-4: 315 85% 68%;
-    --chart-5: 335 90% 73%;
+    /* Chart colors */
+    --chart-1: 188 86% 40%;
+    --chart-2: 198 90% 30%;
+    --chart-3: 160 84% 39%;
+    --chart-4: 215 16% 47%;
+    --chart-5: 222 47% 11%;
 
-    --sidebar-background: 325 60% 97%;
-    --sidebar-foreground: 0 0% 0%; /* Texto preto na sidebar */
-    --sidebar-primary: 325 89% 71%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 188 86% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 325 70% 92%;
-    --sidebar-accent-foreground: 0 0% 0%; /* Texto preto */
-    --sidebar-border: 325 40% 88%;
-    --sidebar-ring: 325 89% 71%;
+    --sidebar-accent: 188 86% 94%;
+    --sidebar-accent-foreground: 198 90% 15%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 188 86% 40%;
 
-    /* Logo Gradient Colors - Light (Pink) */
-    --logo-gradient-start: #f774c0;
-    --logo-gradient-middle: #e85fb8;
-    --logo-gradient-end: #d94aaf;
+    /* Logo Gradient Colors */
+    --logo-gradient-start: #06b6d4;
+    --logo-gradient-middle: #0284c7;
+    --logo-gradient-end: #0369a1;
   }
 
   .dark { /* Enhanced dark theme with better colors and contrast */

@@ -2,333 +2,236 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Header from "@/components/layout/header";
 import Link from "next/link";
-import { Brain, Shield, Zap, Heart, Users, Award, Sparkles, Stethoscope, Activity } from "lucide-react";
+import { Brain, Shield, Zap, Heart, Users, Award, Sparkles, Stethoscope, Activity, CheckCircle2 } from "lucide-react";
 
 export default function SobreNosPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white">
+    <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden selection:bg-cyan-500 selection:text-white">
       <Header />
 
-      <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative w-full py-20 md:py-32 overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
-          <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
+      <main className="flex-1 relative overflow-hidden bg-gradient-to-b from-white via-cyan-50/40 to-slate-50">
+        {/* Ambient Glows */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-cyan-200/40 via-blue-100/30 to-transparent rounded-full blur-3xl pointer-events-none -z-10"></div>
 
-          <div className="container px-4 md:px-6 relative z-10">
-            <div className="max-w-4xl mx-auto text-center space-y-6">
-              <h1 className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
+        {/* Hero Section */}
+        <section className="relative w-full py-16 md:py-24">
+          <div className="container px-4 md:px-6 relative z-10 mx-auto max-w-6xl">
+            <div className="max-w-4xl mx-auto text-center space-y-4">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-50 border border-cyan-200 shadow-sm">
+                <Sparkles className="h-4 w-4 text-cyan-600" />
+                <span className="text-xs sm:text-sm font-semibold text-cyan-900">Institucional • Saúde, Ética & Tecnologia</span>
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-cyan-900 tracking-tight">
                 Sobre a MediAI
               </h1>
-              <p className="text-xl md:text-2xl text-blue-200/80 leading-relaxed">
-                Revolucionando o acesso à saúde através da inteligência artificial
+              
+              <p className="text-base sm:text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto">
+                Revolucionando o acesso à medicina de alta precisão através da união entre inteligência artificial e acolhimento humano.
               </p>
             </div>
           </div>
         </section>
 
         {/* Nossa História */}
-        <section className="relative w-full py-20">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-5xl mx-auto">
-              <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20 shadow-2xl">
-                <CardContent className="p-8 md:p-12 space-y-6">
-                  <h2 className="text-3xl md:text-4xl font-bold text-cyan-300 mb-6">Nossa História</h2>
-                  <p className="text-lg text-blue-100/80 leading-relaxed">
-                    A MediAI nasceu de uma visão clara: democratizar o acesso a diagnósticos médicos de qualidade
-                    através da inteligência artificial. Fundada em 2024, nossa plataforma foi desenvolvida por uma
-                    equipe multidisciplinar de médicos, engenheiros de software e especialistas em IA.
-                  </p>
-                  <p className="text-lg text-blue-100/80 leading-relaxed">
-                    Percebemos que milhões de pessoas enfrentam longas esperas para consultas médicas, dificuldade
-                    de acesso a especialistas e altos custos com saúde. Decidimos usar a tecnologia mais avançada
-                    disponível para mudar essa realidade.
-                  </p>
-                  <p className="text-lg text-blue-100/80 leading-relaxed">
-                    Hoje, a MediAI é uma plataforma completa que combina análise de exames por mais de 25 especialistas IA,
-                    consultas ao vivo por vídeo, monitoramento contínuo de saúde e planos de bem-estar personalizados.
-                  </p>
-                </CardContent>
-              </Card>
+        <section className="relative w-full py-12">
+          <div className="container px-4 md:px-6 mx-auto max-w-5xl">
+            <div className="bg-white rounded-3xl p-8 md:p-12 border border-slate-200 shadow-xl shadow-slate-900/5 space-y-6">
+              <h2 className="text-3xl md:text-4xl font-extrabold text-cyan-900">
+                Nossa História
+              </h2>
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
+                A <strong>MediAI</strong> nasceu de uma visão clara: democratizar o acesso a diagnósticos médicos rápidos e compreensíveis. Nossa plataforma foi desenvolvida por uma equipe multidisciplinar de médicos especialistas, cientistas de dados e engenheiros de inteligência artificial clínica.
+              </p>
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
+                Percebemos que milhões de pessoas enfrentavam dias de angústia esperando por consultas apenas para entender o resultado de um exame, enquanto médicos sofriam com sobrecarga de burocracia e laudos desestruturados. Decidimos usar a mais avançada tecnologia para transformar essa realidade.
+              </p>
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
+                Hoje, a MediAI conecta mais de 25 especialidades de inteligência artificial a uma rede de telemedicina em alta definição, permitindo que qualquer pessoa entenda sua saúde em segundos e receba acompanhamento médico contínuo.
+              </p>
             </div>
           </div>
         </section>
 
-        {/* Nossa Missão */}
-        <section className="relative w-full py-20">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
-              <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/20">
-                <CardContent className="p-8 text-center space-y-4">
-                  <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
-                    <Heart className="h-8 w-8 text-cyan-400" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-cyan-300">Missão</h3>
-                  <p className="text-blue-100/70 leading-relaxed">
-                    Tornar diagnósticos médicos de qualidade acessíveis a todos, usando inteligência artificial
-                    para reduzir custos e tempo de espera.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
-                <CardContent className="p-8 text-center space-y-4">
-                  <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
-                    <Brain className="h-8 w-8 text-purple-400" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-purple-300">Visão</h3>
-                  <p className="text-blue-100/70 leading-relaxed">
-                    Ser a plataforma líder global em saúde assistida por IA, combinando tecnologia de ponta
-                    com cuidado humanizado.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-emerald-500/20 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/20">
-                <CardContent className="p-8 text-center space-y-4">
-                  <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
-                    <Shield className="h-8 w-8 text-emerald-400" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-emerald-300">Valores</h3>
-                  <p className="text-blue-100/70 leading-relaxed">
-                    Ética, privacidade, precisão e compromisso com a saúde e bem-estar de nossos pacientes.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        {/* Tecnologia */}
-        <section className="relative w-full py-20">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-5xl mx-auto space-y-12">
-              <div className="text-center space-y-4">
-                <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
-                  Nossa Tecnologia
-                </h2>
-                <p className="text-lg text-blue-200/70 max-w-3xl mx-auto">
-                  Utilizamos as ferramentas mais avançadas disponíveis para garantir precisão e qualidade
+        {/* Missão, Visão e Valores */}
+        <section className="relative w-full py-12">
+          <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+            <div className="grid md:grid-cols-3 gap-8">
+              
+              <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-lg shadow-slate-900/5 hover:border-cyan-300 hover:shadow-xl transition-all text-center space-y-4">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-cyan-50 border border-cyan-200 flex items-center justify-center text-cyan-600">
+                  <Heart className="h-8 w-8" />
+                </div>
+                <h3 className="text-2xl font-bold text-cyan-950">Missão</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Tornar a compreensão da saúde e o suporte médico imediatos, claros e acessíveis a todos, eliminando a angústia da espera.
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
-                  <CardContent className="p-8 space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
-                        <Brain className="h-6 w-6 text-cyan-400" />
-                      </div>
-                      <h3 className="text-xl font-bold text-cyan-300">Modelos de Inteligência Artificial Avançados</h3>
-                    </div>
-                    <p className="text-blue-100/70 leading-relaxed">
-                      Motor de inteligência artificial multimodal de última geração, capaz de analisar
-                      texto, imagens e dados médicos complexos com precisão superior.
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-purple-500/20">
-                  <CardContent className="p-8 space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
-                        <Activity className="h-6 w-6 text-purple-400" />
-                      </div>
-                      <h3 className="text-xl font-bold text-purple-300">Infraestrutura de Comunicação em Tempo Real</h3>
-                    </div>
-                    <p className="text-blue-100/70 leading-relaxed">
-                      Plataforma de comunicação em tempo real que permite consultas por vídeo e voz de alta
-                      qualidade com baixa latência e criptografia end-to-end.
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-emerald-500/20">
-                  <CardContent className="p-8 space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
-                        <Sparkles className="h-6 w-6 text-emerald-400" />
-                      </div>
-                      <h3 className="text-xl font-bold text-emerald-300">Avatares Virtuais Hiper-Realistas</h3>
-                    </div>
-                    <p className="text-blue-100/70 leading-relaxed">
-                      Tecnologia avançada de avatares que cria interações naturais
-                      e humanizadas com assistentes médicos virtuais.
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-orange-500/20">
-                  <CardContent className="p-8 space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center">
-                        <Shield className="h-6 w-6 text-orange-400" />
-                      </div>
-                      <h3 className="text-xl font-bold text-orange-300">Segurança e Pagamentos</h3>
-                    </div>
-                    <p className="text-blue-100/70 leading-relaxed">
-                      Processador de pagamentos seguro com criptografia de dados médicos e
-                      conformidade total com LGPD e normas brasileiras de saúde.
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Especialistas IA */}
-        <section className="relative w-full py-20">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-5xl mx-auto space-y-12">
-              <div className="text-center space-y-4">
-                <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
-                  25+ Especialistas IA
-                </h2>
-                <p className="text-lg text-blue-200/70">
-                  Cada exame é analisado simultaneamente por múltiplos especialistas virtuais
+              <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-lg shadow-slate-900/5 hover:border-cyan-300 hover:shadow-xl transition-all text-center space-y-4">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-cyan-50 border border-cyan-200 flex items-center justify-center text-cyan-600">
+                  <Brain className="h-8 w-8" />
+                </div>
+                <h3 className="text-2xl font-bold text-cyan-950">Visão</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Ser o padrão ouro global em saúde assistida por inteligência artificial, unindo o rigor científico à empatia e cuidado humano.
                 </p>
               </div>
 
-              <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20">
-                <CardContent className="p-8">
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    {[
-                      "Cardiologia",
-                      "Neurologia",
-                      "Dermatologia",
-                      "Endocrinologia",
-                      "Gastroenterologia",
-                      "Ginecologia",
-                      "Oftalmologia",
-                      "Ortopedia",
-                      "Otorrinolaringologia",
-                      "Pediatria",
-                      "Psiquiatria",
-                      "Pneumologia",
-                      "Radiologia",
-                      "Urologia",
-                      "Nutrição",
-                      "Oncologia",
-                      "Hematologia",
-                      "Infectologia",
-                      "Geriatria",
-                      "Angiologia",
-                      "Mastologia",
-                      "Alergologia",
-                      "Medicina Esportiva",
-                      "Genética",
-                      "Nefrologia",
-                      "Reumatologia"
-                    ].map((especialidade, index) => (
-                      <div
-                        key={index}
-                        className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-xl p-4 border border-cyan-500/20 text-center"
-                      >
-                        <Stethoscope className="h-6 w-6 text-cyan-400 mx-auto mb-2" />
-                        <p className="text-sm font-medium text-blue-100">{especialidade}</p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-lg shadow-slate-900/5 hover:border-cyan-300 hover:shadow-xl transition-all text-center space-y-4">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-cyan-50 border border-cyan-200 flex items-center justify-center text-cyan-600">
+                  <Shield className="h-8 w-8" />
+                </div>
+                <h3 className="text-2xl font-bold text-cyan-950">Valores</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Ética inegociável, privacidade absoluta dos dados (LGPD), rigor baseado em evidências e respeito à vida.
+                </p>
+              </div>
+
             </div>
           </div>
         </section>
 
-        {/* Compromisso com a Saúde */}
-        <section className="relative w-full py-20">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-5xl mx-auto">
-              <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20 shadow-2xl">
-                <CardContent className="p-8 md:p-12 space-y-6">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
-                      <Award className="h-8 w-8 text-cyan-400" />
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-bold text-cyan-300">Nosso Compromisso</h2>
+        {/* Nossa Tecnologia */}
+        <section className="relative w-full py-16">
+          <div className="container px-4 md:px-6 mx-auto max-w-5xl space-y-12">
+            <div className="text-center space-y-4">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-cyan-900">
+                Nossa Tecnologia
+              </h2>
+              <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto">
+                Infraestrutura de alta fidelidade desenvolvida para garantir diagnósticos preliminares precisos e seguros.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-cyan-50 border border-cyan-200 flex items-center justify-center text-cyan-600 shrink-0">
+                    <Brain className="h-6 w-6" />
                   </div>
+                  <h3 className="text-xl font-bold text-cyan-950">Modelos Multimodais Médicos</h3>
+                </div>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Motores neurais treinados em literatura científica internacional e diretrizes médicas atualizadas, capazes de analisar laudos, exames de sangue, imagem e sintomas em texto e voz.
+                </p>
+              </div>
 
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-4">
-                      <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-1">
-                        <Shield className="h-5 w-5 text-cyan-400" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-cyan-300 mb-2">Privacidade e Segurança</h3>
-                        <p className="text-blue-100/70 leading-relaxed">
-                          Seus dados médicos são criptografados e protegidos com os mais altos padrões de segurança.
-                          Conformidade total com LGPD e legislação brasileira de saúde.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-4">
-                      <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-1">
-                        <Brain className="h-5 w-5 text-purple-400" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-purple-300 mb-2">IA Complementar, Não Substituta</h3>
-                        <p className="text-blue-100/70 leading-relaxed">
-                          Nossa IA é uma ferramenta de triagem e apoio diagnóstico. Sempre recomendamos consulta
-                          com médicos reais para diagnósticos definitivos e tratamentos.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-4">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-1">
-                        <Zap className="h-5 w-5 text-emerald-400" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-emerald-300 mb-2">Inovação Contínua</h3>
-                        <p className="text-blue-100/70 leading-relaxed">
-                          Investimos constantemente em pesquisa e desenvolvimento para melhorar nossos algoritmos
-                          e oferecer diagnósticos cada vez mais precisos.
-                        </p>
-                      </div>
-                    </div>
+              <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-cyan-50 border border-cyan-200 flex items-center justify-center text-cyan-600 shrink-0">
+                    <Activity className="h-6 w-6" />
                   </div>
-                </CardContent>
-              </Card>
+                  <h3 className="text-xl font-bold text-cyan-950">Telemedicina em Tempo Real</h3>
+                </div>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Sistema de videoconferência de baixa latência e alta definição, permitindo contato direto entre médicos e pacientes com prontuário unificado na tela.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-cyan-50 border border-cyan-200 flex items-center justify-center text-cyan-600 shrink-0">
+                    <Sparkles className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-xl font-bold text-cyan-950">Assistente Humanizada Dra. Sofia</h3>
+                </div>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Processamento de linguagem natural que acolhe o paciente com tom amigável, traduzindo jargões complexos em explicações fáceis e acessíveis.
+                </p>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-cyan-50 border border-cyan-200 flex items-center justify-center text-cyan-600 shrink-0">
+                    <Shield className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-xl font-bold text-cyan-950">Criptografia & Segurança LGPD</h3>
+                </div>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  Todos os dados de saúde são protegidos com padrão hospitalar AES-256 e armazenados em servidores com isolamento e auditoria permanente.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Compromisso com a Ética Médica */}
+        <section className="relative w-full py-12">
+          <div className="container px-4 md:px-6 mx-auto max-w-5xl">
+            <div className="bg-white rounded-3xl p-8 md:p-12 border-2 border-cyan-200 shadow-xl shadow-cyan-900/5 space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-cyan-500 text-white flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                  <Award className="h-7 w-7" />
+                </div>
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-extrabold text-cyan-900">
+                    Nosso Compromisso com a Ética Médica
+                  </h2>
+                  <p className="text-xs sm:text-sm text-cyan-700 font-semibold">Em total consonância com as normas do CFM e ANS</p>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6 pt-4">
+                <div className="space-y-2">
+                  <h4 className="font-bold text-cyan-950 text-base">Triagem & Apoio</h4>
+                  <p className="text-slate-600 text-sm leading-relaxed">
+                    A IA atua como acelerador e suporte à decisão, nunca substituindo o julgamento clínico soberano do médico.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="font-bold text-cyan-950 text-base">Validação Humana</h4>
+                  <p className="text-slate-600 text-sm leading-relaxed">
+                    Prescrições e atestados são emitidos exclusivamente por médicos devidamente registrados e habilitados no CRM.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="font-bold text-cyan-950 text-base">Sigilo Profissional</h4>
+                  <p className="text-slate-600 text-sm leading-relaxed">
+                    O sigilo médico-paciente é inviolável e blindado por rigorosos protocolos de cibersegurança.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
         {/* CTA */}
-        <section className="relative w-full py-20">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-4xl mx-auto text-center space-y-8">
-              <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
-                Junte-se a Nós
-              </h2>
-              <p className="text-xl text-blue-200/70">
-                Faça parte da revolução da saúde digital
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button asChild size="lg" className="h-14 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold text-lg px-10 rounded-xl shadow-2xl shadow-cyan-500/30">
-                  <Link href="/register/patient">
-                    Começar Agora
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="h-14 border-2 border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/10 font-semibold text-lg px-10 rounded-xl backdrop-blur-sm">
-                  <Link href="/contato">
-                    Entrar em Contato
-                  </Link>
-                </Button>
-              </div>
+        <section className="relative w-full py-16 md:py-24 bg-gradient-to-b from-white to-cyan-50/50 border-t border-slate-200">
+          <div className="container px-4 md:px-6 mx-auto text-center max-w-4xl space-y-8">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-cyan-900 leading-tight">
+              Faça parte da revolução da saúde digital
+            </h2>
+            <p className="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+              Experimente a MediAI gratuitamente e veja como a tecnologia pode trazer tranquilidade para a sua vida.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button asChild size="lg" className="h-14 bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-base sm:text-lg px-10 rounded-2xl shadow-xl shadow-cyan-500/25 border-0">
+                <Link href="/register/patient">
+                  Começar Agora Gratuitamente
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="h-14 border-2 border-slate-300 bg-white text-slate-800 hover:bg-cyan-50 hover:text-cyan-950 hover:border-cyan-400 font-bold text-base sm:text-lg px-8 rounded-2xl shadow-sm transition-all duration-300">
+                <Link href="/contato">
+                  Fale Conosco
+                </Link>
+              </Button>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="relative w-full border-t border-cyan-500/20 bg-gradient-to-b from-slate-950 to-black py-8">
-        <div className="container px-4 md:px-6 text-center text-sm text-blue-200/50">
-          <p>&copy; {new Date().getFullYear()} MediAI. Todos os direitos reservados.</p>
-          <p className="mt-2">
-            <Link href="/privacidade" className="hover:text-cyan-300 transition-colors">Política de Privacidade</Link>
-            {" | "}
-            <Link href="/termos" className="hover:text-cyan-300 transition-colors">Termos de Uso</Link>
+      <footer className="w-full border-t border-slate-200 bg-white py-8">
+        <div className="container px-4 md:px-6 mx-auto text-center text-sm text-slate-500 space-y-2">
+          <p>&copy; {new Date().getFullYear()} MediAI Saúde Inteligente. Todos os direitos reservados.</p>
+          <p className="text-xs">
+            <Link href="/privacidade" className="hover:text-cyan-600 transition-colors">Política de Privacidade</Link>
+            {" • "}
+            <Link href="/termos" className="hover:text-cyan-600 transition-colors">Termos de Uso</Link>
+            {" • "}
+            <Link href="/contato" className="hover:text-cyan-600 transition-colors">Contato</Link>
           </p>
         </div>
       </footer>

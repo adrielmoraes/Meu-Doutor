@@ -1,220 +1,204 @@
-
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/header";
 import Link from "next/link";
-import { Check, Zap, Crown, Sparkles } from "lucide-react";
+import { Check, Zap, Crown, Sparkles, Shield, Clock, HeartPulse } from "lucide-react";
 
 export default function PricingPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white">
+    <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden selection:bg-cyan-500 selection:text-white">
       <Header />
-      <main className="flex-1 relative overflow-hidden">
-        {/* Background Effects */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
-        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
+      <main className="flex-1 relative overflow-hidden bg-gradient-to-b from-white via-cyan-50/40 to-slate-50">
+        {/* Ambient Glows */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-cyan-200/40 via-blue-100/30 to-transparent rounded-full blur-3xl pointer-events-none -z-10"></div>
         
         {/* Hero */}
-        <section className="relative py-20 md:py-32">
-          <div className="container px-4 md:px-6 relative z-10">
-            <div className="text-center space-y-6 mb-16">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-sm">
-                <Sparkles className="h-4 w-4 text-cyan-400" />
-                <span className="text-sm text-cyan-300">Planos Simples e Transparentes</span>
+        <section className="relative py-16 md:py-24">
+          <div className="container px-4 md:px-6 relative z-10 mx-auto max-w-6xl">
+            <div className="text-center space-y-4 mb-16 max-w-3xl mx-auto">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-50 border border-cyan-200 shadow-sm">
+                <Sparkles className="h-4 w-4 text-cyan-600" />
+                <span className="text-xs sm:text-sm font-semibold text-cyan-900">Planos Simples, Transparentes e Sem Surpresas</span>
               </div>
               
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold bg-gradient-to-r from-white via-cyan-200 to-blue-200 bg-clip-text text-transparent">
-                Escolha Seu Plano
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-cyan-900 tracking-tight">
+                Invista na Sua Saúde & da Sua Família
               </h1>
               
-              <p className="text-xl text-blue-200/70 max-w-3xl mx-auto">
-                Comece grátis por 5 dias. Sem cartão de crédito. Cancele quando quiser.
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
+                Comece gratuitamente por 5 dias. Sem necessidade de cartão de crédito. Cancele quando quiser com 1 clique.
               </p>
             </div>
 
             {/* Pricing Cards */}
-            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto items-stretch">
+              
               {/* Free Plan */}
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-700/30 to-slate-800/30 rounded-3xl blur-xl group-hover:blur-2xl transition-all"></div>
-                <div className="relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-3xl p-8 md:p-10 border border-slate-700/50 hover:border-cyan-500/30 transition-all duration-300">
-                  <div className="space-y-6">
-                    {/* Header */}
-                    <div className="space-y-4">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700/50 border border-slate-600/50">
-                        <Zap className="h-4 w-4 text-cyan-400" />
-                        <span className="text-sm text-cyan-300 font-medium">Teste Grátis</span>
-                      </div>
-                      
-                      <h2 className="text-3xl font-bold text-white">Free</h2>
-                      
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-5xl font-extrabold text-white">R$0</span>
-                        <span className="text-blue-200/60">/ 5 dias</span>
-                      </div>
-                      
-                      <p className="text-blue-200/70">
-                        Experimente todos os recursos premium gratuitamente por 5 dias
-                      </p>
+              <div className="bg-white rounded-3xl p-8 md:p-10 border border-slate-200 shadow-lg shadow-slate-900/5 hover:border-cyan-300 hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+                <div className="space-y-6">
+                  {/* Header */}
+                  <div className="space-y-3">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 w-fit text-xs font-semibold">
+                      <Zap className="h-3.5 w-3.5 text-cyan-600" />
+                      <span>Degustação Completa</span>
                     </div>
-
-                    {/* Features */}
-                    <div className="space-y-4 py-6 border-y border-slate-700/50">
-                      <div className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-blue-100">Acesso total por 5 dias</span>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-blue-100">15 especialistas IA</span>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-blue-100">Análise ilimitada de exames</span>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-blue-100">Consultas ao vivo com IA</span>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-blue-100">Monitoramento de saúde</span>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-blue-100">Sem cartão de crédito</span>
-                      </div>
+                    
+                    <h2 className="text-3xl font-bold text-cyan-950">Free</h2>
+                    
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-5xl font-extrabold text-cyan-950">R$0</span>
+                      <span className="text-slate-500 font-medium">/ 5 dias</span>
                     </div>
-
-                    {/* CTA */}
-                    <Button asChild size="lg" variant="outline" className="w-full h-14 border-2 border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/10 hover:border-cyan-400 font-semibold text-lg rounded-xl backdrop-blur-sm transition-all">
-                      <Link href="/register/patient">
-                        Começar Teste Grátis
-                      </Link>
-                    </Button>
+                    
+                    <p className="text-slate-600 text-sm leading-relaxed">
+                      Experimente todos os recursos de inteligência artificial médica sem qualquer compromisso.
+                    </p>
                   </div>
+
+                  {/* Features */}
+                  <div className="space-y-3.5 py-6 border-y border-slate-100 text-sm text-slate-700">
+                    <div className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-cyan-600 shrink-0 mt-0.5" />
+                      <span>Acesso total liberado por 5 dias</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-cyan-600 shrink-0 mt-0.5" />
+                      <span>25+ IAs especialistas em medicina</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-cyan-600 shrink-0 mt-0.5" />
+                      <span>Análise de exames (PDF, JPG, PNG)</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-cyan-600 shrink-0 mt-0.5" />
+                      <span>Conversas por voz com a Dra. Sofia</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-cyan-600 shrink-0 mt-0.5" />
+                      <span>Podcast exclusivo da sua saúde</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-cyan-600 shrink-0 mt-0.5" />
+                      <span>Sem necessidade de cartão de crédito</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CTA */}
+                <div className="pt-6">
+                  <Button asChild size="lg" className="w-full h-14 bg-white border-2 border-slate-300 hover:bg-cyan-50 hover:text-cyan-950 hover:border-cyan-500 text-slate-800 font-bold text-base rounded-2xl transition-all shadow-sm">
+                    <Link href="/register/patient">
+                      Começar Teste Grátis
+                    </Link>
+                  </Button>
                 </div>
               </div>
 
               {/* Pro Plan - Popular */}
-              <div className="relative group">
-                {/* Glow Effect */}
-                <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition-all animate-pulse"></div>
-                
-                <div className="relative bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-8 md:p-10 border-2 border-cyan-500/50">
-                  {/* Popular Badge */}
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <div className="px-6 py-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm shadow-lg shadow-cyan-500/50">
-                      MAIS POPULAR
-                    </div>
-                  </div>
+              <div className="bg-white rounded-3xl p-8 md:p-10 border-2 border-cyan-400 shadow-2xl shadow-cyan-500/10 flex flex-col justify-between relative overflow-hidden">
+                {/* Popular Badge */}
+                <div className="absolute top-0 right-0 bg-cyan-500 text-white font-bold text-xs px-5 py-1.5 rounded-bl-2xl uppercase tracking-wider shadow-md">
+                  MAIS ESCOLHIDO
+                </div>
 
-                  <div className="space-y-6">
-                    {/* Header */}
-                    <div className="space-y-4 pt-4">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/50">
-                        <Crown className="h-4 w-4 text-cyan-300" />
-                        <span className="text-sm text-cyan-200 font-medium">Plano Completo</span>
-                      </div>
-                      
-                      <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
-                        Pro
-                      </h2>
-                      
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-5xl font-extrabold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
-                          R$97,99
-                        </span>
-                        <span className="text-blue-200/60">/ mês</span>
-                      </div>
-                      
-                      <p className="text-blue-200/70">
-                        Acesso ilimitado a todos os recursos premium da plataforma
-                      </p>
+                <div className="space-y-6">
+                  {/* Header */}
+                  <div className="space-y-3 pt-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-800 w-fit text-xs font-semibold">
+                      <Crown className="h-3.5 w-3.5 text-cyan-600" />
+                      <span>Cuidado Contínuo & Ilimitado</span>
                     </div>
-
-                    {/* Features */}
-                    <div className="space-y-4 py-6 border-y border-cyan-500/20">
-                      <div className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-blue-100 font-medium">Tudo do plano Free</span>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-blue-100">Análises ilimitadas de exames</span>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-blue-100">Consultas ao vivo 24/7</span>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-blue-100">Conexão com médicos reais</span>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-blue-100">Histórico completo de saúde</span>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-blue-100">Recomendações personalizadas</span>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-blue-100">Suporte prioritário</span>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Check className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-blue-100">Cancele quando quiser</span>
-                      </div>
-                    </div>
-
-                    {/* CTA */}
-                    <Button asChild size="lg" className="w-full h-14 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold text-lg rounded-xl shadow-2xl shadow-cyan-500/30 transition-all transform hover:scale-105">
-                      <Link href="/register/patient">
-                        Assinar Agora
-                      </Link>
-                    </Button>
                     
-                    <p className="text-center text-sm text-blue-200/50">
-                      Inicia após o período de teste grátis
+                    <h2 className="text-3xl font-bold text-cyan-950">Plano Pro</h2>
+                    
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-5xl font-extrabold text-cyan-950">R$97,99</span>
+                      <span className="text-slate-500 font-medium">/ mês</span>
+                    </div>
+                    
+                    <p className="text-slate-600 text-sm leading-relaxed">
+                      Proteção e tranquilidade médica contínua para você e toda a sua família o ano inteiro.
                     </p>
                   </div>
+
+                  {/* Features */}
+                  <div className="space-y-3.5 py-6 border-y border-slate-100 text-sm text-slate-700">
+                    <div className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-cyan-600 shrink-0 mt-0.5" />
+                      <span className="font-bold text-cyan-950">Tudo incluso do plano Free</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-cyan-600 shrink-0 mt-0.5" />
+                      <span>Análises ilimitadas de laudos e exames</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-cyan-600 shrink-0 mt-0.5" />
+                      <span>Atendimento 24/7 por vídeo e voz</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-cyan-600 shrink-0 mt-0.5" />
+                      <span>Conexão direta com médicos especialistas com CRM</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-cyan-600 shrink-0 mt-0.5" />
+                      <span>Prontuário inteligente vitalício</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-cyan-600 shrink-0 mt-0.5" />
+                      <span>Podcasts de evolução de exames ilimitados</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-cyan-600 shrink-0 mt-0.5" />
+                      <span>Cancele quando quiser sem multas</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CTA */}
+                <div className="pt-6 space-y-2">
+                  <Button asChild size="lg" className="w-full h-14 bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-base sm:text-lg rounded-2xl shadow-xl shadow-cyan-500/25 transition-all duration-300 transform hover:scale-[1.02] border-0">
+                    <Link href="/register/patient">
+                      Assinar Agora com 5 Dias Grátis
+                    </Link>
+                  </Button>
+                  <p className="text-center text-xs text-slate-400">
+                    Cobrança só é iniciada após o período de teste grátis
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* FAQ / Info */}
             <div className="mt-20 max-w-4xl mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-white mb-4">Perguntas Frequentes</h2>
+              <div className="text-center mb-10">
+                <h2 className="text-3xl font-extrabold text-cyan-900">Perguntas Frequentes sobre Planos</h2>
               </div>
               
               <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-6 border border-cyan-500/10">
-                  <h3 className="font-bold text-lg text-cyan-300 mb-2">Como funciona o teste grátis?</h3>
-                  <p className="text-blue-200/70">
-                    Acesse todos os recursos premium por 5 dias sem custo. Não é necessário cartão de crédito.
+                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                  <h3 className="font-bold text-base text-cyan-950 mb-2">Como funciona o teste grátis?</h3>
+                  <p className="text-slate-600 text-sm leading-relaxed">
+                    Você cria sua conta em segundos e tem acesso a todos os recursos premium por 5 dias sem precisar cadastrar cartão de crédito.
                   </p>
                 </div>
                 
-                <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-6 border border-cyan-500/10">
-                  <h3 className="font-bold text-lg text-cyan-300 mb-2">Posso cancelar a qualquer momento?</h3>
-                  <p className="text-blue-200/70">
-                    Sim! Cancele sua assinatura quando quiser, sem taxas ou penalidades.
+                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                  <h3 className="font-bold text-base text-cyan-950 mb-2">Posso cancelar a qualquer momento?</h3>
+                  <p className="text-slate-600 text-sm leading-relaxed">
+                    Sim! O cancelamento é 100% digital, transparente e pode ser feito a qualquer momento no seu painel sem taxas ou burocracia.
                   </p>
                 </div>
                 
-                <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-6 border border-cyan-500/10">
-                  <h3 className="font-bold text-lg text-cyan-300 mb-2">Os dados são seguros?</h3>
-                  <p className="text-blue-200/70">
-                    100% seguro com criptografia end-to-end e conformidade total com LGPD.
+                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                  <h3 className="font-bold text-base text-cyan-950 mb-2">Meus dados estão protegidos?</h3>
+                  <p className="text-slate-600 text-sm leading-relaxed">
+                    Totalmente protegidos com criptografia hospitalar AES-256 e conformidade com a LGPD e regulamentações do CFM.
                   </p>
                 </div>
                 
-                <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-6 border border-cyan-500/10">
-                  <h3 className="font-bold text-lg text-cyan-300 mb-2">Médicos reais validam?</h3>
-                  <p className="text-blue-200/70">
-                    Sim! No plano Pro você pode conectar com médicos reais para validar diagnósticos da IA.
+                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                  <h3 className="font-bold text-base text-cyan-950 mb-2">Posso conectar com médicos reais?</h3>
+                  <p className="text-slate-600 text-sm leading-relaxed">
+                    Sim! O plano Pro inclui a possibilidade de agendar teleconsultas em alta definição com médicos credenciados com CRM ativo.
                   </p>
                 </div>
               </div>
@@ -223,11 +207,9 @@ export default function PricingPage() {
         </section>
       </main>
       
-      <footer className="relative w-full border-t border-cyan-500/20 bg-gradient-to-b from-slate-950 to-black">
-        <div className="container px-4 md:px-6 py-12">
-          <div className="text-center text-sm text-blue-200/50">
-            <p>&copy; {new Date().getFullYear()} MediAI. Todos os direitos reservados.</p>
-          </div>
+      <footer className="w-full border-t border-slate-200 bg-white py-8">
+        <div className="container px-4 md:px-6 mx-auto text-center text-sm text-slate-500">
+          <p>&copy; {new Date().getFullYear()} MediAI Saúde Inteligente. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>

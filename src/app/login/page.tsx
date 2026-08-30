@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useActionState } from 'react';
@@ -17,12 +16,12 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-500 text-white font-semibold shadow-lg shadow-cyan-500/25 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+      className="w-full py-3.5 px-6 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white font-bold shadow-lg shadow-cyan-500/25 transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
     >
       {pending ? (
         <>
           <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Acessando...</span>
+          <span>Acessando sua conta...</span>
         </>
       ) : (
         <>
@@ -49,12 +48,9 @@ export default function LoginPage() {
   }, [state, router]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-950 via-[#070e24] to-slate-950 text-white relative overflow-hidden px-4 py-12">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 text-slate-900 relative overflow-hidden px-4 py-12 selection:bg-cyan-500 selection:text-white">
       {/* Ambient Lighting Background */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
-      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
-      <div className="absolute top-1/4 left-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-[100px] animate-pulse pointer-events-none"></div>
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] animate-pulse delay-700 pointer-events-none"></div>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-cyan-200/40 via-blue-100/30 to-transparent rounded-full blur-3xl pointer-events-none -z-10"></div>
       
       {/* Brand Logo */}
       <div className="mb-8 relative z-10">
@@ -63,20 +59,20 @@ export default function LoginPage() {
         </Link>
       </div>
       
-      <Card className="mx-auto max-w-md w-full shadow-2xl bg-slate-900/70 backdrop-blur-2xl border border-white/10 relative z-10 rounded-2xl overflow-hidden">
+      <Card className="mx-auto max-w-md w-full shadow-2xl bg-white border border-slate-200 relative z-10 rounded-3xl overflow-hidden shadow-slate-900/5">
         {/* Top accent border */}
-        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500"></div>
+        <div className="h-1.5 bg-cyan-500 w-full"></div>
 
-        <CardHeader className="space-y-3 pt-8 pb-6 px-6 sm:px-8">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 w-fit">
-            <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
-            <span className="text-xs text-cyan-300 font-semibold uppercase tracking-wider">Acesso Seguro</span>
+        <CardHeader className="space-y-3 pt-8 pb-4 px-6 sm:px-8 text-center sm:text-left">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-50 border border-cyan-200 w-fit">
+            <Sparkles className="h-3.5 w-3.5 text-cyan-600" />
+            <span className="text-xs text-cyan-900 font-semibold uppercase tracking-wider">Acesso Seguro</span>
           </div>
           
-          <CardTitle className="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-white via-cyan-100 to-blue-200 bg-clip-text text-transparent">
+          <CardTitle className="text-2xl sm:text-3xl font-extrabold text-cyan-900 tracking-tight">
             Bem-vindo de volta
           </CardTitle>
-          <CardDescription className="text-slate-400 text-sm">
+          <CardDescription className="text-slate-600 text-sm">
             Entre com suas credenciais para acessar sua central de saúde
           </CardDescription>
         </CardHeader>
@@ -84,15 +80,15 @@ export default function LoginPage() {
         <CardContent className="px-6 sm:px-8 pb-8">
           <form action={formAction} className="space-y-4">
             {errorMessage && (
-              <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-sm flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0"></span>
+              <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-red-500 shrink-0"></span>
                 <span>{errorMessage}</span>
               </div>
             )}
             
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-slate-200 flex items-center gap-2">
-                <Mail className="h-4 w-4 text-cyan-400" />
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <Mail className="h-4 w-4 text-cyan-600" />
                 E-mail
               </label>
               <input
@@ -100,20 +96,20 @@ export default function LoginPage() {
                 name="email"
                 type="email"
                 required
-                className="w-full px-4 py-3 rounded-xl bg-slate-950/60 border border-slate-700/60 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 transition-all text-sm"
+                className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all text-sm"
                 placeholder="seu@email.com"
               />
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-sm font-medium text-slate-200 flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-purple-400" />
+                <label htmlFor="password" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-cyan-600" />
                   Senha
                 </label>
                 <Link 
                   href="/forgot-password" 
-                  className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+                  className="text-xs text-cyan-700 hover:text-cyan-800 font-semibold transition-colors"
                 >
                   Esqueci minha senha
                 </Link>
@@ -124,13 +120,13 @@ export default function LoginPage() {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   required
-                  className="w-full px-4 py-3 pr-12 rounded-xl bg-slate-950/60 border border-slate-700/60 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 transition-all text-sm"
+                  className="w-full px-4 py-3 pr-12 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all text-sm"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors p-1"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
                   aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                 >
                   {showPassword ? (
@@ -147,12 +143,12 @@ export default function LoginPage() {
             </div>
           </form>
           
-          <div className="mt-6 pt-6 border-t border-white/10 text-center">
-            <p className="text-sm text-slate-400">
+          <div className="mt-6 pt-6 border-t border-slate-100 text-center">
+            <p className="text-sm text-slate-600">
               Ainda não possui uma conta?{" "}
               <Link 
                 href="/register" 
-                className="text-cyan-400 hover:text-cyan-300 font-semibold underline transition-colors"
+                className="text-cyan-700 hover:text-cyan-800 font-bold transition-colors"
               >
                 Cadastre-se gratuitamente
               </Link>

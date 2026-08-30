@@ -49,7 +49,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#06b6d4" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
-      <body className="font-body antialiased">
+      <body className="font-body antialiased" suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

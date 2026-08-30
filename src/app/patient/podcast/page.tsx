@@ -255,6 +255,12 @@ export default function HealthPodcastPage() {
     };
 
 
+    useEffect(() => {
+        if (audioRef.current && audioUrl) {
+            audioRef.current.load();
+        }
+    }, [audioUrl]);
+
     const handlePlayHistory = (historyUrl: string, historyDate: string) => {
         setAudioUrl(historyUrl);
         setPodcastDate(historyDate);
@@ -569,19 +575,24 @@ export default function HealthPodcastPage() {
                 </div>
 
                 {/* Elemento de Áudio Oculto */}
-                <audio
-                    ref={audioRef}
-                    src={audioUrl || undefined}
-                    crossOrigin="anonymous"
-                    preload="auto"
-                    className="hidden"
-                    onPlay={() => setIsPlaying(true)}
-                    onPause={() => setIsPlaying(false)}
-                    onEnded={() => setIsPlaying(false)}
-                    onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-                    onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-                    onError={(e) => console.error("Audio error:", e.currentTarget.error)}
-                />
+                {audioUrl && (
+                    <audio
+                        ref={audioRef}
+                        src={audioUrl}
+                        preload="auto"
+                        className="hidden"
+                        onPlay={() => setIsPlaying(true)}
+                        onPause={() => setIsPlaying(false)}
+                        onEnded={() => setIsPlaying(false)}
+                        onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+                        onError={(e) => {
+                            if (!audioUrl) return;
+                            const err = e.currentTarget.error;
+                            console.warn("Audio element warning:", err?.message || `code ${err?.code}`);
+                        }}
+                    />
+                )}
             </main>
 
             {/* Styles for equalizer animation */}

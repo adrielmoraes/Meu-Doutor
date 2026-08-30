@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/header";
 import Link from "next/link";
-import { FileText, AlertTriangle, Shield, CreditCard, ChevronRight } from "lucide-react";
+import { FileText, AlertTriangle, Shield, CreditCard, ChevronRight, CheckCircle2, PhoneCall } from "lucide-react";
 
 const LAST_UPDATED = "29 de outubro de 2025";
 
@@ -40,57 +40,55 @@ export default function TermosPage() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-[#070e24] to-slate-950 text-white">
+    <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden selection:bg-cyan-500 selection:text-white">
       <Header />
 
-      <main className="flex-1">
+      <main className="flex-1 relative overflow-hidden bg-gradient-to-b from-white via-cyan-50/40 to-slate-50">
         {/* Hero Section */}
-        <section className="relative w-full py-16 md:py-24 overflow-hidden border-b border-white/10">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
-          <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
-          <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse pointer-events-none"></div>
+        <section className="relative w-full py-16 md:py-24 border-b border-slate-200">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-cyan-200/40 via-blue-100/30 to-transparent rounded-full blur-3xl pointer-events-none -z-10"></div>
 
-          <div className="container px-4 md:px-6 relative z-10">
-            <div className="max-w-4xl mx-auto text-center space-y-6">
-              <div className="w-16 h-16 mx-auto rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mb-4">
-                <FileText className="h-8 w-8 text-cyan-400" />
+          <div className="container px-4 md:px-6 relative z-10 mx-auto max-w-6xl">
+            <div className="max-w-4xl mx-auto text-center space-y-4">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-cyan-50 border border-cyan-200 flex items-center justify-center mb-2 text-cyan-600 shadow-sm">
+                <FileText className="h-8 w-8" />
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold bg-gradient-to-r from-white via-cyan-100 to-blue-200 bg-clip-text text-transparent">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-cyan-900 tracking-tight">
                 Termos de Uso
               </h1>
-              <p className="text-lg md:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto">
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto">
                 Condições gerais e diretrizes legais para utilização da plataforma MediAI
               </p>
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-slate-400">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-600 shadow-sm">
                 <span>Última atualização: {LAST_UPDATED}</span>
               </div>
             </div>
           </div>
         </section>
 
-        <div className="container px-4 md:px-6 py-12">
-          <div className="max-w-7xl mx-auto grid lg:grid-cols-4 gap-8">
+        <div className="container px-4 md:px-6 py-12 mx-auto max-w-6xl">
+          <div className="grid lg:grid-cols-4 gap-8">
             {/* Table of Contents - Sticky Sidebar */}
             <aside className="lg:col-span-1">
               <div className="sticky top-24">
-                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-xl">
+                <Card className="bg-white border border-slate-200 rounded-2xl shadow-sm">
                   <CardContent className="p-5">
-                    <h2 className="text-base font-bold text-cyan-300 mb-4 flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
+                    <h2 className="text-sm font-bold text-cyan-950 mb-3 flex items-center gap-2 uppercase tracking-wide">
+                      <FileText className="h-4 w-4 text-cyan-600" />
                       Índice do Documento
                     </h2>
-                    <nav className="space-y-1.5">
+                    <nav className="space-y-1">
                       {sections.map((section) => (
                         <button
                           key={section.id}
                           onClick={() => scrollToSection(section.id)}
                           className={`w-full text-left text-xs sm:text-sm py-2 px-3 rounded-xl transition-all duration-200 flex items-center gap-2 ${
                             activeSection === section.id
-                              ? "bg-cyan-500/15 text-cyan-300 font-semibold border border-cyan-500/30"
-                              : "text-slate-400 hover:bg-white/5 hover:text-white"
+                              ? "bg-cyan-50 text-cyan-900 font-bold border border-cyan-200 shadow-sm"
+                              : "text-slate-700 hover:bg-slate-50 hover:text-cyan-950"
                           }`}
                         >
-                          <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />
+                          <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-cyan-600" />
                           <span className="line-clamp-1">{section.title}</span>
                         </button>
                       ))}
@@ -104,22 +102,22 @@ export default function TermosPage() {
             <div className="lg:col-span-3 space-y-8">
               {/* Aceitação */}
               <section id="aceitacao">
-                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
+                <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
                   <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-cyan-300 mb-4">1. Aceitação dos Termos</h2>
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Ao acessar e utilizar a plataforma <strong className="text-cyan-300">MediAI</strong>, você 
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-cyan-950 mb-4">1. Aceitação dos Termos</h2>
+                    <p className="text-slate-700 leading-relaxed">
+                      Ao acessar e utilizar a plataforma <strong className="text-cyan-950">MediAI</strong>, você 
                       (&quot;Usuário&quot;, &quot;você&quot;) concorda em ficar vinculado a estes Termos de Uso e à nossa Política de Privacidade.
                     </p>
-                    <p className="text-blue-100/80 leading-relaxed">
+                    <p className="text-slate-700 leading-relaxed">
                       Se você não concordar com qualquer parte destes termos, não utilize nossa plataforma.
                     </p>
-                    <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6 mt-6">
-                      <p className="text-orange-300 font-semibold mb-2 flex items-center gap-2">
-                        <AlertTriangle className="h-5 w-5" />
+                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mt-6">
+                      <p className="text-amber-950 font-bold mb-2 flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5 text-amber-600" />
                         LEIA COM ATENÇÃO
                       </p>
-                      <p className="text-blue-200/70">
+                      <p className="text-slate-700 text-sm sm:text-base leading-relaxed">
                         Ao criar uma conta ou usar nossos serviços, você confirma que leu, compreendeu e concordou com estes 
                         Termos de Uso e com nossa Política de Privacidade.
                       </p>
@@ -130,28 +128,28 @@ export default function TermosPage() {
 
               {/* Definições */}
               <section id="definicoes">
-                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
+                <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
                   <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-cyan-300 mb-4">2. Definições</h2>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-cyan-950 mb-4">2. Definições</h2>
                     <div className="space-y-3">
-                      <div className="bg-cyan-500/10 border-l-4 border-cyan-500 p-4 rounded-r-lg">
-                        <p className="text-blue-100/80">
-                          <strong className="text-cyan-300">Plataforma:</strong> Sistema online MediAI acessível via web e aplicativos.
+                      <div className="bg-slate-50 border-l-4 border-cyan-500 p-4 rounded-r-xl border border-slate-200">
+                        <p className="text-slate-700">
+                          <strong className="text-cyan-950 font-bold">Plataforma:</strong> Sistema online MediAI acessível via web e aplicativos.
                         </p>
                       </div>
-                      <div className="bg-purple-500/10 border-l-4 border-purple-500 p-4 rounded-r-lg">
-                        <p className="text-blue-100/80">
-                          <strong className="text-purple-300">Serviços:</strong> Análise de exames por IA, consultas virtuais, monitoramento de saúde e demais funcionalidades oferecidas.
+                      <div className="bg-slate-50 border-l-4 border-cyan-500 p-4 rounded-r-xl border border-slate-200">
+                        <p className="text-slate-700">
+                          <strong className="text-cyan-950 font-bold">Serviços:</strong> Análise de exames por IA, teleconsultas virtuais, monitoramento de saúde e acompanhamento médico.
                         </p>
                       </div>
-                      <div className="bg-emerald-500/10 border-l-4 border-emerald-500 p-4 rounded-r-lg">
-                        <p className="text-blue-100/80">
-                          <strong className="text-emerald-300">IA Médica:</strong> Sistemas de inteligência artificial especializados em análise médica (não substitui médicos reais).
+                      <div className="bg-slate-50 border-l-4 border-cyan-500 p-4 rounded-r-xl border border-slate-200">
+                        <p className="text-slate-700">
+                          <strong className="text-cyan-950 font-bold">IA Médica:</strong> Sistemas de inteligência artificial especializados em análise médica como copiloto (não substituem consultas médicas presenciais).
                         </p>
                       </div>
-                      <div className="bg-orange-500/10 border-l-4 border-orange-500 p-4 rounded-r-lg">
-                        <p className="text-blue-100/80">
-                          <strong className="text-orange-300">Usuário:</strong> Pessoa física que utiliza a Plataforma (paciente, médico ou administrador).
+                      <div className="bg-slate-50 border-l-4 border-cyan-500 p-4 rounded-r-xl border border-slate-200">
+                        <p className="text-slate-700">
+                          <strong className="text-cyan-950 font-bold">Usuário:</strong> Pessoa física ou jurídica que utiliza a Plataforma (paciente, médico ou parceiro institucional).
                         </p>
                       </div>
                     </div>
@@ -161,130 +159,99 @@ export default function TermosPage() {
 
               {/* Descrição dos Serviços */}
               <section id="descricao-servicos">
-                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
+                <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
                   <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-cyan-300 mb-4">3. Descrição dos Serviços</h2>
-                    <p className="text-blue-100/80 leading-relaxed">
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-cyan-950 mb-4">3. Descrição dos Serviços</h2>
+                    <p className="text-slate-700 leading-relaxed">
                       A MediAI é uma plataforma de saúde assistida por inteligência artificial que oferece:
                     </p>
-                    <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                      <li><strong className="text-cyan-300">Análise de Exames por IA:</strong> Upload de exames médicos analisados por 15 especialistas virtuais (cardiologia, neurologia, dermatologia, etc.)</li>
-                      <li><strong className="text-purple-300">Consultas Virtuais ao Vivo:</strong> Conversas por voz e vídeo com assistentes médicos de IA e médicos reais credenciados</li>
-                      <li><strong className="text-emerald-300">Diagnósticos Preliminares:</strong> Avaliações iniciais baseadas em IA para triagem e orientação</li>
-                      <li><strong className="text-orange-300">Monitoramento de Saúde:</strong> Acompanhamento contínuo de sinais vitais e indicadores de saúde</li>
-                      <li><strong className="text-pink-300">Planos de Bem-Estar:</strong> Recomendações personalizadas de nutrição, exercícios e lifestyle</li>
-                      <li><strong className="text-blue-300">Histórico Médico Digital:</strong> Armazenamento seguro e organizado de exames e consultas</li>
+                    <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4">
+                      <li><strong className="text-cyan-950">Análise de Exames por IA:</strong> Upload de laudos e exames analisados por 25+ especialistas virtuais.</li>
+                      <li><strong className="text-cyan-950">Consultas Virtuais ao Vivo:</strong> Atendimento com assistente Dra. Sofia e médicos reais credenciados no CRM.</li>
+                      <li><strong className="text-cyan-950">Diagnósticos Preliminares:</strong> Triagem e orientações médicas iniciais em 30 segundos.</li>
+                      <li><strong className="text-cyan-950">Monitoramento e Histórico:</strong> Armazenamento estruturado e seguro de exames em nuvem com conformidade LGPD.</li>
+                      <li><strong className="text-cyan-950">Podcast de Saúde:</strong> Síntese sonora em linguagem simples sobre a evolução clínica do paciente.</li>
                     </ul>
                   </CardContent>
                 </Card>
               </section>
 
-              {/* Disclaimers Médicos - SEÇÃO CRÍTICA */}
+              {/* Disclaimers Médicos - SEÇÃO CRÍTICA (ALTO CONTRASTE CLARO) */}
               <section id="disclaimers-medicos">
-                <Card className="bg-gradient-to-br from-red-900/30 to-orange-900/30 backdrop-blur-xl border-red-500/40 shadow-2xl shadow-red-500/20">
-                  <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-red-300 mb-4 flex items-center gap-3">
-                      <AlertTriangle className="h-8 w-8" />
+                <Card className="bg-rose-50/70 border-2 border-rose-200 rounded-3xl shadow-md">
+                  <CardContent className="p-8 space-y-6">
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-rose-950 flex items-center gap-3">
+                      <AlertTriangle className="h-8 w-8 text-rose-600 shrink-0" />
                       4. Disclaimers Médicos Importantes
                     </h2>
 
-                    <div className="bg-red-500/20 border-2 border-red-500/50 rounded-xl p-6 mb-6">
-                      <p className="text-red-200 font-bold text-lg mb-3">
+                    <div className="bg-white border-2 border-rose-300 rounded-2xl p-6 shadow-sm">
+                      <p className="text-rose-950 font-extrabold text-lg mb-2">
                         ⚠️ AVISO CRÍTICO: LEIA COM ATENÇÃO
                       </p>
-                      <p className="text-red-100/90 leading-relaxed">
+                      <p className="text-slate-800 font-medium leading-relaxed">
                         A INTELIGÊNCIA ARTIFICIAL DA MEDIAI NÃO SUBSTITUI, EM NENHUMA HIPÓTESE, A AVALIAÇÃO, 
-                        DIAGNÓSTICO E TRATAMENTO POR MÉDICOS REAIS DEVIDAMENTE LICENCIADOS.
+                        DIAGNÓSTICO E TRATAMENTO POR MÉDICOS REAIS DEVIDAMENTE LICENCIADOS NO CRM.
                       </p>
                     </div>
 
-                    <h3 className="text-xl font-semibold text-orange-300 mt-6">4.1. Limitações da IA Médica</h3>
+                    <h3 className="text-xl font-bold text-rose-950">4.1. Limitações da IA Médica</h3>
                     <div className="space-y-3">
-                      <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
-                        <p className="text-blue-100/80 leading-relaxed">
-                          <strong className="text-orange-300">Ferramenta de Triagem:</strong> Nossa IA é uma ferramenta de 
-                          <strong> triagem, segunda opinião e apoio diagnóstico</strong>, não um diagnóstico médico definitivo.
+                      <div className="bg-white border border-rose-200 rounded-2xl p-4">
+                        <p className="text-slate-700 leading-relaxed">
+                          <strong className="text-rose-950 font-bold">Ferramenta de Triagem:</strong> Nossa IA é uma ferramenta de 
+                          <strong> triagem, segunda opinião e apoio diagnóstico</strong>, não constituindo um diagnóstico médico final definitivo.
                         </p>
                       </div>
-                      <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
-                        <p className="text-blue-100/80 leading-relaxed">
-                          <strong className="text-red-300">Não é Substituto de Médico:</strong> A IA não pode e não deve 
-                          substituir consultas presenciais, exames físicos ou avaliação clínica por profissionais de saúde.
-                        </p>
-                      </div>
-                      <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
-                        <p className="text-blue-100/80 leading-relaxed">
-                          <strong className="text-orange-300">Limitações Tecnológicas:</strong> Sistemas de IA podem cometer 
-                          erros, ter vieses ou não detectar condições complexas. Precisão não é garantida em 100% dos casos.
+                      <div className="bg-white border border-rose-200 rounded-2xl p-4">
+                        <p className="text-slate-700 leading-relaxed">
+                          <strong className="text-rose-950 font-bold">Não é Substituto de Médico:</strong> A tecnologia não substitui exames físicos, consultas presenciais ou o julgamento clínico individualizado.
                         </p>
                       </div>
                     </div>
 
-                    <h3 className="text-xl font-semibold text-orange-300 mt-6">4.2. Responsabilidade do Paciente</h3>
-                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6">
-                      <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                        <li>Sempre consulte um médico real para diagnósticos definitivos e tratamentos</li>
-                        <li>Não tome decisões médicas importantes baseando-se exclusivamente em resultados da IA</li>
-                        <li>Em caso de emergência médica, procure imediatamente atendimento presencial (UPA, pronto-socorro)</li>
-                        <li>Continue seguindo recomendações do seu médico pessoal, mesmo que difiram da IA</li>
-                        <li>Informe seu médico sobre análises e recomendações recebidas da MediAI</li>
-                      </ul>
-                    </div>
-
-                    <h3 className="text-xl font-semibold text-orange-300 mt-6">4.3. Emergências Médicas</h3>
-                    <div className="bg-red-500/20 border-2 border-red-500/50 rounded-xl p-6">
-                      <p className="text-red-200 font-bold mb-2">
+                    <h3 className="text-xl font-bold text-rose-950">4.2. Emergências Médicas</h3>
+                    <div className="bg-red-600 text-white rounded-2xl p-6 shadow-lg space-y-3">
+                      <p className="font-extrabold text-lg flex items-center gap-2">
+                        <PhoneCall className="h-5 w-5 shrink-0" />
                         🚨 A MEDIAI NÃO É UM SERVIÇO DE EMERGÊNCIA
                       </p>
-                      <p className="text-red-100/90 leading-relaxed mb-4">
-                        Em caso de emergência médica (dor no peito, dificuldade respiratória grave, sangramento intenso, 
-                        perda de consciência, etc.), ligue imediatamente para:
+                      <p className="text-red-100 text-sm sm:text-base leading-relaxed">
+                        Em caso de sintomas agudos e graves (dor torácica, falta de ar severa, sangramento intenso, perda de consciência), procure atendimento médico imediato ou acione:
                       </p>
-                      <div className="bg-red-600/30 rounded-lg p-4">
-                        <p className="text-white font-bold text-xl text-center">
-                          SAMU: 192 | Bombeiros: 193 | Emergência: 911
-                        </p>
+                      <div className="bg-red-800/80 rounded-xl p-3 text-center font-bold text-lg sm:text-xl">
+                        SAMU: 192 | Bombeiros: 193 | Emergência: 190
                       </div>
                     </div>
-
-                    <h3 className="text-xl font-semibold text-orange-300 mt-6">4.4. Conformidade Médica</h3>
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Médicos que utilizam a plataforma são responsáveis por suas próprias decisões clínicas e devem 
-                      estar devidamente licenciados pelo Conselho Regional de Medicina (CRM). A MediAI não interfere 
-                      na relação médico-paciente.
-                    </p>
                   </CardContent>
                 </Card>
               </section>
 
               {/* Cadastro */}
               <section id="cadastro">
-                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
+                <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
                   <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-cyan-300 mb-4">5. Cadastro e Conta</h2>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-cyan-950 mb-4">5. Cadastro e Conta</h2>
 
-                    <h3 className="text-xl font-semibold text-purple-300">5.1. Requisitos de Cadastro</h3>
-                    <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                      <li>Você deve ter pelo menos 18 anos ou consentimento de responsável legal</li>
-                      <li>Fornecer informações verdadeiras, precisas e completas</li>
-                      <li>Manter seus dados cadastrais atualizados</li>
-                      <li>Aceitar nossa Política de Privacidade e conformidade com LGPD</li>
+                    <h3 className="text-xl font-bold text-cyan-900">5.1. Requisitos de Cadastro</h3>
+                    <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4">
+                      <li>Você deve ter pelo menos 18 anos ou estar representado por responsável legal</li>
+                      <li>Fornecer dados cadastrais verídicos, exatos e atualizados</li>
+                      <li>Aceitar nossa Política de Privacidade e concordar com a LGPD</li>
                     </ul>
 
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">5.2. Segurança da Conta</h3>
-                    <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6">
-                      <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                        <li>Você é responsável por manter a confidencialidade de suas credenciais</li>
-                        <li>Não compartilhe sua senha com terceiros</li>
-                        <li>Notifique-nos imediatamente sobre qualquer uso não autorizado</li>
-                        <li>Recomendamos ativar autenticação de dois fatores (2FA)</li>
+                    <h3 className="text-xl font-bold text-cyan-900 mt-6">5.2. Segurança da Conta</h3>
+                    <div className="bg-cyan-50/70 border border-cyan-200 rounded-2xl p-6">
+                      <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4 text-sm sm:text-base">
+                        <li>Você é responsável por manter a confidencialidade de sua senha</li>
+                        <li>Não compartilhe suas credenciais com terceiros</li>
+                        <li>Notifique nosso suporte imediatamente ao suspeitar de acesso indevido</li>
                       </ul>
                     </div>
 
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">5.3. Conta de Médicos</h3>
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Médicos devem fornecer número de CRM válido e documentação comprobatória. Reservamo-nos o direito 
-                      de verificar credenciais antes de aprovar contas profissionais.
+                    <h3 className="text-xl font-bold text-cyan-900 mt-6">5.3. Contas Médicas (CRM)</h3>
+                    <p className="text-slate-700 leading-relaxed">
+                      Médicos devem apresentar CRM ativo e regular no estado de atuação. A MediAI valida credenciais antes de liberar o painel médico.
                     </p>
                   </CardContent>
                 </Card>
@@ -292,35 +259,24 @@ export default function TermosPage() {
 
               {/* Responsabilidades do Usuário */}
               <section id="responsabilidades-usuario">
-                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
+                <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
                   <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-cyan-300 mb-4">6. Responsabilidades do Usuário</h2>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-cyan-950 mb-4">6. Responsabilidades do Usuário</h2>
 
-                    <h3 className="text-xl font-semibold text-purple-300">6.1. Uso Adequado</h3>
-                    <p className="text-blue-100/80 leading-relaxed">Você concorda em:</p>
-                    <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                      <li>Usar a plataforma apenas para fins legais e médicos legítimos</li>
-                      <li>Não tentar burlar sistemas de segurança ou acessar dados de terceiros</li>
-                      <li>Não fazer upload de conteúdo malicioso, ofensivo ou ilegal</li>
-                      <li>Não usar a plataforma para fraudes ou atividades criminosas</li>
-                      <li>Respeitar direitos de propriedade intelectual</li>
+                    <h3 className="text-xl font-bold text-cyan-900">6.1. Uso Adequado</h3>
+                    <p className="text-slate-700 leading-relaxed">Você concorda em:</p>
+                    <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4">
+                      <li>Utilizar os serviços exclusivamente para finalidades lícitas e de cuidado à saúde</li>
+                      <li>Fornecer exames e informações fidedignas para possibilitar análises precisas</li>
+                      <li>Não tentar burlar mecanismos de autenticação e proteção do sistema</li>
                     </ul>
 
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">6.2. Informações Fornecidas</h3>
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Você é responsável pela veracidade e precisão de todas as informações médicas que fornece. 
-                      Informações incorretas podem resultar em análises imprecisas da IA.
-                    </p>
-
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">6.3. Conduta Proibida</h3>
-                    <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6">
-                      <p className="text-blue-100/80 leading-relaxed mb-3">É estritamente proibido:</p>
-                      <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                        <li>Criar contas falsas ou usar identidades de terceiros</li>
-                        <li>Fazer engenharia reversa ou copiar sistemas da plataforma</li>
-                        <li>Realizar scraping ou extração automatizada de dados</li>
-                        <li>Sobrecarregar servidores com requisições excessivas</li>
-                        <li>Revender ou redistribuir serviços sem autorização</li>
+                    <h3 className="text-xl font-bold text-cyan-900 mt-6">6.2. Condutas Proibidas</h3>
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
+                      <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4 text-sm sm:text-base">
+                        <li>Fazer engenharia reversa ou copiar os modelos e algoritmos da plataforma</li>
+                        <li>Realizar extração automatizada de dados (scraping)</li>
+                        <li>Utilizar a plataforma para emissão fraudulenta de documentos médicos</li>
                       </ul>
                     </div>
                   </CardContent>
@@ -329,31 +285,12 @@ export default function TermosPage() {
 
               {/* Responsabilidades da Plataforma */}
               <section id="responsabilidades-plataforma">
-                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
+                <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
                   <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-cyan-300 mb-4">7. Responsabilidades da Plataforma</h2>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-cyan-950 mb-4">7. Responsabilidades da Plataforma</h2>
 
-                    <h3 className="text-xl font-semibold text-purple-300">7.1. Fornecimento de Serviços</h3>
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Nos comprometemos a:
-                    </p>
-                    <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                      <li>Fornecer acesso aos serviços conforme descrito na plataforma</li>
-                      <li>Manter sistemas de segurança e proteção de dados conforme LGPD</li>
-                      <li>Processar análises de IA de forma ética e transparente</li>
-                      <li>Disponibilizar suporte técnico dentro do horário comercial</li>
-                      <li>Notificar sobre alterações significativas nos serviços</li>
-                    </ul>
-
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">7.2. Disponibilidade</h3>
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Buscamos manter a plataforma disponível 24/7, mas não garantimos ausência total de interrupções. 
-                      Podemos realizar manutenções programadas com aviso prévio.
-                    </p>
-
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">7.3. Moderação de Conteúdo</h3>
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Reservamo-nos o direito de remover conteúdo que viole estes termos ou legislação aplicável.
+                    <p className="text-slate-700 leading-relaxed">
+                      Nos comprometemos a manter elevados padrões de segurança e estabilidade, operando em conformidade com as diretrizes do CFM, ANS e LGPD.
                     </p>
                   </CardContent>
                 </Card>
@@ -361,91 +298,47 @@ export default function TermosPage() {
 
               {/* Assinaturas e Pagamentos */}
               <section id="assinaturas">
-                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
+                <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
                   <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-cyan-300 mb-4 flex items-center gap-3">
-                      <CreditCard className="h-8 w-8" />
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-cyan-950 mb-4 flex items-center gap-3">
+                      <CreditCard className="h-8 w-8 text-cyan-600" />
                       8. Assinaturas e Pagamentos
                     </h2>
 
-                    <h3 className="text-xl font-semibold text-purple-300">8.1. Planos e Preços</h3>
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Oferecemos diferentes planos de assinatura (Gratuito, Básico, Premium, Empresarial). 
-                      Preços e recursos podem ser consultados em nossa página de preços.
+                    <h3 className="text-xl font-bold text-cyan-900">8.1. Planos e Preços</h3>
+                    <p className="text-slate-700 leading-relaxed">
+                      Oferecemos planos de teste grátis (5 dias) e assinaturas recorrentes. Todos os preços e funcionalidades estão transparentemente descritos na página de Planos e Preços.
                     </p>
 
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">8.2. Processamento de Pagamentos</h3>
-                    <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6">
-                      <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                        <li>Pagamentos são processados de forma segura por <strong className="text-cyan-300">processadores de pagamento certificados</strong></li>
-                        <li>Não armazenamos informações completas de cartão de crédito</li>
-                        <li>Aceitamos cartões de crédito, débito e outros métodos de pagamento disponíveis</li>
-                        <li>Cobranças são em Reais (BRL)</li>
+                    <h3 className="text-xl font-bold text-cyan-900 mt-6">8.2. Segurança nos Pagamentos</h3>
+                    <div className="bg-cyan-50/70 border border-cyan-200 rounded-2xl p-6">
+                      <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4 text-sm sm:text-base">
+                        <li>Pagamentos criptografados por processadores certificados PCI-DSS</li>
+                        <li>Não armazenamos números completos de cartão em nossos servidores</li>
+                        <li>Cobranças em moeda corrente nacional (BRL)</li>
                       </ul>
                     </div>
-
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">8.3. Cobrança Recorrente</h3>
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Planos pagos são cobrados automaticamente de forma recorrente (mensal ou anual) até cancelamento. 
-                      Você autoriza cobranças automáticas ao se inscrever.
-                    </p>
-
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">8.4. Alterações de Preço</h3>
-                    <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6">
-                      <p className="text-blue-100/80 leading-relaxed">
-                        Podemos alterar preços com aviso prévio de <strong>30 dias</strong>. Alterações não afetam 
-                        ciclos de cobrança já iniciados. Você pode cancelar antes da próxima cobrança se não concordar 
-                        com novos preços.
-                      </p>
-                    </div>
-
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">8.5. Impostos</h3>
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Preços não incluem impostos aplicáveis (ISS, PIS, COFINS, etc.), que serão adicionados conforme 
-                      legislação brasileira.
-                    </p>
                   </CardContent>
                 </Card>
               </section>
 
               {/* Cancelamento e Reembolso */}
               <section id="cancelamento">
-                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
+                <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
                   <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-cyan-300 mb-4">9. Cancelamento e Reembolso</h2>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-cyan-950 mb-4">9. Cancelamento e Reembolso</h2>
 
-                    <h3 className="text-xl font-semibold text-purple-300">9.1. Direito de Arrependimento (CDC)</h3>
-                    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-6">
-                      <p className="text-blue-100/80 leading-relaxed">
-                        Conforme Código de Defesa do Consumidor (Art. 49), você tem direito de cancelar assinatura 
-                        dentro de <strong className="text-emerald-300">7 dias corridos</strong> após contratação, 
-                        com reembolso integral de valores pagos.
+                    <h3 className="text-xl font-bold text-cyan-900">9.1. Direito de Arrependimento (CDC)</h3>
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
+                      <p className="text-emerald-950 font-bold mb-1">Garantia Legal de 7 Dias</p>
+                      <p className="text-slate-700 text-sm sm:text-base leading-relaxed">
+                        Conforme o Art. 49 do Código de Defesa do Consumidor, você possui o direito de cancelar a assinatura em até <strong>7 dias corridos</strong> após a contratação com reembolso integral.
                       </p>
                     </div>
 
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">9.2. Cancelamento Regular</h3>
-                    <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                      <li>Você pode cancelar sua assinatura a qualquer momento através da plataforma</li>
-                      <li>Cancelamento tem efeito ao final do período de cobrança atual</li>
-                      <li>Você mantém acesso aos recursos pagos até o fim do período pago</li>
-                      <li>Não há cobranças adicionais após cancelamento</li>
-                    </ul>
-
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">9.3. Política de Reembolso</h3>
-                    <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6">
-                      <p className="text-blue-100/80 leading-relaxed mb-3">Reembolsos são concedidos nas seguintes situações:</p>
-                      <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                        <li><strong className="text-cyan-300">Direito de arrependimento:</strong> Reembolso integral em até 7 dias</li>
-                        <li><strong className="text-purple-300">Cobrança indevida:</strong> Reembolso integral se comprovada</li>
-                        <li><strong className="text-emerald-300">Indisponibilidade prolongada:</strong> Reembolso proporcional (mais de 48h consecutivas)</li>
-                        <li><strong className="text-orange-300">Cancelamentos regulares:</strong> Sem reembolso de períodos já utilizados</li>
-                      </ul>
-                    </div>
-
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">9.4. Prazo de Reembolso</h3>
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Reembolsos aprovados são processados em até <strong>10 dias úteis</strong> e creditados na 
-                      forma de pagamento original.
+                    <h3 className="text-xl font-bold text-cyan-900 mt-6">9.2. Cancelamento Digital</h3>
+                    <p className="text-slate-700 leading-relaxed">
+                      Você pode cancelar sua renovação a qualquer momento diretamente nas configurações da sua conta, sem cobrança de multas.
                     </p>
                   </CardContent>
                 </Card>
@@ -453,38 +346,12 @@ export default function TermosPage() {
 
               {/* Propriedade Intelectual */}
               <section id="propriedade-intelectual">
-                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
+                <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
                   <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-cyan-300 mb-4">10. Propriedade Intelectual</h2>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-cyan-950 mb-4">10. Propriedade Intelectual</h2>
 
-                    <h3 className="text-xl font-semibold text-purple-300">10.1. Propriedade da MediAI</h3>
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Todos os direitos de propriedade intelectual sobre a plataforma, incluindo mas não limitado a:
-                    </p>
-                    <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                      <li>Software, código-fonte e algoritmos de IA</li>
-                      <li>Design, interface e experiência do usuário</li>
-                      <li>Logotipos, marcas e identidade visual</li>
-                      <li>Conteúdo educacional e materiais informativos</li>
-                      <li>Documentação e tutoriais</li>
-                    </ul>
-                    <p className="text-blue-100/80 leading-relaxed mt-4">
-                      São de propriedade exclusiva da MediAI Tecnologia em Saúde Ltda. ou de seus licenciadores.
-                    </p>
-
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">10.2. Seus Dados</h3>
-                    <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6">
-                      <p className="text-blue-100/80 leading-relaxed">
-                        Você mantém todos os direitos sobre os dados médicos que envia à plataforma. Ao fazer upload, 
-                        você nos concede licença limitada para processar esses dados conforme descrito em nossa 
-                        Política de Privacidade.
-                      </p>
-                    </div>
-
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">10.3. Uso Permitido</h3>
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Concedemos licença não exclusiva, intransferível e revogável para usar a plataforma conforme 
-                      estes termos. Você não pode copiar, modificar, distribuir ou criar trabalhos derivados.
+                    <p className="text-slate-700 leading-relaxed">
+                      Todos os softwares, marcas, modelos de inteligência artificial e interfaces da MediAI são protegidos pelas leis de propriedade intelectual. Você mantém a titularidade integral dos seus exames e dados médicos enviados.
                     </p>
                   </CardContent>
                 </Card>
@@ -492,50 +359,14 @@ export default function TermosPage() {
 
               {/* Limitações de Responsabilidade */}
               <section id="limitacoes">
-                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
+                <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
                   <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-cyan-300 mb-4">11. Limitações de Responsabilidade</h2>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-cyan-950 mb-4">11. Limitações de Responsabilidade</h2>
 
-                    <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6 mb-6">
-                      <p className="text-orange-300 font-semibold mb-2">⚠️ IMPORTANTE</p>
-                      <p className="text-blue-200/70">
-                        Os serviços são fornecidos &quot;como estão&quot; e &quot;conforme disponíveis&quot;, sem garantias de qualquer tipo.
-                      </p>
-                    </div>
-
-                    <h3 className="text-xl font-semibold text-purple-300">11.1. Isenção de Garantias</h3>
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Não garantimos que:
-                    </p>
-                    <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                      <li>Os serviços serão ininterruptos, livres de erros ou 100% precisos</li>
-                      <li>Resultados de IA serão sempre corretos ou completos</li>
-                      <li>Defeitos serão corrigidos imediatamente</li>
-                      <li>A plataforma estará sempre disponível</li>
-                    </ul>
-
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">11.2. Limitação de Danos</h3>
-                    <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6">
-                      <p className="text-blue-100/80 leading-relaxed">
-                        Na extensão máxima permitida por lei, a MediAI não será responsável por:
-                      </p>
-                      <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4 mt-3">
-                        <li>Danos indiretos, incidentais ou consequenciais</li>
-                        <li>Perda de lucros, dados ou oportunidades</li>
-                        <li>Decisões médicas baseadas em resultados da IA</li>
-                        <li>Erros de diagnóstico ou tratamento inadequado</li>
-                        <li>Danos resultantes de uso indevido da plataforma</li>
-                      </ul>
-                      <p className="text-blue-100/80 leading-relaxed mt-4">
-                        Nossa responsabilidade total não excederá o valor pago por você nos últimos 12 meses.
-                      </p>
-                    </div>
-
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">11.3. Decisões Médicas</h3>
-                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6">
-                      <p className="text-blue-100/80 leading-relaxed">
-                        A MediAI não se responsabiliza por decisões médicas tomadas com base em análises de IA. 
-                        Sempre consulte profissionais de saúde licenciados para diagnósticos e tratamentos.
+                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+                      <p className="text-amber-950 font-bold mb-2">Orientações Informativas</p>
+                      <p className="text-slate-700 text-sm sm:text-base leading-relaxed">
+                        A MediAI fornece análises preliminares e tecnológicas de suporte. O usuário deve sempre validar qualquer conduta de saúde com um médico licenciado.
                       </p>
                     </div>
                   </CardContent>
@@ -544,116 +375,57 @@ export default function TermosPage() {
 
               {/* Privacidade */}
               <section id="privacidade">
-                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
+                <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
                   <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-cyan-300 mb-4 flex items-center gap-3">
-                      <Shield className="h-8 w-8" />
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-cyan-950 mb-4 flex items-center gap-3">
+                      <Shield className="h-8 w-8 text-cyan-600" />
                       12. Privacidade e Proteção de Dados
                     </h2>
 
-                    <p className="text-blue-100/80 leading-relaxed">
-                      O tratamento de seus dados pessoais está detalhado em nossa{" "}
-                      <Link href="/privacidade" className="text-cyan-400 hover:text-cyan-300 underline font-semibold">
+                    <p className="text-slate-700 leading-relaxed">
+                      O tratamento de dados pessoais é regulado por nossa{" "}
+                      <Link href="/privacidade" className="text-cyan-700 hover:text-cyan-800 underline font-bold">
                         Política de Privacidade
-                      </Link>, que é parte integrante destes Termos de Uso.
+                      </Link>, elaborada sob rigoroso cumprimento da LGPD.
                     </p>
-
-                    <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6 mt-6">
-                      <h3 className="font-semibold text-cyan-300 mb-3">Conformidade LGPD</h3>
-                      <p className="text-blue-100/80 leading-relaxed mb-3">
-                        Estamos em total conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei 13.709/2018).
-                      </p>
-                      <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                        <li>Você possui direitos sobre seus dados (acesso, correção, exclusão, portabilidade)</li>
-                        <li>Dados médicos são protegidos com segurança adicional</li>
-                        <li>Compartilhamento com terceiros é transparente e limitado</li>
-                        <li>Você pode exercer seus direitos através do DPO: <a href="mailto:dpo@appmediai.com" className="text-cyan-400 hover:text-cyan-300">dpo@appmediai.com</a></li>
-                      </ul>
-                    </div>
                   </CardContent>
                 </Card>
               </section>
 
               {/* Modificações */}
               <section id="modificacoes">
-                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
+                <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
                   <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-cyan-300 mb-4">13. Modificações nos Termos</h2>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-cyan-950 mb-4">13. Modificações nos Termos</h2>
 
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Podemos atualizar estes Termos de Uso periodicamente. Alterações significativas serão notificadas:
+                    <p className="text-slate-700 leading-relaxed">
+                      Estes Termos podem ser atualizados periodicamente. Alterações substanciais serão comunicadas na plataforma e por e-mail com antecedência.
                     </p>
-                    <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                      <li>Por email cadastrado</li>
-                      <li>Através de aviso na plataforma</li>
-                      <li>Com 30 dias de antecedência para alterações materiais</li>
-                    </ul>
-
-                    <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-6 mt-6">
-                      <p className="text-blue-100/80 leading-relaxed">
-                        Uso contínuo após alterações constitui aceitação dos novos termos. Se não concordar, você 
-                        deve cancelar sua conta antes da data de vigência.
-                      </p>
-                    </div>
                   </CardContent>
                 </Card>
               </section>
 
               {/* Rescisão */}
               <section id="rescisao">
-                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
+                <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
                   <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-cyan-300 mb-4">14. Rescisão e Suspensão</h2>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-cyan-950 mb-4">14. Rescisão e Suspensão</h2>
 
-                    <h3 className="text-xl font-semibold text-purple-300">14.1. Suspensão ou Encerramento pela MediAI</h3>
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Podemos suspender ou encerrar sua conta imediatamente, sem aviso prévio, se:
+                    <p className="text-slate-700 leading-relaxed">
+                      Reservamo-nos o direito de suspender contas que violem estes termos, cometam fraudes ou utilizem a plataforma de forma ilícita.
                     </p>
-                    <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                      <li>Você violar estes Termos de Uso</li>
-                      <li>Houver suspeita de fraude ou atividade ilegal</li>
-                      <li>Você fornecer informações falsas</li>
-                      <li>Houver inadimplência de pagamento</li>
-                      <li>Seu uso prejudicar outros usuários ou a plataforma</li>
-                    </ul>
-
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">14.2. Efeitos da Rescisão</h3>
-                    <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6">
-                      <p className="text-blue-100/80 leading-relaxed mb-3">Após rescisão:</p>
-                      <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                        <li>Acesso à plataforma será imediatamente revogado</li>
-                        <li>Dados podem ser retidos conforme Política de Privacidade e legislação</li>
-                        <li>Obrigações de pagamento permanecem para serviços já utilizados</li>
-                        <li>Cláusulas de confidencialidade e propriedade intelectual permanecem em vigor</li>
-                      </ul>
-                    </div>
                   </CardContent>
                 </Card>
               </section>
 
               {/* Lei Aplicável */}
               <section id="lei-aplicavel">
-                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
+                <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
                   <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-cyan-300 mb-4">15. Lei Aplicável e Jurisdição</h2>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-cyan-950 mb-4">15. Lei Aplicável e Jurisdição</h2>
 
-                    <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6">
-                      <p className="text-blue-100/80 leading-relaxed mb-4">
-                        Estes Termos de Uso são regidos pelas leis da <strong className="text-cyan-300">República Federativa do Brasil</strong>, incluindo:
-                      </p>
-                      <ul className="list-disc list-inside space-y-2 text-blue-100/80 ml-4">
-                        <li>Lei Geral de Proteção de Dados (LGPD - Lei 13.709/2018)</li>
-                        <li>Marco Civil da Internet (Lei 12.965/2014)</li>
-                        <li>Código de Defesa do Consumidor (Lei 8.078/1990)</li>
-                        <li>Legislação médica e regulamentações do CFM</li>
-                      </ul>
-                    </div>
-
-                    <h3 className="text-xl font-semibold text-purple-300 mt-6">Foro Competente</h3>
-                    <p className="text-blue-100/80 leading-relaxed">
-                      Fica eleito o foro da Comarca de <strong className="text-cyan-300">Belém, PA</strong>, com 
-                      exclusão de qualquer outro, por mais privilegiado que seja, para dirimir quaisquer dúvidas ou 
-                      controvérsias oriundas destes Termos.
+                    <p className="text-slate-700 leading-relaxed">
+                      Estes Termos de Uso são regidos pela legislação da República Federativa do Brasil. Fica eleito o foro da Comarca de Belém, PA, para dirimir quaisquer litígios oriundos deste contrato.
                     </p>
                   </CardContent>
                 </Card>
@@ -661,53 +433,38 @@ export default function TermosPage() {
 
               {/* Contato */}
               <section id="contato">
-                <Card className="bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl">
-                  <CardContent className="p-8 space-y-4">
-                    <h2 className="text-3xl font-bold text-cyan-300 mb-4">16. Contato</h2>
+                <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
+                  <CardContent className="p-8 space-y-6">
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-cyan-950 mb-2">16. Canal de Atendimento</h2>
 
-                    <p className="text-slate-300 leading-relaxed">
-                      Para dúvidas, sugestões ou solicitações sobre estes Termos de Uso:
-                    </p>
-
-                    <div className="grid md:grid-cols-2 gap-6 mt-6">
-                      <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-2xl p-6">
-                        <h3 className="font-semibold text-cyan-300 mb-4">Contato Geral</h3>
-                        <div className="space-y-2 text-slate-300 text-sm">
-                          <p><strong>Email:</strong> <a href="mailto:contato@appmediai.com" className="text-cyan-400 hover:text-cyan-300">contato@appmediai.com</a></p>
-                          <p><strong>Suporte:</strong> <a href="mailto:suporte@appmediai.com" className="text-cyan-400 hover:text-cyan-300">suporte@appmediai.com</a></p>
-                          <p><strong>Telefone:</strong> (91) 99390-5869</p>
-                        </div>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="bg-cyan-50/70 border border-cyan-200 rounded-2xl p-6 space-y-2 text-slate-700 text-sm">
+                        <h3 className="font-bold text-cyan-950 text-base">Contato Oficial</h3>
+                        <p><strong>E-mail:</strong> <a href="mailto:contato@appmediai.com" className="text-cyan-700 hover:text-cyan-800 font-bold underline">contato@appmediai.com</a></p>
+                        <p><strong>Suporte:</strong> <a href="mailto:suporte@appmediai.com" className="text-cyan-700 hover:text-cyan-800 font-bold underline">suporte@appmediai.com</a></p>
                       </div>
 
-                      <div className="bg-purple-500/10 border border-purple-500/20 rounded-2xl p-6">
-                        <h3 className="font-semibold text-purple-300 mb-4">Dados da Empresa</h3>
-                        <div className="space-y-1 text-slate-300 text-sm">
-                          <p><strong>Razão Social:</strong> MediAI Tecnologia em Saúde Ltda.</p>
-                          <p><strong>CNPJ:</strong> XX.XXX.XXX/0001-XX</p>
-                          <p><strong>Endereço:</strong> Rd. Arthur Bernardes, Pss Novo Continente - nº 34A</p>
-                          <p>Belém - PA</p>
-                        </div>
+                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-2 text-slate-700 text-sm">
+                        <h3 className="font-bold text-cyan-950 text-base">Institucional</h3>
+                        <p><strong>Razão Social:</strong> MediAI Tecnologia em Saúde Ltda.</p>
+                        <p><strong>Endereço:</strong> Rd. Arthur Bernardes, Pss Novo Continente - nº 34A, Belém - PA</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </section>
 
-              {/* Footer Info */}
-              <div className="bg-slate-900/70 border border-white/10 rounded-2xl p-8 text-center backdrop-blur-xl shadow-xl">
-                <p className="text-slate-300 mb-4 leading-relaxed max-w-2xl mx-auto text-sm">
-                  Ao usar a plataforma MediAI, você confirma que leu, compreendeu e concordou com estes Termos de Uso 
-                  e com nossa Política de Privacidade.
+              {/* Action Footer */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm space-y-4">
+                <p className="text-slate-700 leading-relaxed max-w-2xl mx-auto text-sm sm:text-base">
+                  Ao usar a plataforma MediAI, você confirma que leu, compreendeu e concordou com estes Termos de Uso e nossa Política de Privacidade.
                 </p>
-                <p className="text-xs text-slate-500">
-                  Última atualização: {LAST_UPDATED}
-                </p>
-                <div className="flex flex-wrap justify-center gap-4 mt-6">
-                  <Button asChild variant="outline" className="border-white/10 text-slate-200 hover:text-white hover:bg-white/10 bg-slate-900/50 rounded-xl">
+                <div className="flex flex-wrap justify-center gap-4 pt-2">
+                  <Button asChild variant="outline" className="border-2 border-slate-300 text-slate-800 hover:bg-cyan-50 hover:text-cyan-950 hover:border-cyan-400 font-bold bg-white rounded-xl">
                     <Link href="/privacidade">Ver Política de Privacidade</Link>
                   </Button>
-                  <Button asChild className="bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-500 text-white font-semibold shadow-lg shadow-cyan-500/20 border-0 rounded-xl">
-                    <Link href="/contato">Entrar em Contato</Link>
+                  <Button asChild className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold shadow-lg shadow-cyan-500/20 border-0 rounded-xl">
+                    <Link href="/contato">Fale Conosco</Link>
                   </Button>
                 </div>
               </div>
@@ -716,9 +473,10 @@ export default function TermosPage() {
         </div>
       </main>
 
-      <footer className="relative w-full border-t border-white/10 bg-slate-950 py-8">
-        <div className="container px-4 md:px-6 text-center text-sm text-slate-500">
-          <p>&copy; {new Date().getFullYear()} MediAI. Todos os direitos reservados.</p>
+      <footer className="w-full border-t border-slate-200 bg-white py-8">
+        <div className="container px-4 md:px-6 mx-auto text-center text-sm text-slate-500">
+          <p>&copy; {new Date().getFullYear()} MediAI Saúde Inteligente. Todos os direitos reservados.</p>
+          <p className="text-xs text-cyan-800 font-semibold mt-1">Em conformidade com a LGPD e diretrizes do CFM.</p>
         </div>
       </footer>
     </div>

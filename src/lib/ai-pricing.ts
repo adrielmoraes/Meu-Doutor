@@ -74,6 +74,49 @@ export const AI_PRICING = {
       output: { all: 3.00 },
       knowledgeCutoff: '2025-01',
     },
+    // OpenRouter Models
+    'deepseek/deepseek-chat': {
+      name: 'DeepSeek V3 (OpenRouter)',
+      description: 'DeepSeek V3 general intelligence and medical reasoning',
+      input: { all: 0.14 },
+      output: { all: 0.28 },
+      knowledgeCutoff: '2024-12',
+    },
+    'deepseek/deepseek-r1': {
+      name: 'DeepSeek R1 (OpenRouter)',
+      description: 'DeepSeek R1 advanced clinical reasoning model',
+      input: { all: 0.55 },
+      output: { all: 2.19 },
+      knowledgeCutoff: '2024-12',
+    },
+    'anthropic/claude-3.5-sonnet': {
+      name: 'Claude 3.5 Sonnet (OpenRouter)',
+      description: 'Anthropic Claude 3.5 Sonnet for medical documents and clinical nuance',
+      input: { all: 3.00 },
+      output: { all: 15.00 },
+      knowledgeCutoff: '2024-10',
+    },
+    'meta-llama/llama-3.3-70b-instruct': {
+      name: 'Llama 3.3 70B (OpenRouter)',
+      description: 'Meta Llama 3.3 70B open weights via OpenRouter',
+      input: { all: 0.12 },
+      output: { all: 0.30 },
+      knowledgeCutoff: '2024-12',
+    },
+    'openai/gpt-4o': {
+      name: 'GPT-4o (OpenRouter)',
+      description: 'OpenAI GPT-4o multimodal flagship via OpenRouter',
+      input: { all: 2.50 },
+      output: { all: 10.00 },
+      knowledgeCutoff: '2024-10',
+    },
+    'openai/gpt-4o-mini': {
+      name: 'GPT-4o Mini (OpenRouter)',
+      description: 'OpenAI GPT-4o Mini via OpenRouter',
+      input: { all: 0.15 },
+      output: { all: 0.60 },
+      knowledgeCutoff: '2024-10',
+    },
   },
 
   // Image Generation Models (per 1M tokens for text, per image for output)

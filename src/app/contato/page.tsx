@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import Header from "@/components/layout/header";
 import Link from "next/link";
-import { Mail, Phone, MapPin, Send, MessageSquare, Clock } from "lucide-react";
+import { Mail, Phone, MapPin, Send, MessageSquare, Clock, Sparkles, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ContatoPage() {
@@ -44,7 +44,7 @@ export default function ContatoPage() {
       if (response.ok && data.success) {
         toast({
           title: "Mensagem enviada com sucesso!",
-          description: "Entraremos em contato em breve.",
+          description: "Nossa equipe entrará em contato em breve.",
         });
 
         setFormData({
@@ -80,258 +80,215 @@ export default function ContatoPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white">
+    <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden selection:bg-cyan-500 selection:text-white">
       <Header />
       
-      <main className="flex-1">
+      <main className="flex-1 relative overflow-hidden bg-gradient-to-b from-white via-cyan-50/40 to-slate-50">
+        {/* Ambient Glows */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-cyan-200/40 via-blue-100/30 to-transparent rounded-full blur-3xl pointer-events-none -z-10"></div>
+        
         {/* Hero Section */}
-        <section className="relative w-full py-20 md:py-32 overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
-          <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]"></div>
-          
-          <div className="container px-4 md:px-6 relative z-10">
-            <div className="max-w-4xl mx-auto text-center space-y-6">
-              <h1 className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
-                Entre em Contato
+        <section className="relative w-full py-16 md:py-24">
+          <div className="container px-4 md:px-6 relative z-10 mx-auto max-w-6xl">
+            <div className="max-w-4xl mx-auto text-center space-y-4">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-50 border border-cyan-200 shadow-sm">
+                <Sparkles className="h-4 w-4 text-cyan-600" />
+                <span className="text-xs sm:text-sm font-semibold text-cyan-900">Atendimento & Suporte • Estamos Aqui por Você</span>
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-cyan-900 tracking-tight">
+                Fale Conosco
               </h1>
-              <p className="text-xl md:text-2xl text-blue-200/80 leading-relaxed">
-                Estamos aqui para ajudar. Entre em contato conosco.
+              
+              <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                Tire dúvidas, envie sugestões ou solicite suporte. Nossa equipe médica e de tecnologia responderá prontamente.
               </p>
             </div>
           </div>
         </section>
 
         {/* Contact Section */}
-        <section className="relative w-full py-20">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
+        <section className="relative w-full py-10 pb-20">
+          <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+            <div className="grid md:grid-cols-2 gap-8 items-start">
+              
               {/* Contact Form */}
-              <div>
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20 shadow-2xl">
-                  <CardHeader>
-                    <CardTitle className="text-2xl font-bold text-cyan-300 flex items-center gap-3">
-                      <MessageSquare className="h-6 w-6" />
-                      Envie uma Mensagem
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="nome" className="text-blue-100">Nome Completo</Label>
-                        <Input
-                          id="nome"
-                          name="nome"
-                          type="text"
-                          placeholder="Seu nome"
-                          value={formData.nome}
-                          onChange={handleChange}
-                          required
-                          className="bg-slate-900/50 border-cyan-500/30 text-white placeholder:text-blue-300/50 focus:border-cyan-500"
-                        />
-                      </div>
+              <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-xl shadow-slate-900/5 space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-cyan-50 border border-cyan-200 flex items-center justify-center text-cyan-600 shrink-0">
+                    <MessageSquare className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-cyan-950">Envie uma Mensagem</h2>
+                    <p className="text-xs text-slate-500">Respondemos em até 2 horas úteis</p>
+                  </div>
+                </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="email" className="text-blue-100">Email</Label>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          placeholder="seu@email.com"
-                          value={formData.email}
-                          onChange={handleChange}
-                          required
-                          className="bg-slate-900/50 border-cyan-500/30 text-white placeholder:text-blue-300/50 focus:border-cyan-500"
-                        />
-                      </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="nome" className="text-sm font-medium text-slate-700">Nome Completo</Label>
+                    <Input
+                      id="nome"
+                      name="nome"
+                      type="text"
+                      placeholder="Seu nome"
+                      value={formData.nome}
+                      onChange={handleChange}
+                      required
+                      className="bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-cyan-500 rounded-xl"
+                    />
+                  </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="assunto" className="text-blue-100">Assunto</Label>
-                        <Input
-                          id="assunto"
-                          name="assunto"
-                          type="text"
-                          placeholder="Qual é o assunto?"
-                          value={formData.assunto}
-                          onChange={handleChange}
-                          required
-                          className="bg-slate-900/50 border-cyan-500/30 text-white placeholder:text-blue-300/50 focus:border-cyan-500"
-                        />
-                      </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="email" className="text-sm font-medium text-slate-700">E-mail</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-cyan-500 rounded-xl"
+                    />
+                  </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="mensagem" className="text-blue-100">Mensagem</Label>
-                        <Textarea
-                          id="mensagem"
-                          name="mensagem"
-                          placeholder="Escreva sua mensagem aqui..."
-                          value={formData.mensagem}
-                          onChange={handleChange}
-                          required
-                          rows={6}
-                          className="bg-slate-900/50 border-cyan-500/30 text-white placeholder:text-blue-300/50 focus:border-cyan-500 resize-none"
-                        />
-                      </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="assunto" className="text-sm font-medium text-slate-700">Assunto</Label>
+                    <Input
+                      id="assunto"
+                      name="assunto"
+                      type="text"
+                      placeholder="Sobre o que deseja falar?"
+                      value={formData.assunto}
+                      onChange={handleChange}
+                      required
+                      className="bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-cyan-500 rounded-xl"
+                    />
+                  </div>
 
-                      <Button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full h-12 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-cyan-500/30 transition-all duration-300"
-                      >
-                        {loading ? (
-                          "Enviando..."
-                        ) : (
-                          <>
-                            <Send className="h-5 w-5 mr-2" />
-                            Enviar Mensagem
-                          </>
-                        )}
-                      </Button>
-                    </form>
-                  </CardContent>
-                </Card>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="mensagem" className="text-sm font-medium text-slate-700">Mensagem</Label>
+                    <Textarea
+                      id="mensagem"
+                      name="mensagem"
+                      placeholder="Escreva sua dúvida ou mensagem detalhada..."
+                      value={formData.mensagem}
+                      onChange={handleChange}
+                      required
+                      rows={5}
+                      className="bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-cyan-500 resize-none rounded-xl"
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-12 bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-base rounded-xl shadow-lg shadow-cyan-500/20 transition-all duration-300 border-0"
+                  >
+                    {loading ? (
+                      "Enviando..."
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Enviar Mensagem
+                      </>
+                    )}
+                  </Button>
+                </form>
               </div>
 
-              {/* Contact Information */}
-              <div className="space-y-8">
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-purple-500/20 hover:border-purple-500/40 transition-all duration-300">
-                  <CardContent className="p-8">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center flex-shrink-0">
-                        <Mail className="h-6 w-6 text-purple-400" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-purple-300 mb-2">Email</h3>
-                        <p className="text-blue-100/70 mb-2">
-                          Para dúvidas gerais e suporte:
-                        </p>
-                        <a href="mailto:contato@appmediai.com" className="text-cyan-400 hover:text-cyan-300 transition-colors">
-                          contato@appmediai.com
-                        </a>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              {/* Contact Information Cards */}
+              <div className="space-y-5">
+                <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200 shadow-sm flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-cyan-50 border border-cyan-200 flex items-center justify-center text-cyan-600 shrink-0">
+                    <Mail className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-cyan-950 mb-1">E-mail Oficial</h3>
+                    <p className="text-slate-600 text-sm mb-1">Para dúvidas gerais, sugestões e parcerias:</p>
+                    <a href="mailto:contato@appmediai.com" className="text-cyan-600 hover:text-cyan-700 font-semibold text-base transition-colors">
+                      contato@appmediai.com
+                    </a>
+                  </div>
+                </div>
 
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-300">
-                  <CardContent className="p-8">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center flex-shrink-0">
-                        <Phone className="h-6 w-6 text-emerald-400" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-emerald-300 mb-2">Telefone</h3>
-                        <p className="text-blue-100/70 mb-2">
-                          Atendimento de segunda a sexta:
-                        </p>
-                        <a href="tel:+5591993905869" className="text-cyan-400 hover:text-cyan-300 transition-colors text-lg">
-                          (91) 99390-5869
-                        </a>
-                        <p className="text-sm text-blue-200/50 mt-2">
-                          Das 8h às 18h (horário de Brasília)
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200 shadow-sm flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-cyan-50 border border-cyan-200 flex items-center justify-center text-cyan-600 shrink-0">
+                    <Phone className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-cyan-950 mb-1">Telefone & WhatsApp</h3>
+                    <p className="text-slate-600 text-sm mb-1">Atendimento humanizado de seg. a sex.:</p>
+                    <a href="tel:+5591993905869" className="text-cyan-600 hover:text-cyan-700 font-semibold text-base transition-colors">
+                      (91) 99390-5869
+                    </a>
+                    <p className="text-xs text-slate-400 mt-1">Das 8h às 18h (Horário de Brasília)</p>
+                  </div>
+                </div>
 
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-orange-500/20 hover:border-orange-500/40 transition-all duration-300">
-                  <CardContent className="p-8">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center flex-shrink-0">
-                        <MapPin className="h-6 w-6 text-orange-400" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-orange-300 mb-2">Endereço</h3>
-                        <p className="text-blue-100/70 leading-relaxed">
-                          MediAI Tecnologia em Saúde Ltda.<br />
-                          Rd. Arthur Bernardes, Pss Novo Continente - nº 34A<br />
-                          Belém - PA
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20 hover:border-cyan-500/40 transition-all duration-300">
-                  <CardContent className="p-8">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0">
-                        <Clock className="h-6 w-6 text-cyan-400" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-cyan-300 mb-2">Horário de Atendimento</h3>
-                        <div className="space-y-1 text-blue-100/70">
-                          <p>Segunda a Sexta: 8h - 18h</p>
-                          <p>Sábado: 9h - 14h</p>
-                          <p>Domingo: Fechado</p>
-                          <p className="text-cyan-400 mt-3 font-semibold">
-                            Plataforma IA disponível 24/7
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* DPO Contact */}
-        <section className="relative w-full py-20">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-4xl mx-auto">
-              <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl border-cyan-500/20 shadow-2xl">
-                <CardContent className="p-8 md:p-12">
-                  <h2 className="text-3xl font-bold text-cyan-300 mb-6">Encarregado de Proteção de Dados (DPO)</h2>
-                  <p className="text-lg text-blue-100/80 mb-6 leading-relaxed">
-                    Para questões relacionadas à privacidade, proteção de dados pessoais (LGPD), 
-                    exercício de direitos do titular ou reclamações sobre tratamento de dados:
-                  </p>
-                  <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6">
-                    <p className="text-blue-100 mb-2">
-                      <strong className="text-cyan-300">Email do DPO:</strong>{" "}
-                      <a href="mailto:dpo@appmediai.com" className="text-cyan-400 hover:text-cyan-300 transition-colors">
-                        dpo@appmediai.com
-                      </a>
-                    </p>
-                    <p className="text-sm text-blue-200/60 mt-4">
-                      Responderemos solicitações relacionadas à LGPD em até 15 dias úteis.
+                <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200 shadow-sm flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-cyan-50 border border-cyan-200 flex items-center justify-center text-cyan-600 shrink-0">
+                    <Clock className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-cyan-950 mb-1">Disponibilidade da IA</h3>
+                    <p className="text-slate-600 text-sm">
+                      A plataforma inteligente e a assistente virtual Dra. Sofia estão operacionais <strong>24 horas por dia, 7 dias por semana</strong>.
                     </p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+
+                <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200 shadow-sm flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-cyan-50 border border-cyan-200 flex items-center justify-center text-cyan-600 shrink-0">
+                    <MapPin className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-cyan-950 mb-1">Sede Institucional</h3>
+                    <p className="text-slate-600 text-sm leading-relaxed">
+                      MediAI Tecnologia em Saúde Ltda.<br />
+                      Rd. Arthur Bernardes, Pss Novo Continente - nº 34A<br />
+                      Belém - PA, Brasil
+                    </p>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </section>
 
-        {/* FAQ */}
-        <section className="relative w-full py-20">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-3xl md:text-4xl font-bold text-cyan-300 mb-6">
-                Perguntas Frequentes?
-              </h2>
-              <p className="text-lg text-blue-200/70 mb-8">
-                Antes de entrar em contato, confira nossa central de ajuda
+        {/* DPO Section */}
+        <section className="relative w-full py-12 bg-slate-50 border-t border-slate-200">
+          <div className="container px-4 md:px-6 mx-auto max-w-4xl">
+            <div className="bg-white rounded-3xl p-8 md:p-10 border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center gap-3">
+                <Shield className="h-6 w-6 text-cyan-600" />
+                <h2 className="text-2xl font-bold text-cyan-950">
+                  Encarregado de Proteção de Dados (DPO)
+                </h2>
+              </div>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                Para assuntos relacionados à privacidade, tratamento de dados de saúde, exercício de direitos do titular previstos na Lei Geral de Proteção de Dados (LGPD):
               </p>
-              <Button asChild variant="outline" size="lg" className="h-12 border-2 border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/10 font-semibold px-8 rounded-xl">
-                <Link href="/sobre">
-                  Saiba Mais Sobre Nós
-                </Link>
-              </Button>
+              <div className="p-4 rounded-xl bg-cyan-50 border border-cyan-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="text-sm font-semibold text-cyan-950">Canal Direto do DPO:</span>
+                <a href="mailto:dpo@appmediai.com" className="text-sm font-bold text-cyan-700 hover:text-cyan-800">
+                  dpo@appmediai.com
+                </a>
+              </div>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="relative w-full border-t border-cyan-500/20 bg-gradient-to-b from-slate-950 to-black py-8">
-        <div className="container px-4 md:px-6 text-center text-sm text-blue-200/50">
-          <p>&copy; {new Date().getFullYear()} MediAI. Todos os direitos reservados.</p>
-          <p className="mt-2">
-            <Link href="/privacidade" className="hover:text-cyan-300 transition-colors">Política de Privacidade</Link>
-            {" | "}
-            <Link href="/termos" className="hover:text-cyan-300 transition-colors">Termos de Uso</Link>
+      <footer className="w-full border-t border-slate-200 bg-white py-8">
+        <div className="container px-4 md:px-6 mx-auto text-center text-sm text-slate-500 space-y-2">
+          <p>&copy; {new Date().getFullYear()} MediAI Saúde Inteligente. Todos os direitos reservados.</p>
+          <p className="text-xs">
+            <Link href="/privacidade" className="hover:text-cyan-600 transition-colors">Política de Privacidade</Link>
+            {" • "}
+            <Link href="/termos" className="hover:text-cyan-600 transition-colors">Termos de Uso</Link>
           </p>
         </div>
       </footer>

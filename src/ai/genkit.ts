@@ -3,9 +3,16 @@ import { googleAI } from "@genkit-ai/googleai";
 
 const plugins = [];
 
+const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY;
+
 // Configura o provedor Google Gemini se a chave de API estiver definida
-if (process.env.GEMINI_API_KEY) {
-  plugins.push(googleAI({ apiKey: process.env.GEMINI_API_KEY }));
+if (apiKey) {
+  if (!apiKey.startsWith("AIzaSy")) {
+    console.warn(
+      "[Genkit ⚠️ AVISO] A chave em GEMINI_API_KEY não começa com 'AIzaSy'. O Google AI Studio requer uma API Key iniciada por 'AIzaSy' (https://aistudio.google.com/app/apikey).",
+    );
+  }
+  plugins.push(googleAI({ apiKey }));
   console.log("[Genkit] Google AI Plugin enabled.");
 } else {
   console.warn(
@@ -21,6 +28,6 @@ if (plugins.length === 0) {
 
 export const ai = genkit({
   plugins,
-  // Gemini 2.5 Flash - Modelo estável com ótima quota gratuita
-  model: "googleai/gemini-2.5-flash",
+  // Gemini 3.5 Flash - Modelo estável, rápido e de alta capacidade
+  model: "googleai/gemini-3.5-flash",
 });

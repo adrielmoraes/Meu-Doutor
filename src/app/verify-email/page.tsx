@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
@@ -6,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MediAILogo from '@/components/layout/mediai-logo';
+import Link from 'next/link';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -19,8 +19,6 @@ function VerifyEmailContent() {
       const token = searchParams.get('token');
       const type = searchParams.get('type');
 
-      console.log('📧 Iniciando verificação:', { token: token?.substring(0, 10), type });
-
       if (!token || !type) {
         setStatus('error');
         setErrorType('missing_params');
@@ -28,20 +26,16 @@ function VerifyEmailContent() {
       }
 
       try {
-        // Chamar a API de verificação
         const response = await fetch(`/api/verify-email?token=${token}&type=${type}`, {
           method: 'GET',
         });
 
         const data = await response.json();
 
-        console.log('📬 Resposta da API:', data);
-
         if (data.success) {
           setStatus('success');
           setMessage(data.message || 'Email verificado com sucesso!');
           
-          // Redirecionar após 3 segundos
           setTimeout(() => {
             router.push('/login?verified=true');
           }, 3000);
@@ -51,7 +45,7 @@ function VerifyEmailContent() {
           setMessage(data.message || 'Erro ao verificar email');
         }
       } catch (error) {
-        console.error('❌ Erro na verificação:', error);
+        console.error('Erro na verificação:', error);
         setStatus('error');
         setErrorType('network_error');
         setMessage('Erro de conexão. Tente novamente.');
@@ -84,17 +78,19 @@ function VerifyEmailContent() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-900 p-4 selection:bg-cyan-500 selection:text-white">
         <div className="mb-8">
-          <MediAILogo size="lg" />
+          <Link href="/">
+            <MediAILogo size="lg" />
+          </Link>
         </div>
-        <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-2xl text-center">
-          <Loader2 className="w-16 h-16 text-blue-500 animate-spin mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
+        <div className="max-w-md w-full bg-white border border-slate-200 rounded-3xl p-8 shadow-xl shadow-slate-900/5 text-center">
+          <Loader2 className="w-16 h-16 text-cyan-600 animate-spin mx-auto mb-4" />
+          <h2 className="text-2xl font-extrabold text-cyan-900 mb-2">
             Verificando Email...
           </h2>
-          <p className="text-gray-600 dark:text-gray-300">
-            Aguarde enquanto verificamos seu email
+          <p className="text-slate-600 text-sm">
+            Aguarde enquanto autenticamos seu link com segurança.
           </p>
         </div>
       </div>
@@ -103,25 +99,29 @@ function VerifyEmailContent() {
 
   if (status === 'success') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-900 p-4 selection:bg-cyan-500 selection:text-white">
         <div className="mb-8">
-          <MediAILogo size="lg" />
+          <Link href="/">
+            <MediAILogo size="lg" />
+          </Link>
         </div>
-        <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-2xl text-center">
-          <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
+        <div className="max-w-md w-full bg-white border border-slate-200 rounded-3xl p-8 shadow-xl shadow-slate-900/5 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-4 text-emerald-600">
+            <CheckCircle className="w-10 h-10" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+          <h2 className="text-2xl font-extrabold text-cyan-900 mb-2">
             Email Verificado com Sucesso!
           </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
-            {message || 'Seu email foi verificado. Você será redirecionado para o login em alguns segundos...'}
+          <p className="text-slate-600 text-sm mb-6">
+            {message || 'Seu cadastro está confirmado. Redirecionando para o login em instantes...'}
           </p>
           <Button
-            onClick={() => router.push('/login?verified=true')}
-            className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+            asChild
+            className="w-full h-12 bg-cyan-500 hover:bg-cyan-600 text-white font-bold rounded-xl shadow-lg shadow-cyan-500/25 border-0"
           >
-            Ir para Login
+            <Link href="/login?verified=true">
+              Ir para o Login Agora
+            </Link>
           </Button>
         </div>
       </div>
@@ -129,44 +129,53 @@ function VerifyEmailContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-900 p-4 selection:bg-cyan-500 selection:text-white">
       <div className="mb-8">
-        <MediAILogo size="lg" />
+        <Link href="/">
+          <MediAILogo size="lg" />
+        </Link>
       </div>
-      <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-2xl text-center">
-        <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center mx-auto mb-4">
-          <XCircle className="w-10 h-10 text-red-600 dark:text-red-400" />
+      <div className="max-w-md w-full bg-white border border-slate-200 rounded-3xl p-8 shadow-xl shadow-slate-900/5 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center mx-auto mb-4 text-red-600">
+          <XCircle className="w-10 h-10" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+        <h2 className="text-2xl font-extrabold text-cyan-900 mb-2">
           Erro na Verificação
         </h2>
-        <p className="text-gray-600 dark:text-gray-300 mb-6">
+        <p className="text-slate-600 text-sm mb-6 leading-relaxed">
           {getErrorMessage()}
         </p>
         
         {errorType === 'expired' && (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
-            <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mx-auto mb-2" />
-            <p className="text-sm text-yellow-800 dark:text-yellow-300">
-              Faça login novamente para receber um novo email de verificação.
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 text-left">
+            <div className="flex items-center gap-2 mb-1 text-amber-900 font-semibold text-sm">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>Link Expirado</span>
+            </div>
+            <p className="text-xs text-amber-800">
+              Faça login para receber um novo e-mail de verificação atualizado.
             </p>
           </div>
         )}
         
         <div className="space-y-3">
           <Button
-            onClick={() => router.push('/login')}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+            asChild
+            className="w-full h-12 bg-cyan-500 hover:bg-cyan-600 text-white font-bold rounded-xl shadow-lg shadow-cyan-500/25 border-0"
           >
-            Voltar para Login
+            <Link href="/login">
+              Voltar para o Login
+            </Link>
           </Button>
           
           <Button
-            onClick={() => router.push('/')}
+            asChild
             variant="outline"
-            className="w-full"
+            className="w-full h-12 border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl"
           >
-            Voltar para Início
+            <Link href="/">
+              Voltar para a Página Inicial
+            </Link>
           </Button>
         </div>
       </div>
@@ -177,13 +186,13 @@ function VerifyEmailContent() {
 export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-900 p-4">
         <div className="mb-8">
           <MediAILogo size="lg" />
         </div>
-        <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-2xl text-center">
-          <Loader2 className="w-16 h-16 text-blue-500 animate-spin mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
+        <div className="max-w-md w-full bg-white border border-slate-200 rounded-3xl p-8 shadow-xl shadow-slate-900/5 text-center">
+          <Loader2 className="w-16 h-16 text-cyan-600 animate-spin mx-auto mb-4" />
+          <h2 className="text-2xl font-extrabold text-cyan-900 mb-2">
             Carregando...
           </h2>
         </div>
