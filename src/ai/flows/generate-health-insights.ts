@@ -136,14 +136,14 @@ const generateHealthInsightsFlow = ai.defineFlow(
         // Fallback para OpenRouter se o Gemini direto falhar
         if (isOpenRouterConfigured()) {
             try {
-                console.log(`[HealthCoach] 🔄 Tentando gerar insights via OpenRouter (google/gemini-2.5-flash)...`);
+                console.log(`[HealthCoach] 🔄 Tentando gerar insights via OpenRouter (google/gemini-3.5-flash)...`);
                 const renderedPrompt = HEALTH_INSIGHTS_PROMPT_TEMPLATE
                     .replace('{{{patientHistory}}}', input.patientHistory || '')
                     .replace('{{{validatedDiagnosis}}}', input.validatedDiagnosis || '');
 
                 const openRouterRes = await openRouterGenerateStructured<GenerateHealthInsightsOutput>({
                     prompt: renderedPrompt,
-                    model: 'google/gemini-2.5-flash',
+                    model: 'google/gemini-3.5-flash',
                     systemPrompt: 'Você é um assistente de saúde preventiva. Responda exclusivamente em formato JSON com campos preventiveAlerts, healthGoals e coachComment.',
                 });
 

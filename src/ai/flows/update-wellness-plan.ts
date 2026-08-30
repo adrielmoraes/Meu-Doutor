@@ -334,7 +334,7 @@ ${nutritionistAnalysis.recommendations}
     // Se o Gemini falhou ou não retornou output, acionar OpenRouter
     if (!finalOutput && isOpenRouterConfigured()) {
       try {
-        console.log(`[Wellness Plan Update] 🔄 Acionando Fallback para OpenRouter (google/gemini-2.5-flash)...`);
+        console.log(`[Wellness Plan Update] 🔄 Acionando Fallback para OpenRouter (google/gemini-3.5-flash)...`);
         const renderedPrompt = `Você é um especialista em saúde holística e nutrição criando um plano de bem-estar personalizado em português brasileiro.
 
 RELATÓRIO DO NUTRICIONISTA:
@@ -355,7 +355,7 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido.`;
 
         const openRouterRes = await openRouterGenerateStructured<z.infer<typeof GenerateWellnessPlanFromExamsOutputSchema>>({
           prompt: renderedPrompt,
-          model: 'google/gemini-2.5-flash',
+          model: 'google/gemini-3.5-flash',
           systemPrompt: 'Você é um assistente de saúde preventiva avançado. Responda exclusivamente em formato JSON válido.',
         });
 

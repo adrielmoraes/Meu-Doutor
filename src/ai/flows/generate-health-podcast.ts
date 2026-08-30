@@ -568,7 +568,7 @@ Retorne em formato JSON no schema:
                         }>({
                             prompt: fallbackPrompt,
                             systemPrompt: PODCAST_PROMPT_TEMPLATE,
-                            model: process.env.OPENROUTER_DEFAULT_MODEL || "deepseek/deepseek-chat",
+                            model: process.env.OPENROUTER_DEFAULT_MODEL || "google/gemini-3.5-flash",
                         });
 
                         if (openRouterRes.data?.script && openRouterRes.data.script.length >= 5) {

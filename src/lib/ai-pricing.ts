@@ -117,6 +117,13 @@ export const AI_PRICING = {
       output: { all: 0.60 },
       knowledgeCutoff: '2024-10',
     },
+    'google/gemini-3.5-flash': {
+      name: 'Gemini 3.5 Flash (OpenRouter)',
+      description: 'Google Gemini 3.5 Flash via OpenRouter',
+      input: { all: 0.15 },
+      output: { all: 0.60 },
+      knowledgeCutoff: '2025-01',
+    },
   },
 
   // Image Generation Models (per 1M tokens for text, per image for output)

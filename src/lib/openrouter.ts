@@ -98,6 +98,18 @@ export const OPENROUTER_MODELS: Record<string, OpenRouterModelInfo> = {
     supportsVision: true,
     supportsStreaming: true,
   },
+  'google/gemini-3.5-flash': {
+    id: 'google/gemini-3.5-flash',
+    name: 'Gemini 3.5 Flash (OpenRouter)',
+    provider: 'Google via OpenRouter',
+    description: 'Nova geração Gemini 3.5 com raciocínio clínico de ponta e altíssima velocidade.',
+    contextLength: 1000000,
+    inputCostPer1M: 0.15,
+    outputCostPer1M: 0.60,
+    recommendedFor: 'Roteiros de podcasts, planos de bem-estar e consultas médicas',
+    supportsVision: true,
+    supportsStreaming: true,
+  },
   'google/gemini-2.0-flash-001': {
     id: 'google/gemini-2.0-flash-001',
     name: 'Gemini 2.0 Flash (OpenRouter)',
@@ -112,7 +124,7 @@ export const OPENROUTER_MODELS: Record<string, OpenRouterModelInfo> = {
   },
 };
 
-export const DEFAULT_OPENROUTER_MODEL = 'deepseek/deepseek-chat';
+export const DEFAULT_OPENROUTER_MODEL = 'google/gemini-3.5-flash';
 
 /**
  * Checks if OpenRouter is configured with a valid API key

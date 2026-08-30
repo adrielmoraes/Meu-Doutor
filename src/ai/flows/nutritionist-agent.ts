@@ -142,14 +142,14 @@ async function executeWithRetry(
     // Fallback para OpenRouter se o Gemini direto falhar
     if (isOpenRouterConfigured()) {
         try {
-            console.log(`[Nutritionist Agent] 🔄 Tentando via OpenRouter (google/gemini-2.5-flash)...`);
+            console.log(`[Nutritionist Agent] 🔄 Tentando via OpenRouter (google/gemini-3.5-flash)...`);
             const renderedPrompt = NUTRITIONIST_PROMPT
                 .replace('{{examResults}}', input.examResults || '')
                 .replace('{{patientHistory}}', input.patientHistory || '');
 
             const openRouterRes = await openRouterGenerateStructured<SpecialistAgentOutput>({
                 prompt: renderedPrompt,
-                model: 'google/gemini-2.5-flash',
+                model: 'google/gemini-3.5-flash',
                 systemPrompt: 'Você é a Dra. Laura Mendes, nutricionista clínica. Responda exclusivamente em formato JSON válido sem markdown.',
             });
 
