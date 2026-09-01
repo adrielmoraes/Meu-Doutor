@@ -2,7 +2,7 @@ import { getPatientById } from "@/lib/db-adapter";
 import { notFound, redirect } from "next/navigation";
 import WellnessReminders from "@/components/patient/wellness-reminders";
 import {
-    FileText, Dumbbell, BrainCircuit, HeartPulse, AlertTriangle, Sparkles,
+    FileText, Dumbbell, BrainCircuit, AlertTriangle, Sparkles,
     Calendar, ChefHat, Apple, Target, Zap, Brain, Activity, Heart, Info, ChevronDown
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import RegenerateWellnessPlanButton from "@/components/patient/regenerate-wellne
 import WeeklyTasksSection from "@/components/patient/weekly-tasks-section";
 import WellnessMarkdownContent from "@/components/patient/wellness-markdown-content";
 import WellnessReminderToasts from "@/components/patient/wellness-reminder-toasts";
+import MediAILogo from "@/components/layout/mediai-logo";
 
 
 // --- INTERNAL COMPONENTS (To avoid new files) ---
@@ -184,11 +185,11 @@ export default async function WellnessPlanPage() {
         return (
             <div className="container mx-auto p-4 sm:p-6 lg:p-8">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                        <HeartPulse className="h-8 w-8 text-primary/60 dark:text-primary" />
-                        Meu Plano de Bem-Estar Personalizado
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                        <MediAILogo size="sm" showText={false} className="shrink-0" />
+                        <span>Meu Plano de Bem-Estar Personalizado</span>
                     </h1>
-                    <p className="text-black dark:text-muted-foreground mt-2">
+                    <p className="text-slate-600 dark:text-slate-400 mt-1.5 text-sm sm:text-base font-normal">
                         Gerado pela IA Nutricionista para ajudar você a alcançar seus objetivos de saúde.
                     </p>
                 </div>
@@ -284,17 +285,17 @@ export default async function WellnessPlanPage() {
     return (
         <div className="container mx-auto p-4 sm:p-6 lg:p-8">
             <div className="mb-8">
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                            <HeartPulse className="h-8 w-8 text-primary/60 dark:text-primary" />
-                            Meu Plano de Bem-Estar Personalizado
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                            <MediAILogo size="sm" showText={false} className="shrink-0" />
+                            <span>Meu Plano de Bem-Estar Personalizado</span>
                         </h1>
-                        <p className="text-black dark:text-muted-foreground mt-2">
+                        <p className="text-slate-600 dark:text-slate-400 mt-1.5 text-sm sm:text-base font-normal">
                             Gerado pela IA Nutricionista com base nos seus exames
                         </p>
-                        <div className="flex items-center gap-2 mt-3 text-sm text-black dark:text-muted-foreground">
-                            <Calendar className="h-4 w-4" />
+                        <div className="flex items-center gap-2 mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
+                            <Calendar className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                             <span>Última atualização: {lastUpdated}</span>
                         </div>
                     </div>
