@@ -38,7 +38,13 @@ except ImportError:
 from tenacity import (retry, stop_after_attempt, wait_exponential,
                       retry_if_exception_type, before_sleep_log)
 
-load_dotenv(dotenv_path=Path(__file__).parent / '.env')
+# Load environment variables: check local .env first, then parent project root .env
+agent_env = Path(__file__).parent / '.env'
+root_env = Path(__file__).parent.parent / '.env'
+if agent_env.exists():
+    load_dotenv(dotenv_path=agent_env)
+if root_env.exists():
+    load_dotenv(dotenv_path=root_env, override=False)
 
 # Fail-fast validation: Check critical environment variables before starting
 # Note: Only GEMINI_API_KEY is truly required; DATABASE_URL is optional (agent can run without metrics)

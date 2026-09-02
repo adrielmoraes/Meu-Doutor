@@ -7,8 +7,17 @@ MediAI LiveKit Agent - Launcher
 import os
 import subprocess
 import sys
+from pathlib import Path
+from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables: check local .env first, then parent project root .env
+agent_env = Path(__file__).parent / '.env'
+root_env = Path(__file__).parent.parent / '.env'
+if agent_env.exists():
+    load_dotenv(dotenv_path=agent_env)
+if root_env.exists():
+    load_dotenv(dotenv_path=root_env, override=False)
+
 LIVEKIT_URL = os.getenv('LIVEKIT_URL', 'wss://mediai-livikit-gmavbnbs.livekit.cloud')
 LIVEKIT_API_KEY = os.getenv('LIVEKIT_API_KEY')
 LIVEKIT_API_SECRET = os.getenv('LIVEKIT_API_SECRET')
