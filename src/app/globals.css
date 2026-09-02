@@ -64,10 +64,10 @@
     --sidebar-border: 214 32% 91%;
     --sidebar-ring: 188 86% 40%;
 
-    /* Logo Gradient Colors */
-    --logo-gradient-start: #06b6d4;
-    --logo-gradient-middle: #0284c7;
-    --logo-gradient-end: #0369a1;
+    /* Logo Gradient Colors - Original Pink/Magenta */
+    --logo-gradient-start: #f774c0;
+    --logo-gradient-middle: #e85fb8;
+    --logo-gradient-end: #d94aaf;
   }
 
   .dark { /* Enhanced dark theme with better colors and contrast */
